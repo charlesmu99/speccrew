@@ -135,7 +135,7 @@ graph LR
 # macOS / Linux / WSL - Instalar desde GitHub
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
 
-# macOS / Linux / WSL - Instalar desde Gitee (espejo de China)
+# macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
 curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
 ```
 
@@ -143,7 +143,7 @@ curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
 # Windows - Instalar desde GitHub
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
 
-# Windows - Instalar desde Gitee (espejo de China)
+# Windows - Instalar desde Gitee (Espejo de China)
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
 ```
 
