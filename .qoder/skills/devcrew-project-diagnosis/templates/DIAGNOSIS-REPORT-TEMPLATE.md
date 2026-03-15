@@ -1,114 +1,114 @@
-# 项目诊断报告
+# Project Diagnosis Report
 
-生成时间：{{生成时间}}
+Generated At: {{GeneratedAt}}
 
-## 1. 项目基本信息
+## 1. Project Basic Information
 
-| 项目 | 内容 |
-|------|------|
-| 项目名称 | {{项目名称}} |
-| 项目类型 | {{Web全栈/纯前端/纯后端/桌面客户端/移动端/命令行工具/混合型}} |
-| 判定依据 | {{判定依据}} |
+| Item | Content |
+|------|---------|
+| Project Name | {{ProjectName}} |
+| Project Type | {{WebFullStack/FrontendOnly/BackendOnly/DesktopClient/Mobile/CLI/Hybrid}} |
+| Determination Basis | {{DeterminationBasis}} |
 
-## 2. 技术栈清单
+## 2. Technology Stack List
 
-### 2.1 运行时与语言
-- 语言：{{语言及版本}}
-- 运行时：{{运行时环境}}
+### 2.1 Runtime & Languages
+- Language: {{LanguageAndVersion}}
+- Runtime: {{RuntimeEnvironment}}
 
-### 2.2 核心框架
-- 前端：{{前端框架及版本}}
-- 后端：{{后端框架及版本}}
-- 数据库：{{数据库类型}}
+### 2.2 Core Frameworks
+- Frontend: {{FrontendFrameworkAndVersion}}
+- Backend: {{BackendFrameworkAndVersion}}
+- Database: {{DatabaseType}}
 
-### 2.3 工具链
-- 构建：{{构建工具}}
-- 包管理：{{包管理器}}
-- 测试：{{测试框架}}
+### 2.3 Toolchain
+- Build: {{BuildTools}}
+- Package Management: {{PackageManager}}
+- Testing: {{TestingFramework}}
 
-## 3. 项目目录结构约定
+## 3. Project Directory Structure Conventions
 
-被诊断项目的源代码目录结构：
+Source code directory structure of the diagnosed project:
 
 ```
-{{项目根目录结构}}
+{{ProjectRootDirectoryStructure}}
 ```
 
-## 4. 开发规范
+## 4. Development Standards
 
-- 代码检查：{{代码检查工具及配置}}
-- 命名风格：{{命名约定}}
-- 提交规范：{{提交规范}}
+- Code Linting: {{LintingToolsAndConfig}}
+- Naming Style: {{NamingConventions}}
+- Commit Standards: {{CommitStandards}}
 
-## 5. 后续工作建议
+## 5. Follow-up Work Recommendations
 
-基于诊断结果，建议创建以下内容：
+Based on diagnosis results, recommend creating the following:
 
-### 5.1 建议生成的 Agent
+### 5.1 Recommended Agents to Generate
 
-根据项目类型 `{{项目类型}}`，建议生成以下 Agent：
+Based on project type `{{ProjectType}}`, recommend generating the following Agents:
 
-| Agent | 职责 |
-|-------|------|
-| devcrew-pm | 产品需求文档撰写 |
-| devcrew-planner | 技术方案规划 |
-| devcrew-designer-[技术栈] | 详细设计（前端/后端按技术栈分） |
-| devcrew-dev-[技术栈] | 开发实现 |
-| devcrew-test-[技术栈] | 测试验证 |
+| Agent | Responsibility |
+|-------|----------------|
+| devcrew-pm | Product requirements document writing |
+| devcrew-planner | Technical solution planning |
+| devcrew-designer-[techstack] | Detailed design (frontend/backend by tech stack) |
+| devcrew-dev-[techstack] | Development implementation |
+| devcrew-test-[techstack] | Testing and validation |
 
-### 5.2 建议创建的 .devcrew-workspace 目录结构
+### 5.2 Recommended .devcrew-workspace Directory Structure
 
-基于项目类型和诊断结果，建议创建以下目录结构：
+Based on project type and diagnosis results, recommend creating the following directory structure:
 
 ```
 .devcrew-workspace/
-├── diagnosis-reports/          # 诊断报告
-│   └── diagnosis-report-{日期}.md
-├── docs/                       # 管理性文档
+├── diagnosis-reports/          # Diagnosis reports
+│   └── diagnosis-report-{date}.md
+├── docs/                       # Management documents
 │   ├── README.md
 │   └── AGENTS.md
-├── knowledge/                  # 项目知识库
+├── knowledge/                  # Project knowledge base
 │   ├── README.md
 │   ├── constitution.md
-│   ├── architecture/           # 架构文档（根据项目类型创建子目录）
-│   │   ├── system/             # 系统整体架构
-│   │   ├── conventions/        # 开发规范
-│   │   {{#if 含前端}}├── frontend/           # 前端架构{{/if}}
-│   │   {{#if 含后端}}├── backend/            # 后端架构{{/if}}
-│   │   {{#if 含数据库}}├── data/               # 数据架构{{/if}}
-│   │   {{#if 桌面客户端}}├── desktop/            # 桌面端架构{{/if}}
-│   │   {{#if 移动端}}└── mobile/             # 移动端架构{{/if}}
-│   ├── bizs/                   # 业务知识（初建空文件夹，内容后续沉淀）
-│   │   ├── modules/            # 业务模块：{{检测到的模块名列表}}
-│   │   └── flows/              # 业务流程：待PM Agent梳理
-│   └── domain/                 # 领域知识（初建空文件夹，内容后续沉淀）
+│   ├── architecture/           # Architecture docs (subdirs by project type)
+│   │   ├── system/             # System overall architecture
+│   │   ├── conventions/        # Development conventions
+│   │   {{#if hasFrontend}}├── frontend/           # Frontend architecture{{/if}}
+│   │   {{#if hasBackend}}├── backend/            # Backend architecture{{/if}}
+│   │   {{#if hasDatabase}}├── data/               # Data architecture{{/if}}
+│   │   {{#if hasDesktop}}├── desktop/            # Desktop architecture{{/if}}
+│   │   {{#if hasMobile}}└── mobile/             # Mobile architecture{{/if}}
+│   ├── bizs/                   # Business knowledge (empty initially, content accumulated later)
+│   │   ├── modules/            # Business modules: {{DetectedModuleNamesList}}
+│   │   └── flows/              # Business flows: To be organized by PM Agent
+│   └── domain/                 # Domain knowledge (empty initially, content accumulated later)
 │       ├── standards/
 │       ├── glossary/
 │       └── qa/
-└── projects/                   # 迭代项目
-    └── archive/                # 归档目录
+└── projects/                   # Iteration projects
+    └── archive/                # Archive directory
 ```
 
-**architecture/ 子目录说明**：
-根据项目类型 `[{{项目类型}}]`，建议创建以下 architecture 子目录：
+**architecture/ Subdirectory Description**:
+Based on project type `[{{ProjectType}}]`, recommend creating the following architecture subdirectories:
 
-| 项目类型 | 建议创建的子目录 |
-|----------|------------------|
-| Web全栈 | system, conventions, frontend, backend, data |
-| 纯前端 | system, conventions, frontend |
-| 纯后端 | system, conventions, backend, data |
-| 桌面客户端 | system, conventions, desktop |
-| 移动端 | system, conventions, mobile |
-| 混合型 | 根据实际包含的端组合创建 |
+| Project Type | Recommended Subdirectories |
+|--------------|----------------------------|
+| Web Full-Stack | system, conventions, frontend, backend, data |
+| Frontend Only | system, conventions, frontend |
+| Backend Only | system, conventions, backend, data |
+| Desktop Client | system, conventions, desktop |
+| Mobile | system, conventions, mobile |
+| Hybrid | Create based on actual included platforms |
 
-**bizs/modules/ 初识线索**：
-从代码结构中检测到的潜在业务模块（仅作为初稿，需PM Agent确认）：
-- {{从路由/目录分析出的模块1}}
-- {{从路由/目录分析出的模块2}}
+**bizs/modules/ Initial Clues**:
+Potential business modules detected from code structure (draft only, to be confirmed by PM Agent):
+- {{Module1FromRoute/DirectoryAnalysis}}
+- {{Module2FromRoute/DirectoryAnalysis}}
 - ...
 
-### 5.3 待深度识别的内容
+### 5.3 Content for Deep Identification
 
-以下需在 Agent 使用过程中逐步沉淀：
-- **业务域**：由 PM Agent 在 PRD 阶段梳理
-- **重复操作模式**：由 Dev Agent 在开发过程中识别并沉淀为 Skill
+The following needs to be gradually accumulated during Agent usage:
+- **Business Domains**: Organized by PM Agent during PRD phase
+- **Repetitive Operation Patterns**: Identified by Dev Agent during development and accumulated as Skills
