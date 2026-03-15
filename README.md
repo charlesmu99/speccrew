@@ -271,8 +271,9 @@ your-project/
 ## 更多信息
 
 - **Agent 知识地图**: [.devcrew-workspace/docs/agent-knowledge-map.md](./.devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/your-org/devcrew
-- **文档**: https://devcrew.dev/docs
+- **GitHub**: https://github.com/charlesmu99/devcrew
+- **Gitee**: https://gitee.com/amutek/devcrew
+- **Qoder IDE**: https://qoder.com/
 
 ---
 

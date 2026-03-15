@@ -238,8 +238,9 @@ your-project/
 ## Más Información
 
 - **Mapa de Conocimiento del Agente**: [.devcrew-workspace/docs/agent-knowledge-map.md](./.devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/your-org/devcrew
-- **Documentación**: https://devcrew.dev/docs
+- **GitHub**: https://github.com/charlesmu99/devcrew
+- **Gitee**: https://gitee.com/amutek/devcrew
+- **Qoder IDE**: https://qoder.com/
 
 ---
 

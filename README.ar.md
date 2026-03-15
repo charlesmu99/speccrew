@@ -238,8 +238,9 @@ your-project/
 ## مزيد من المعلومات
 
 - **خريطة معرفة الوكيل**: [.devcrew-workspace/docs/agent-knowledge-map.md](./.devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/your-org/devcrew
-- **التوثيق**: https://devcrew.dev/docs
+- **GitHub**: https://github.com/charlesmu99/devcrew
+- **Gitee**: https://gitee.com/amutek/devcrew
+- **Qoder IDE**: https://qoder.com/
 
 ---
 
