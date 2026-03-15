@@ -21,9 +21,12 @@ Based on the diagnosis report in `.devcrew-workspace/diagnosis-reports/`, genera
 
 This Skill directory contains the following predefined files:
 
-**Generic Agent Templates** (`templates/agents/`, applicable to all project types):
-- [templates/agents/pm-agent.md](templates/agents/pm-agent.md): Product Manager Agent
-- [templates/agents/solution-agent.md](templates/agents/solution-agent.md): Solution Planning Agent
+**Agent Templates** (`templates/agents/`, used for creating tech-stack-specific Agents):
+- [templates/agents/designer-agent.md](templates/agents/designer-agent.md): Detailed Design Agent template
+- [templates/agents/dev-agent.md](templates/agents/dev-agent.md): Development Agent template
+- [templates/agents/test-agent.md](templates/agents/test-agent.md): Testing Agent template
+
+**Note**: Use these templates to create Agents by replacing `[techstack]` placeholder with actual technology stack from diagnosis report.
 
 **Deliverable Document Templates**:
 - Reference template files in `devcrew-project-init` Skill:
@@ -44,45 +47,43 @@ Before execution, confirm the following has been obtained from the latest diagno
 
 ### Step 1: Check Existing Files
 
-Scan `.qoder/agents/` and `.qoder/skills/` directories, record existing files, skip these files in subsequent steps (no overwrite).
+Scan `.qoder/agents/` and `.qoder/skills/` directories, record existing files. For existing Agent files, they will be updated (not overwritten) based on latest diagnosis report in subsequent steps.
 
-### Step 2: Copy Generic Agents to Project
+### Step 2: Generate Tech-Stack-Specific Agents
 
-Copy generic Agent definition files from `templates/agents/` to `.qoder/agents/` (skip if already exists):
+Read the **Recommended Agents to Generate** section from diagnosis report, create or update tech-stack-specific Agents in `.qoder/agents/`:
 
-- `templates/agents/pm-agent.md` → `.qoder/agents/pm-agent.md`
-- `templates/agents/solution-agent.md` → `.qoder/agents/solution-agent.md`
+- `devcrew-designer-[techstack]` (e.g., devcrew-designer-react, devcrew-designer-fastapi) - use `templates/agents/designer-agent.md`
+- `devcrew-dev-[techstack]` (e.g., devcrew-dev-nextjs, devcrew-dev-springboot) - use `templates/agents/dev-agent.md`
+- `devcrew-test-[techstack]` (e.g., devcrew-test-playwright, devcrew-test-junit) - use `templates/agents/test-agent.md`
 
-### Step 3: Generate Project-Specific Agents
+**Template Usage**:
+- **If Agent does not exist**: Copy template, replace `[techstack]` placeholder with actual technology stack name from diagnosis report, embed project-specific information
+- **If Agent already exists**: Read existing Agent file, update technology stack info, directory paths, commands, and standards based on latest diagnosis report (preserve existing workflow logic)
 
-Based on project type, generate project-specific design/dev/test Agents in `.qoder/agents/` (skip if already exists):
-
-| Project Type | Agents to Generate |
-|--------------|-------------------|
-| Web Full-Stack | frontend-design, backend-design, frontend-dev, backend-dev, frontend-test, backend-test |
-| Frontend Only | frontend-design, frontend-dev, frontend-test |
-| Backend/Service | backend-design, backend-dev, backend-test |
-| Desktop Client | client-design, client-dev, client-test |
-| Mobile | mobile-design, mobile-dev, mobile-test |
-| Hybrid | Generate based on included subtypes combination |
+**Note**: Generic agents (pm-agent, solution-agent) are created during project initialization, not here.
 
 **Each Agent file must embed project actual information:**
-- Actual technology stack name and version
-- Actual directory paths (obtained from diagnosis, no guessing)
-- Actual run/debug commands
-- Actual code standard requirements
+- Actual technology stack name and version (from diagnosis report)
+- Actual directory paths (from diagnosis report, no guessing)
+- Actual run/debug commands (from diagnosis report)
+- Actual code standard requirements (from diagnosis report)
 
 ### Step 4: Generate Project-Level Skill Files
 
-Create project-level Skill directory structure in `.qoder/skills/`.
+Create or update project-level Skill directory structure in `.qoder/skills/`.
 
 **Note**: Specific Skill content (such as add-page, add-api, etc.) is not generated at this stage, but gradually created by Dev Agent through `devcrew-skill-develop` Skill after identifying repetitive operation patterns during development.
 
-This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured).
+This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured). Existing Skill files are preserved.
 
-### Step 5: Copy Deliverable Templates to Project
+### Step 5: Create .devcrew-workspace Directory Structure
 
-Copy template files from `devcrew-project-init` Skill to `.qoder/templates/` (skip if already exists):
+Read the **Recommended .devcrew-workspace Directory Structure** section from diagnosis report, create all directories and subdirectories listed (only create missing directories, preserve existing). Create initial README.md in each new directory with brief description.
+
+### Step 6: Copy Deliverable Templates to Project
+
+Copy template files from `devcrew-project-init` Skill to `.qoder/templates/` (only copy if not exists, preserve existing):
 
 - `devcrew-project-init/templates/prd-template.md` → `.qoder/templates/prd-template.md`
 - `devcrew-project-init/templates/solution-template.md` → `.qoder/templates/solution-template.md`
@@ -91,7 +92,7 @@ Copy template files from `devcrew-project-init` Skill to `.qoder/templates/` (sk
 
 **Note**: `design-template.md` is a generic structure template, each platform Agent refers to this template when generating specific design documents and fills according to the platform's technical characteristics.
 
-### Step 6: Output Generation Summary
+### Step 7: Output Generation Summary
 
 List:
 - Created files list (path + description)
