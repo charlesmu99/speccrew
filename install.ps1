@@ -1,14 +1,25 @@
 # DevCrew Installer Script for Windows
-# Usage: Invoke-Expression (Invoke-WebRequest -Uri "https://devcrew.dev/install.ps1").Content
+#
+# Install from GitHub (Global):
+#   Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+#
+# Install from Gitee (China):
+#   Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
 
 param(
-    [string]$TargetDir = "."
+    [string]$TargetDir = ".",
+    [string]$Mirror = "github"  # Options: github, gitee
 )
 
 $ErrorActionPreference = "Stop"
 
-# Configuration
-$RepoUrl = "https://github.com/your-org/devcrew/archive/main.zip"
+# Configuration - Select mirror
+if ($Mirror -eq "gitee") {
+    $RepoUrl = "https://gitee.com/amutek/devcrew/repository/archive/master.zip"
+} else {
+    $RepoUrl = "https://github.com/charlesmu99/devcrew/archive/refs/heads/master.zip"
+}
+
 $TempDir = [System.IO.Path]::GetTempPath() + [System.Guid]::NewGuid().ToString()
 
 # Colors for output

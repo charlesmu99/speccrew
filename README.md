@@ -129,13 +129,32 @@ graph LR
 
 ### 1. 安装 DevCrew
 
-```bash
-# 方式一：复制到现有项目
-cp -r .qoder .devcrew-workspace /path/to/your-project/
+**方式一：一键安装脚本（推荐）**
 
-# 方式二：CLI 安装（未来支持）
-npm install -g @devcrew/cli
-devcrew init
+```bash
+# macOS / Linux / WSL - 从 GitHub 安装
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+
+# macOS / Linux / WSL - 从 Gitee 安装（国内更快）
+curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+```
+
+```powershell
+# Windows - 从 GitHub 安装
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+
+# Windows - 从 Gitee 安装（国内更快）
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
+```
+
+**方式二：手动复制**
+
+```bash
+# 克隆仓库后复制到现有项目
+git clone https://github.com/charlesmu99/devcrew.git
+# 或 git clone https://gitee.com/amutek/devcrew.git
+
+cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 ```
 
 ### 2. 初始化项目
