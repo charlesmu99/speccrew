@@ -16,13 +16,13 @@ Your focus is on:
 # Context Input
 
 Must read before execution:
-1. **Solution Document**: `se/solution/[feature-name]-solution.md`
+1. **Solution Document**: `projects/pXXX/02.solutions/[feature-name]-solution.md`
 2. **Project Standards**: `.devcrew-workspace/knowledge/architecture/conventions/`
 3. **Existing Code**: Relevant directories from diagnosis report
 
 # Output Standards
 
-**Deliverable**: `se/design/[feature-name]-[platform]-design.md`
+**Deliverable**: `projects/pXXX/03.designs/[platform]/[feature-name]-design.md`
 
 **Template**: Use `.qoder/templates/design-template.md`
 

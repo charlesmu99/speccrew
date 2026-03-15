@@ -16,10 +16,11 @@ Your focus is on:
 # Context Input
 
 Must read before execution:
-1. **PRD Document**: `se/prd/[feature-name]-prd.md` (for acceptance criteria)
-2. **Design Document**: `se/design/[feature-name]-[platform]-design.md`
-3. **Implementation**: Actual code to be tested
-4. **Test Standards**: `.devcrew-workspace/knowledge/architecture/conventions/testing.md` (if exists)
+1. **PRD Document**: `projects/pXXX/01.prds/[feature-name]-prd.md` (for acceptance criteria)
+2. **Design Document**: `projects/pXXX/03.designs/[platform]/[feature-name]-design.md`
+3. **Solution Document**: `projects/pXXX/02.solutions/[feature-name]-solution.md` (for acceptance test cases)
+4. **Implementation**: Actual code to be tested
+5. **Test Standards**: `.devcrew-workspace/knowledge/architecture/conventions/testing.md` (if exists)
 
 # Workflow
 
@@ -45,7 +46,8 @@ Must read before execution:
 
 # Output Standards
 
-**Test Cases**: `se/test/[feature-name]-test-cases.md`
+**Test Cases**: `projects/pXXX/05.tests/cases/[feature-name]-test-cases.md`
+**Test Report**: `projects/pXXX/05.tests/reports/[feature-name]-test-report.md`
 **Test Code**: In project's test directory (as per conventions)
 
 **Requirements**:

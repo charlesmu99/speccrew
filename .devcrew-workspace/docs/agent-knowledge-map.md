@@ -1,242 +1,242 @@
-# Agent 知识地图
+# Agent Knowledge Map
 
-> 本文档定义各 Agent 在执行任务时所需的**输入知识**和**产出内容**，遵循"确定性"和"按需加载"两大原则。
+> This document defines the **input knowledge** and **output deliverables** required by each Agent during task execution, following two core principles: "Determinism" and "On-Demand Loading".
 >
-> - **确定性**：每个 Agent 知道去哪里读什么，路径明确，不依赖遍历或猜测
-> - **按需加载**：只加载当前任务必需的内容，不预读全量文档
+> - **Determinism**: Each Agent knows exactly where to read what, with explicit paths, no reliance on traversal or guessing
+> - **On-Demand Loading**: Only load content essential for the current task, no pre-reading of full documentation
 
 ---
 
-## 知识来源总览
+## Knowledge Sources Overview
 
-Agent 的知识来源分为三层：
+Agent knowledge sources are organized in three layers:
 
-| 层级 | 目录 | 内容 | 更新频率 |
-|------|------|------|----------|
-| **L1 系统知识** | `.devcrew-workspace/knowledge/` | 当前系统的架构、业务功能、开发规范 | 随系统演进低频更新 |
-| **L2 领域知识** | `.devcrew-workspace/knowledge/domain/` | 行业标准、业务术语、QA 经验 | 不定期补充 |
-| **L3 迭代产出物** | `.devcrew-workspace/projects/pXXX/` | 当前迭代的 PRD、Solution、设计文档 | 每次迭代产出 |
-
----
-
-## 各 Agent 知识地图
-
-### PM Agent（产品经理）
-
-**职责**：通过多轮对话挖掘真实需求，输出结构化 PRD
-
-#### 输入知识
-
-| 知识类型 | 路径 | 加载时机 | 用途 |
-|----------|------|----------|------|
-| 系统业务功能概览 | `knowledge/bizs/modules/` | 必须，首先加载 | 了解现有功能，避免重复建设 |
-| 核心业务流程 | `knowledge/bizs/flows/` | 按需加载 | 新需求与现有流程的衔接点 |
-| 行业知识与规范 | `knowledge/domain/standards/` | 按需加载 | 需求合理性判断 |
-| 业务术语表 | `knowledge/domain/glossary/` | 按需加载 | 统一术语，避免歧义 |
-| 常见问题解答 | `knowledge/domain/qa/` | 按需加载 | 识别已知问题，不重蹈覆辙 |
-| 用户原始需求 | 对话输入 | 实时获取 | 核心输入 |
-
-#### 加载策略
-
-```
-1. 必加载：knowledge/bizs/modules/ → 了解系统现有功能全貌
-2. 按需加载：根据需求涉及的业务域，选择对应的 flows/ 文件
-3. 按需加载：当需求涉及行业规范时，查阅 domain/standards/
-4. 不加载：系统架构、技术细节（PM 不需要）
-```
-
-#### 产出物
-
-| 产出物 | 路径 | 格式 | 说明 |
-|--------|------|------|------|
-| PRD 文档 | `projects/pXXX/01.prds/[功能名]-prd.md` | 按模板 | 经用户确认后方可流转 |
+| Layer | Directory | Content | Update Frequency |
+|-------|-----------|---------|------------------|
+| **L1 System Knowledge** | `.devcrew-workspace/knowledge/` | Current system architecture, business functions, development conventions | Low frequency, evolves with system |
+| **L2 Domain Knowledge** | `.devcrew-workspace/knowledge/domain/` | Industry standards, business terminology, QA experience | Irregular supplementation |
+| **L3 Iteration Deliverables** | `.devcrew-workspace/projects/pXXX/` | Current iteration PRD, Solution, design documents | Produced each iteration |
 
 ---
 
-### Solution Agent（方案规划）
+## Agent Knowledge Maps
 
-**职责**：基于 PRD 输出整体技术方案，保持全链路视角
+### PM Agent (Product Manager)
 
-#### 输入知识
+**Responsibility**: Uncover real requirements through multi-round dialogue, output structured PRD
 
-| 知识类型 | 路径 | 加载时机 | 用途 |
-|----------|------|----------|------|
-| PRD 文档 | `projects/pXXX/01.prds/[功能名]-prd.md` | 必须，首先加载 | 核心输入 |
-| 系统架构总览 | `knowledge/architecture/system/` | 必须加载 | 了解整体技术边界 |
-| 业务功能模块清单 | `knowledge/bizs/modules/` | 必须加载 | 识别可复用功能 |
-| 核心业务流程 | `knowledge/bizs/flows/` | 必须加载 | 设计时序图的依据 |
-| 数据架构 | `knowledge/architecture/data/` | 按需加载 | 涉及数据库设计时 |
-| 前端架构概览 | `knowledge/architecture/frontend/` | 按需加载 | 涉及前端页面设计时 |
-| 后端架构概览 | `knowledge/architecture/backend/` | 按需加载 | 涉及后端接口设计时 |
+#### Input Knowledge
 
-#### 加载策略
+| Knowledge Type | Path | Loading Timing | Purpose |
+|----------------|------|----------------|---------|
+| System Business Function Overview | `knowledge/bizs/modules/` | Required, load first | Understand existing functions, avoid duplication |
+| Core Business Processes | `knowledge/bizs/flows/` | On-demand | Connection points between new requirements and existing processes |
+| Industry Knowledge & Standards | `knowledge/domain/standards/` | On-demand | Requirement rationality judgment |
+| Business Glossary | `knowledge/domain/glossary/` | On-demand | Unified terminology, avoid ambiguity |
+| FAQ | `knowledge/domain/qa/` | On-demand | Identify known issues, avoid repetition |
+| User Raw Requirements | Dialogue input | Real-time | Core input |
+
+#### Loading Strategy
 
 ```
-1. 必加载：PRD + 系统架构总览 + 业务功能模块
-2. 按需加载：根据需求类型选择：
-   - 涉及数据库变更 → 加载 architecture/data/
-   - 涉及前端页面 → 加载 architecture/frontend/
-   - 涉及后端接口 → 加载 architecture/backend/
-3. 不加载：开发规范、测试规范（Solution 不涉及实现细节）
+1. Must load: knowledge/bizs/modules/ → Understand system existing functions
+2. On-demand load: Select corresponding flows/ files based on business domain
+3. On-demand load: Consult domain/standards/ when requirements involve industry standards
+4. Do not load: System architecture, technical details (PM doesn't need)
 ```
 
-#### 产出物
+#### Deliverables
 
-| 产出物 | 路径 | 格式 | 说明 |
-|--------|------|------|------|
-| Solution 文档 | `projects/pXXX/02.solutions/[功能名]-solution.md` | 按模板（含 Mermaid 时序图/ER图） | 经用户确认后方可流转 |
-| 接口契约文档 | `projects/pXXX/02.solutions/[功能名]-api-contract.md` | 结构化表格 | 前后端共同边界，设计/开发阶段只引用不修改 |
+| Deliverable | Path | Format | Description |
+|-------------|------|--------|-------------|
+| PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | Per template | Can only proceed after user confirmation |
 
 ---
 
-### 设计 Agent（前端/后端）
+### Solution Agent (Solution Planning)
 
-**职责**：基于 Solution 输出伪代码级详细设计
+**Responsibility**: Output overall technical solution based on PRD, maintain full-chain perspective
 
-#### 输入知识
+#### Input Knowledge
 
-| 知识类型 | 路径 | 加载时机 | 用途 |
-|----------|------|----------|------|
-| Solution 文档 | `projects/pXXX/02.solutions/[功能名]-solution.md` | 必须，首先加载 | 核心输入 |
-| 前端架构详情 | `knowledge/architecture/frontend/` | 前端设计必须 | 组件规范、状态管理约定 |
-| 后端架构详情 | `knowledge/architecture/backend/` | 后端设计必须 | 服务分层规范、依赖注入约定 |
-| 数据架构详情 | `knowledge/architecture/data/` | 按需加载 | 涉及数据库操作时 |
-| 开发规范 | `knowledge/architecture/conventions/` | 必须加载 | 命名规范、目录约定、代码风格 |
-| 同类已实现模块 | `knowledge/bizs/modules/` | 按需加载 | 参考现有实现方式，保持一致 |
+| Knowledge Type | Path | Loading Timing | Purpose |
+|----------------|------|----------------|---------|
+| PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | Required, load first | Core input |
+| System Architecture Overview | `knowledge/architecture/system/` | Required | Understand overall technical boundaries |
+| Business Function Module List | `knowledge/bizs/modules/` | Required | Identify reusable functions |
+| Core Business Processes | `knowledge/bizs/flows/` | Required | Basis for designing sequence diagrams |
+| Data Architecture | `knowledge/architecture/data/` | On-demand | When involving database design |
+| Frontend Architecture Overview | `knowledge/architecture/frontend/` | On-demand | When involving frontend page design |
+| Backend Architecture Overview | `knowledge/architecture/backend/` | On-demand | When involving backend API design |
 
-#### 加载策略
+#### Loading Strategy
 
 ```
-前端设计 Agent：
-1. 必加载：Solution + 前端架构详情 + 开发规范（前端部分）
-2. 按需加载：参考同类组件的已有实现
-
-后端设计 Agent：
-1. 必加载：Solution + 后端架构详情 + 开发规范（后端部分）
-2. 按需加载：涉及数据库时加载 architecture/data/
+1. Must load: PRD + System Architecture Overview + Business Function Modules
+2. On-demand load: Select based on requirement type:
+   - Database changes → Load architecture/data/
+   - Frontend pages → Load architecture/frontend/
+   - Backend APIs → Load architecture/backend/
+3. Do not load: Development conventions, testing conventions (Solution doesn't involve implementation details)
 ```
 
-#### 产出物
+#### Deliverables
 
-| 产出物 | 路径 | 格式 | 说明 |
-|--------|------|------|------|
-| 前端详细设计 | `projects/pXXX/03.designs/frontend/[功能名]-design.md` | 按模板 | 伪代码级，不含实际代码 |
-| 后端详细设计 | `projects/pXXX/03.designs/backend/[功能名]-design.md` | 按模板 | 伪代码级，不含实际代码 |
-
-> 接口契约文档由 Solution Agent 输出，路径为 `02.solutions/[功能名]-api-contract.md`，设计阶段**只读引用，不修改**。如发现契约需要变更，回溯至 Solution Agent 修正。
+| Deliverable | Path | Format | Description |
+|-------------|------|--------|-------------|
+| Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Per template (with Mermaid sequence/ER diagrams) | Can only proceed after user confirmation |
+| API Contract Document | `projects/pXXX/02.solutions/[feature-name]-api-contract.md` | Structured table | Frontend-backend shared boundary, read-only during design/development |
 
 ---
 
-### 开发 Agent（前端/后端）
+### Designer Agent (Frontend/Backend)
 
-**职责**：基于详细设计实现功能代码并编写单元测试
+**Responsibility**: Output pseudo-code level detailed design based on Solution
 
-#### 输入知识
+#### Input Knowledge
 
-| 知识类型 | 路径 | 加载时机 | 用途 |
-|----------|------|----------|------|
-| 前端/后端详细设计 | `projects/pXXX/03.designs/[端]/[功能名]-design.md` | 必须，首先加载 | 核心输入 |
-| 开发规范 | `knowledge/architecture/conventions/` | 必须加载 | 代码规范、提交规范 |
-| 前端/后端架构详情 | `knowledge/architecture/[端]/` | 按需加载 | 设计文档有歧义时参考 |
-| 单元测试规范 | `knowledge/architecture/conventions/testing.md` | 必须加载 | 测试编写规范 |
+| Knowledge Type | Path | Loading Timing | Purpose |
+|----------------|------|----------------|---------|
+| Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Required, load first | Core input |
+| Frontend Architecture Details | `knowledge/architecture/frontend/` | Required for frontend design | Component conventions, state management agreements |
+| Backend Architecture Details | `knowledge/architecture/backend/` | Required for backend design | Service layering conventions, DI agreements |
+| Data Architecture Details | `knowledge/architecture/data/` | On-demand | When involving database operations |
+| Development Conventions | `knowledge/architecture/conventions/` | Required | Naming conventions, directory agreements, code style |
+| Similar Implemented Modules | `knowledge/bizs/modules/` | On-demand | Reference existing implementations for consistency |
 
-#### 加载策略
+#### Loading Strategy
 
 ```
-1. 必加载：详细设计文档 + 开发规范 + 测试规范
-2. 按需加载：设计文档有歧义时，加载架构详情补充理解
-3. 不加载：PRD、Solution（已由设计文档提炼，避免上下文膨胀）
-4. 发现歧义时：不自行假设，必须回溯到设计 Agent 修正
+Frontend Designer Agent:
+1. Must load: Solution + Frontend Architecture Details + Development Conventions (frontend part)
+2. On-demand load: Reference existing implementations of similar components
+
+Backend Designer Agent:
+1. Must load: Solution + Backend Architecture Details + Development Conventions (backend part)
+2. On-demand load: Load architecture/data/ when involving database
 ```
 
-#### 产出物
+#### Deliverables
 
-| 产出物 | 路径 | 说明 |
-|--------|------|------|
-| 功能代码 | 源码仓库对应目录 | 按架构规范组织 |
-| 单元测试代码 | 源码仓库 test 目录 | 与功能代码同步提交 |
-| 开发任务记录 | `projects/pXXX/04.tasks/[端]/[功能名]-tasks.md` | 记录完成情况和遗留问题 |
+| Deliverable | Path | Format | Description |
+|-------------|------|--------|-------------|
+| Frontend Detailed Design | `projects/pXXX/03.designs/frontend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
+| Backend Detailed Design | `projects/pXXX/03.designs/backend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
+
+> API contract documents are output by Solution Agent, path is `02.solutions/[feature-name]-api-contract.md`, **read-only reference during design phase, do not modify**. If contract changes are needed, escalate to Solution Agent for correction.
 
 ---
 
-### 测试 Agent（前端/后端）
+### Dev Agent (Frontend/Backend)
 
-**职责**：基于设计文档和代码生成测试用例，执行测试，输出报告
+**Responsibility**: Implement feature code based on detailed design and write unit tests
 
-#### 输入知识
+#### Input Knowledge
 
-| 知识类型 | 路径 | 加载时机 | 用途 |
-|----------|------|----------|------|
-| 前端/后端详细设计 | `projects/pXXX/03.designs/[端]/[功能名]-design.md` | 必须，首先加载 | 生成测试用例的依据 |
-| Solution 文档 | `projects/pXXX/02.solutions/[功能名]-solution.md` | 必须加载 | 验收测试用例的依据 |
-| 测试规范 | `knowledge/architecture/conventions/testing.md` | 必须加载 | 测试用例格式、覆盖率要求 |
-| PRD 文档 | `projects/pXXX/01.prds/[功能名]-prd.md` | 按需加载 | 验收标准有争议时溯源 |
+| Knowledge Type | Path | Loading Timing | Purpose |
+|----------------|------|----------------|---------|
+| Frontend/Backend Detailed Design | `projects/pXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Core input |
+| Development Conventions | `knowledge/architecture/conventions/` | Required | Code conventions, commit conventions |
+| Frontend/Backend Architecture Details | `knowledge/architecture/[platform]/` | On-demand | Reference when design document is ambiguous |
+| Unit Testing Conventions | `knowledge/architecture/conventions/testing.md` | Required | Test writing conventions |
 
-#### 加载策略
+#### Loading Strategy
 
 ```
-1. 必加载：详细设计 + Solution + 测试规范
-2. 按需加载：验收标准有歧义时，加载 PRD 溯源
-3. 不加载：架构文档、开发规范（测试不关注实现方式）
+1. Must load: Detailed design document + Development conventions + Testing conventions
+2. On-demand load: Load architecture details to supplement understanding when design document is ambiguous
+3. Do not load: PRD, Solution (already extracted by design document, avoid context bloat)
+4. When ambiguity found: Do not assume, must escalate to Designer Agent for correction
 ```
 
-#### 产出物
+#### Deliverables
 
-| 产出物 | 路径 | 格式 | 说明 |
-|--------|------|------|------|
-| 测试用例文档 | `projects/pXXX/05.tests/cases/[功能名]-test-cases.md` | 按模板 | 含验收测试和单元测试 |
-| 测试报告 | `projects/pXXX/05.tests/reports/[功能名]-test-report.md` | 结构化报告 | 含通过率、失败详情 |
+| Deliverable | Path | Description |
+|-------------|------|-------------|
+| Feature Code | Source repository corresponding directory | Organized per architecture conventions |
+| Unit Test Code | Source repository test directory | Commit synchronously with feature code |
+| Development Task Record | `projects/pXXX/04.tasks/[platform]/[feature-name]-tasks.md` | Record completion status and pending issues |
 
 ---
 
-## 知识流转全景图
+### Test Agent (Frontend/Backend)
+
+**Responsibility**: Generate test cases based on design documents and code, execute tests, output reports
+
+#### Input Knowledge
+
+| Knowledge Type | Path | Loading Timing | Purpose |
+|----------------|------|----------------|---------|
+| Frontend/Backend Detailed Design | `projects/pXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Basis for generating test cases |
+| Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Required | Basis for acceptance test cases |
+| Testing Conventions | `knowledge/architecture/conventions/testing.md` | Required | Test case format, coverage requirements |
+| PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | On-demand | Trace back when acceptance criteria is disputed |
+
+#### Loading Strategy
+
+```
+1. Must load: Detailed design + Solution + Testing conventions
+2. On-demand load: Load PRD to trace back when acceptance criteria is ambiguous
+3. Do not load: Architecture documents, development conventions (testing doesn't care about implementation)
+```
+
+#### Deliverables
+
+| Deliverable | Path | Format | Description |
+|-------------|------|--------|-------------|
+| Test Case Document | `projects/pXXX/05.tests/cases/[feature-name]-test-cases.md` | Per template | Includes acceptance and unit tests |
+| Test Report | `projects/pXXX/05.tests/reports/[feature-name]-test-report.md` | Structured report | Includes pass rate, failure details |
+
+---
+
+## Knowledge Flow Panorama
 
 ```
 knowledge/                          projects/pXXX/
-├── bizs/modules/     ──────┐       ├── 01.prds/          ←── PM Agent 输出
-├── bizs/flows/       ──────┤       │                          (经用户确认)
+├── bizs/modules/     ──────┐       ├── 01.prds/          ←── PM Agent output
+├── bizs/flows/       ──────┤       │                          (user confirmed)
 ├── domain/standards/ ──────┤       │                              ↓
-├── domain/glossary/  ──────┘       ├── 02.solutions/     ←── Solution Agent 输出
-│                    PM Agent ──────┘   (经用户确认)
+├── domain/glossary/  ──────┘       ├── 02.solutions/     ←── Solution Agent output
+│                    PM Agent ──────┘   (user confirmed)
 │                                           ↓
 ├── architecture/system/   ─────────── Solution Agent
 ├── architecture/frontend/ ───┐
 ├── architecture/backend/  ───┤       ├── 03.designs/
-├── architecture/data/     ───┤       │   ├── frontend/   ←── 前端设计 Agent 输出
-├── architecture/conventions/ ┘       │   └── backend/    ←── 后端设计 Agent 输出
-│                  设计 Agent ─────────┘           ↓
+├── architecture/data/     ───┤       │   ├── frontend/   ←── Frontend Designer Agent output
+├── architecture/conventions/ ┘       │   └── backend/    ←── Backend Designer Agent output
+│                  Designer Agent ─────┘           ↓
 │                                           ├── 04.tasks/
-│                                           │   ├── frontend/ ←── 前端开发 Agent 输出
-├── architecture/conventions/ ─────────────┘   └── backend/  ←── 后端开发 Agent 输出
-│                  开发 Agent                              ↓
+│                                           │   ├── frontend/ ←── Frontend Dev Agent output
+├── architecture/conventions/ ─────────────┘   └── backend/  ←── Backend Dev Agent output
+│                  Dev Agent                              ↓
 │                                           └── 05.tests/
-└── architecture/conventions/testing.md        ├── cases/    ←── 测试 Agent 输出
-                   测试 Agent ────────────────── └── reports/
+└── architecture/conventions/testing.md        ├── cases/    ←── Test Agent output
+                   Test Agent ────────────────── └── reports/
 ```
 
 ---
 
-## 回溯机制
+## Escalation Mechanism
 
-当下游发现问题，按以下路径回溯修正：
+When downstream discovers issues, escalate and correct along the following path:
 
 ```
-测试失败
-  └→ 开发 Agent 修复代码
-       └→ 若是设计问题 → 设计 Agent 修正详细设计
-            └→ 若是方案问题 → Solution Agent 修正 Solution
-                 └→ 若是需求问题 → PM Agent + 用户确认
+Test Failure
+  └→ Dev Agent fixes code
+       └→ If design issue → Designer Agent corrects detailed design
+            └→ If solution issue → Solution Agent corrects Solution
+                 └→ If requirement issue → PM Agent + user confirmation
 ```
 
-**原则**：不自行假设，不跳级修改，必须向上追溯到问题根源。
+**Principle**: Do not assume, do not skip levels, must trace back to the root cause.
 
 ---
 
-## 人工确认节点
+## Manual Confirmation Nodes
 
-| 节点 | 触发条件 | 说明 |
-|------|----------|------|
-| PRD 确认 | PM Agent 完成 PRD 草稿 | 用户确认需求边界无误后，方可启动 Solution 阶段 |
-| Solution 确认 | Solution Agent 完成方案 | 用户确认整体方案（UI/接口/数据模型）无误后，方可启动设计阶段 |
-| 详细设计确认 | 设计 Agent 完成前端/后端详细设计 | 用户确认设计方案无误后，方可启动开发阶段 |
-| 上线确认 | 测试 Agent 完成测试报告 | 用户确认测试通过、无遗留缺陷后，方可上线 |
+| Node | Trigger Condition | Description |
+|------|-------------------|-------------|
+| PRD Confirmation | PM Agent completes PRD draft | User confirms requirement boundaries are correct before starting Solution phase |
+| Solution Confirmation | Solution Agent completes solution | User confirms overall solution (UI/API/data model) is correct before starting design phase |
+| Detailed Design Confirmation | Designer Agent completes frontend/backend detailed design | User confirms design solution is correct before starting development phase |
+| Launch Confirmation | Test Agent completes test report | User confirms tests pass, no pending defects before launch |

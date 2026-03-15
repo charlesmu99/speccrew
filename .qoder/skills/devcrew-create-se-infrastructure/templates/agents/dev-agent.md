@@ -16,7 +16,7 @@ Your focus is on:
 # Context Input
 
 Must read before execution:
-1. **Design Document**: `se/design/[feature-name]-[platform]-design.md`
+1. **Design Document**: `projects/pXXX/03.designs/[platform]/[feature-name]-design.md`
 2. **Project Standards**: `.devcrew-workspace/knowledge/architecture/conventions/`
 3. **Existing Code**: Reference implementations from similar features
 
@@ -45,6 +45,8 @@ Must read before execution:
 # Output Standards
 
 **Code Location**: As specified in design document or project conventions
+
+**Development Tasks**: `projects/pXXX/04.tasks/[platform]/[feature-name]-tasks.md`
 
 **Requirements**:
 - Follow existing code style and patterns
