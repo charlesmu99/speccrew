@@ -21,7 +21,6 @@ tools: Read, Write, Glob, Grep, List, Search
 3. **根目录结构**（一层）：识别主要子目录用途
 4. **主要子目录结构**（二层）：了解代码组织方式
 5. **现有 `.qoder/` 目录**：避免覆盖已有配置
-6. **`se/` 目录**：读取已有方案文档
 
 ## 阶段二：项目类型判断
 
@@ -74,56 +73,50 @@ tools: Read, Write, Glob, Grep, List, Search
 
 ## 阶段五：生成基础设施
 
-按顺序生成文件：
+调用 `devcrew-create-se-infrastructure` Skill 生成 Agent、Skill 和模板文件。
 
-### 1. 诊断报告
-生成 `.qoder/diagnosis.md`：
-- 项目类型及判断依据
-- 技术栈清单
-- 重复操作模式及 Skill 计划
-- 业务域及 Agent 计划
-- 完整生成清单
+### 前置准备
 
-### 2. 更新项目宪章
-在 `AGENTS.md` 追加 **AI 工程化协作规范** 章节
+在执行前，确保已从诊断分析中整理出以下信息：
+- **项目类型**（Web全栈 / 纯前端 / 纯后端 / 桌面客户端 / 移动端 / 命令行工具 / 混合型）
+- 实际使用的技术栈（语言版本、核心框架、数据库）
+- 目录约定（各类文件的实际存放路径）
+- 重复操作模式清单（候选 Skill）
+- 代码规范（lint 工具、命名约定、运行命令）
 
-### 3. 生成各角色 Agent
+### 执行流程
 
-**核心角色**（所有类型）：
-- `devcrew-pm.md`：DevCrew 产品经理
-- `devcrew-planner.md`：DevCrew 方案规划师
+1. **生成诊断报告**
+   生成 `.qoder/diagnosis.md`：
+   - 项目类型及判断依据
+   - 技术栈清单
+   - 重复操作模式及 Skill 计划
+   - 业务域及 Agent 计划
+   - 完整生成清单
 
-**按项目类型生成（模板文件为 `.qoder/agents/devcrew-dev-template.md` 和 `devcrew-test-template.md`）：**
+2. **更新项目宪章**
+   在 `AGENTS.md` 追加 **AI 工程化协作规范** 章节
 
-根据识别到的技术栈，生成具体的设计/开发/测试 Agent：
-- 设计 Agent：`devcrew-designer-frontend.md` 和/或 `devcrew-designer-backend.md`（已预置）
-- 开发 Agent：`devcrew-dev-[framework].md`（如 `devcrew-dev-vue3.md`、`devcrew-dev-fastapi.md`）
-- 测试 Agent：`devcrew-test-[framework].md`（如 `devcrew-test-vue3.md`、`devcrew-test-fastapi.md`）
+3. **调用 `devcrew-create-se-infrastructure` Skill**
+   
+   将诊断结果传递给 `devcrew-create-se-infrastructure`，由其执行：
+   - 复制通用 Agent 模板（pm-agent, solution-agent）
+   - 根据项目类型生成特定的设计/开发/测试 Agent
+   - 根据重复操作模式生成项目级 Skill
+   - 复制产出物模板到 `.qoder/templates/`
+   
+   | 项目类型 | 生成的 Agent |
+   |----------|-------------|
+   | Web 全栈 | devcrew-designer-frontend, devcrew-designer-backend, devcrew-dev-[frontend-framework], devcrew-dev-[backend-framework], devcrew-test-[frontend-framework], devcrew-test-[backend-framework] |
+   | 纯前端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
+   | 纯后端 | devcrew-designer-backend, devcrew-dev-[framework], devcrew-test-[framework] |
+   | 桌面客户端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
+   | 移动端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
 
-**内嵌项目实际技术栈**：将 `[framework]` 替换为实际框架名称，并将项目技术栈、目录结构、开发规范写入 Agent 提示词中。
-
-| 项目类型 | 生成的 Agent |
-|----------|-------------|
-| Web 全栈 | devcrew-designer-frontend, devcrew-designer-backend, devcrew-dev-[frontend-framework], devcrew-dev-[backend-framework], devcrew-test-[frontend-framework], devcrew-test-[backend-framework] |
-| 纯前端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
-| 纯后端 | devcrew-designer-backend, devcrew-dev-[framework], devcrew-test-[framework] |
-| 桌面客户端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
-| 移动端 | devcrew-designer-frontend, devcrew-dev-[framework], devcrew-test-[framework] |
-
-**Worker Agent**（按需创建）：
-- `context-builder`：读取大量源码输出摘要
-- `file-scaffolder`：批量生成文件
-- `doc-writer`：生成大体量文档
-
-### 4. 生成项目级 Skill
-在 `.qoder/skills/` 下创建识别出的重复操作模式对应的 Skill
-
-### 5. 生成产出物模板
-在 `.qoder/templates/` 下创建：
-- `prd-template.md`
-- `solution-template.md`
-- `[端]-design-template.md`
-- `test-case-template.md`
+4. **生成 Worker Agent**（按需创建）
+   - `context-builder`：读取大量源码输出摘要
+   - `file-scaffolder`：批量生成文件
+   - `doc-writer`：生成大体量文档
 
 ## 阶段五（补充）：自动归档机制说明
 
