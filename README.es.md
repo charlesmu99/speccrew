@@ -129,13 +129,32 @@ graph LR
 
 ### 1. Instalar DevCrew
 
-```bash
-# Método 1: Copiar a proyecto existente
-cp -r .qoder .devcrew-workspace /path/to/your-project/
+**Método 1: Script de Instalación con Un Clic (Recomendado)**
 
-# Método 2: Instalación CLI (soporte futuro)
-npm install -g @devcrew/cli
-devcrew init
+```bash
+# macOS / Linux / WSL - Instalar desde GitHub
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+
+# macOS / Linux / WSL - Instalar desde Gitee (espejo de China)
+curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+```
+
+```powershell
+# Windows - Instalar desde GitHub
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+
+# Windows - Instalar desde Gitee (espejo de China)
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
+```
+
+**Método 2: Copia Manual**
+
+```bash
+# Clonar repositorio y copiar a proyecto existente
+git clone https://github.com/charlesmu99/devcrew.git
+# o: git clone https://gitee.com/amutek/devcrew.git
+
+cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 ```
 
 ### 2. Inicializar Proyecto

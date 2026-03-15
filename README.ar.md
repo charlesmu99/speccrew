@@ -129,13 +129,32 @@ graph LR
 
 ### 1. تثبيت DevCrew
 
-```bash
-# الطريقة 1: النسخ إلى مشروع موجود
-cp -r .qoder .devcrew-workspace /path/to/your-project/
+**الطريقة 1: سكريبت التثبيت بنقرة واحدة (موصى به)**
 
-# الطريقة 2: التثبيت عبر CLI (دعم مستقبلي)
-npm install -g @devcrew/cli
-devcrew init
+```bash
+# macOS / Linux / WSL - التثبيت من GitHub
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+
+# macOS / Linux / WSL - التثبيت من Gitee (مرآة الصين)
+curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+```
+
+```powershell
+# Windows - التثبيت من GitHub
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+
+# Windows - التثبيت من Gitee (مرآة الصين)
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
+```
+
+**الطريقة 2: النسخ اليدوي**
+
+```bash
+# استنساخ المستودع والنسخ إلى مشروع موجود
+git clone https://github.com/charlesmu99/devcrew.git
+# أو: git clone https://gitee.com/amutek/devcrew.git
+
+cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 ```
 
 ### 2. تهيئة المشروع
