@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - 从 GitHub 安装
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
 
 # macOS / Linux / WSL - 从 Gitee 安装（中国镜像）
-curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
 ```
 
 ```powershell
 # Windows - 从 GitHub 安装
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.ps1").Content
 
 # Windows - 从 Gitee 安装（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
 ```
 
 **方式二：手动复制**

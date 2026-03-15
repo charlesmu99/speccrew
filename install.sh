@@ -3,10 +3,10 @@
 # Supports macOS and Linux/WSL
 # 
 # Install from GitHub (Global):
-#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
 #
 # Install from Gitee (China):
-#   curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+#   curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
 #
 # Install to specific directory:
 #   curl -fsSL <url> | bash -s /path/to/project
@@ -24,9 +24,9 @@ NC='\033[0m' # No Color
 SCRIPT_SOURCE="${SCRIPT_SOURCE:-github}"
 
 if [ "$SCRIPT_SOURCE" = "gitee" ]; then
-    REPO_URL="https://gitee.com/amutek/devcrew/repository/archive/master.tar.gz"
+    REPO_URL="https://gitee.com/amutek/devcrew/repository/archive/main.tar.gz"
 else
-    REPO_URL="https://github.com/charlesmu99/devcrew/archive/refs/heads/master.tar.gz"
+    REPO_URL="https://github.com/charlesmu99/devcrew/archive/refs/heads/main.tar.gz"
 fi
 
 TEMP_DIR="$(mktemp -d)"

@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - التثبيت من GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
 
 # macOS / Linux / WSL - التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/devcrew/raw/master/install.sh | bash
+curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
 ```
 
 ```powershell
 # Windows - التثبيت من GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/master/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.ps1").Content
 
 # Windows - التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/master/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
 ```
 
 **الطريقة 2: النسخ اليدوي**
