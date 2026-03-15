@@ -1,7 +1,6 @@
 ---
 name: devcrew-create-se-infrastructure
-description: Creates or updates AI software engineering infrastructure based on project diagnosis report. Includes generating role Agents, project-level Skills, .devcrew-workspace directory structure and deliverable templates. Trigger scenarios: after project diagnosis completion, need to rebuild AI collaboration system, update Agent/Skill configuration.
-tools: Read, Write, Glob
+description: Creates or updates AI software engineering infrastructure based on project diagnosis report. Includes generating role Agents, project-level Skills, .devcrew-workspace directory structure and deliverable templates. Use after project diagnosis completion, when needing to rebuild AI collaboration system, or when updating Agent/Skill configuration.
 ---
 
 # Create SE Infrastructure
@@ -27,13 +26,6 @@ This Skill directory contains the following predefined files:
 - [templates/agents/test-agent.md](templates/agents/test-agent.md): Testing Agent template
 
 **Note**: Use these templates to create Agents by replacing `[techstack]` placeholder with actual technology stack from diagnosis report.
-
-**Deliverable Document Templates**:
-- Reference template files in `devcrew-project-init` Skill:
-  - `templates/prd-template.md`: PRD document template
-  - `templates/solution-template.md`: Solution document template
-  - `templates/design-template.md`: Detailed design document template
-  - `templates/test-case-template.md`: Test case document template
 
 ## Preconditions
 
@@ -69,7 +61,7 @@ Read the **Recommended Agents to Generate** section from diagnosis report, creat
 - Actual run/debug commands (from diagnosis report)
 - Actual code standard requirements (from diagnosis report)
 
-### Step 4: Generate Project-Level Skill Files
+### Step 3: Generate Project-Level Skill Files
 
 Create or update project-level Skill directory structure in `.qoder/skills/`.
 
@@ -77,22 +69,11 @@ Create or update project-level Skill directory structure in `.qoder/skills/`.
 
 This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured). Existing Skill files are preserved.
 
-### Step 5: Create .devcrew-workspace Directory Structure
+### Step 4: Create .devcrew-workspace Directory Structure
 
 Read the **Recommended .devcrew-workspace Directory Structure** section from diagnosis report, create all directories and subdirectories listed (only create missing directories, preserve existing). Create initial README.md in each new directory with brief description.
 
-### Step 6: Copy Deliverable Templates to Project
-
-Copy template files from `devcrew-project-init` Skill to `.qoder/templates/` (only copy if not exists, preserve existing):
-
-- `devcrew-project-init/templates/prd-template.md` → `.qoder/templates/prd-template.md`
-- `devcrew-project-init/templates/solution-template.md` → `.qoder/templates/solution-template.md`
-- `devcrew-project-init/templates/design-template.md` → `.qoder/templates/design-template.md`
-- `devcrew-project-init/templates/test-case-template.md` → `.qoder/templates/test-case-template.md`
-
-**Note**: `design-template.md` is a generic structure template, each platform Agent refers to this template when generating specific design documents and fills according to the platform's technical characteristics.
-
-### Step 7: Output Generation Summary
+### Step 5: Output Generation Summary
 
 List:
 - Created files list (path + description)
