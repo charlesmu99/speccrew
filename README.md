@@ -1,5 +1,12 @@
 # DevCrew - AI 驱动的软件工程化框架
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README.en.md">English</a> |
+  <a href="./README.ar.md">العربية</a> |
+  <a href="./README.es.md">Español</a>
+</p>
+
 > 让任何软件项目快速实现工程化落地的虚拟 AI 开发团队
 
 ## 什么是 DevCrew？
@@ -258,13 +265,6 @@ your-project/
 - 一次性脚本或工具
 
 ---
-
-## 多语言版本
-
-- [中文](./README.md)
-- [English](./README.en.md)
-- [العربية](./README.ar.md)
-- [Español](./README.es.md)
 
 ---
 

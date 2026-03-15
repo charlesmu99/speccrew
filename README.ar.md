@@ -1,5 +1,12 @@
 # DevCrew - إطار عمل هندسة البرمجيات المدعوم بالذكاء الاصطناعي
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README.en.md">English</a> |
+  <a href="./README.ar.md">العربية</a> |
+  <a href="./README.es.md">Español</a>
+</p>
+
 > فريق تطوير افتراضي بالذكاء الاصطناعي يتيح التنفيذ الهندسي السريع لأي مشروع برمجي
 
 ## ما هو DevCrew؟
@@ -240,9 +247,4 @@ your-project/
 
 ---
 
-## إصدارات اللغة
 
-- [中文](./README.md)
-- [English](./README.en.md)
-- [العربية](./README.ar.md)
-- [Español](./README.es.md)

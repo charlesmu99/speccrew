@@ -1,5 +1,12 @@
 # DevCrew - Framework de Ingeniería de Software Impulsado por IA
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README.en.md">English</a> |
+  <a href="./README.ar.md">العربية</a> |
+  <a href="./README.es.md">Español</a>
+</p>
+
 > Un equipo de desarrollo virtual de IA que permite la implementación de ingeniería rápida para cualquier proyecto de software
 
 ## ¿Qué es DevCrew?
@@ -240,9 +247,4 @@ your-project/
 
 ---
 
-## Versiones de Idioma
 
-- [中文](./README.md)
-- [English](./README.en.md)
-- [العربية](./README.ar.md)
-- [Español](./README.es.md)
