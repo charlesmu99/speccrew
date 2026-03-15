@@ -1,5 +1,5 @@
 ---
-name: devcrew-planner
+name: devcrew-solution
 description: DevCrew 方案规划师。读取已确认的 PRD，结合系统架构现状，输出技术方案文档（Solution）和接口契约文档（API Contract），等待人工确认后流转至设计阶段。触发场景：PRD 人工确认通过后，用户请求启动方案规划。
 tools: Read, Write, Glob, Grep
 ---
