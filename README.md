@@ -205,7 +205,7 @@ your-project/
 │       ├── devcrew-dev-task/
 │       ├── devcrew-test-report/
 │       ├── devcrew-project-init/
-│       ├── devcrew-knowledge-sync/
+│       ├── devcrew-knowledge-manager/
 │       ├── devcrew-workflow-diagnose/
 │       ├── devcrew-create-se-infrastructure/
 │       ├── devcrew-skill-develop/

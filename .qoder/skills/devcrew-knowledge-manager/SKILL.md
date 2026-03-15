@@ -1,123 +1,271 @@
 ---
-name: devcrew-knowledge-sync
-description: 知识库同步检查 SOP。检查 knowledge/ 各文档与代码现状是否一致，生成待更新清单，防止知识库腐化。
-tools: Read, Write, Glob, Grep
+name: devcrew-knowledge-manager
+description: Knowledge base initialization and synchronization manager. Handles both initial knowledge base creation from project diagnosis reports and ongoing consistency checks between knowledge documents and code reality. Trigger scenarios: "initialize knowledge base", "onboard project", "sync knowledge base", "knowledge base outdated", "update documentation".
+tools: Read, Write, Glob, Grep, Skill
 ---
 
-# 触发场景
+# Knowledge Base Manager
 
-- 用户说"检查知识库"、"同步知识库"、"知识库过时了"
-- 重大重构或架构变更完成后
-- amu-agent 周期性维护时主动触发
+Manages the `.devcrew-workspace/knowledge/` directory, serving as the single source of truth for all DevCrew Agents.
 
-# 工作流程
+## Knowledge Base Structure
 
-> 每个子目录独立执行，保持上下文隔离，避免单次处理过多内容。
+```
+knowledge/
+├── README.md                 # Knowledge base overview
+├── constitution.md           # Project constitution (index + principles)
+├── architecture/             # Technical framework & conventions
+│   ├── system/               # System overall architecture
+│   ├── frontend/             # Frontend architecture (if applicable)
+│   ├── backend/              # Backend architecture (if applicable)
+│   ├── data/                 # Data architecture (if applicable)
+│   └── conventions/          # Development conventions
+├── bizs/                     # Business logic
+│   ├── modules/              # Business modules
+│   └── flows/                # Business processes
+└── domain/                   # Domain knowledge
+    ├── standards/            # Industry standards
+    ├── glossary/             # Business terminology
+    └── qa/                   # Q&A knowledge
+```
 
-## 步骤一：读取知识库导航
+> Document consumers:
+> - **PM Agent + Solution Agent**: primarily use `bizs/` (business modules, flows)
+> - **Designer Agents + Dev Agents**: primarily use `architecture/` (framework, conventions)
 
-读取 `.devcrew-workspace/knowledge/constitution.md` 和 `.devcrew-workspace/knowledge/README.md`，获取所有知识主文档路径清单。
+---
 
-## 步骤二：逐文档对照检查
+# Mode 1: Initialize Knowledge Base
 
-按以下顺序逐一处理，**每个文档检查完后记录结论再处理下一个**：
+## Trigger Scenarios
 
-### ① 整体架构 `architecture/system/system-arch.md`
+- User says "initialize knowledge base", "onboard project", "create knowledge base"
+- First-time setup of DevCrew for an existing project
 
-对照检查：
-- `docker-compose.yml` 服务声明 vs 文档中的技术栈表格
-- `pyproject.toml` / `package.json` 依赖版本 vs 文档中的版本号
-- 项目目录结构 vs 文档中的架构总览
+## Prerequisites
 
-### ② 前端架构 `architecture/frontend/frontend-arch.md`
+Project diagnosis report must exist at `.devcrew-workspace/diagnosis-reports/diagnosis-report-{date}.md`
 
-对照检查：
-- `web/src/` 目录结构 vs 文档描述
-- `web/package.json` 依赖 vs 文档技术栈
-- `web/src/apis/` 接口层组织 vs 文档说明
+If not exists: Prompt user to run `devcrew-project-diagnosis` first.
 
-### ③ 后端架构 `architecture/backend/backend-arch.md`
+## Initialization Workflow
 
-对照检查：
-- `src/` `server/` 目录结构 vs 文档描述
-- `pyproject.toml` 后端依赖 vs 文档技术栈
-- Router/Service/Repository 实际分层 vs 文档分层规范
+### Step 1: Read Diagnosis Report
 
-### ④ 数据架构 `architecture/data/data-arch.md`
+Read the latest diagnosis report to extract:
 
-对照检查：
-- `docker-compose.yml` 数据库服务 vs 文档存储系统总览
-- ORM 模型文件（如 `src/storage/`）vs 文档核心表清单
+| Section | Content | Used For |
+|---------|---------|----------|
+| Section 2: Technology Stack | Languages, frameworks, databases | Determine which Designer Agents to invoke |
+| Section 3: Directory Structure | Project layout | Architecture documentation structure |
+| Section 4: Development Standards | Linting, naming conventions | Conventions documentation |
+| Section 6: Business Analysis | Frontend pages, backend APIs, data models | bizs/modules/ framework |
+| Section 7: Knowledge Base Initialization Guide | Mapping of report sections to knowledge directories | Execution plan |
 
-### ⑤ 开发规范 `architecture/conventions/conventions.md`
+### Step 2: Determine Sub-Agents to Invoke
 
-对照检查：
-- `eslint.config.js` `.prettierrc.json` vs 文档前端规范
-- `pyproject.toml [tool.ruff]` vs 文档后端规范
-- `AGENTS.md` / `CLAUDE.md` 命令列表 vs 文档运行命令
+Based on technology stack from diagnosis report:
 
-### ⑥ 业务模块 `bizs/modules/modules.md`
+| If Stack Includes | Invoke |
+|-------------------|--------|
+| Frontend framework (React/Vue/Next.js/etc.) | `devcrew-designer-frontend-{stack}` |
+| Backend framework (FastAPI/Express/Django/etc.) | `devcrew-designer-backend-{stack}` |
+| Database | Backend Designer Agent handles `architecture/data/` |
 
-对照检查：
-- `server/routers/` 路由文件 vs 文档模块清单
-- `web/src/` 页面路由 vs 文档模块清单
-- 是否有新增路由但未录入模块清单
+> Note: Designer Agents are dynamically created based on project diagnosis. Use generic references in execution, not hardcoded names.
 
-### ⑦ 业务流程 `bizs/flows/flows.md`
+### Step 3: Parallel Sub-Agent Execution
 
-对照检查：
-- 现有流程详情文件 vs 代码中的核心调用链
-- 是否有流程已变更但文档未同步
+**Task A: Generate Architecture Documentation**
 
-## 步骤三：生成待更新清单
+For each applicable Designer Agent:
 
-将所有检查结论汇总，输出格式如下：
+**Input to Agent:**
+- Technology stack details (from diagnosis report Section 2)
+- Directory structure (from diagnosis report Section 3)
+- Development standards (from diagnosis report Section 4)
+- Relevant templates from `templates/knowledge/architecture/`
+
+**Agent Output:**
+- `architecture/{layer}/{layer}-arch.md` (populated template)
+- `architecture/conventions/{layer}-conventions.md` (if applicable)
+
+**Task B: Generate Business Module Framework**
+
+Executed by Leader Agent directly or delegated to a business analyzer:
+
+**Input:**
+- Business module summary (from diagnosis report Section 6.4)
+- Frontend page modules (Section 6.1)
+- Backend API modules (Section 6.2)
+- Data model clues (Section 6.3)
+
+**Output:**
+- `bizs/modules/modules.md` (module index + list)
+- `bizs/modules/{module-name}.md` (one per module, basic structure only)
+- `bizs/flows/flows.md` (placeholder, empty flows list)
+
+> Principle: Generate detailed content following templates. Business module documents should include functional descriptions, page prototypes, data schemas, and API lists derived from diagnosis report analysis.
+
+### Step 4: Generate bizs/flows/ Placeholder
+
+Create `bizs/flows/flows.md` with empty flows list:
+
+**Content:**
+- Flow index with placeholder entries
+- Note: Detailed flow documentation to be added by PM Agent during requirements phase
+
+### Step 5: Generate Constitution
+
+Create `knowledge/constitution.md` as the index and entry point:
+
+**Content includes:**
+- System positioning (one-liner from diagnosis)
+- Technology stack quick reference (from Section 2)
+- Architecture principles (standard template)
+- Code convention highlights (from Section 4)
+- Business module quick list (from Section 6.4)
+- Knowledge navigation table (mapping agents to documents)
+
+### Step 6: Self-Check
+
+Verify initialization completeness:
+
+```
+Checklist:
+- [ ] constitution.md exists and is readable
+- [ ] architecture/ structure matches diagnosis report Section 7.1
+- [ ] bizs/modules/ has at least modules.md with module list
+- [ ] All documents marked with [AUTO-GENERATED] tag
+- [ ] No placeholder variables ({{Variable}}) remain unpopulated
+```
+
+### Step 7: Output Summary
+
+```
+Knowledge base initialization complete:
+- Architecture documents: [N] generated by [Agent list]
+- Business module framework: [N] modules identified
+- Constitution: Generated as index
+- Status: [AUTO-GENERATED] tags applied, awaiting manual confirmation
+
+Next steps:
+1. Review generated documents in knowledge/
+2. Confirm or correct business module descriptions
+3. Remove [AUTO-GENERATED] tags after confirmation
+4. Start using PM Agent for requirements
+```
+
+---
+
+# Mode 2: Synchronize Knowledge Base
+
+## Trigger Scenarios
+
+- User says "sync knowledge base", "knowledge base outdated", "check knowledge consistency"
+- Major refactoring or architecture changes completed
+- Periodic maintenance
+
+## Sync Workflow
+
+### Step 1: Read Knowledge Navigation
+
+Read `knowledge/constitution.md` to get document path list.
+
+### Step 2: Document-by-Document Check
+
+For each document in knowledge/, compare with code reality:
+
+| Document | Check Against |
+|----------|---------------|
+| `architecture/system/system-arch.md` | `docker-compose.yml`, `package.json`, `pyproject.toml`, actual directory structure |
+| `architecture/frontend/frontend-arch.md` | Frontend source directory, `package.json` dependencies |
+| `architecture/backend/backend-arch.md` | Backend source directory, framework config files |
+| `architecture/data/data-arch.md` | Database services in compose file, ORM models |
+| `architecture/conventions/*.md` | Linting configs, formatting configs |
+| `bizs/modules/modules.md` | Current routes (frontend + backend), actual module existence |
+| `bizs/flows/*.md` | Core call chains in code vs documented flows |
+
+### Step 3: Generate Sync Report
+
+Output format:
 
 ```markdown
-## 知识库同步检查报告 - [日期]
+## Knowledge Base Sync Report - [Date]
 
-### 同步状态总览
+### Sync Status Overview
 
-| 文档 | 状态 | 问题数 |
-|------|------|--------|
-| system-arch.md | ✅ 同步 / ⚠️ 需更新 / ❌ 严重偏差 | [N] |
+| Document | Status | Issues |
+|----------|--------|--------|
+| system-arch.md | ✅ Sync / ⚠️ Needs Update / ❌ Major Drift | [N] |
 | frontend-arch.md | ... | [N] |
-| ...（其余文档） | ... | [N] |
+| ... | ... | ... |
 
-### 待更新清单
+### Update Checklist
 
-#### [文档名]
-- [ ] [具体需要更新的内容，如：版本号 X.X → X.X]
-- [ ] [需要新增的内容描述]
-- [ ] [需要删除/修正的内容描述]
+#### [Document Name]
+- [ ] [Specific update needed, e.g., version X.X → X.X]
+- [ ] [Content to add]
+- [ ] [Content to remove/fix]
 
-### 建议优先级
+### Priority Recommendations
 
-| 优先级 | 文档 | 原因 |
-|--------|------|------|
-| 高（影响 Agent 决策） | [文档] | [原因] |
-| 中（信息过时） | [文档] | [原因] |
-| 低（细节偏差） | [文档] | [原因] |
+| Priority | Document | Reason |
+|----------|----------|--------|
+| High (affects Agent decisions) | [doc] | [reason] |
+| Medium (info outdated) | [doc] | [reason] |
+| Low (minor drift) | [doc] | [reason] |
 ```
 
-输出到：`.devcrew-workspace/docs/knowledge-sync-[YYYY-MM-DD].md`
+Output to: `.devcrew-workspace/docs/knowledge-sync-[YYYY-MM-DD].md`
 
-## 步骤四：提示用户处理
+### Step 4: Prompt User
 
 ```
-知识库同步检查完成：
-- 检查文档：7 份
-- 需更新：[N] 份
-- 待更新清单：.devcrew-workspace/docs/knowledge-sync-[日期].md
+Knowledge base sync check complete:
+- Documents checked: [N]
+- Need update: [N]
+- Sync report: .devcrew-workspace/docs/knowledge-sync-[date].md
 
-建议优先更新影响 Agent 决策的高优先级文档。
-是否现在开始逐项更新？
+Recommended to prioritize high-impact documents that affect Agent decisions.
+Start updating now?
 ```
 
-# 检查清单
+---
 
-- [ ] 已读取 constitution.md 获取文档路径清单
-- [ ] 已逐一对照代码现状检查 7 份知识主文档
-- [ ] 每份文档的检查结论已记录
-- [ ] 已生成待更新清单文件
-- [ ] 已向用户展示摘要并提示下一步
+# Templates
+
+Available templates in `templates/knowledge/`:
+
+| Template | Used For | Populated By |
+|----------|----------|--------------|
+| `architecture/system/SYSTEM-ARCH-TEMPLATE.md` | System architecture | Designer Agent |
+| `architecture/frontend/FRONTEND-ARCH-TEMPLATE.md` | Frontend architecture | Frontend Designer Agent |
+| `architecture/backend/BACKEND-ARCH-TEMPLATE.md` | Backend architecture | Backend Designer Agent |
+| `architecture/data/DATA-ARCH-TEMPLATE.md` | Data architecture | Backend Designer Agent |
+| `architecture/conventions/CONVENTIONS-TEMPLATE.md` | Development conventions | Designer Agents |
+| `bizs/modules/MODULES-TEMPLATE.md` | Business module documentation | Leader Agent |
+| `bizs/flows/FLOWS-TEMPLATE.md` | Business process documentation | PM Agent (later) |
+| `CONSTITUTION-TEMPLATE.md` | Project constitution | Leader Agent |
+| `README-TEMPLATE.md` | Knowledge base README | Leader Agent |
+
+---
+
+# Checklist
+
+## Initialization Mode
+- [ ] Diagnosis report exists and has been read
+- [ ] Technology stack identified
+- [ ] Sub-Agents determined based on stack
+- [ ] Architecture documents generated by Designer Agents (following templates)
+- [ ] Business module documents generated (detailed content per templates)
+- [ ] bizs/flows/ placeholder created
+- [ ] Constitution generated as index
+- [ ] Self-check passed
+- [ ] Summary output to user
+
+## Sync Mode
+- [ ] Constitution read for document list
+- [ ] All documents checked against code reality
+- [ ] Sync report generated
+- [ ] User prompted for next steps
