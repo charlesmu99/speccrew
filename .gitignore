@@ -1,0 +1,16 @@
+# DevCrew workspace generated files
+.devcrew-workspace/docs/
+.devcrew-workspace/diagnosis-reports/
+.devcrew-workspace/knowledge/
+.devcrew-workspace/projects/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
