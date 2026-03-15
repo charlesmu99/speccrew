@@ -11,7 +11,7 @@
 
 ## 什么是 DevCrew？
 
-DevCrew 是一套嵌入式的虚拟 AI 开发团队框架，基于 [Qoder](https://github.com/GeekRover/qoder) 构建。它将专业的软件工程流程（PRD → Solution → Design → Dev → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD）。
+DevCrew 是一套嵌入式的虚拟 AI 开发团队框架，基于 [Qoder](https://qoder.com/) 构建。它将专业的软件工程流程（PRD → Solution → Design → Dev → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD）。
 
 通过 CLI 或复制方式将 Agent 和 Skill 集成到现有项目，即可快速初始化项目文档体系和虚拟软件团队，按照标准工程流程分步实现功能的新增和修改。
 
