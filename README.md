@@ -196,7 +196,7 @@ your-project/
 │   │   ├── devcrew-designer-backend.md
 │   │   ├── devcrew-dev-[framework].md
 │   │   └── devcrew-test-[framework].md
-│   └── skills/                      # 13 个 Skill + 模板
+│   └── skills/                      # 16 个 Skill
 │       ├── devcrew-pm-prd/
 │       ├── devcrew-solution-plan/
 │       ├── devcrew-solution-api-contract/
@@ -204,8 +204,11 @@ your-project/
 │       ├── devcrew-design-backend/
 │       ├── devcrew-dev-task/
 │       ├── devcrew-test-report/
-│       ├── devcrew-project-init/
-│       ├── devcrew-knowledge-manager/
+│       ├── devcrew-knowledge-dispatch/
+│       ├── devcrew-knowledge-bizs-init/
+│       ├── devcrew-knowledge-bizs-sync/
+│       ├── devcrew-knowledge-arch-init/
+│       ├── devcrew-knowledge-arch-sync/
 │       ├── devcrew-workflow-diagnose/
 │       ├── devcrew-create-se-infrastructure/
 │       ├── devcrew-skill-develop/

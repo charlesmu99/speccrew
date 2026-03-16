@@ -190,7 +190,7 @@ cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 your-project/
 ├── .qoder/                          # Configuración DevCrew (tiempo de ejecución)
 │   ├── agents/                      # 6 Agentes de rol
-│   └── skills/                      # 13 Skills + plantillas
+│   └── skills/                      # 16 Skills
 │
 └── .devcrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos

@@ -190,7 +190,7 @@ cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 your-project/
 ├── .qoder/                          # تكوين DevCrew (وقت التشغيل)
 │   ├── agents/                      # 6 وكلاء الأدوار
-│   └── skills/                      # 13 مهارة + قوالب
+│   └── skills/                      # 16 مهارة
 │
 └── .devcrew-workspace/              # مساحة العمل (يتم إنشاؤها أثناء التهيئة)
     ├── docs/                        # المستندات الإدارية
