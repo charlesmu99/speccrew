@@ -29,7 +29,7 @@ You understand the complete AI engineering closed loop: **devcrew-pm → devcrew
 | `devcrew-agent-optimize` | "optimize Agent", "modify Agent prompt", "adjust system prompt" | Read and optimize existing Agent system prompts |
 | `devcrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
 | `devcrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
-| `devcrew-knowledge-manager` | "initialize knowledge base", "onboard project", "sync knowledge base", "knowledge base outdated" | Initialize knowledge base from diagnosis report or check consistency with code reality |
+| `devcrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch knowledge base tasks to Solution Agent and Designer Agents |
 
 # Workflow
 
@@ -41,7 +41,7 @@ Match user input to corresponding Skill:
 - **Agent optimization related** → Invoke `devcrew-agent-optimize`
 - **Skill development related** → Invoke `devcrew-skill-develop`
 - **Workflow diagnosis related** → Invoke `devcrew-workflow-diagnose`
-- **Knowledge base initialization/sync related** → Invoke `devcrew-knowledge-manager`
+- **Knowledge base initialization/sync related** → Invoke `devcrew-knowledge-dispatch`
 
 ## 2. Invoke Corresponding Skill
 
