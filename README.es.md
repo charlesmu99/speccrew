@@ -11,7 +11,7 @@
 
 ## ¿Qué es DevCrew?
 
-DevCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD �?Solution �?Design �?Dev �?Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
+DevCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
 
 Al integrar Agentes y Skills en proyectos existentes mediante CLI o copia, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
@@ -45,8 +45,8 @@ El desarrollo solo necesita "llenar la carne" basándose en el stack técnico es
 
 **Solución**: Cubrir el ciclo de vida completo de ingeniería de software:
 ```
-PRD (Requisitos) �?Solution (Planificación) �?API Contract
-    �?Design �?Dev (Desarrollo) �?Test (Pruebas)
+PRD (Requisitos) → Solution (Planificación) → API Contract
+    → Design → Dev (Desarrollo) → Test (Pruebas)
 ```
 - La salida de cada fase es la entrada de la siguiente fase
 - Cada paso requiere confirmación humana antes de proceder
@@ -109,11 +109,11 @@ graph LR
 
 | Fase | Agente | Entrada | Salida | Confirmación Humana |
 |------|--------|---------|--------|---------------------|
-| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | �?Requerido |
-| Solution | Planner | PRD | Solución Técnica + Contrato API | �?Requerido |
-| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | �?Requerido |
-| Dev | Dev | Design | Código + Registros de Tareas | �?Requerido |
-| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | �?Requerido |
+| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | ✅ Requerido |
+| Solution | Planner | PRD | Solución Técnica + Contrato API | ✅ Requerido |
+| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | ✅ Requerido |
+| Dev | Dev | Design | Código + Registros de Tareas | ✅ Requerido |
+| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | ✅ Requerido |
 
 ---
 
@@ -122,7 +122,7 @@ graph LR
 | Dimensión | Vibe Coding | Ralph Loop | **DevCrew** |
 |-----------|-------------|------------|-------------|
 | Dependencia de Documentos | Ignora documentos existentes | Depende de AGENTS.md | **Base de conocimiento estructurada** |
-| Transferencia de Requisitos | Codificación directa | PRD �?Code | **PRD �?Solution �?Design �?Code** |
+| Transferencia de Requisitos | Codificación directa | PRD → Code | **PRD → Solution → Design → Code** |
 | Participación Humana | Mínima | Al inicio | **En cada fase** |
 | Completitud del Proceso | Débil | Media | **Flujo de trabajo de ingeniería completo** |
 | Colaboración en Equipo | Difícil de compartir | Eficiencia personal | **Compartir conocimiento en equipo** |
@@ -189,18 +189,18 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 ```
 your-project/
 ├── .qoder/                          # Configuración DevCrew (tiempo de ejecución)
-�?  ├── agents/                      # 6 Agentes de rol
-�?  └── skills/                      # 16 Skills
-�?
+│   ├── agents/                      # 6 Agentes de rol
+│   └── skills/                      # 16 Skills
+│
 └── devcrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos
-    �?  └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
+    │   └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
     ├── knowledge/                   # Base de conocimiento del proyecto (generada dinámicamente)
-    �?  ├── README.md
-    �?  ├── constitution.md
-    �?  ├── architecture/
-    �?  ├── bizs/
-    �?  └── domain/
+    │   ├── README.md
+    │   ├── constitution.md
+    │   ├── architecture/
+    │   ├── bizs/
+    │   └── domain/
     └── projects/                    # Proyectos de iteración (generados dinámicamente)
         ├── p001-user-auth/          # Requisito como proyecto, iteración independiente
         └── archive/                 # Archivado de iteraciones completadas
@@ -222,13 +222,13 @@ your-project/
 
 ## Casos de Uso
 
-### �?Recomendado Para
+### ✅ Recomendado Para
 - Proyectos medianos a grandes que requieren flujos de trabajo estandarizados
 - Desarrollo de software colaborativo en equipo
 - Transformación de ingeniería de proyectos heredados
 - Productos que requieren mantenimiento a largo plazo
 
-### �?No Adecuado Para
+### ❌ No Adecuado Para
 - Validación rápida de prototipos personales
 - Proyectos exploratorios con requisitos altamente inciertos
 - Scripts o herramientas de una sola vez
