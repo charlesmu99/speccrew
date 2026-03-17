@@ -50,9 +50,7 @@ Based on project type `{{ProjectType}}`, recommend generating the following Agen
 
 | Agent | Responsibility |
 |-------|----------------|
-| devcrew-pm | Product requirements document writing |
-| devcrew-planner | Technical solution planning |
-| devcrew-designer-[techstack] | Detailed design (frontend/backend by tech stack) |
+| devcrew-designer-[techstack] | Detailed design |
 | devcrew-dev-[techstack] | Development implementation |
 | devcrew-test-[techstack] | Testing and validation |
 
@@ -70,17 +68,16 @@ devcrew-workspace/
 ├── knowledge/                  # Project knowledge base
 │   ├── README.md
 │   ├── constitution.md
-│   ├── architecture/           # Architecture docs (subdirs by project type)
+│   ├── architecture/           # Architecture docs (subdirs dynamically selected by project type)
 │   │   ├── system/             # System overall architecture
 │   │   ├── conventions/        # Development conventions
-│   │   {{#if hasFrontend}}├── frontend/           # Frontend architecture{{/if}}
-│   │   {{#if hasBackend}}├── backend/            # Backend architecture{{/if}}
-│   │   {{#if hasDatabase}}├── data/               # Data architecture{{/if}}
-│   │   {{#if hasDesktop}}├── desktop/            # Desktop architecture{{/if}}
-│   │   {{#if hasMobile}}└── mobile/             # Mobile architecture{{/if}}
-│   ├── bizs/                   # Business knowledge (empty initially, content accumulated later)
-│   │   ├── modules/            # Business modules: {{DetectedModuleNamesList}}
-│   │   └── flows/              # Business flows: To be organized by PM Agent
+│   │   {{#if hasFrontend}}├── frontend/           # Frontend architecture (Web Full-Stack / Frontend Only){{/if}}
+│   │   {{#if hasBackend}}├── backend/            # Backend architecture (Web Full-Stack / Backend Only){{/if}}
+│   │   {{#if hasDatabase}}├── data/               # Data architecture (Web Full-Stack / Backend Only){{/if}}
+│   │   {{#if hasDesktop}}├── desktop/            # Desktop architecture (Desktop Client){{/if}}
+│   │   {{#if hasMobile}}└── mobile/             # Mobile architecture (Mobile){{/if}}
+│   ├── bizs/                   # Business knowledge (empty initially, content accumulated by PM Agent)
+│   │   {{#each detectedModules}}├── {{this}}/              # {{this}} module{{/each}}
 │   └── domain/                 # Domain knowledge (empty initially, content accumulated later)
 │       ├── standards/
 │       ├── glossary/
@@ -90,26 +87,39 @@ devcrew-workspace/
 ```
 
 **architecture/ Subdirectory Description**:
-Based on project type `[{{ProjectType}}]`, recommend creating the following architecture subdirectories:
+Based on project type `[{{ProjectType}}]` determined in Phase 2, dynamically select corresponding subdirectory combinations:
 
-| Project Type | Recommended Subdirectories |
-|--------------|----------------------------|
-| Web Full-Stack | system, conventions, frontend, backend, data |
-| Frontend Only | system, conventions, frontend |
-| Backend Only | system, conventions, backend, data |
-| Desktop Client | system, conventions, desktop |
-| Mobile | system, conventions, mobile |
-| Hybrid | Create based on actual included platforms |
+| Project Type | Recommended Subdirectories | Mapping to SKILL.md Phase 2 |
+|--------------|----------------------------|----------------------------|
+| Web Full-Stack | system, conventions, frontend, backend, data | system, conventions, frontend, backend, data |
+| Frontend Only | system, conventions, frontend | system, conventions, frontend |
+| Backend Only | system, conventions, backend, data | system, conventions, backend, data |
+| Desktop Client | system, conventions, desktop | system, conventions, desktop |
+| Mobile | system, conventions, mobile | system, conventions, mobile |
+| Hybrid | Create based on actual included platforms | Combine subdirs from detected platforms |
 
-**bizs/modules/ Initial Clues**:
-Potential business modules detected from code structure (draft only, to be confirmed by PM Agent):
-- {{Module1FromRoute/DirectoryAnalysis}}
-- {{Module2FromRoute/DirectoryAnalysis}}
+**bizs/ Dynamic Generation Rules**:
+
+Based on Phase 3.3 Business Module Clue Collection, dynamically generate `bizs/` subdirectories:
+
+| Condition | Generated Content |
+|-----------|-------------------|
+| `hasModules=true` | Create subdirectories named after detected business modules (e.g., `bizs/User/`, `bizs/Order/`) |
+| `hasModules=false` | Skip `bizs/` directory creation or create empty structure |
+
+**Initial Clues from Phase 3.3** (detected from code structure, to be confirmed by PM Agent):
+- {{Module1FromRoute/DirectoryAnalysis}} (Source: frontend routing / backend API routes / directory structure)
+- {{Module2FromRoute/DirectoryAnalysis}} (Source: frontend routing / backend API routes / directory structure)
 - ...
+
+> **Note**: 
+> - `hasModules` = true when business modules detected from routes/entities/directories
+> - Business flows will be organized by PM Agent during PRD phase
+> - PM Agent will confirm and refine during actual project execution
 
 ## 6. Business Analysis (Initial)
 
-Based on source code route/directory structure analysis, preliminary identification of business modules and flows:
+Based on source code route/directory structure analysis, preliminary identification of business modules:
 
 ### 6.1 Frontend Page Modules
 
@@ -174,8 +184,7 @@ Based on this diagnosis report, the following knowledge base structure should be
 
 | Directory | Generated By | Input From This Report |
 |-----------|--------------|------------------------|
-| `bizs/modules/` | Leader Agent | Section 6.4: Business module summary |
-| `bizs/flows/` | Placeholder only | Empty initially, to be populated by PM Agent |
+| `bizs/{ModuleName}/` | Leader Agent | Section 6.4: Business module summary |
 
 ### 7.3 Domain Layer (Empty initially)
 
@@ -190,6 +199,6 @@ Based on this diagnosis report, the following knowledge base structure should be
 ## 8. Content for Deep Identification
 
 The following needs to be gradually accumulated during Agent usage:
-- **Business Flows**: Organized by PM Agent during PRD phase, stored in `bizs/flows/`
+- **Business Flows**: Organized by PM Agent during PRD phase, associated with corresponding modules
 - **Domain Knowledge**: Added to `domain/` when involving industry standards
 - **Repetitive Operation Patterns**: Identified by Dev Agent during development and accumulated as Skills
