@@ -5,10 +5,14 @@
 #
 # Install from Gitee (China):
 #   Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
+#
+# Uninstall:
+#   .\install.ps1 -Uninstall
 
 param(
     [string]$TargetDir = ".",
-    [string]$Mirror = "github"  # Options: github, gitee
+    [string]$Mirror = "github",  # Options: github, gitee
+    [switch]$Uninstall = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -45,6 +49,56 @@ function Cleanup {
     if (Test-Path $TempDir) {
         Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
     }
+}
+
+# Uninstall DevCrew
+function Uninstall-DevCrew {
+    Write-Host "========================================" -ForegroundColor Yellow
+    Write-Host "  DevCrew Uninstaller" -ForegroundColor Yellow
+    Write-Host "========================================" -ForegroundColor Yellow
+    Write-Host ""
+    
+    Write-Warning "This will remove all DevCrew-related files while preserving your custom agents and skills."
+    $response = Read-Host "Do you want to proceed with uninstallation? (y/N)"
+    if ($response -notmatch '^[Yy]$') {
+        Write-Info "Uninstallation cancelled."
+        return
+    }
+    
+    Write-Info "Uninstalling DevCrew..."
+    
+    # Remove devcrew-prefixed agents
+    $agentsPath = Join-Path $TargetDir ".qoder\agents"
+    if (Test-Path $agentsPath) {
+        $devcrewAgents = Get-ChildItem -Path $agentsPath -Filter "devcrew-*.md" -ErrorAction SilentlyContinue
+        foreach ($agent in $devcrewAgents) {
+            Remove-Item -Path $agent.FullName -Force
+            Write-Info "Removed agent: $($agent.Name)"
+        }
+    }
+    
+    # Remove devcrew-prefixed skills
+    $skillsPath = Join-Path $TargetDir ".qoder\skills"
+    if (Test-Path $skillsPath) {
+        $devcrewSkills = Get-ChildItem -Path $skillsPath -Directory -Filter "devcrew-*" -ErrorAction SilentlyContinue
+        foreach ($skill in $devcrewSkills) {
+            Remove-Item -Recurse -Force $skill.FullName
+            Write-Info "Removed skill: $($skill.Name)"
+        }
+    }
+    
+    # Remove devcrew-workspace directory
+    $workspacePath = Join-Path $TargetDir "devcrew-workspace"
+    if (Test-Path $workspacePath) {
+        Remove-Item -Recurse -Force $workspacePath
+        Write-Info "Removed directory: devcrew-workspace/"
+    }
+    
+    Write-Host ""
+    Write-Success "DevCrew has been successfully uninstalled!"
+    Write-Host ""
+    Write-Host "Note: Your custom agents and skills in .qoder/ have been preserved." -ForegroundColor Cyan
+    Write-Host "To completely remove all Qoder configurations, manually delete the .qoder/ directory." -ForegroundColor Cyan
 }
 
 # Check if DevCrew is already installed
@@ -329,12 +383,24 @@ function Print-NextSteps {
     Write-Host "  - Project Introduction: README.md"
     Write-Host ""
     Write-Host "To uninstall:"
-    Write-Host "  Remove-Item -Recurse -Force .qoder, devcrew-workspace"
+    Write-Host "  Run: .\install.ps1 -Uninstall"
+    Write-Host "  Or manually remove: devcrew-workspace/ and devcrew-* files in .qoder/"
     Write-Host ""
 }
 
 # Main function
 function Main {
+    # Check if uninstall mode
+    if ($Uninstall) {
+        Uninstall-DevCrew
+        
+        # Pause to keep window open
+        Write-Host ""
+        Write-Host "Press any key to continue..." -ForegroundColor Cyan
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        return
+    }
+    
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host "  DevCrew Installer for Qoder" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan

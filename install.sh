@@ -10,6 +10,9 @@
 #
 # Install to specific directory:
 #   curl -fsSL <url> | bash -s /path/to/project
+#
+# Uninstall:
+#   ./install.sh --uninstall (or -u)
 
 set -e
 
@@ -23,6 +26,12 @@ NC='\033[0m' # No Color
 # Configuration - Auto-detect mirror based on script source
 SCRIPT_SOURCE="${SCRIPT_SOURCE:-github}"
 
+# Check for uninstall flag
+UNINSTALL_MODE=false
+if [ "$1" = "--uninstall" ] || [ "$1" = "-u" ]; then
+    UNINSTALL_MODE=true
+fi
+
 if [ "$SCRIPT_SOURCE" = "gitee" ]; then
     REPO_URL="https://gitee.com/amutek/devcrew/repository/archive/main.tar.gz"
 else
@@ -34,6 +43,59 @@ TARGET_DIR="${1:-.}"
 
 # Cleanup on exit
 trap "rm -rf $TEMP_DIR" EXIT
+
+# Uninstall DevCrew
+uninstall_devcrew() {
+    echo "========================================"
+    echo -e "${YELLOW}  DevCrew Uninstaller${NC}"
+    echo "========================================"
+    echo ""
+    
+    print_warning "This will remove all DevCrew-related files while preserving your custom agents and skills."
+    echo ""
+    read -p "Do you want to proceed with uninstallation? (y/N): " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_info "Uninstallation cancelled."
+        return
+    fi
+    
+    print_info "Uninstalling DevCrew..."
+    
+    # Remove devcrew-prefixed agents
+    if [ -d "$TARGET_DIR/.qoder/agents" ]; then
+        for agent in "$TARGET_DIR/.qoder/agents"/devcrew-*.md; do
+            if [ -f "$agent" ]; then
+                agent_name=$(basename "$agent")
+                rm -f "$agent"
+                print_info "Removed agent: $agent_name"
+            fi
+        done
+    fi
+    
+    # Remove devcrew-prefixed skills
+    if [ -d "$TARGET_DIR/.qoder/skills" ]; then
+        for skill_dir in "$TARGET_DIR/.qoder/skills"/devcrew-*; do
+            if [ -d "$skill_dir" ]; then
+                skill_name=$(basename "$skill_dir")
+                rm -rf "$skill_dir"
+                print_info "Removed skill: $skill_name"
+            fi
+        done
+    fi
+    
+    # Remove devcrew-workspace directory
+    if [ -d "$TARGET_DIR/devcrew-workspace" ]; then
+        rm -rf "$TARGET_DIR/devcrew-workspace"
+        print_info "Removed directory: devcrew-workspace/"
+    fi
+    
+    echo ""
+    print_success "DevCrew has been successfully uninstalled!"
+    echo ""
+    echo -e "${BLUE}Note:${NC} Your custom agents and skills in .qoder/ have been preserved."
+    echo -e "${BLUE}To completely remove all Qoder configurations, manually delete the .qoder/ directory.${NC}"
+}
 
 # Print functions
 print_info() {
@@ -327,12 +389,24 @@ print_next_steps() {
     echo "  - Project Introduction: README.md"
     echo ""
     echo "To uninstall:"
-    echo "  rm -rf .qoder devcrew-workspace"
+    echo "  Run: ./install.sh --uninstall (or -u)"
+    echo "  Or manually remove: devcrew-workspace/ and devcrew-* files in .qoder/"
     echo ""
 }
 
 # Main function
 main() {
+    # Check if uninstall mode
+    if [ "$UNINSTALL_MODE" = true ]; then
+        uninstall_devcrew
+        
+        # Pause to keep terminal open
+        echo ""
+        read -n 1 -s -r -p "Press any key to continue..."
+        echo ""
+        return
+    fi
+    
     echo "========================================"
     echo "  DevCrew Installer for Qoder"
     echo "========================================"
