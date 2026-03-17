@@ -11,7 +11,7 @@
 
 ## What is DevCrew?
 
-DevCrew is an embedded virtual AI development team framework built on [Qoder](https://qoder.com/). It transforms professional software engineering workflows (PRD → Solution → Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD).
+DevCrew is an embedded virtual AI development team framework built on [Qoder](https://qoder.com/). It transforms professional software engineering workflows (PRD �?Solution �?Design �?Dev �?Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD).
 
 By integrating Agents and Skills into existing projects via CLI or copy, teams can quickly initialize project documentation systems and virtual software teams, implementing new features and modifications following standard engineering workflows.
 
@@ -45,8 +45,8 @@ Development only needs to "fill in the flesh" based on the specific tech stack, 
 
 **Solution**: Cover the full software engineering lifecycle:
 ```
-PRD (Requirements) → Solution (Planning) → API Contract
-    → Design → Dev (Development) → Test (Testing)
+PRD (Requirements) �?Solution (Planning) �?API Contract
+    �?Design �?Dev (Development) �?Test (Testing)
 ```
 - Each phase's output is the next phase's input
 - Each step requires human confirmation before proceeding
@@ -109,11 +109,11 @@ graph LR
 
 | Phase | Agent | Input | Output | Human Confirmation |
 |-------|-------|-------|--------|-------------------|
-| PRD | PM | User Requirements | Product Requirements Document | ✅ Required |
-| Solution | Planner | PRD | Technical Solution + API Contract | ✅ Required |
-| Design | Designer | Solution | Frontend/Backend Design Documents | ✅ Required |
-| Dev | Dev | Design | Code + Task Records | ✅ Required |
-| Test | Test | Dev Output + PRD Acceptance Criteria | Test Report | ✅ Required |
+| PRD | PM | User Requirements | Product Requirements Document | �?Required |
+| Solution | Planner | PRD | Technical Solution + API Contract | �?Required |
+| Design | Designer | Solution | Frontend/Backend Design Documents | �?Required |
+| Dev | Dev | Design | Code + Task Records | �?Required |
+| Test | Test | Dev Output + PRD Acceptance Criteria | Test Report | �?Required |
 
 ---
 
@@ -122,7 +122,7 @@ graph LR
 | Dimension | Vibe Coding | Ralph Loop | **DevCrew** |
 |-----------|-------------|------------|-------------|
 | Document Dependency | Ignores existing docs | Relies on AGENTS.md | **Structured Knowledge Base** |
-| Requirement Transfer | Direct coding | PRD → Code | **PRD → Solution → Design → Code** |
+| Requirement Transfer | Direct coding | PRD �?Code | **PRD �?Solution �?Design �?Code** |
 | Human Involvement | Minimal | At startup | **At every phase** |
 | Process Completeness | Weak | Medium | **Complete engineering workflow** |
 | Team Collaboration | Hard to share | Personal efficiency | **Team knowledge sharing** |
@@ -161,7 +161,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/
 git clone https://github.com/charlesmu99/devcrew.git
 # or: git clone https://gitee.com/amutek/devcrew.git
 
-cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
+cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 ```
 
 ### 2. Initialize Project
@@ -189,18 +189,18 @@ cp -r devcrew/.qoder devcrew/.devcrew-workspace /path/to/your-project/
 ```
 your-project/
 ├── .qoder/                          # DevCrew configuration (runtime)
-│   ├── agents/                      # 6 role Agents
-│   └── skills/                      # 16 Skills
-│
-└── .devcrew-workspace/              # Workspace (generated during initialization)
+�?  ├── agents/                      # 6 role Agents
+�?  └── skills/                      # 16 Skills
+�?
+└── devcrew-workspace/              # Workspace (generated during initialization)
     ├── docs/                        # Management documents
-    │   └── agent-knowledge-map.md   # Agent knowledge map
+    �?  └── agent-knowledge-map.md   # Agent knowledge map
     ├── knowledge/                   # Project knowledge base (dynamically generated)
-    │   ├── README.md
-    │   ├── constitution.md
-    │   ├── architecture/
-    │   ├── bizs/
-    │   └── domain/
+    �?  ├── README.md
+    �?  ├── constitution.md
+    �?  ├── architecture/
+    �?  ├── bizs/
+    �?  └── domain/
     └── projects/                    # Iteration projects (dynamically generated)
         ├── p001-user-auth/          # Requirement as project, independent iteration
         └── archive/                 # Completed iteration archiving
@@ -222,13 +222,13 @@ your-project/
 
 ## Use Cases
 
-### ✅ Recommended For
+### �?Recommended For
 - Medium to large projects requiring standardized workflows
 - Team collaboration software development
 - Legacy project engineering transformation
 - Products requiring long-term maintenance
 
-### ❌ Not Suitable For
+### �?Not Suitable For
 - Personal rapid prototype validation
 - Exploratory projects with highly uncertain requirements
 - One-off scripts or tools
@@ -237,7 +237,7 @@ your-project/
 
 ## More Information
 
-- **Agent Knowledge Map**: [.devcrew-workspace/docs/agent-knowledge-map.md](./.devcrew-workspace/docs/agent-knowledge-map.md)
+- **Agent Knowledge Map**: [devcrew-workspace/docs/agent-knowledge-map.md](./devcrew-workspace/docs/agent-knowledge-map.md)
 - **GitHub**: https://github.com/charlesmu99/devcrew
 - **Gitee**: https://gitee.com/amutek/devcrew
 - **Qoder IDE**: https://qoder.com/

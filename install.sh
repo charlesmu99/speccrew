@@ -76,8 +76,8 @@ check_qoder_compatibility() {
         done
     fi
     
-    # Check for .devcrew-workspace
-    if [ -d "$TARGET_DIR/.devcrew-workspace" ]; then
+    # Check for devcrew-workspace
+    if [ -d "$TARGET_DIR/devcrew-workspace" ]; then
         devcrew_installed=true
     fi
     
@@ -162,37 +162,37 @@ install_devcrew() {
         print_success "Updated .qoder/ directory (incremental)."
     fi
     
-    # Copy .devcrew-workspace directory (incremental update)
-    mkdir -p "$TARGET_DIR/.devcrew-workspace"
+    # Copy devcrew-workspace directory (incremental update)
+    mkdir -p "$TARGET_DIR/devcrew-workspace"
     
-    if [ -d "$extracted_dir/.devcrew-workspace" ]; then
+    if [ -d "$extracted_dir/devcrew-workspace" ]; then
         # Copy docs from archive
-        if [ -d "$extracted_dir/.devcrew-workspace/docs" ]; then
-            mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
-            for doc in "$extracted_dir/.devcrew-workspace/docs"/*.md; do
+        if [ -d "$extracted_dir/devcrew-workspace/docs" ]; then
+            mkdir -p "$TARGET_DIR/devcrew-workspace/docs"
+            for doc in "$extracted_dir/devcrew-workspace/docs"/*.md; do
                 if [ -f "$doc" ]; then
                     doc_name=$(basename "$doc")
-                    if [ ! -f "$TARGET_DIR/.devcrew-workspace/docs/$doc_name" ]; then
-                        cp "$doc" "$TARGET_DIR/.devcrew-workspace/docs/"
+                    if [ ! -f "$TARGET_DIR/devcrew-workspace/docs/$doc_name" ]; then
+                        cp "$doc" "$TARGET_DIR/devcrew-workspace/docs/"
                         print_info "Added new doc: $doc_name"
                     fi
                 fi
             done
         fi
         
-        print_success "Updated .devcrew-workspace/ directory from archive."
+        print_success "Updated devcrew-workspace/ directory from archive."
     else
-        # Gitee archive doesn't include .devcrew-workspace, create minimal structure
-        print_warning ".devcrew-workspace not found in archive, creating minimal structure"
+        # Archive doesn't include devcrew-workspace, create minimal structure
+        print_warning "devcrew-workspace not found in archive, creating minimal structure"
         
-        mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
+        mkdir -p "$TARGET_DIR/devcrew-workspace/docs"
         
         # Download essential docs from raw URLs (try Gitee first, fallback to GitHub)
-        gitee_url="https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
-        github_url="https://raw.githubusercontent.com/charlesmu99/devcrew/main/.devcrew-workspace/docs"
+        gitee_url="https://gitee.com/amutek/devcrew/raw/main/devcrew-workspace/docs"
+        github_url="https://raw.githubusercontent.com/charlesmu99/devcrew/main/devcrew-workspace/docs"
         
         for doc_file in "agent-knowledge-map.md" "leader-agent-definition.md"; do
-            doc_target="$TARGET_DIR/.devcrew-workspace/docs/$doc_file"
+            doc_target="$TARGET_DIR/devcrew-workspace/docs/$doc_file"
             if [ ! -f "$doc_target" ]; then
                 downloaded=false
                 
@@ -228,12 +228,12 @@ install_devcrew() {
             fi
         done
         
-        print_success "Created minimal .devcrew-workspace/ structure."
+        print_success "Created minimal devcrew-workspace/ structure."
     fi
     
     # Create knowledge and projects directories if not exist
-    mkdir -p "$TARGET_DIR/.devcrew-workspace/knowledge"
-    mkdir -p "$TARGET_DIR/.devcrew-workspace/projects"
+    mkdir -p "$TARGET_DIR/devcrew-workspace/knowledge"
+    mkdir -p "$TARGET_DIR/devcrew-workspace/projects"
     
     # Copy README files to target directory (optional, for reference)
     for readme in "$extracted_dir"/README*.md; do
@@ -254,8 +254,8 @@ verify_installation() {
         errors=$((errors + 1))
     fi
     
-    if [ ! -d "$TARGET_DIR/.devcrew-workspace" ]; then
-        print_error ".devcrew-workspace/ directory not found after installation."
+    if [ ! -d "$TARGET_DIR/devcrew-workspace" ]; then
+        print_error "devcrew-workspace/ directory not found after installation."
         errors=$((errors + 1))
     fi
     
@@ -283,11 +283,11 @@ print_next_steps() {
     echo "  3. Start using DevCrew with your first requirement!"
     echo ""
     echo "Documentation:"
-    echo "  - Agent Knowledge Map: .devcrew-workspace/docs/agent-knowledge-map.md"
+    echo "  - Agent Knowledge Map: devcrew-workspace/docs/agent-knowledge-map.md"
     echo "  - Project Introduction: README.md"
     echo ""
     echo "To uninstall:"
-    echo "  rm -rf .qoder .devcrew-workspace"
+    echo "  rm -rf .qoder devcrew-workspace"
     echo ""
 }
 

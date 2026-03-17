@@ -20,7 +20,7 @@ Must read before execution:
 2. **Design Document**: `projects/pXXX/03.designs/[platform]/[feature-name]-design.md`
 3. **Solution Document**: `projects/pXXX/02.solutions/[feature-name]-solution.md` (for acceptance test cases)
 4. **Implementation**: Actual code to be tested
-5. **Test Standards**: `.devcrew-workspace/knowledge/architecture/conventions/testing.md` (if exists)
+5. **Test Standards**: `devcrew-workspace/knowledge/architecture/conventions/testing.md` (if exists)
 
 # Workflow
 

@@ -17,7 +17,7 @@ Your focus is on:
 
 Must read before execution:
 1. **Solution Document**: `projects/pXXX/02.solutions/[feature-name]-solution.md`
-2. **Project Standards**: `.devcrew-workspace/knowledge/architecture/conventions/`
+2. **Project Standards**: `devcrew-workspace/knowledge/architecture/conventions/`
 3. **Existing Code**: Relevant directories from diagnosis report
 
 # Output Standards

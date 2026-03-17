@@ -55,7 +55,7 @@ function Check-QoderCompatibility {
     $devcrewInstalled = $false
     $agentsPath = Join-Path $TargetDir ".qoder\agents"
     $skillsPath = Join-Path $TargetDir ".qoder\skills"
-    $workspacePath = Join-Path $TargetDir ".devcrew-workspace"
+    $workspacePath = Join-Path $TargetDir "devcrew-workspace"
     
     # Check for devcrew-prefixed agents
     if (Test-Path $agentsPath) {
@@ -73,7 +73,7 @@ function Check-QoderCompatibility {
         }
     }
     
-    # Check for .devcrew-workspace
+    # Check for devcrew-workspace
     if (Test-Path $workspacePath) {
         $devcrewInstalled = $true
     }
@@ -165,15 +165,13 @@ function Install-DevCrew($zipPath) {
         Write-Success "Updated .qoder/ directory (incremental)."
     }
     
-    # Copy .devcrew-workspace directory (incremental update)
-    $workspaceSource = Join-Path $extractedDir.FullName ".devcrew-workspace"
-    $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
+    # Copy devcrew-workspace directory (incremental update)
+    $workspaceSource = Join-Path $extractedDir.FullName "devcrew-workspace"
+    $workspaceTarget = Join-Path $TargetDir "devcrew-workspace"
     New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
     
     if (Test-Path $workspaceSource) {
-        Write-Info "Found .devcrew-workspace source directory"
-        
-        # Only copy docs templates if not exist
+        # Copy docs from archive
         $docsSource = Join-Path $workspaceSource "docs"
         if (Test-Path $docsSource) {
             $docsTarget = Join-Path $workspaceTarget "docs"
@@ -187,9 +185,9 @@ function Install-DevCrew($zipPath) {
             }
         }
         
-        Write-Success "Updated .devcrew-workspace/ directory from archive."
+        Write-Success "Updated devcrew-workspace/ directory from archive."
     } else {
-        Write-Warning ".devcrew-workspace source directory not found in archive, creating minimal structure"
+        Write-Warning "devcrew-workspace source directory not found in archive, creating minimal structure"
         
         # Create minimal docs directory with essential files from raw URLs
         $docsTarget = Join-Path $workspaceTarget "docs"
@@ -199,8 +197,8 @@ function Install-DevCrew($zipPath) {
         # Try Gitee first, fallback to GitHub
         $docFiles = @("agent-knowledge-map.md", "leader-agent-definition.md")
         $mirrorUrls = @(
-            "https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs",
-            "https://raw.githubusercontent.com/charlesmu99/devcrew/main/.devcrew-workspace/docs"
+            "https://gitee.com/amutek/devcrew/raw/main/devcrew-workspace/docs",
+            "https://raw.githubusercontent.com/charlesmu99/devcrew/main/devcrew-workspace/docs"
         )
         
         foreach ($docFile in $docFiles) {
@@ -227,7 +225,7 @@ function Install-DevCrew($zipPath) {
             }
         }
         
-        Write-Success "Created minimal .devcrew-workspace/ structure."
+        Write-Success "Created minimal devcrew-workspace/ structure."
     }
     
     # Create knowledge and projects directories if not exist
@@ -249,7 +247,7 @@ function Verify-Installation {
     $errors = 0
     
     $qoderPath = Join-Path $TargetDir ".qoder"
-    $workspacePath = Join-Path $TargetDir ".devcrew-workspace"
+    $workspacePath = Join-Path $TargetDir "devcrew-workspace"
     
     if (-not (Test-Path $qoderPath)) {
         Write-Error ".qoder/ directory not found after installation."
@@ -257,7 +255,7 @@ function Verify-Installation {
     }
     
     if (-not (Test-Path $workspacePath)) {
-        Write-Error ".devcrew-workspace/ directory not found after installation."
+        Write-Error "devcrew-workspace/ directory not found after installation."
         $errors++
     }
     
@@ -286,11 +284,11 @@ function Print-NextSteps {
     Write-Host "  3. Start using DevCrew with your first requirement!"
     Write-Host ""
     Write-Host "Documentation:"
-    Write-Host "  - Agent Knowledge Map: .devcrew-workspace/docs/agent-knowledge-map.md"
+    Write-Host "  - Agent Knowledge Map: devcrew-workspace/docs/agent-knowledge-map.md"
     Write-Host "  - Project Introduction: README.md"
     Write-Host ""
     Write-Host "To uninstall:"
-    Write-Host "  Remove-Item -Recurse -Force .qoder, .devcrew-workspace"
+    Write-Host "  Remove-Item -Recurse -Force .qoder, devcrew-workspace"
     Write-Host ""
 }
 

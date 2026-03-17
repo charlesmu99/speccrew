@@ -17,7 +17,7 @@ Your focus is on:
 
 Must read before execution:
 1. **Design Document**: `projects/pXXX/03.designs/[platform]/[feature-name]-design.md`
-2. **Project Standards**: `.devcrew-workspace/knowledge/architecture/conventions/`
+2. **Project Standards**: `devcrew-workspace/knowledge/architecture/conventions/`
 3. **Existing Code**: Reference implementations from similar features
 
 # Workflow

@@ -45,9 +45,9 @@ Compare INDEX.md entries with RepoWiki reality:
 
 | Status | Meaning |
 |--------|---------|
-| ✅ Sync | Document exists in both, no changes |
+| �?Sync | Document exists in both, no changes |
 | ⚠️ Modified | Document exists but content changed |
-| ❌ Missing | In INDEX.md but not in RepoWiki |
+| �?Missing | In INDEX.md but not in RepoWiki |
 | 🆕 New | In RepoWiki but not in INDEX.md |
 
 ### Step 4: Generate Report
@@ -86,7 +86,7 @@ Compare INDEX.md entries with RepoWiki reality:
 
 ### Step 5: Output
 
-Write report to `.devcrew-workspace/docs/bizs-sync-{{Date}}.md` or display in console.
+Write report to `devcrew-workspace/docs/bizs-sync-{{Date}}.md` or display in console.
 
 ## Checklist
 

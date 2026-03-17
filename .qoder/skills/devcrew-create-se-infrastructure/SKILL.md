@@ -1,18 +1,18 @@
 ---
 name: devcrew-create-se-infrastructure
-description: Creates or updates AI software engineering infrastructure based on project diagnosis report. Includes generating role Agents, project-level Skills, .devcrew-workspace directory structure and deliverable templates. Use after project diagnosis completion, when needing to rebuild AI collaboration system, or when updating Agent/Skill configuration.
+description: Creates or updates AI software engineering infrastructure based on project diagnosis report. Includes generating role Agents, project-level Skills, devcrew-workspace directory structure and deliverable templates. Use after project diagnosis completion, when needing to rebuild AI collaboration system, or when updating Agent/Skill configuration.
 ---
 
 # Create SE Infrastructure
 
-Based on the diagnosis report in `.devcrew-workspace/diagnosis-reports/`, generate or update AI software engineering infrastructure for the project.
+Based on the diagnosis report in `devcrew-workspace/diagnosis-reports/`, generate or update AI software engineering infrastructure for the project.
 
 ## Prerequisites
 
-**Must complete project diagnosis first**, ensure `.devcrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `devcrew-project-diagnosis` Skill first.
+**Must complete project diagnosis first**, ensure `devcrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `devcrew-project-diagnosis` Skill first.
 
 **Read the latest diagnosis report**:
-1. List all diagnosis report files in `.devcrew-workspace/diagnosis-reports/` directory
+1. List all diagnosis report files in `devcrew-workspace/diagnosis-reports/` directory
 2. Sort by filename date, select the latest report
 3. Read report content as generation basis
 
@@ -69,9 +69,9 @@ Create or update project-level Skill directory structure in `.qoder/skills/`.
 
 This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured). Existing Skill files are preserved.
 
-### Step 4: Create .devcrew-workspace Directory Structure
+### Step 4: Create devcrew-workspace Directory Structure
 
-Read the **Recommended .devcrew-workspace Directory Structure** section from diagnosis report, create all directories and subdirectories listed (only create missing directories, preserve existing). Create initial README.md in each new directory with brief description.
+Read the **Recommended devcrew-workspace Directory Structure** section from diagnosis report, create all directories and subdirectories listed (only create missing directories, preserve existing). Create initial README.md in each new directory with brief description.
 
 ### Step 5: Output Generation Summary
 

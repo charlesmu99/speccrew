@@ -20,7 +20,7 @@ Leader Agent
 
 ## Prerequisites
 
-Project diagnosis report must exist at `.devcrew-workspace/diagnosis-reports/`
+Project diagnosis report must exist at `devcrew-workspace/diagnosis-reports/`
 
 ## Input
 

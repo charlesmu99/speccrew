@@ -17,7 +17,7 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 
 ---
 
-**Diagnosis Report Output**: `.devcrew-workspace/diagnosis-reports/diagnosis-report-{YYYY-MM-DD-HHmm}.md`
+**Diagnosis Report Output**: `devcrew-workspace/diagnosis-reports/diagnosis-report-{YYYY-MM-DD-HHmm}.md`
 
 - **Template**: [templates/DIAGNOSIS-REPORT-TEMPLATE.md](templates/DIAGNOSIS-REPORT-TEMPLATE.md)
 - **Naming Convention**: Date-time suffix, e.g., `diagnosis-report-2026-03-15-1430.md`, supports multiple diagnoses on the same day
@@ -96,7 +96,7 @@ Collect business module names from the following locations (examples, no deep un
 
 ### 4.1 Create Diagnosis Report Directory
 
-Ensure `.devcrew-workspace/diagnosis-reports/` directory exists.
+Ensure `devcrew-workspace/diagnosis-reports/` directory exists.
 
 ### 4.2 Generate Diagnosis Report
 
@@ -105,11 +105,11 @@ Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnos
 **Dynamic Content Filling Rules**:
 
 1. **architecture/ Subdirectories**: Based on project type determined in Phase 2, select corresponding subdirectory combinations
-   - Web Full-Stack â†’ system, conventions, frontend, backend, data
-   - Frontend Only â†’ system, conventions, frontend
-   - Backend Only â†’ system, conventions, backend, data
-   - Desktop Client â†’ system, conventions, desktop
-   - Mobile â†’ system, conventions, mobile
+   - Web Full-Stack â†?system, conventions, frontend, backend, data
+   - Frontend Only â†?system, conventions, frontend
+   - Backend Only â†?system, conventions, backend, data
+   - Desktop Client â†?system, conventions, desktop
+   - Mobile â†?system, conventions, mobile
 
 2. **bizs/modules/ Initial Clues**: Fill in business module names collected in Phase 3.3
 

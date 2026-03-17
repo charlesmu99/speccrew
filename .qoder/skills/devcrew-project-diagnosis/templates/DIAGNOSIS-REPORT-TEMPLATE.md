@@ -56,35 +56,35 @@ Based on project type `{{ProjectType}}`, recommend generating the following Agen
 | devcrew-dev-[techstack] | Development implementation |
 | devcrew-test-[techstack] | Testing and validation |
 
-### 5.2 Recommended .devcrew-workspace Directory Structure
+### 5.2 Recommended devcrew-workspace Directory Structure
 
 Based on project type and diagnosis results, recommend creating the following directory structure:
 
 ```
-.devcrew-workspace/
+devcrew-workspace/
 ├── diagnosis-reports/          # Diagnosis reports
-│   └── diagnosis-report-{date}.md
+�?  └── diagnosis-report-{date}.md
 ├── docs/                       # Management documents
-│   ├── README.md
-│   └── AGENTS.md
+�?  ├── README.md
+�?  └── AGENTS.md
 ├── knowledge/                  # Project knowledge base
-│   ├── README.md
-│   ├── constitution.md
-│   ├── architecture/           # Architecture docs (subdirs by project type)
-│   │   ├── system/             # System overall architecture
-│   │   ├── conventions/        # Development conventions
-│   │   {{#if hasFrontend}}├── frontend/           # Frontend architecture{{/if}}
-│   │   {{#if hasBackend}}├── backend/            # Backend architecture{{/if}}
-│   │   {{#if hasDatabase}}├── data/               # Data architecture{{/if}}
-│   │   {{#if hasDesktop}}├── desktop/            # Desktop architecture{{/if}}
-│   │   {{#if hasMobile}}└── mobile/             # Mobile architecture{{/if}}
-│   ├── bizs/                   # Business knowledge (empty initially, content accumulated later)
-│   │   ├── modules/            # Business modules: {{DetectedModuleNamesList}}
-│   │   └── flows/              # Business flows: To be organized by PM Agent
-│   └── domain/                 # Domain knowledge (empty initially, content accumulated later)
-│       ├── standards/
-│       ├── glossary/
-│       └── qa/
+�?  ├── README.md
+�?  ├── constitution.md
+�?  ├── architecture/           # Architecture docs (subdirs by project type)
+�?  �?  ├── system/             # System overall architecture
+�?  �?  ├── conventions/        # Development conventions
+�?  �?  {{#if hasFrontend}}├── frontend/           # Frontend architecture{{/if}}
+�?  �?  {{#if hasBackend}}├── backend/            # Backend architecture{{/if}}
+�?  �?  {{#if hasDatabase}}├── data/               # Data architecture{{/if}}
+�?  �?  {{#if hasDesktop}}├── desktop/            # Desktop architecture{{/if}}
+�?  �?  {{#if hasMobile}}└── mobile/             # Mobile architecture{{/if}}
+�?  ├── bizs/                   # Business knowledge (empty initially, content accumulated later)
+�?  �?  ├── modules/            # Business modules: {{DetectedModuleNamesList}}
+�?  �?  └── flows/              # Business flows: To be organized by PM Agent
+�?  └── domain/                 # Domain knowledge (empty initially, content accumulated later)
+�?      ├── standards/
+�?      ├── glossary/
+�?      └── qa/
 └── projects/                   # Iteration projects
     └── archive/                # Archive directory
 ```
@@ -143,13 +143,13 @@ Based on source code route/directory structure analysis, preliminary identificat
 ```
 {{ProjectName}}
 ├── {{Module1Name}}
-│   ├── Frontend: {{Pages1}}
-│   ├── Backend: {{Apis1}}
-│   └── Data: {{Tables1}}
+�?  ├── Frontend: {{Pages1}}
+�?  ├── Backend: {{Apis1}}
+�?  └── Data: {{Tables1}}
 ├── {{Module2Name}}
-│   ├── Frontend: {{Pages2}}
-│   ├── Backend: {{Apis2}}
-│   └── Data: {{Tables2}}
+�?  ├── Frontend: {{Pages2}}
+�?  ├── Backend: {{Apis2}}
+�?  └── Data: {{Tables2}}
 ```
 
 > Note: This is preliminary analysis based on code structure only. Business logic details need to be confirmed by PM Agent during requirements phase.
