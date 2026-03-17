@@ -11,6 +11,15 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 - Before creating or rebuilding AI collaboration infrastructure
 - User says "diagnose project", "evaluate tech stack", "analyze project structure"
 
+# Language Requirement
+
+**CRITICAL**: Before generating the diagnosis report, detect the language used by the user throughout the conversation. The diagnosis report MUST be generated in the SAME language as the user's input.
+
+- If user communicated in Chinese → Generate report in Chinese
+- If user communicated in English → Generate report in English
+- If user communicated in other languages → Generate report in that language
+- Do NOT default to English if user used another language
+
 # Diagnosis Goal
 
 > Note: Deep identification of business domains and repetitive operation patterns should be gradually accumulated by specific Agents during actual usage after infrastructure creation.
@@ -146,6 +155,21 @@ Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnos
    - Mobile → system, conventions, mobile
 
 2. **bizs/modules/ Initial Clues**: Fill in business module names collected in Phase 3.3
+
+3. **Recommended Agents to Generate**: For EACH identified technology stack, generate 3 Agents (designer, dev, test)
+   - **Rule**: Every tech stack gets its own set of 3 Agents
+   - **Naming Pattern**: `devcrew-{role}-{techstack}`
+   - **Example 1** (Vue + Java): 
+     - `devcrew-designer-vue`, `devcrew-dev-vue`, `devcrew-test-vue`
+     - `devcrew-designer-java`, `devcrew-dev-java`, `devcrew-test-java`
+   - **Example 2** (Vue + Java + Electron):
+     - `devcrew-designer-vue`, `devcrew-dev-vue`, `devcrew-test-vue`
+     - `devcrew-designer-java`, `devcrew-dev-java`, `devcrew-test-java`
+     - `devcrew-designer-electron`, `devcrew-dev-electron`, `devcrew-test-electron`
+   - **Example 3** (React + Node.js + React Native):
+     - `devcrew-designer-react`, `devcrew-dev-react`, `devcrew-test-react`
+     - `devcrew-designer-nodejs`, `devcrew-dev-nodejs`, `devcrew-test-nodejs`
+     - `devcrew-designer-reactnative`, `devcrew-dev-reactnative`, `devcrew-test-reactnative`
 
 # Output Requirements
 
