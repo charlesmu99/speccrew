@@ -1,90 +1,120 @@
 ---
 name: devcrew-knowledge-bizs-init
-description: Initialize bizs business knowledge index by scanning RepoWiki documents. Used by Solution Agent to generate knowledge/bizs/INDEX.md linking to business-related RepoWiki files.
-tools: Read, Write, Glob, Grep
+description: Stage 1 of knowledge base initialization - Scan source code to identify all modules and generate module list. Used by Worker Agent to kick off the 4-stage pipeline.
+tools: Read, Write, Glob, Grep, SearchCodebase
 ---
 
-# Initialize bizs Business Knowledge
+# Stage 1: Generate Module List
 
-Generate `knowledge/bizs/INDEX.md` by scanning RepoWiki for business-related documents.
+Scan source code, detect technology stack, identify all business modules, and generate modules.json for downstream parallel processing.
 
 ## Trigger Scenarios
 
-- "Initialize bizs knowledge"
-- "Generate business knowledge index"
-- "Scan RepoWiki for business modules"
+- "Scan source code for modules"
+- "Identify business modules from codebase"
+- "Generate module list for documentation"
 
 ## User
 
-Solution Agent
+Worker Agent (devcrew-task-worker)
 
 ## Input
 
-None (automatically scans RepoWiki)
+- `source_path`: Source code directory path (default: project root)
+- `output_path`: Output directory for modules.json (default: `devcrew-workspace/.tasks/knowledge-bizs-init/`)
 
 ## Output
 
-- `knowledge/bizs/INDEX.md` - Business knowledge index with links to RepoWiki
+- `{output_path}/modules.json` - Module list for pipeline orchestration
 
 ## Workflow
 
-### Step 1: Scan RepoWiki
+### Step 1: Detect Technology Stack
 
-Scan `.qoder/repowiki/` directory for business-related documents:
+Analyze project structure:
 
-**Identify by:**
-- File names containing: module, business, flow, process, domain
-- Content mentioning: user, order, product, payment, etc.
-- Directory structure: bizs/, modules/, flows/, domain/
+| Indicator | Technology | Detection Method |
+|-----------|------------|------------------|
+| `package.json` with `@nestjs` | NestJS | Check dependencies |
+| `pom.xml` or `build.gradle` | Java Spring | Check build files |
+| `go.mod` | Go | Module definition |
+| `Gemfile` | Ruby on Rails | Dependency file |
 
-### Step 2: Categorize Documents
+### Step 2: Identify Modules
 
-| Category | Criteria | Examples |
-|----------|----------|----------|
-| Modules | Standalone business capabilities | user-management, order-system |
-| Flows | Business processes spanning modules | user-registration, order-payment |
-| Models | Data entities | user, order, product |
+Scan source code for module patterns:
 
-### Step 3: Extract Information
-
-For each document, extract:
-- `name`: Document title or file name
-- `description`: First paragraph or summary section
-- `link`: Relative path in RepoWiki
-
-### Step 4: Get Timestamp
-
-Use `get-timestamp` skill to get current timestamp:
-```bash
-bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "ISO"
+**NestJS Pattern:**
+```
+src/modules/
+├── order/          → Module: order
+├── payment/        → Module: payment
+├── inventory/      → Module: inventory
+└── user/           → Module: user
 ```
 
-### Step 5: Fill Template
+**Detection Rules:**
+- Directory contains `@Module()` decorator
+- Directory contains controller files
+- Directory name follows PascalCase or kebab-case
 
-Use `templates/INDEX-TEMPLATE.md`:
-- `{{GeneratedAt}}`: Timestamp from Step 4 (ISO format)
-- `{{#each modules}}`: List of module entries
-- `{{#each flows}}`: List of flow entries
-- `{{#each models}}`: List of model entries
+### Step 3: Extract Module Metadata
 
-### Step 6: Write Output
+For each identified module, extract:
 
-Write filled template to `knowledge/bizs/INDEX.md`
+| Field | Source | Example |
+|-------|--------|---------|
+| name | Directory name | "order" |
+| path | Relative path | "src/modules/order" |
+| purpose | JSDoc comment or README | "Order lifecycle management" |
+| has_controller | File existence | true |
+| has_service | File existence | true |
+| has_entity | File existence | true |
 
-### Step 7: Report
+### Step 4: Generate modules.json
+
+Create JSON file for pipeline orchestration:
+
+```json
+{
+  "generated_at": "2024-01-15T10:30:00Z",
+  "tech_stack": "nestjs",
+  "source_path": "/project/src",
+  "module_count": 4,
+  "modules": [
+    {
+      "name": "order",
+      "path": "src/modules/order",
+      "purpose": "Order lifecycle management",
+      "features_detected": 8
+    },
+    {
+      "name": "payment",
+      "path": "src/modules/payment",
+      "purpose": "Payment processing",
+      "features_detected": 5
+    }
+  ]
+}
+```
+
+**Output Path**: `{output_path}/modules.json`
+
+### Step 5: Report Results
 
 ```
-bizs knowledge index generated:
-- Modules: [N]
-- Flows: [N]
-- Models: [N]
-- Output: knowledge/bizs/INDEX.md
+Stage 1 completed: Module List Generated
+- Technology: [Detected Stack]
+- Modules Found: [N]
+- Output: {output_path}/modules.json
+- Next: Dispatch parallel tasks for Stage 2 (Module Analysis)
 ```
 
 ## Checklist
 
-- [ ] RepoWiki scanned for business documents
-- [ ] Documents categorized into modules/flows/models
-- [ ] Information extracted from each document
-- [ ] Template filled and written to output path
-- [ ] Report generated
+- [ ] Technology stack detected from project files
+- [ ] Module directories identified
+- [ ] Module metadata extracted (name, path, purpose)
+- [ ] modules.json generated with complete module list
+- [ ] Output path verified
+- [ ] Results reported

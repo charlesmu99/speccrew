@@ -1,108 +1,173 @@
 ---
 name: devcrew-knowledge-dispatch
-description: Dispatch knowledge base initialization and synchronization tasks to appropriate Agents. Used by Leader Agent to orchestrate Solution Agent and Designer Agents for bizs and architecture knowledge management.
-tools: Read, Write, Skill
+description: Dispatch knowledge base initialization tasks to Worker Agents with parallel execution support. Used by Leader Agent to orchestrate multi-stage pipeline for bizs knowledge generation.
+tools: Read, Write, Task
 ---
 
 # Knowledge Base Dispatch
 
-Orchestrate knowledge base operations by dispatching tasks to Solution Agent and Designer Agents.
+Orchestrate bizs knowledge base generation with 4-stage parallel pipeline.
 
 ## Trigger Scenarios
 
 - "Initialize knowledge base"
-- "Sync knowledge base"
-- "Dispatch knowledge tasks"
+- "Generate bizs knowledge from source code"
+- "Dispatch knowledge generation tasks"
 
 ## User
 
-Leader Agent
+Leader Agent (devcrew-team-leader)
 
 ## Prerequisites
 
-Project diagnosis report must exist at `devcrew-workspace/diagnosis-reports/`
+- Project diagnosis report at `devcrew-workspace/diagnosis-reports/`
+- Source code available for analysis
 
 ## Input
 
-- `mode`: "init" or "sync"
+- `source_path`: Source code root path (default: project root)
+- `output_path`: Output directory (default: `knowledge/bizs/`)
 
-## Workflow
+## Output
 
-### Step 1: Read Diagnosis Report
+- Task status records in `devcrew-workspace/.tasks/knowledge-bizs-init/`
+- Generated documentation in `{output_path}/`
 
-Read latest diagnosis report to extract:
-- Technology stack (Section 2)
-- Project type
-- Available platforms: frontend, backend, mobile, desktop
+## 4-Stage Pipeline Workflow
 
-### Step 2: Determine Target Agents
+### Stage 1: Generate Module List (Single Task)
 
-Based on diagnosis report:
+**Goal**: Scan source code and identify all modules.
 
-| Platform | Agent to Invoke | Skill to Use |
-|----------|-----------------|--------------|
-| N/A | Solution Agent | devcrew-knowledge-bizs-{{mode}} |
-| frontend | Frontend Designer Agent | devcrew-knowledge-arch-{{mode}} |
-| backend | Backend Designer Agent | devcrew-knowledge-arch-{{mode}} |
-| mobile | Mobile Designer Agent | devcrew-knowledge-arch-{{mode}} |
-| desktop | Desktop Designer Agent | devcrew-knowledge-arch-{{mode}} |
+**Action**:
+- Invoke 1 Worker Agent with `devcrew-knowledge-bizs-init` skill
+- Task: Analyze project structure, detect modules
 
-### Step 3: Dispatch Tasks
-
-**Task A: bizs Knowledge**
-
-Invoke Solution Agent with instruction:
-```
-Execute devcrew-knowledge-bizs-{{mode}}
-Input: none
-Output: knowledge/bizs/INDEX.md or sync report
+**Output**:
+- `devcrew-workspace/.tasks/knowledge-bizs-init/modules.json`
+```json
+{
+  "modules": ["order", "payment", "inventory", "user"],
+  "tech_stack": "nestjs",
+  "source_path": "...",
+  "generated_at": "..."
+}
 ```
 
-**Task B: Architecture Knowledge (Parallel)**
+### Stage 2: Module Analysis (Parallel)
 
-For each platform detected in diagnosis report:
+**Goal**: Analyze each module in parallel to generate feature details.
 
-Invoke corresponding Designer Agent with instruction:
+**Action**:
+- Read `modules.json`
+- For each module, invoke 1 Worker Agent in parallel
+- Use skill: `devcrew-knowledge-module-analyze`
+
+**Parallel Tasks**:
 ```
-Execute devcrew-knowledge-arch-{{mode}}
-Input: platform="{{platform}}"
-Output: knowledge/architecture/{{platform}}/INDEX.md or sync report
+Worker 1: module="order",     output="knowledge/bizs/modules/MODULE-ORDER/"
+Worker 2: module="payment",   output="knowledge/bizs/modules/MODULE-PAYMENT/"
+Worker 3: module="inventory", output="knowledge/bizs/modules/MODULE-INVENTORY/"
+Worker 4: module="user",      output="knowledge/bizs/modules/MODULE-USER/"
 ```
 
-### Step 4: Collect Results
+**Output per Module**:
+- `MODULE-{NAME}-OVERVIEW.md` (initial version with feature list)
+- `features/FEATURE-*-DETAIL.md` (one per feature)
 
-Wait for all dispatched Agents to complete:
-- Solution Agent result
-- Each Designer Agent result
+**Status Tracking**:
+- `devcrew-workspace/.tasks/knowledge-bizs-init/stage2-status.json`
 
-### Step 5: Generate Summary Report
+### Stage 3: Module Summarize (Parallel)
 
+**Goal**: Complete each module overview based on feature details.
+
+**Prerequisite**: Stage 2 completed for the module.
+
+**Action**:
+- For each module, invoke 1 Worker Agent in parallel
+- Use skill: `devcrew-knowledge-module-summarize`
+
+**Parallel Tasks**:
 ```
-Knowledge base {{mode}} completed:
-
-bizs:
-- Status: [success/failed]
-- Output: [path or error message]
-
-Architecture:
-{{#each platforms}}
-- {{platform}}:
-  - Status: [success/failed]
-  - Agent: [agent name]
-  - Output: [path or error message]
-{{/each}}
-
-Next steps:
-- Review generated indexes in knowledge/
-- [If init] Start using PM Agent for requirements
-- [If sync] Apply recommended updates
+Worker 1: module="order",     module_path="knowledge/bizs/modules/MODULE-ORDER/"
+Worker 2: module="payment",   module_path="knowledge/bizs/modules/MODULE-PAYMENT/"
+Worker 3: module="inventory", module_path="knowledge/bizs/modules/MODULE-INVENTORY/"
+Worker 4: module="user",      module_path="knowledge/bizs/modules/MODULE-USER/"
 ```
+
+**Output per Module**:
+- `MODULE-{NAME}-OVERVIEW.md` (complete version)
+
+**Status Tracking**:
+- `devcrew-workspace/.tasks/knowledge-bizs-init/stage3-status.json`
+
+### Stage 4: System Summarize (Single Task)
+
+**Goal**: Generate complete SYSTEM-OVERVIEW.md.
+
+**Prerequisite**: All Stage 3 tasks completed.
+
+**Action**:
+- Invoke 1 Worker Agent
+- Use skill: `devcrew-knowledge-system-summarize`
+
+**Task**:
+```
+Worker: modules_path="knowledge/bizs/modules/", output_path="knowledge/bizs/"
+```
+
+**Output**:
+- `knowledge/bizs/SYSTEM-OVERVIEW.md` (complete with module index)
+
+### Stage 5: Generate Final Report
+
+**Action**:
+- Read all status files
+- Generate summary report
+
+**Output**:
+```
+Knowledge base initialization completed:
+
+Pipeline Summary:
+- Stage 1 (Module List): ✅ Completed - 4 modules identified
+- Stage 2 (Analysis): ✅ Completed - 4/4 modules analyzed
+- Stage 3 (Summarize): ✅ Completed - 4/4 modules summarized
+- Stage 4 (System): ✅ Completed
+
+Statistics:
+- Modules: 4
+- Total Features: 32
+- Total Entities: 18
+- Total APIs: 56
+
+Output Files:
+- knowledge/bizs/SYSTEM-OVERVIEW.md
+- knowledge/bizs/modules/MODULE-ORDER/MODULE-ORDER-OVERVIEW.md
+- knowledge/bizs/modules/MODULE-ORDER/features/FEATURE-*-DETAIL.md (8 files)
+- [Other modules...]
+
+Next Steps:
+- Review SYSTEM-OVERVIEW.md for system structure
+- Use devcrew-pm-requirement-assess for new requirements
+```
+
+## Error Handling
+
+| Stage | Failure Handling |
+|-------|-----------------|
+| Stage 1 | Abort entire pipeline, report error |
+| Stage 2 | Continue with successful modules, report failed modules |
+| Stage 3 | Continue with successful modules, report failed modules |
+| Stage 4 | Abort if < 50% modules completed successfully |
 
 ## Checklist
 
-- [ ] Diagnosis report read
-- [ ] Target Agents determined
-- [ ] Solution Agent dispatched for bizs
-- [ ] Designer Agents dispatched for each platform
-- [ ] All results collected
-- [ ] Summary report generated
+- [ ] Stage 1: Module list generated
+- [ ] Stage 2: All modules analyzed in parallel
+- [ ] Stage 3: All modules summarized in parallel
+- [ ] Stage 4: System overview generated
+- [ ] Stage 5: Final report generated
+- [ ] Status files created in `.tasks/knowledge-bizs-init/`
+- [ ] All outputs verified

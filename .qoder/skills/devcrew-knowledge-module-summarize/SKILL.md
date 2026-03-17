@@ -1,0 +1,144 @@
+---
+name: devcrew-knowledge-module-summarize
+description: Summarize a module's features to complete MODULE-OVERVIEW.md. Reads all FEATURE-DETAIL.md files of a module and generates the complete module overview with entities, dependencies, and business rules.
+tools: Read, Write, Glob
+---
+
+# Module Summarize - Complete Module Overview
+
+Read all FEATURE-DETAIL.md files of a specific module, extract and summarize information to complete MODULE-OVERVIEW.md (full version with entities, dependencies, flows, and rules).
+
+## Trigger Scenarios
+
+- "Summarize module {name} features"
+- "Complete module overview for {name}"
+- "Finalize module documentation for {name}"
+
+## User
+
+Worker Agent (devcrew-task-worker)
+
+## Input
+
+- `module_name`: Module name to summarize
+- `module_path`: Path to module directory containing:
+  - MODULE-{NAME}-OVERVIEW.md (initial version)
+  - features/FEATURE-*-DETAIL.md files
+
+## Output
+
+- `{module_path}/MODULE-{NAME}-OVERVIEW.md` - Complete module overview (overwritten)
+
+## Workflow
+
+### Step 1: Read Initial Module Overview
+
+Read existing MODULE-{NAME}-OVERVIEW.md (initial version) to get:
+- Module basic info (name, purpose, domain)
+- Feature list with links to detail docs
+
+### Step 2: Read All Feature Details
+
+Find and read all `{module_path}/features/FEATURE-*-DETAIL.md` files.
+
+For each feature, extract:
+- API endpoint information
+- Request/Response data structures
+- Validation rules
+- Business rules
+- Error handling patterns
+
+### Step 3: Extract Entities
+
+Aggregate entities from all features:
+
+```
+From Feature A: Order, OrderItem
+From Feature B: Order, Payment
+---------------------------------
+Module Entities: Order, OrderItem, Payment
+```
+
+For each entity, collect:
+- Fields and types
+- Validation constraints
+- Relationships (from multiple features)
+
+### Step 4: Identify Dependencies
+
+Analyze feature details to identify:
+- **Internal dependencies**: Other modules this module calls
+- **External dependencies**: Third-party services, APIs
+- **Data dependencies**: Shared entities, common DTOs
+
+### Step 5: Summarize Business Rules
+
+Collect all business rules from feature details:
+- Validation rules
+- State transition rules
+- Authorization rules
+- Data consistency rules
+
+### Step 6: Generate Complete MODULE-OVERVIEW.md
+
+Use MODULE-OVERVIEW-TEMPLATE.md, fill all sections:
+
+**Section 1: Module Basic Info** (from initial version)
+- Keep existing information
+
+**Section 2: Feature List** (from initial version)
+- Keep feature list table
+- Ensure all links to FEATURE-DETAIL.md are correct
+
+**Section 3: Business Entities** (NEW)
+
+| Entity | Description | Key Fields | Relationships |
+|--------|-------------|------------|---------------|
+| Order | Order main table | id, status, amount | 1:N OrderItem |
+| OrderItem | Order line items | id, productId, qty | N:1 Order |
+
+Include ER diagram based on entity relationships.
+
+**Section 4: Dependencies** (NEW)
+
+| Dependency Direction | Module/Service | Purpose | Interface |
+|---------------------|----------------|---------|-----------|
+| This module uses | UserService | Get user info | API call |
+| Uses this module | PaymentService | Query orders | API call |
+
+**Section 5: Core Business Flows** (NEW)
+
+Based on feature interactions, identify core flows:
+- Order creation flow
+- Order status change flow
+- etc.
+
+**Section 6: Business Rules** (NEW)
+
+| Rule ID | Rule Name | Description | Related Features |
+|---------|-----------|-------------|------------------|
+| R001 | Order amount > 0 | Order total must be positive | create-order |
+| R002 | Stock check | Must check inventory before order | create-order |
+
+### Step 7: Report Results
+
+```
+Module summarization completed:
+- Module: {module_name}
+- Features Processed: {N}
+- Entities Extracted: {N}
+- Dependencies Identified: {N}
+- Business Rules Summarized: {N}
+- Output: MODULE-{NAME}-OVERVIEW.md (complete)
+- Status: success
+```
+
+## Checklist
+
+- [ ] Initial MODULE-OVERVIEW.md read
+- [ ] All FEATURE-DETAIL.md files read
+- [ ] Entities extracted and aggregated
+- [ ] Dependencies identified
+- [ ] Business rules collected
+- [ ] Section 3-6 completed in MODULE-OVERVIEW.md
+- [ ] Results reported

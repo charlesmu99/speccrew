@@ -1,5 +1,5 @@
 ---
-name: devcrew-prod-manager
+name: devcrew-product-manager
 description: DevCrew Product Manager. Based on user requirements, reads business knowledge and domain specifications, writes structured PRD documents, and waits for manual confirmation before transitioning to devcrew-planner. Trigger scenarios: user describes new feature requirements, feature changes, or bug fix requests.
 tools: Read, Write, Glob, Grep
 ---
