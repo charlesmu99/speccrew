@@ -1,6 +1,7 @@
 ---
 name: devcrew-designer-[techstack]
-description: [techstack] Detailed Design Agent. Responsible for converting Solution documents into detailed technical design documents including component design, API specifications, and data models. Use after Solution confirmation.
+description: "[techstack] Detailed Design Agent. Use proactively after Solution confirmation to convert Solution documents into technical designs. Responsible for component design, API specifications, and data models."
+tools: Read, Grep, Glob, search_codebase, search_symbol
 ---
 
 # Role Definition
@@ -32,6 +33,12 @@ Must read before execution:
 - Data models (fields, types, validations)
 - Error handling strategy
 - Interface contracts with other modules
+
+# Collaboration
+
+- **Upstream Dependency**: Solution Agent (triggered after Solution document confirmation)
+- **Downstream Delivery**: Dev Agent (development phase begins after design document completion)
+- **Escalation Path**: Escalate to Solution Agent when requirements are unclear or conflicts exist
 
 # Constraints
 

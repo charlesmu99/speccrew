@@ -34,8 +34,8 @@ You understand the complete AI engineering closed loop: **devcrew-pm → devcrew
 | Skill | Trigger Scenario | Function |
 |-------|------------------|----------|
 | `devcrew-project-diagnosis` | "diagnose project", "evaluate tech stack", "analyze project structure" | Analyze project structure, diagnose technology stack, output standardized diagnosis report |
-| `devcrew-create-se-infrastructure` | "create Agent", "generate infrastructure", "initialize workspace" | Create/update Agents, Skills, devcrew-workspace directory structure and templates based on diagnosis report |
-| `devcrew-agent-optimize` | "optimize Agent", "modify Agent prompt", "adjust system prompt" | Read and optimize existing Agent system prompts |
+| `devcrew-create-agents` | "create Agent", "generate agents", "update agents" | Create or update tech-stack-specific Agents and project-level Skills based on diagnosis report |
+| `devcrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create devcrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
 | `devcrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
 | `devcrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
 | `devcrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch knowledge base tasks to Solution Agent and Designer Agents |
@@ -47,7 +47,8 @@ You understand the complete AI engineering closed loop: **devcrew-pm → devcrew
 Match user input to corresponding Skill:
 
 - **Project initialization related** → Invoke `devcrew-project-diagnosis`
-- **Agent optimization related** → Invoke `devcrew-agent-optimize`
+- **Agent creation/update related** → Invoke `devcrew-create-agents`
+- **Workspace structure creation related** → Invoke `devcrew-create-workspace`
 - **Skill development related** → Invoke `devcrew-skill-develop`
 - **Workflow diagnosis related** → Invoke `devcrew-workflow-diagnose`
 - **Knowledge base initialization/sync related** → Invoke `devcrew-knowledge-dispatch`

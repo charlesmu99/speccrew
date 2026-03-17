@@ -1,11 +1,11 @@
 ---
-name: devcrew-create-se-infrastructure
-description: Creates or updates AI software engineering infrastructure based on project diagnosis report. Includes generating role Agents, project-level Skills, devcrew-workspace directory structure and deliverable templates. Use after project diagnosis completion, when needing to rebuild AI collaboration system, or when updating Agent/Skill configuration.
+name: devcrew-create-agents
+description: Creates or updates tech-stack-specific Agents and project-level Skills based on project diagnosis report. Generates role Agents using predefined templates. Use after project diagnosis completion when setting up or updating the AI collaboration system.
 ---
 
-# Create SE Infrastructure
+# Create Agents and Skills
 
-Based on the diagnosis report in `devcrew-workspace/diagnosis-reports/`, generate or update AI software engineering infrastructure for the project.
+Based on the diagnosis report in `devcrew-workspace/diagnosis-reports/`, generate or update tech-stack-specific Agents and project-level Skills for the project.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ Read the **Recommended Agents to Generate** section from diagnosis report, creat
 - **If Agent does not exist**: Copy template, replace `[techstack]` placeholder with actual technology stack name from diagnosis report, embed project-specific information
 - **If Agent already exists**: Read existing Agent file, update technology stack info, directory paths, commands, and standards based on latest diagnosis report (preserve existing workflow logic)
 
-**Note**: Generic agents (pm-agent, solution-agent) are created during project initialization, not here.
+**Note**: Generic agents (leader-agent,pm-agent, solution-agent) are created during project initialization, not here.
 
 **Each Agent file must embed project actual information:**
 - Actual technology stack name and version (from diagnosis report)
@@ -69,11 +69,7 @@ Create or update project-level Skill directory structure in `.qoder/skills/`.
 
 This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured). Existing Skill files are preserved.
 
-### Step 4: Create devcrew-workspace Directory Structure
-
-Read the **Recommended devcrew-workspace Directory Structure** section from diagnosis report, create all directories and subdirectories listed (only create missing directories, preserve existing). Create initial README.md in each new directory with brief description.
-
-### Step 5: Output Generation Summary
+### Step 4: Output Generation Summary
 
 List:
 - Created files list (path + description)
@@ -98,5 +94,4 @@ Each Skill file must:
 ## Notes
 
 - Check if files already exist before writing, skip if exists (no overwrite)
-- Deliverable templates use Markdown format, placeholders marked with `[...]`
 - Agent description field must contain clear "when to trigger" explanation

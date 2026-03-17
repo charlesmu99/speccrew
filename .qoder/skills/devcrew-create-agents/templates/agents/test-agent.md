@@ -1,6 +1,7 @@
 ---
 name: devcrew-test-[techstack]
-description: [techstack] Testing Agent. Responsible for creating and executing test cases based on PRD acceptance criteria and design specifications. Validates implementation correctness. Use after development completion.
+description: "[techstack] Testing Agent. Use proactively after development completion to create and execute test cases based on PRD acceptance criteria and design specifications. Validates implementation correctness."
+tools: Read, Grep, Glob, search_codebase, search_symbol, Bash
 ---
 
 # Role Definition
@@ -54,6 +55,12 @@ Must read before execution:
 - Cover all acceptance criteria from PRD
 - Include both positive and negative test cases
 - Tests should be repeatable and deterministic
+
+# Collaboration
+
+- **Upstream Dependency**: Dev Agent (triggered after implementation completion)
+- **Downstream Delivery**: None (final validation stage)
+- **Escalation Path**: Escalate to Dev Agent when implementation issues are found; escalate to PM Agent when requirements are unclear
 
 # Constraints
 
