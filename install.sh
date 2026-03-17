@@ -187,16 +187,43 @@ install_devcrew() {
         
         mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
         
-        # Download essential docs from raw Gitee
-        base_raw_url="https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
+        # Download essential docs from raw URLs (try Gitee first, fallback to GitHub)
+        gitee_url="https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
+        github_url="https://raw.githubusercontent.com/charlesmu99/devcrew/main/.devcrew-workspace/docs"
+        
         for doc_file in "agent-knowledge-map.md" "leader-agent-definition.md"; do
-            doc_url="$base_raw_url/$doc_file"
             doc_target="$TARGET_DIR/.devcrew-workspace/docs/$doc_file"
             if [ ! -f "$doc_target" ]; then
-                if command -v curl &> /dev/null; then
-                    curl -fsSL "$doc_url" -o "$doc_target" 2>/dev/null && print_info "Downloaded doc: $doc_file" || print_warning "Could not download $doc_file"
-                elif command -v wget &> /dev/null; then
-                    wget -q "$doc_url" -O "$doc_target" 2>/dev/null && print_info "Downloaded doc: $doc_file" || print_warning "Could not download $doc_file"
+                downloaded=false
+                
+                # Try Gitee first
+                if [ "$downloaded" = false ] && command -v curl &> /dev/null; then
+                    if curl -fsSL "$gitee_url/$doc_file" -o "$doc_target" --max-time 10 2>/dev/null; then
+                        print_info "Downloaded doc: $doc_file (Gitee)"
+                        downloaded=true
+                    fi
+                elif [ "$downloaded" = false ] && command -v wget &> /dev/null; then
+                    if wget -q "$gitee_url/$doc_file" -O "$doc_target" --timeout=10 2>/dev/null; then
+                        print_info "Downloaded doc: $doc_file (Gitee)"
+                        downloaded=true
+                    fi
+                fi
+                
+                # Fallback to GitHub
+                if [ "$downloaded" = false ] && command -v curl &> /dev/null; then
+                    if curl -fsSL "$github_url/$doc_file" -o "$doc_target" --max-time 10 2>/dev/null; then
+                        print_info "Downloaded doc: $doc_file (GitHub)"
+                        downloaded=true
+                    fi
+                elif [ "$downloaded" = false ] && command -v wget &> /dev/null; then
+                    if wget -q "$github_url/$doc_file" -O "$doc_target" --timeout=10 2>/dev/null; then
+                        print_info "Downloaded doc: $doc_file (GitHub)"
+                        downloaded=true
+                    fi
+                fi
+                
+                if [ "$downloaded" = false ]; then
+                    print_warning "Could not download $doc_file from any mirror"
                 fi
             fi
         done

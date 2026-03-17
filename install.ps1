@@ -195,20 +195,34 @@ function Install-DevCrew($zipPath) {
         $docsTarget = Join-Path $workspaceTarget "docs"
         New-Item -ItemType Directory -Path $docsTarget -Force | Out-Null
         
-        # Download essential doc files from raw Gitee
-        $baseRawUrl = "https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
+        # Download essential doc files from raw URLs
+        # Try Gitee first, fallback to GitHub
         $docFiles = @("agent-knowledge-map.md", "leader-agent-definition.md")
+        $mirrorUrls = @(
+            "https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs",
+            "https://raw.githubusercontent.com/charlesmu99/devcrew/main/.devcrew-workspace/docs"
+        )
         
         foreach ($docFile in $docFiles) {
-            $docUrl = "$baseRawUrl/$docFile"
             $docTargetPath = Join-Path $docsTarget $docFile
             if (-not (Test-Path $docTargetPath)) {
-                try {
-                    Invoke-WebRequest -Uri $docUrl -OutFile $docTargetPath -UseBasicParsing -ErrorAction SilentlyContinue
-                    Write-Info "Downloaded doc: $docFile"
+                $downloaded = $false
+                foreach ($baseUrl in $mirrorUrls) {
+                    $docUrl = "$baseUrl/$docFile"
+                    try {
+                        Invoke-WebRequest -Uri $docUrl -OutFile $docTargetPath -UseBasicParsing -TimeoutSec 10
+                        if (Test-Path $docTargetPath) {
+                            Write-Info "Downloaded doc: $docFile"
+                            $downloaded = $true
+                            break
+                        }
+                    }
+                    catch {
+                        # Try next mirror
+                    }
                 }
-                catch {
-                    Write-Warning "Could not download $docFile"
+                if (-not $downloaded) {
+                    Write-Warning "Could not download $docFile from any mirror"
                 }
             }
         }
