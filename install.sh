@@ -115,31 +115,64 @@ install_devcrew() {
     # Create target directory if it doesn't exist
     mkdir -p "$TARGET_DIR"
     
-    # Copy .qoder directory
+    # Copy .qoder directory (incremental update)
     if [ -d "$extracted_dir/.qoder" ]; then
-        rm -rf "$TARGET_DIR/.qoder"
-        cp -r "$extracted_dir/.qoder" "$TARGET_DIR/"
-        print_success "Installed .qoder/ directory."
+        mkdir -p "$TARGET_DIR/.qoder"
+        
+        # Copy agents (skip existing)
+        if [ -d "$extracted_dir/.qoder/agents" ]; then
+            mkdir -p "$TARGET_DIR/.qoder/agents"
+            for agent in "$extracted_dir/.qoder/agents"/*.md; do
+                if [ -f "$agent" ]; then
+                    agent_name=$(basename "$agent")
+                    if [ ! -f "$TARGET_DIR/.qoder/agents/$agent_name" ]; then
+                        cp "$agent" "$TARGET_DIR/.qoder/agents/"
+                        print_info "Added new agent: $agent_name"
+                    fi
+                fi
+            done
+        fi
+        
+        # Copy skills (skip existing)
+        if [ -d "$extracted_dir/.qoder/skills" ]; then
+            mkdir -p "$TARGET_DIR/.qoder/skills"
+            for skill_dir in "$extracted_dir/.qoder/skills"/*; do
+                if [ -d "$skill_dir" ]; then
+                    skill_name=$(basename "$skill_dir")
+                    if [ ! -d "$TARGET_DIR/.qoder/skills/$skill_name" ]; then
+                        cp -r "$skill_dir" "$TARGET_DIR/.qoder/skills/"
+                        print_info "Added new skill: $skill_name"
+                    fi
+                fi
+            done
+        fi
+        
+        print_success "Updated .qoder/ directory (incremental)."
     fi
     
-    # Copy .devcrew-workspace directory
+    # Copy .devcrew-workspace directory (incremental update)
     if [ -d "$extracted_dir/.devcrew-workspace" ]; then
-        # Backup existing projects if they exist
-        if [ -d "$TARGET_DIR/.devcrew-workspace/projects" ]; then
-            print_info "Backing up existing projects..."
-            mv "$TARGET_DIR/.devcrew-workspace/projects" "$TEMP_DIR/projects_backup"
+        mkdir -p "$TARGET_DIR/.devcrew-workspace"
+        
+        # Only copy docs templates if not exist
+        if [ -d "$extracted_dir/.devcrew-workspace/docs" ]; then
+            mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
+            for doc in "$extracted_dir/.devcrew-workspace/docs"/*.md; do
+                if [ -f "$doc" ]; then
+                    doc_name=$(basename "$doc")
+                    if [ ! -f "$TARGET_DIR/.devcrew-workspace/docs/$doc_name" ]; then
+                        cp "$doc" "$TARGET_DIR/.devcrew-workspace/docs/"
+                        print_info "Added new doc: $doc_name"
+                    fi
+                fi
+            done
         fi
         
-        rm -rf "$TARGET_DIR/.devcrew-workspace"
-        cp -r "$extracted_dir/.devcrew-workspace" "$TARGET_DIR/"
+        # Create knowledge and projects directories if not exist
+        mkdir -p "$TARGET_DIR/.devcrew-workspace/knowledge"
+        mkdir -p "$TARGET_DIR/.devcrew-workspace/projects"
         
-        # Restore projects backup if exists
-        if [ -d "$TEMP_DIR/projects_backup" ]; then
-            mv "$TEMP_DIR/projects_backup" "$TARGET_DIR/.devcrew-workspace/projects"
-            print_success "Restored existing projects."
-        fi
-        
-        print_success "Installed .devcrew-workspace/ directory."
+        print_success "Updated .devcrew-workspace/ directory (incremental)."
     fi
     
     # Copy README files to target directory (optional, for reference)

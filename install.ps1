@@ -115,42 +115,70 @@ function Install-DevCrew($zipPath) {
         New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     }
     
-    # Copy .qoder directory
+    # Copy .qoder directory (incremental update)
     $qoderSource = Join-Path $extractedDir.FullName ".qoder"
     if (Test-Path $qoderSource) {
         $qoderTarget = Join-Path $TargetDir ".qoder"
-        if (Test-Path $qoderTarget) {
-            Remove-Item -Recurse -Force $qoderTarget
+        New-Item -ItemType Directory -Path $qoderTarget -Force | Out-Null
+        
+        # Copy agents (skip existing)
+        $agentsSource = Join-Path $qoderSource "agents"
+        if (Test-Path $agentsSource) {
+            $agentsTarget = Join-Path $qoderTarget "agents"
+            New-Item -ItemType Directory -Path $agentsTarget -Force | Out-Null
+            Get-ChildItem -Path $agentsSource -Filter "*.md" | ForEach-Object {
+                $agentTarget = Join-Path $agentsTarget $_.Name
+                if (-not (Test-Path $agentTarget)) {
+                    Copy-Item -Path $_.FullName -Destination $agentTarget
+                    Write-Info "Added new agent: $($_.Name)"
+                }
+            }
         }
-        Copy-Item -Recurse -Path $qoderSource -Destination $qoderTarget
-        Write-Success "Installed .qoder/ directory."
+        
+        # Copy skills (skip existing)
+        $skillsSource = Join-Path $qoderSource "skills"
+        if (Test-Path $skillsSource) {
+            $skillsTarget = Join-Path $qoderTarget "skills"
+            New-Item -ItemType Directory -Path $skillsTarget -Force | Out-Null
+            Get-ChildItem -Path $skillsSource -Directory | ForEach-Object {
+                $skillTarget = Join-Path $skillsTarget $_.Name
+                if (-not (Test-Path $skillTarget)) {
+                    Copy-Item -Recurse -Path $_.FullName -Destination $skillTarget
+                    Write-Info "Added new skill: $($_.Name)"
+                }
+            }
+        }
+        
+        Write-Success "Updated .qoder/ directory (incremental)."
     }
     
-    # Copy .devcrew-workspace directory
+    # Copy .devcrew-workspace directory (incremental update)
     $workspaceSource = Join-Path $extractedDir.FullName ".devcrew-workspace"
     if (Test-Path $workspaceSource) {
         $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
+        New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
         
-        # Backup existing projects if they exist
+        # Only copy docs templates if not exist
+        $docsSource = Join-Path $workspaceSource "docs"
+        if (Test-Path $docsSource) {
+            $docsTarget = Join-Path $workspaceTarget "docs"
+            New-Item -ItemType Directory -Path $docsTarget -Force | Out-Null
+            Get-ChildItem -Path $docsSource -Filter "*.md" | ForEach-Object {
+                $docTarget = Join-Path $docsTarget $_.Name
+                if (-not (Test-Path $docTarget)) {
+                    Copy-Item -Path $_.FullName -Destination $docTarget
+                    Write-Info "Added new doc: $($_.Name)"
+                }
+            }
+        }
+        
+        # Create knowledge and projects directories if not exist
+        $knowledgePath = Join-Path $workspaceTarget "knowledge"
         $projectsPath = Join-Path $workspaceTarget "projects"
-        $backupPath = Join-Path $TempDir "projects_backup"
-        if (Test-Path $projectsPath) {
-            Write-Info "Backing up existing projects..."
-            Move-Item -Path $projectsPath -Destination $backupPath
-        }
+        New-Item -ItemType Directory -Path $knowledgePath -Force | Out-Null
+        New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
         
-        if (Test-Path $workspaceTarget) {
-            Remove-Item -Recurse -Force $workspaceTarget
-        }
-        Copy-Item -Recurse -Path $workspaceSource -Destination $workspaceTarget
-        
-        # Restore projects backup if exists
-        if (Test-Path $backupPath) {
-            Move-Item -Path $backupPath -Destination $projectsPath
-            Write-Success "Restored existing projects."
-        }
-        
-        Write-Success "Installed .devcrew-workspace/ directory."
+        Write-Success "Updated .devcrew-workspace/ directory (incremental)."
     }
     
     # Copy README files
