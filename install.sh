@@ -163,10 +163,10 @@ install_devcrew() {
     fi
     
     # Copy .devcrew-workspace directory (incremental update)
+    mkdir -p "$TARGET_DIR/.devcrew-workspace"
+    
     if [ -d "$extracted_dir/.devcrew-workspace" ]; then
-        mkdir -p "$TARGET_DIR/.devcrew-workspace"
-        
-        # Only copy docs templates if not exist
+        # Copy docs from archive
         if [ -d "$extracted_dir/.devcrew-workspace/docs" ]; then
             mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
             for doc in "$extracted_dir/.devcrew-workspace/docs"/*.md; do
@@ -180,12 +180,33 @@ install_devcrew() {
             done
         fi
         
-        # Create knowledge and projects directories if not exist
-        mkdir -p "$TARGET_DIR/.devcrew-workspace/knowledge"
-        mkdir -p "$TARGET_DIR/.devcrew-workspace/projects"
+        print_success "Updated .devcrew-workspace/ directory from archive."
+    else
+        # Gitee archive doesn't include .devcrew-workspace, create minimal structure
+        print_warning ".devcrew-workspace not found in archive, creating minimal structure"
         
-        print_success "Updated .devcrew-workspace/ directory (incremental)."
+        mkdir -p "$TARGET_DIR/.devcrew-workspace/docs"
+        
+        # Download essential docs from raw Gitee
+        base_raw_url="https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
+        for doc_file in "agent-knowledge-map.md" "leader-agent-definition.md"; do
+            doc_url="$base_raw_url/$doc_file"
+            doc_target="$TARGET_DIR/.devcrew-workspace/docs/$doc_file"
+            if [ ! -f "$doc_target" ]; then
+                if command -v curl &> /dev/null; then
+                    curl -fsSL "$doc_url" -o "$doc_target" 2>/dev/null && print_info "Downloaded doc: $doc_file" || print_warning "Could not download $doc_file"
+                elif command -v wget &> /dev/null; then
+                    wget -q "$doc_url" -O "$doc_target" 2>/dev/null && print_info "Downloaded doc: $doc_file" || print_warning "Could not download $doc_file"
+                fi
+            fi
+        done
+        
+        print_success "Created minimal .devcrew-workspace/ structure."
     fi
+    
+    # Create knowledge and projects directories if not exist
+    mkdir -p "$TARGET_DIR/.devcrew-workspace/knowledge"
+    mkdir -p "$TARGET_DIR/.devcrew-workspace/projects"
     
     # Copy README files to target directory (optional, for reference)
     for readme in "$extracted_dir"/README*.md; do

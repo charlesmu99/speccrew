@@ -114,38 +114,12 @@ function Install-DevCrew($zipPath) {
     
     Expand-Archive -Path $zipPath -DestinationPath $TempDir -Force
     
-    # Debug: List contents of temp directory
-    Write-Info "Temp directory contents:"
-    Get-ChildItem -Path $TempDir | ForEach-Object { Write-Info "  - $($_.Name)" }
-    
     $extractedDir = Get-ChildItem -Path $TempDir -Directory | Where-Object { $_.Name -like "devcrew*" } | Select-Object -First 1
-    
-    # Debug: List contents of extracted directory
-    if ($extractedDir) {
-        Write-Info "Extracted directory contents:"
-        Get-ChildItem -Path $extractedDir.FullName | ForEach-Object { 
-            $itemType = if ($_.PSIsContainer) { "[DIR]" } else { "[FILE]" }
-            Write-Info "  $itemType $($_.Name)" 
-        }
-        
-        # Check if .devcrew-workspace exists with different case
-        $possiblePaths = @(
-            (Join-Path $extractedDir.FullName ".devcrew-workspace"),
-            (Join-Path $extractedDir.FullName "devcrew-workspace"),
-            (Join-Path $extractedDir.FullName ".devcrew-workspace\docs")
-        )
-        foreach ($path in $possiblePaths) {
-            $exists = Test-Path $path
-            Write-Info "Check path exists [$exists]: $path"
-        }
-    }
     
     if (-not $extractedDir) {
         Write-Error "Could not find extracted DevCrew directory."
         exit 1
     }
-    
-    Write-Info "Found extracted directory: $($extractedDir.FullName)"
     
     Write-Info "Installing DevCrew to $TargetDir..."
     
@@ -193,8 +167,6 @@ function Install-DevCrew($zipPath) {
     
     # Copy .devcrew-workspace directory (incremental update)
     $workspaceSource = Join-Path $extractedDir.FullName ".devcrew-workspace"
-    Write-Info "Looking for .devcrew-workspace at: $workspaceSource"
-    
     $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
     New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
     
