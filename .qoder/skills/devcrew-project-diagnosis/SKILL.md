@@ -20,7 +20,24 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 **Diagnosis Report Output**: `devcrew-workspace/diagnosis-reports/diagnosis-report-{YYYY-MM-DD-HHmm}.md`
 
 - **Template**: [templates/DIAGNOSIS-REPORT-TEMPLATE.md](templates/DIAGNOSIS-REPORT-TEMPLATE.md)
-- **Naming Convention**: Date-time suffix, e.g., `diagnosis-report-2026-03-15-1430.md`, supports multiple diagnoses on the same day
+- **Naming Convention**: Date-time suffix using 24-hour format `HHmm` (e.g., `diagnosis-report-2026-03-15-1326.md` for 13:26), supports multiple diagnoses on the same day
+
+## Get Current Timestamp
+
+To ensure consistent timestamp format, use the provided scripts:
+
+```bash
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1
+
+# Linux/macOS/Git Bash
+bash scripts/get-timestamp.sh
+
+# Python (cross-platform)
+python scripts/get-timestamp.py
+```
+
+All scripts output timestamp in `YYYY-MM-DD-HHmm` format (e.g., `2026-03-17-1326`).
 
 # Diagnosis Workflow
 
@@ -98,7 +115,24 @@ Collect business module names from the following locations (examples, no deep un
 
 Ensure `devcrew-workspace/diagnosis-reports/` directory exists.
 
-### 4.2 Generate Diagnosis Report
+### 4.2 Generate Diagnosis Report Filename
+
+**Step 1: Get timestamp using script**
+
+Run the appropriate script to get current timestamp:
+- Windows: `powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1`
+- Linux/macOS: `bash scripts/get-timestamp.sh`
+- Or use Python: `python scripts/get-timestamp.py`
+
+**Step 2: Generate filename**
+
+```
+diagnosis-report-{timestamp}.md
+```
+
+Example: If script returns `2026-03-17-1326`, filename is `diagnosis-report-2026-03-17-1326.md`
+
+### 4.3 Fill Report Content
 
 Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnosis report.
 
