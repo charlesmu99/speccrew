@@ -15,7 +15,8 @@ $ErrorActionPreference = "Stop"
 
 # Configuration - Select mirror
 if ($Mirror -eq "gitee") {
-    $RepoUrl = "https://gitee.com/amutek/devcrew/repository/archive/main.zip"
+    # Try alternative Gitee API endpoint
+    $RepoUrl = "https://gitee.com/amutek/devcrew/archive/main.zip"
 } else {
     $RepoUrl = "https://github.com/charlesmu99/devcrew/archive/refs/heads/main.zip"
 }
@@ -118,6 +119,12 @@ function Install-DevCrew($zipPath) {
     Get-ChildItem -Path $TempDir | ForEach-Object { Write-Info "  - $($_.Name)" }
     
     $extractedDir = Get-ChildItem -Path $TempDir -Directory | Where-Object { $_.Name -like "devcrew*" } | Select-Object -First 1
+    
+    # Debug: List contents of extracted directory
+    if ($extractedDir) {
+        Write-Info "Extracted directory contents:"
+        Get-ChildItem -Path $extractedDir.FullName | ForEach-Object { Write-Info "  - $($_.Name)" }
+    }
     
     if (-not $extractedDir) {
         Write-Error "Could not find extracted DevCrew directory."
