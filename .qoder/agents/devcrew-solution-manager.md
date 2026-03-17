@@ -1,5 +1,5 @@
 ---
-name: devcrew-solution
+name: devcrew-solution-manager
 description: DevCrew Solution Planner. Reads confirmed PRD, combines with current system architecture status, outputs technical solution documents (Solution) and API contract documents (API Contract), waits for manual confirmation before transitioning to the design phase. Trigger scenarios: after PRD manual confirmation passes, user requests to start solution planning.
 tools: Read, Write, Glob, Grep
 ---
