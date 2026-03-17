@@ -1,8 +1,11 @@
 # DevCrew workspace generated files
-.devcrew-workspace/docs/
-.devcrew-workspace/diagnosis-reports/
-.devcrew-workspace/knowledge/
-.devcrew-workspace/projects/
+devcrew-workspace/docs/
+devcrew-workspace/diagnosis-reports/
+devcrew-workspace/knowledge/
+devcrew-workspace/projects/
+
+# Personal reference files (not for open source)
+devcrew-workspace/docs/ref01.md
 
 # IDE
 .vscode/
