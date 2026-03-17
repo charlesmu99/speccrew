@@ -265,6 +265,7 @@ function Main {
     # Create temp directory
     New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
     
+    $success = $false
     try {
         Check-QoderCompatibility
         $zipPath = Download-DevCrew
@@ -272,14 +273,26 @@ function Main {
         
         if (Verify-Installation) {
             Print-NextSteps
+            $success = $true
         }
         else {
             Write-Error "Installation verification failed."
-            exit 1
         }
+    }
+    catch {
+        Write-Error "An error occurred during installation: $_"
     }
     finally {
         Cleanup
+    }
+    
+    # Pause to keep window open
+    Write-Host ""
+    Write-Host "Press any key to continue..." -ForegroundColor Cyan
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    
+    if (-not $success) {
+        exit 1
     }
 }
 

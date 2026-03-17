@@ -256,16 +256,36 @@ main() {
         Linux*)     print_info "Detected: Linux" ;;
         CYGWIN*|MINGW*|MSYS*) 
             print_error "Windows detected. Please use install.ps1 for Windows."
+            read -n 1 -s -r -p "Press any key to continue..."
+            echo ""
             exit 1
             ;;
         *)          print_warning "Unknown OS: $(uname -s)" ;;
     esac
     
+    local exit_code=0
+    
     check_qoder_compatibility
-    download_devcrew
-    install_devcrew
-    verify_installation
-    print_next_steps
+    download_devcrew || exit_code=1
+    
+    if [ $exit_code -eq 0 ]; then
+        install_devcrew || exit_code=1
+    fi
+    
+    if [ $exit_code -eq 0 ]; then
+        verify_installation || exit_code=1
+    fi
+    
+    if [ $exit_code -eq 0 ]; then
+        print_next_steps
+    fi
+    
+    # Pause to keep terminal open
+    echo ""
+    read -n 1 -s -r -p "Press any key to continue..."
+    echo ""
+    
+    exit $exit_code
 }
 
 # Run main function
