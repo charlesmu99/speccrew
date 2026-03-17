@@ -24,20 +24,20 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 
 ## Get Current Timestamp
 
-To ensure consistent timestamp format, use the provided scripts:
+To ensure consistent timestamp format, use the `get-timestamp` skill:
 
 ```bash
 # Windows PowerShell
-powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1
+powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1
 
 # Linux/macOS/Git Bash
-bash scripts/get-timestamp.sh
+bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh
 
 # Python (cross-platform)
-python scripts/get-timestamp.py
+python .qoder/skills/get-timestamp/scripts/get-timestamp.py
 ```
 
-All scripts output timestamp in `YYYY-MM-DD-HHmm` format (e.g., `2026-03-17-1326`).
+Default output format: `YYYY-MM-DD-HHmm` (e.g., `2026-03-17-1326`)
 
 # Diagnosis Workflow
 
@@ -117,12 +117,12 @@ Ensure `devcrew-workspace/diagnosis-reports/` directory exists.
 
 ### 4.2 Generate Diagnosis Report Filename
 
-**Step 1: Get timestamp using script**
+**Step 1: Get timestamp using `get-timestamp` skill**
 
 Run the appropriate script to get current timestamp:
-- Windows: `powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1`
-- Linux/macOS: `bash scripts/get-timestamp.sh`
-- Or use Python: `python scripts/get-timestamp.py`
+- Windows: `powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1`
+- Linux/macOS: `bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh`
+- Or use Python: `python .qoder/skills/get-timestamp/scripts/get-timestamp.py`
 
 **Step 2: Generate filename**
 
