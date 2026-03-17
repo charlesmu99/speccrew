@@ -177,5 +177,9 @@ Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnos
 See "Diagnosis Report Output" above
 
 ### Suggested Next Step
-Call `devcrew-create-se-infrastructure` Skill to create AI collaboration infrastructure based on this diagnosis report
+
+1. **User Review**: Please review the diagnosis report above and confirm if the project type, technology stack, and business module identification are accurate
+2. **Leader Agent Initialization**: After confirmation, inform the Leader Agent to initiate software engineering infrastructure creation
+
+> The Leader Agent will call `devcrew-create-se-infrastructure` Skill to create AI collaboration infrastructure based on this confirmed diagnosis report
 ```
