@@ -1,28 +1,28 @@
-# bizs 业务知识索引
+# bizs Business Knowledge Index
 
-> 生成时间：{{GeneratedAt}}
-> 来源：RepoWiki 业务文档扫描
+> Generated At: {{GeneratedAt}}
+> Source: RepoWiki Business Document Scan
 
-## 模块清单
+## Module List
 
-| 模块 | 功能概述 | RepoWiki 链接 |
-|------|---------|--------------|
+| Module | Description | RepoWiki Link |
+|--------|-------------|---------------|
 {{#each modules}}
 | {{name}} | {{description}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}
 
-## 业务流程
+## Business Flows
 
-| 流程 | 功能概述 | RepoWiki 链接 |
-|------|---------|--------------|
+| Flow | Description | RepoWiki Link |
+|------|-------------|---------------|
 {{#each flows}}
 | {{name}} | {{description}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}
 
-## 数据模型
+## Data Models
 
-| 模型 | 功能概述 | RepoWiki 链接 |
-|------|---------|--------------|
+| Model | Description | RepoWiki Link |
+|-------|-------------|---------------|
 {{#each models}}
 | {{name}} | {{description}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}

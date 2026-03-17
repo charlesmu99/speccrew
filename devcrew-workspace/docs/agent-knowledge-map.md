@@ -39,7 +39,7 @@ Agent knowledge sources are organized in three layers:
 #### Loading Strategy
 
 ```
-1. Must load: knowledge/bizs/modules/ �?Understand system existing functions
+1. Must load: knowledge/bizs/modules/ → Understand system existing functions
 2. On-demand load: Select corresponding flows/ files based on business domain
 3. On-demand load: Consult domain/standards/ when requirements involve industry standards
 4. Do not load: System architecture, technical details (PM doesn't need)
@@ -74,9 +74,9 @@ Agent knowledge sources are organized in three layers:
 ```
 1. Must load: PRD + System Architecture Overview + Business Function Modules
 2. On-demand load: Select based on requirement type:
-   - Database changes �?Load architecture/data/
-   - Frontend pages �?Load architecture/frontend/
-   - Backend APIs �?Load architecture/backend/
+   - Database changes → Load architecture/data/
+   - Frontend pages → Load architecture/frontend/
+   - Backend APIs → Load architecture/backend/
 3. Do not load: Development conventions, testing conventions (Solution doesn't involve implementation details)
 ```
 
@@ -193,23 +193,23 @@ Backend Designer Agent:
 
 ```
 knowledge/                          projects/pXXX/
-├── bizs/modules/     ──────�?      ├── 01.prds/          ←── PM Agent output
-├── bizs/flows/       ──────�?      �?                         (user confirmed)
-├── domain/standards/ ──────�?      �?                             �?
-├── domain/glossary/  ──────�?      ├── 02.solutions/     ←── Solution Agent output
-�?                   PM Agent ──────�?  (user confirmed)
-�?                                          �?
+├── bizs/modules/     ───────→      ├── 01.prds/          ←── PM Agent output
+├── bizs/flows/       ───────→      │                         (user confirmed)
+├── domain/standards/ ───────→      │                             │
+├── domain/glossary/  ───────→      ├── 02.solutions/     ←── Solution Agent output
+│                   PM Agent ───────┘  (user confirmed)
+│                                          │
 ├── architecture/system/   ─────────── Solution Agent
-├── architecture/frontend/ ───�?
-├── architecture/backend/  ───�?      ├── 03.designs/
-├── architecture/data/     ───�?      �?  ├── frontend/   ←── Frontend Designer Agent output
-├── architecture/conventions/ �?      �?  └── backend/    ←── Backend Designer Agent output
-�?                 Designer Agent ─────�?          �?
-�?                                          ├── 04.tasks/
-�?                                          �?  ├── frontend/ ←── Frontend Dev Agent output
-├── architecture/conventions/ ─────────────�?  └── backend/  ←── Backend Dev Agent output
-�?                 Dev Agent                              �?
-�?                                          └── 05.tests/
+├── architecture/frontend/ ───→
+├── architecture/backend/  ───→      ├── 03.designs/
+├── architecture/data/     ───→      │  ├── frontend/   ←── Frontend Designer Agent output
+├── architecture/conventions/ →      │  └── backend/    ←── Backend Designer Agent output
+│                 Designer Agent ─────┘          │
+│                                          ├── 04.tasks/
+│                                          │  ├── frontend/ ←── Frontend Dev Agent output
+├── architecture/conventions/ ─────────────┘  └── backend/  ←── Backend Dev Agent output
+│                 Dev Agent                              │
+│                                          └── 05.tests/
 └── architecture/conventions/testing.md        ├── cases/    ←── Test Agent output
                    Test Agent ────────────────── └── reports/
 ```
@@ -223,9 +223,9 @@ When downstream discovers issues, escalate and correct along the following path:
 ```
 Test Failure
   └→ Dev Agent fixes code
-       └→ If design issue �?Designer Agent corrects detailed design
-            └→ If solution issue �?Solution Agent corrects Solution
-                 └→ If requirement issue �?PM Agent + user confirmation
+       └→ If design issue → Designer Agent corrects detailed design
+            └→ If solution issue → Solution Agent corrects Solution
+                 └→ If requirement issue → PM Agent + user confirmation
 ```
 
 **Principle**: Do not assume, do not skip levels, must trace back to the root cause.

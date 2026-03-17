@@ -105,11 +105,11 @@ Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnos
 **Dynamic Content Filling Rules**:
 
 1. **architecture/ Subdirectories**: Based on project type determined in Phase 2, select corresponding subdirectory combinations
-   - Web Full-Stack â†?system, conventions, frontend, backend, data
-   - Frontend Only â†?system, conventions, frontend
-   - Backend Only â†?system, conventions, backend, data
-   - Desktop Client â†?system, conventions, desktop
-   - Mobile â†?system, conventions, mobile
+   - Web Full-Stack â†’ system, conventions, frontend, backend, data
+   - Frontend Only â†’ system, conventions, frontend
+   - Backend Only â†’ system, conventions, backend, data
+   - Desktop Client â†’ system, conventions, desktop
+   - Mobile â†’ system, conventions, mobile
 
 2. **bizs/modules/ Initial Clues**: Fill in business module names collected in Phase 3.3
 

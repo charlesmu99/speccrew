@@ -1,29 +1,29 @@
-# {{platform}} 架构知识索引
+# {{platform}} Architecture Knowledge Index
 
-> 生成时间：{{GeneratedAt}}
-> 来源：RepoWiki 技术文档扫�?
-> 平台：{{platform}}
+> Generated at: {{GeneratedAt}}
+> Source: RepoWiki technical documentation scan
+> Platform: {{platform}}
 
-## 技术栈
+## Tech Stack
 
-| 组件 | 版本/说明 | RepoWiki 链接 |
-|------|----------|--------------|
+| Component | Version/Description | RepoWiki Link |
+|-----------|---------------------|---------------|
 {{#each techStack}}
 | {{name}} | {{version}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}
 
-## 架构组件
+## Architecture Components
 
-| 组件 | 功能概述 | RepoWiki 链接 |
-|------|---------|--------------|
+| Component | Description | RepoWiki Link |
+|-----------|-------------|---------------|
 {{#each components}}
 | {{name}} | {{description}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}
 
-## 开发规�?
+## Development Conventions
 
-| 规范�?| 说明 | RepoWiki 链接 |
-|--------|------|--------------|
+| Convention | Description | RepoWiki Link |
+|------------|-------------|---------------|
 {{#each conventions}}
 | {{name}} | {{description}} | [{{name}}](repowiki://{{link}}) |
 {{/each}}
