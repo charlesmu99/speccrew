@@ -67,22 +67,29 @@ For each document, extract:
 - `version` or `description`: Version info or brief description
 - `link`: Relative path in RepoWiki
 
-### Step 5: Fill Template
+### Step 5: Get Timestamp
+
+Use `get-timestamp` skill to get current timestamp:
+```bash
+bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "ISO"
+```
+
+### Step 6: Fill Template
 
 Use `templates/INDEX-TEMPLATE.md`:
 - `{{platform}}`: Input platform type
-- `{{GeneratedAt}}`: Current timestamp
+- `{{GeneratedAt}}`: Timestamp from Step 5 (ISO format)
 - `{{#each techStack}}`: List of technology entries
 - `{{#each components}}`: List of component entries
 - `{{#each conventions}}`: List of convention entries
 
-### Step 6: Write Output
+### Step 7: Write Output
 
 Create directory if not exists: `knowledge/architecture/{platform}/`
 
 Write filled template to `knowledge/architecture/{platform}/INDEX.md`
 
-### Step 7: Report
+### Step 8: Report
 
 ```
 {{platform}} architecture index generated:

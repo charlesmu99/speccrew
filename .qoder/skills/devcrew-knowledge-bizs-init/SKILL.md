@@ -52,19 +52,26 @@ For each document, extract:
 - `description`: First paragraph or summary section
 - `link`: Relative path in RepoWiki
 
-### Step 4: Fill Template
+### Step 4: Get Timestamp
+
+Use `get-timestamp` skill to get current timestamp:
+```bash
+bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "ISO"
+```
+
+### Step 5: Fill Template
 
 Use `templates/INDEX-TEMPLATE.md`:
-- `{{GeneratedAt}}`: Current timestamp
+- `{{GeneratedAt}}`: Timestamp from Step 4 (ISO format)
 - `{{#each modules}}`: List of module entries
 - `{{#each flows}}`: List of flow entries
 - `{{#each models}}`: List of model entries
 
-### Step 5: Write Output
+### Step 6: Write Output
 
 Write filled template to `knowledge/bizs/INDEX.md`
 
-### Step 6: Report
+### Step 7: Report
 
 ```
 bizs knowledge index generated:
