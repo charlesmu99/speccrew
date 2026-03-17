@@ -185,7 +185,7 @@ print_next_steps() {
     echo ""
     echo "  1. Open your project in Qoder IDE"
     echo "  2. Run the initialization Skill:"
-    echo "     'Run devcrew-project-init Skill to initialize the project'"
+    echo "     'Run devcrew-knowledge-dispatch Skill to initialize the knowledge base'"
     echo ""
     echo "  3. Start using DevCrew with your first requirement!"
     echo ""

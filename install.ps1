@@ -198,7 +198,7 @@ function Print-NextSteps {
     Write-Host ""
     Write-Host "  1. Open your project in Qoder IDE"
     Write-Host "  2. Run the initialization Skill:"
-    Write-Host "     'Run devcrew-project-init Skill to initialize the project'"
+    Write-Host "     'Run devcrew-knowledge-dispatch Skill to initialize the knowledge base'"
     Write-Host ""
     Write-Host "  3. Start using DevCrew with your first requirement!"
     Write-Host ""
