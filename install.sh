@@ -131,29 +131,46 @@ install_devcrew() {
     if [ -d "$extracted_dir/.qoder" ]; then
         mkdir -p "$TARGET_DIR/.qoder"
         
-        # Copy agents (skip existing)
+        # Copy agents (overwrite devcrew- prefixed, skip others)
         if [ -d "$extracted_dir/.qoder/agents" ]; then
             mkdir -p "$TARGET_DIR/.qoder/agents"
             for agent in "$extracted_dir/.qoder/agents"/*.md; do
                 if [ -f "$agent" ]; then
                     agent_name=$(basename "$agent")
-                    if [ ! -f "$TARGET_DIR/.qoder/agents/$agent_name" ]; then
+                    is_devcrew=false
+                    case "$agent_name" in
+                        devcrew-*) is_devcrew=true ;;
+                    esac
+                    if [ "$is_devcrew" = true ] || [ ! -f "$TARGET_DIR/.qoder/agents/$agent_name" ]; then
                         cp "$agent" "$TARGET_DIR/.qoder/agents/"
-                        print_info "Added new agent: $agent_name"
+                        if [ -f "$TARGET_DIR/.qoder/agents/$agent_name" ] && [ "$is_devcrew" = true ]; then
+                            print_info "Updated agent: $agent_name"
+                        else
+                            print_info "Added new agent: $agent_name"
+                        fi
                     fi
                 fi
             done
         fi
         
-        # Copy skills (skip existing)
+        # Copy skills (overwrite devcrew- prefixed, skip others)
         if [ -d "$extracted_dir/.qoder/skills" ]; then
             mkdir -p "$TARGET_DIR/.qoder/skills"
             for skill_dir in "$extracted_dir/.qoder/skills"/*; do
                 if [ -d "$skill_dir" ]; then
                     skill_name=$(basename "$skill_dir")
-                    if [ ! -d "$TARGET_DIR/.qoder/skills/$skill_name" ]; then
+                    is_devcrew=false
+                    case "$skill_name" in
+                        devcrew-*) is_devcrew=true ;;
+                    esac
+                    if [ "$is_devcrew" = true ] || [ ! -d "$TARGET_DIR/.qoder/skills/$skill_name" ]; then
+                        if [ -d "$TARGET_DIR/.qoder/skills/$skill_name" ] && [ "$is_devcrew" = true ]; then
+                            rm -rf "$TARGET_DIR/.qoder/skills/$skill_name"
+                            print_info "Updated skill: $skill_name"
+                        else
+                            print_info "Added new skill: $skill_name"
+                        fi
                         cp -r "$skill_dir" "$TARGET_DIR/.qoder/skills/"
-                        print_info "Added new skill: $skill_name"
                     fi
                 fi
             done
@@ -166,16 +183,18 @@ install_devcrew() {
     mkdir -p "$TARGET_DIR/devcrew-workspace"
     
     if [ -d "$extracted_dir/devcrew-workspace" ]; then
-        # Copy docs from archive
+        # Copy docs from archive (always overwrite)
         if [ -d "$extracted_dir/devcrew-workspace/docs" ]; then
             mkdir -p "$TARGET_DIR/devcrew-workspace/docs"
             for doc in "$extracted_dir/devcrew-workspace/docs"/*.md; do
                 if [ -f "$doc" ]; then
                     doc_name=$(basename "$doc")
-                    if [ ! -f "$TARGET_DIR/devcrew-workspace/docs/$doc_name" ]; then
-                        cp "$doc" "$TARGET_DIR/devcrew-workspace/docs/"
+                    if [ -f "$TARGET_DIR/devcrew-workspace/docs/$doc_name" ]; then
+                        print_info "Updated doc: $doc_name"
+                    else
                         print_info "Added new doc: $doc_name"
                     fi
+                    cp "$doc" "$TARGET_DIR/devcrew-workspace/docs/"
                 fi
             done
         fi
@@ -235,12 +254,28 @@ install_devcrew() {
     mkdir -p "$TARGET_DIR/devcrew-workspace/knowledge"
     mkdir -p "$TARGET_DIR/devcrew-workspace/projects"
     
-    # Copy README files to target directory (optional, for reference)
+    # Copy README and LICENSE files to devcrew-workspace/docs for reference (always overwrite)
+    local docs_target="$TARGET_DIR/devcrew-workspace/docs"
     for readme in "$extracted_dir"/README*.md; do
         if [ -f "$readme" ]; then
-            cp "$readme" "$TARGET_DIR/"
+            readme_name=$(basename "$readme")
+            if [ -f "$docs_target/$readme_name" ]; then
+                print_info "Updated doc: $readme_name"
+            else
+                print_info "Added doc: $readme_name"
+            fi
+            cp "$readme" "$docs_target/"
         fi
     done
+    # Copy LICENSE file
+    if [ -f "$extracted_dir/LICENSE" ]; then
+        if [ -f "$docs_target/LICENSE" ]; then
+            print_info "Updated doc: LICENSE"
+        else
+            print_info "Added doc: LICENSE"
+        fi
+        cp "$extracted_dir/LICENSE" "$docs_target/"
+    fi
 }
 
 # Verify installation

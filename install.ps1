@@ -134,30 +134,43 @@ function Install-DevCrew($zipPath) {
         $qoderTarget = Join-Path $TargetDir ".qoder"
         New-Item -ItemType Directory -Path $qoderTarget -Force | Out-Null
         
-        # Copy agents (skip existing)
+        # Copy agents (overwrite devcrew- prefixed, skip others)
         $agentsSource = Join-Path $qoderSource "agents"
         if (Test-Path $agentsSource) {
             $agentsTarget = Join-Path $qoderTarget "agents"
             New-Item -ItemType Directory -Path $agentsTarget -Force | Out-Null
             Get-ChildItem -Path $agentsSource -Filter "*.md" | ForEach-Object {
                 $agentTarget = Join-Path $agentsTarget $_.Name
-                if (-not (Test-Path $agentTarget)) {
-                    Copy-Item -Path $_.FullName -Destination $agentTarget
-                    Write-Info "Added new agent: $($_.Name)"
+                $isDevcrew = $_.Name -match '^devcrew-'
+                $exists = Test-Path $agentTarget
+                if ($isDevcrew -or -not $exists) {
+                    Copy-Item -Path $_.FullName -Destination $agentTarget -Force
+                    if ($exists) {
+                        Write-Info "Updated agent: $($_.Name)"
+                    } else {
+                        Write-Info "Added new agent: $($_.Name)"
+                    }
                 }
             }
         }
         
-        # Copy skills (skip existing)
+        # Copy skills (overwrite devcrew- prefixed, skip others)
         $skillsSource = Join-Path $qoderSource "skills"
         if (Test-Path $skillsSource) {
             $skillsTarget = Join-Path $qoderTarget "skills"
             New-Item -ItemType Directory -Path $skillsTarget -Force | Out-Null
             Get-ChildItem -Path $skillsSource -Directory | ForEach-Object {
                 $skillTarget = Join-Path $skillsTarget $_.Name
-                if (-not (Test-Path $skillTarget)) {
+                $isDevcrew = $_.Name -match '^devcrew-'
+                $exists = Test-Path $skillTarget
+                if ($isDevcrew -or -not $exists) {
+                    if ($exists) {
+                        Remove-Item -Recurse -Force $skillTarget
+                        Write-Info "Updated skill: $($_.Name)"
+                    } else {
+                        Write-Info "Added new skill: $($_.Name)"
+                    }
                     Copy-Item -Recurse -Path $_.FullName -Destination $skillTarget
-                    Write-Info "Added new skill: $($_.Name)"
                 }
             }
         }
@@ -171,15 +184,18 @@ function Install-DevCrew($zipPath) {
     New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
     
     if (Test-Path $workspaceSource) {
-        # Copy docs from archive
+        # Copy docs from archive (always overwrite)
         $docsSource = Join-Path $workspaceSource "docs"
         if (Test-Path $docsSource) {
             $docsTarget = Join-Path $workspaceTarget "docs"
             New-Item -ItemType Directory -Path $docsTarget -Force | Out-Null
             Get-ChildItem -Path $docsSource -Filter "*.md" | ForEach-Object {
                 $docTarget = Join-Path $docsTarget $_.Name
-                if (-not (Test-Path $docTarget)) {
-                    Copy-Item -Path $_.FullName -Destination $docTarget
+                $exists = Test-Path $docTarget
+                Copy-Item -Path $_.FullName -Destination $docTarget -Force
+                if ($exists) {
+                    Write-Info "Updated doc: $($_.Name)"
+                } else {
                     Write-Info "Added new doc: $($_.Name)"
                 }
             }
@@ -234,9 +250,29 @@ function Install-DevCrew($zipPath) {
     New-Item -ItemType Directory -Path $knowledgePath -Force | Out-Null
     New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
     
-    # Copy README files
+    # Copy README and LICENSE files to devcrew-workspace/docs for reference (always overwrite)
+    $docsTarget = Join-Path $workspaceTarget "docs"
     Get-ChildItem -Path $extractedDir.FullName -Filter "README*.md" | ForEach-Object {
-        Copy-Item -Path $_.FullName -Destination $TargetDir
+        $docTargetPath = Join-Path $docsTarget $_.Name
+        $exists = Test-Path $docTargetPath
+        Copy-Item -Path $_.FullName -Destination $docTargetPath -Force
+        if ($exists) {
+            Write-Info "Updated doc: $($_.Name)"
+        } else {
+            Write-Info "Added doc: $($_.Name)"
+        }
+    }
+    # Copy LICENSE file
+    $licenseSource = Join-Path $extractedDir.FullName "LICENSE"
+    $licenseTarget = Join-Path $docsTarget "LICENSE"
+    if (Test-Path $licenseSource) {
+        $exists = Test-Path $licenseTarget
+        Copy-Item -Path $licenseSource -Destination $licenseTarget -Force
+        if ($exists) {
+            Write-Info "Updated doc: LICENSE"
+        } else {
+            Write-Info "Added doc: LICENSE"
+        }
     }
 }
 
