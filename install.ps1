@@ -123,7 +123,21 @@ function Install-DevCrew($zipPath) {
     # Debug: List contents of extracted directory
     if ($extractedDir) {
         Write-Info "Extracted directory contents:"
-        Get-ChildItem -Path $extractedDir.FullName | ForEach-Object { Write-Info "  - $($_.Name)" }
+        Get-ChildItem -Path $extractedDir.FullName | ForEach-Object { 
+            $itemType = if ($_.PSIsContainer) { "[DIR]" } else { "[FILE]" }
+            Write-Info "  $itemType $($_.Name)" 
+        }
+        
+        # Check if .devcrew-workspace exists with different case
+        $possiblePaths = @(
+            (Join-Path $extractedDir.FullName ".devcrew-workspace"),
+            (Join-Path $extractedDir.FullName "devcrew-workspace"),
+            (Join-Path $extractedDir.FullName ".devcrew-workspace\docs")
+        )
+        foreach ($path in $possiblePaths) {
+            $exists = Test-Path $path
+            Write-Info "Check path exists [$exists]: $path"
+        }
     }
     
     if (-not $extractedDir) {
