@@ -195,10 +195,11 @@ function Install-DevCrew($zipPath) {
     $workspaceSource = Join-Path $extractedDir.FullName ".devcrew-workspace"
     Write-Info "Looking for .devcrew-workspace at: $workspaceSource"
     
+    $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
+    New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
+    
     if (Test-Path $workspaceSource) {
         Write-Info "Found .devcrew-workspace source directory"
-        $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
-        New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
         
         # Only copy docs templates if not exist
         $docsSource = Join-Path $workspaceSource "docs"
@@ -214,16 +215,40 @@ function Install-DevCrew($zipPath) {
             }
         }
         
-        # Create knowledge and projects directories if not exist
-        $knowledgePath = Join-Path $workspaceTarget "knowledge"
-        $projectsPath = Join-Path $workspaceTarget "projects"
-        New-Item -ItemType Directory -Path $knowledgePath -Force | Out-Null
-        New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
-        
-        Write-Success "Updated .devcrew-workspace/ directory (incremental)."
+        Write-Success "Updated .devcrew-workspace/ directory from archive."
     } else {
-        Write-Warning ".devcrew-workspace source directory not found in extracted archive"
+        Write-Warning ".devcrew-workspace source directory not found in archive, creating minimal structure"
+        
+        # Create minimal docs directory with essential files from raw URLs
+        $docsTarget = Join-Path $workspaceTarget "docs"
+        New-Item -ItemType Directory -Path $docsTarget -Force | Out-Null
+        
+        # Download essential doc files from raw Gitee
+        $baseRawUrl = "https://gitee.com/amutek/devcrew/raw/main/.devcrew-workspace/docs"
+        $docFiles = @("agent-knowledge-map.md", "leader-agent-definition.md")
+        
+        foreach ($docFile in $docFiles) {
+            $docUrl = "$baseRawUrl/$docFile"
+            $docTargetPath = Join-Path $docsTarget $docFile
+            if (-not (Test-Path $docTargetPath)) {
+                try {
+                    Invoke-WebRequest -Uri $docUrl -OutFile $docTargetPath -UseBasicParsing -ErrorAction SilentlyContinue
+                    Write-Info "Downloaded doc: $docFile"
+                }
+                catch {
+                    Write-Warning "Could not download $docFile"
+                }
+            }
+        }
+        
+        Write-Success "Created minimal .devcrew-workspace/ structure."
     }
+    
+    # Create knowledge and projects directories if not exist
+    $knowledgePath = Join-Path $workspaceTarget "knowledge"
+    $projectsPath = Join-Path $workspaceTarget "projects"
+    New-Item -ItemType Directory -Path $knowledgePath -Force | Out-Null
+    New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
     
     # Copy README files
     Get-ChildItem -Path $extractedDir.FullName -Filter "README*.md" | ForEach-Object {
