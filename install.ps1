@@ -113,12 +113,18 @@ function Install-DevCrew($zipPath) {
     
     Expand-Archive -Path $zipPath -DestinationPath $TempDir -Force
     
+    # Debug: List contents of temp directory
+    Write-Info "Temp directory contents:"
+    Get-ChildItem -Path $TempDir | ForEach-Object { Write-Info "  - $($_.Name)" }
+    
     $extractedDir = Get-ChildItem -Path $TempDir -Directory | Where-Object { $_.Name -like "devcrew*" } | Select-Object -First 1
     
     if (-not $extractedDir) {
         Write-Error "Could not find extracted DevCrew directory."
         exit 1
     }
+    
+    Write-Info "Found extracted directory: $($extractedDir.FullName)"
     
     Write-Info "Installing DevCrew to $TargetDir..."
     
@@ -166,7 +172,10 @@ function Install-DevCrew($zipPath) {
     
     # Copy .devcrew-workspace directory (incremental update)
     $workspaceSource = Join-Path $extractedDir.FullName ".devcrew-workspace"
+    Write-Info "Looking for .devcrew-workspace at: $workspaceSource"
+    
     if (Test-Path $workspaceSource) {
+        Write-Info "Found .devcrew-workspace source directory"
         $workspaceTarget = Join-Path $TargetDir ".devcrew-workspace"
         New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
         
@@ -191,6 +200,8 @@ function Install-DevCrew($zipPath) {
         New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
         
         Write-Success "Updated .devcrew-workspace/ directory (incremental)."
+    } else {
+        Write-Warning ".devcrew-workspace source directory not found in extracted archive"
     }
     
     # Copy README files
