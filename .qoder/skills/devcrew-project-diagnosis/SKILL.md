@@ -33,17 +33,17 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 
 ## Get Current Timestamp
 
-To ensure consistent timestamp format, use the `get-timestamp` skill:
+To ensure consistent timestamp format, use the `devcrew-get-timestamp` skill:
 
 ```bash
 # Windows PowerShell
-powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1
+powershell -ExecutionPolicy Bypass -File .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.ps1
 
 # Linux/macOS/Git Bash
-bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh
+bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh
 
 # Python (cross-platform)
-python .qoder/skills/get-timestamp/scripts/get-timestamp.py
+python .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.py
 ```
 
 Default output format: `YYYY-MM-DD-HHmm` (e.g., `2026-03-17-1326`)
@@ -126,12 +126,12 @@ Ensure `devcrew-workspace/diagnosis-reports/` directory exists.
 
 ### 4.2 Generate Diagnosis Report Filename
 
-**Step 1: Get timestamp using `get-timestamp` skill**
+**Step 1: Get timestamp using `devcrew-get-timestamp` skill**
 
 Run the appropriate script to get current timestamp:
-- Windows: `powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1`
-- Linux/macOS: `bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh`
-- Or use Python: `python .qoder/skills/get-timestamp/scripts/get-timestamp.py`
+- Windows: `powershell -ExecutionPolicy Bypass -File .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.ps1`
+- Linux/macOS: `bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh`
+- Or use Python: `python .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.py`
 
 **Step 2: Generate filename**
 

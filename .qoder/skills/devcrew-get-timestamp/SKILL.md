@@ -1,5 +1,5 @@
 ---
-name: get-timestamp
+name: devcrew-get-timestamp
 description: Get current timestamp in various formats for file naming and logging. Use when generating dated filenames, report timestamps, or any scenario requiring consistent datetime formatting.
 ---
 
@@ -22,22 +22,22 @@ Get current timestamp in specified format for consistent datetime handling acros
 
 ```bash
 # Windows PowerShell
-powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1 -Format "YYYY-MM-DD-HHmm"
+powershell -ExecutionPolicy Bypass -File .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.ps1 -Format "YYYY-MM-DD-HHmm"
 
 # Linux/macOS/Git Bash
-bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
+bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
 
 # Python (cross-platform)
-python .qoder/skills/get-timestamp/scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
+python .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
 ```
 
 ### Method 2: Default Format (YYYY-MM-DD-HHmm)
 
 ```bash
 # Without format parameter, returns YYYY-MM-DD-HHmm
-powershell -ExecutionPolicy Bypass -File .qoder/skills/get-timestamp/scripts/get-timestamp.ps1
-bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh
-python .qoder/skills/get-timestamp/scripts/get-timestamp.py
+powershell -ExecutionPolicy Bypass -File .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.ps1
+bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh
+python .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.py
 ```
 
 ## Integration Examples
@@ -45,7 +45,7 @@ python .qoder/skills/get-timestamp/scripts/get-timestamp.py
 ### For Report Filenames
 
 ```bash
-TIMESTAMP=$(bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm")
+TIMESTAMP=$(bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm")
 FILENAME="diagnosis-report-${TIMESTAMP}.md"
 # Result: diagnosis-report-2026-03-17-1326.md
 ```
@@ -53,7 +53,7 @@ FILENAME="diagnosis-report-${TIMESTAMP}.md"
 ### For Archive Naming
 
 ```bash
-TIMESTAMP=$(bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD")
+TIMESTAMP=$(bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD")
 ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
 # Result: tech-debt-archived-2026-03-17.md
 ```
@@ -62,12 +62,12 @@ ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
 
 When filling `{{GeneratedAt}}` in templates:
 ```bash
-GeneratedAt=$(bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "ISO")
+GeneratedAt=$(bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "ISO")
 # Result: 2026-03-17T13:26:45+08:00
 ```
 
 ## Script Locations
 
-- **PowerShell**: `.qoder/skills/get-timestamp/scripts/get-timestamp.ps1`
-- **Bash**: `.qoder/skills/get-timestamp/scripts/get-timestamp.sh`
-- **Python**: `.qoder/skills/get-timestamp/scripts/get-timestamp.py`
+- **PowerShell**: `.qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.ps1`
+- **Bash**: `.qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh`
+- **Python**: `.qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.py`

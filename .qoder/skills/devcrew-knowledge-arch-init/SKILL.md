@@ -69,9 +69,9 @@ For each document, extract:
 
 ### Step 5: Get Timestamp
 
-Use `get-timestamp` skill to get current timestamp:
+Use `devcrew-get-timestamp` skill to get current timestamp:
 ```bash
-bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "ISO"
+bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "ISO"
 ```
 
 ### Step 6: Fill Template

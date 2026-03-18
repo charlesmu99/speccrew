@@ -52,7 +52,7 @@
 > 所有条目均已完成后，将整个文件移动�?`devcrew-workspace/projects/archive/tech-debt/` 归档�? 
 > 归档命名：`[原文件名]-archived-[YYYY-MM-DD].md`
 >
-> 使用 `get-timestamp` skill 获取日期：
+> 使用 `devcrew-get-timestamp` skill 获取日期：
 > ```bash
-> bash .qoder/skills/get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD"
+> bash .qoder/skills/devcrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD"
 > ```
