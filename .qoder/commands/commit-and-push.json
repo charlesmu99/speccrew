@@ -1,6 +1,6 @@
 {
   "name": "cp",
   "description": "Auto commit and push to GitHub/Gitee",
-  "command": "git add -A && git commit -m \"update: $(date +%Y-%m-%d)\" && git push github main && git push gitee main",
+  "command": "git add -A && git commit -m \"update\" && git push github main && git push gitee main",
   "cwd": "${workspace}"
 }
