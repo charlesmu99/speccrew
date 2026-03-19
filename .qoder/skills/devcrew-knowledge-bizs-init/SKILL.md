@@ -1,18 +1,26 @@
 ---
 name: devcrew-knowledge-bizs-init
-description: Stage 1 of knowledge base initialization - Scan source code to identify all modules and generate module list. Used by Worker Agent to kick off the 4-stage pipeline.
+description: Stage 1 of knowledge base initialization - Analyze system from product manager perspective to identify business functional modules. Distinguish system types and use appropriate analysis entry points (UI for frontend systems, API for backend-only systems). Used by Worker Agent to kick off the 4-stage pipeline.
 tools: Read, Write, Glob, Grep, SearchCodebase
 ---
 
-# Stage 1: Generate Module List
+# Stage 1: Generate Business Module List
 
-Scan source code, detect technology stack, identify all business modules, and generate modules.json for downstream parallel processing.
+Analyze system from user/product manager perspective, identify business functional modules based on system type, and generate modules.json for downstream parallel processing.
+
+## Core Principle
+
+**User-centric perspective**: Identify modules from how users interact with the system, not from code structure.
+
+- **Systems with UI** (frontend/full-stack): Analyze from frontend pages, routes, and navigation
+- **Backend-only systems**: Analyze from exposed APIs and endpoints
 
 ## Trigger Scenarios
 
-- "Scan source code for modules"
-- "Identify business modules from codebase"
-- "Generate module list for documentation"
+- "Scan source code for business modules"
+- "Identify functional modules from product perspective"
+- "Generate business module list from UI/API"
+- "Analyze system modules from user viewpoint"
 
 ## User
 
@@ -21,55 +29,163 @@ Worker Agent (devcrew-task-worker)
 ## Input
 
 - `source_path`: Source code directory path (default: project root)
-- `output_path`: Output directory for modules.json (default: `devcrew-workspace/.tasks/knowledge-bizs-init/`)
+- `output_path`: Output directory for modules.json (default: `devcrew-workspace/docs/crew-init/knowledge-bizs/`)
 
 ## Output
 
-- `{output_path}/modules.json` - Module list for pipeline orchestration
+- `{output_path}/modules.json` - Business module list for pipeline orchestration
 
 ## Workflow
 
-### Step 1: Detect Technology Stack
+### Step 1: Determine System Type
 
-Analyze project structure:
+Analyze project to determine if it has a UI layer:
 
-| Indicator | Technology | Detection Method |
-|-----------|------------|------------------|
-| `package.json` with `@nestjs` | NestJS | Check dependencies |
-| `pom.xml` or `build.gradle` | Java Spring | Check build files |
-| `go.mod` | Go | Module definition |
-| `Gemfile` | Ruby on Rails | Dependency file |
+**Check for Frontend Indicators:**
+| Indicator | Evidence |
+|-----------|----------|
+| Frontend framework | React, Vue, Angular, Next.js, Nuxt in package.json |
+| Page directories | `pages/`, `views/`, `app/`, `routes/` |
+| Route config | `router/`, `routes.ts`, `router.config.js` |
+| UI components | `components/`, `ui/`, `antd/`, `material-ui/` |
 
-### Step 2: Identify Modules
+**Decision:**
+- If frontend indicators found → Follow "UI-Based Analysis"
+- If only backend indicators → Follow "API-Based Analysis"
 
-Scan source code for module patterns:
+### Step 2A: UI-Based Analysis (Systems with Frontend)
 
-**NestJS Pattern:**
+For systems with UI, analyze from user-facing perspective:
+
+#### 2A.1 Analyze Frontend Routes
+
+Find and parse route configurations:
+
+**React Router Example:**
+```typescript
+// routes.ts or App.tsx
+{ path: '/orders', component: OrderListPage },     → Order Management Module
+{ path: '/orders/:id', component: OrderDetailPage },
+{ path: '/payments', component: PaymentListPage }, → Payment Module
+{ path: '/users', component: UserManagementPage }, → User Management Module
 ```
-src/modules/
-├── order/          → Module: order
-├── payment/        → Module: payment
-├── inventory/      → Module: inventory
-└── user/           → Module: user
+
+**Next.js Pages Router:**
+```
+pages/
+├── orders/
+│   ├── index.tsx      → Order List Page
+│   └── [id].tsx       → Order Detail Page
+├── payments/
+│   └── index.tsx      → Payment Management Page
+└── users/
+    └── index.tsx      → User Management Page
 ```
 
-**Detection Rules:**
-- Directory contains `@Module()` decorator
-- Directory contains controller files
-- Directory name follows PascalCase or kebab-case
+**Vue Router Example:**
+```typescript
+// router/index.ts
+{
+  path: '/inventory',
+  component: InventoryLayout,
+  children: [
+    { path: 'products', component: ProductList },  → Inventory Module
+    { path: 'stock', component: StockManagement }
+  ]
+}
+```
 
-### Step 3: Extract Module Metadata
+#### 2A.2 Analyze Navigation/Menu Structure
+
+Look for menu configurations that reveal business modules:
+
+```typescript
+// Typical menu config
+const menuItems = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'Home' },
+  { key: 'orders', label: 'Order Management', icon: 'ShoppingCart' },  → Order Module
+  { key: 'products', label: 'Product Catalog', icon: 'Package' },       → Product Module
+  { key: 'customers', label: 'Customer Center', icon: 'Users' },        → Customer Module
+  { key: 'reports', label: 'Reports & Analytics', icon: 'BarChart' },   → Report Module
+];
+```
+
+#### 2A.3 Map Pages to Business Modules
+
+Group related pages into business modules:
+
+| Module Name | User Value | Pages/Routes |
+|-------------|------------|--------------|
+| Order Management | Handle customer orders from creation to fulfillment | /orders, /orders/:id, /order-create |
+| Product Catalog | Manage product information and categories | /products, /categories, /inventory |
+| Customer Center | Manage customer profiles and relationships | /customers, /customer/:id, /crm |
+| Payment & Billing | Process payments and manage invoices | /payments, /invoices, /billing |
+
+### Step 2B: API-Based Analysis (Backend-Only Systems)
+
+For systems without UI, analyze from API perspective:
+
+#### 2B.1 Identify API Controllers/Handlers
+
+**NestJS Example:**
+```typescript
+// Controllers represent business modules
+@Controller('orders')      → Order Management Module
+@Controller('payments')    → Payment Processing Module
+@Controller('users')       → User Management Module
+@Controller('inventory')   → Inventory Management Module
+```
+
+**Spring Boot Example:**
+```java
+@RestController
+@RequestMapping("/api/orders")     → Order Module
+@RequestMapping("/api/inventory")  → Inventory Module
+@RequestMapping("/api/customers")  → Customer Module
+```
+
+**Express.js Example:**
+```javascript
+// Route files represent modules
+app.use('/api/orders', orderRoutes);      → Order Module
+app.use('/api/products', productRoutes);  → Product Module
+app.use('/api/auth', authRoutes);         → Authentication Module
+```
+
+#### 2B.2 Group APIs by Business Domain
+
+Analyze API paths to identify business modules:
+
+```
+API Pattern Analysis:
+
+/orders, /orders/:id, /orders/:id/cancel        → Order Management
+/payments, /payments/:id/refund, /invoices      → Payment & Billing
+/products, /categories, /inventory/stock        → Product & Inventory
+/users, /users/:id/profile, /auth/login         → User & Authentication
+/reports/sales, /reports/inventory              → Reporting & Analytics
+```
+
+#### 2B.3 Map APIs to Business Modules
+
+| Module Name | User Value | API Endpoints |
+|-------------|------------|---------------|
+| Order Management | Process and track customer orders | GET/POST/PUT /orders, /orders/:id/* |
+| Payment Processing | Handle payments and refunds | /payments, /invoices, /refunds |
+| Product Catalog | Manage products and categories | /products, /categories |
+| User Management | Handle user accounts and auth | /users, /auth/* |
+
+### Step 3: Extract Business Module Metadata
 
 For each identified module, extract:
 
 | Field | Source | Example |
 |-------|--------|---------|
-| name | Directory name | "order" |
-| path | Relative path | "src/modules/order" |
-| purpose | JSDoc comment or README | "Order lifecycle management" |
-| has_controller | File existence | true |
-| has_service | File existence | true |
-| has_entity | File existence | true |
+| name | Business term from UI/API | "Order Management" |
+| code_name | Technical identifier | "order" |
+| user_value | What users accomplish | "Handle customer orders from creation to fulfillment" |
+| entry_points | Pages or API groups | ["/orders", "/order-create"] or ["GET /orders", "POST /orders"] |
+| system_type | UI or API-based | "ui" or "api" |
 
 ### Step 4: Generate modules.json
 
@@ -78,21 +194,30 @@ Create JSON file for pipeline orchestration:
 ```json
 {
   "generated_at": "2024-01-15T10:30:00Z",
-  "tech_stack": "nestjs",
-  "source_path": "/project/src",
+  "analysis_method": "ui-based",
+  "source_path": "/project",
   "module_count": 4,
   "modules": [
     {
-      "name": "order",
-      "path": "src/modules/order",
-      "purpose": "Order lifecycle management",
-      "features_detected": 8
+      "name": "Order Management",
+      "code_name": "order",
+      "user_value": "Handle customer orders from creation to fulfillment",
+      "entry_points": ["/orders", "/orders/:id", "/order-create"],
+      "system_type": "ui"
     },
     {
-      "name": "payment",
-      "path": "src/modules/payment",
-      "purpose": "Payment processing",
-      "features_detected": 5
+      "name": "Payment & Billing",
+      "code_name": "payment",
+      "user_value": "Process payments and manage invoices",
+      "entry_points": ["/payments", "/invoices"],
+      "system_type": "ui"
+    },
+    {
+      "name": "Product Catalog",
+      "code_name": "product",
+      "user_value": "Manage product information and categories",
+      "entry_points": ["/products", "/categories"],
+      "system_type": "ui"
     }
   ]
 }
@@ -103,18 +228,37 @@ Create JSON file for pipeline orchestration:
 ### Step 5: Report Results
 
 ```
-Stage 1 completed: Module List Generated
-- Technology: [Detected Stack]
-- Modules Found: [N]
+Stage 1 completed: Business Module List Generated
+- Analysis Method: [UI-Based / API-Based]
+- System Type: [Full-Stack / Frontend-Only / Backend-Only]
+- Business Modules Found: [N]
 - Output: {output_path}/modules.json
-- Next: Dispatch parallel tasks for Stage 2 (Module Analysis)
+- Next: Dispatch parallel tasks for Stage 2 (Module Feature Analysis)
 ```
+
+## Analysis Guidelines
+
+### For UI-Based Systems
+
+1. **Focus on user journeys**: Group pages by user workflow
+2. **Use business terminology**: "Order Management" not "OrderController"
+3. **Consider navigation structure**: Menus often reveal module boundaries
+4. **Look for CRUD patterns**: List → Detail → Edit → Create flows
+
+### For API-Based Systems
+
+1. **Group by resource/domain**: APIs handling related entities
+2. **Analyze URL patterns**: Common prefixes indicate modules
+3. **Consider business capabilities**: What business function does this API enable?
+4. **Look for controller boundaries**: One controller often equals one module
 
 ## Checklist
 
-- [ ] Technology stack detected from project files
-- [ ] Module directories identified
-- [ ] Module metadata extracted (name, path, purpose)
-- [ ] modules.json generated with complete module list
+- [ ] System type determined (UI-based vs API-based)
+- [ ] Analysis method selected appropriately
+- [ ] Entry points identified (pages for UI, endpoints for API)
+- [ ] Business modules mapped from user/product perspective
+- [ ] Module metadata extracted (name, user_value, entry_points)
+- [ ] modules.json generated with complete business module list
 - [ ] Output path verified
 - [ ] Results reported

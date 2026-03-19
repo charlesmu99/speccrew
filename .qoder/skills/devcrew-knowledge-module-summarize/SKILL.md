@@ -6,7 +6,7 @@ tools: Read, Write, Glob
 
 # Module Summarize - Complete Module Overview
 
-Read all FEATURE-DETAIL.md files of a specific module, extract and summarize information to complete MODULE-OVERVIEW.md (full version with entities, dependencies, flows, and rules).
+Read all {feature-name}.md files of a specific module, extract and summarize information to complete {name}-overview.md (full version with entities, dependencies, flows, and rules).
 
 ## Trigger Scenarios
 
@@ -22,24 +22,24 @@ Worker Agent (devcrew-task-worker)
 
 - `module_name`: Module name to summarize
 - `module_path`: Path to module directory containing:
-  - MODULE-{NAME}-OVERVIEW.md (initial version)
-  - features/FEATURE-*-DETAIL.md files
+  - {name}-overview.md (initial version)
+  - features/{feature-name}.md files
 
 ## Output
 
-- `{module_path}/MODULE-{NAME}-OVERVIEW.md` - Complete module overview (overwritten)
+- `{module_path}/{name}-overview.md` - Complete module overview (overwritten)
 
 ## Workflow
 
 ### Step 1: Read Initial Module Overview
 
-Read existing MODULE-{NAME}-OVERVIEW.md (initial version) to get:
+Read existing {name}-overview.md (initial version) to get:
 - Module basic info (name, purpose, domain)
 - Feature list with links to detail docs
 
 ### Step 2: Read All Feature Details
 
-Find and read all `{module_path}/features/FEATURE-*-DETAIL.md` files.
+Find and read all `{module_path}/features/{feature-name}.md` files.
 
 For each feature, extract:
 - API endpoint information
@@ -88,7 +88,7 @@ Use MODULE-OVERVIEW-TEMPLATE.md, fill all sections:
 
 **Section 2: Feature List** (from initial version)
 - Keep feature list table
-- Ensure all links to FEATURE-DETAIL.md are correct
+- Ensure all links to {feature-name}.md are correct
 
 **Section 3: Business Entities** (NEW)
 
@@ -129,16 +129,16 @@ Module summarization completed:
 - Entities Extracted: {N}
 - Dependencies Identified: {N}
 - Business Rules Summarized: {N}
-- Output: MODULE-{NAME}-OVERVIEW.md (complete)
+- Output: {name}-overview.md (complete)
 - Status: success
 ```
 
 ## Checklist
 
-- [ ] Initial MODULE-OVERVIEW.md read
-- [ ] All FEATURE-DETAIL.md files read
+- [ ] Initial {name}-overview.md read
+- [ ] All {feature-name}.md files read
 - [ ] Entities extracted and aggregated
 - [ ] Dependencies identified
 - [ ] Business rules collected
-- [ ] Section 3-6 completed in MODULE-OVERVIEW.md
+- [ ] Section 3-6 completed in {name}-overview.md
 - [ ] Results reported

@@ -6,7 +6,7 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 # Module Analysis - Single Module
 
-Analyze one specific module from source code, extract all features, generate MODULE-OVERVIEW.md (initial version with feature list) and all FEATURE-DETAIL.md files.
+Analyze one specific module from source code, extract all features, generate {name}-overview.md (initial version with feature list) and all {feature-name}.md files.
 
 ## Trigger Scenarios
 
@@ -26,8 +26,8 @@ Worker Agent (devcrew-task-worker)
 
 ## Output
 
-- `{output_path}/MODULE-{NAME}-OVERVIEW.md` - Initial module overview with feature list
-- `{output_path}/features/FEATURE-{NAME}-DETAIL.md` - Feature detail documents (one per feature)
+- `{output_path}/{name}-overview.md` - Initial module overview with feature list
+- `{output_path}/features/{feature-name}.md` - Feature detail documents (one per feature)
 
 ## Workflow
 
@@ -72,9 +72,9 @@ For each feature, extract:
 - Validation rules
 - Business rules from code comments
 
-### Step 4: Generate FEATURE-DETAIL.md Files
+### Step 4: Generate {feature-name}.md Files
 
-For each feature, use FEATURE-DETAIL-TEMPLATE.md:
+For each feature, use template `.qoder/skills/devcrew-knowledge-module-analyze/templates/feature-detail-template.md`:
 
 **Template placeholders:**
 - `{{FeatureName}}`: Feature name (e.g., "create-order")
@@ -86,11 +86,11 @@ For each feature, use FEATURE-DETAIL-TEMPLATE.md:
 - `{{ValidationRules}}`: Validation decorators
 - `{{BusinessRules}}`: Extracted from code comments
 
-**Output:** `{output_path}/features/FEATURE-{FEATURE-NAME}-DETAIL.md`
+**Output:** `{output_path}/features/{feature-name}.md`
 
-### Step 5: Generate MODULE-OVERVIEW.md (Initial)
+### Step 5: Generate {name}-overview.md (Initial)
 
-Use MODULE-OVERVIEW-TEMPLATE.md, fill sections:
+Use template `.qoder/skills/devcrew-knowledge-module-analyze/templates/module-overview-template.md`, fill sections:
 
 **Section 1: Module Basic Info**
 - Module name from input
@@ -101,8 +101,8 @@ Use MODULE-OVERVIEW-TEMPLATE.md, fill sections:
 
 | Feature | API | Status | Detail Doc |
 |---------|-----|--------|------------|
-| create-order | POST /orders | ✅ Generated | [View](features/FEATURE-create-order-DETAIL.md) |
-| list-orders | GET /orders | ✅ Generated | [View](features/FEATURE-list-orders-DETAIL.md) |
+| create-order | POST /orders | ✅ Generated | [View](features/create-order.md) |
+| list-orders | GET /orders | ✅ Generated | [View](features/list-orders.md) |
 
 **Section 3-6**: Mark as "TBD - Will be completed in summarize stage"
 
@@ -113,8 +113,8 @@ Module analysis completed:
 - Module: {module_name}
 - Features Found: {N}
 - Generated:
-  - MODULE-{NAME}-OVERVIEW.md (initial)
-  - features/FEATURE-*-DETAIL.md ({N} files)
+  - {name}-overview.md (initial)
+  - features/{feature-name}.md ({N} files)
 - Status: success/partial-failed
 - Issues: [if any]
 ```
@@ -126,6 +126,6 @@ Module analysis completed:
 - [ ] Features extracted from API endpoints
 - [ ] Request/Response DTOs analyzed
 - [ ] Validation rules documented
-- [ ] FEATURE-DETAIL.md generated for each feature
-- [ ] MODULE-OVERVIEW.md (initial) generated with feature list
+- [ ] {feature-name}.md generated for each feature
+- [ ] {name}-overview.md (initial) generated with feature list
 - [ ] Results reported

@@ -60,9 +60,9 @@ Based on project type and diagnosis results, recommend creating the following di
 
 ```
 devcrew-workspace/
-├── diagnosis-reports/          # Diagnosis reports
-│   └── diagnosis-report-{date}.md
 ├── docs/                       # Management documents
+│   ├── diagnosis-reports/      # Diagnosis reports
+│   │   └── diagnosis-report-{date}.md
 │   ├── README.md
 │   └── AGENTS.md
 ├── knowledge/                  # Project knowledge base

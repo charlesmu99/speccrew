@@ -24,8 +24,8 @@ PM Agent (devcrew-product-manager)
 ## Input
 
 - New requirement description
-- SYSTEM-OVERVIEW.md (system documentation)
-- Related MODULE-OVERVIEW.md files (if specific modules identified)
+- system-overview.md (system documentation)
+- Related {name}-overview.md files (if specific modules identified)
 
 ## Output
 
@@ -46,7 +46,7 @@ Analyze the new requirement:
 
 ### Step 2: Locate in System Context
 
-Refer to SYSTEM-OVERVIEW.md:
+Refer to system-overview.md:
 - Section 1.2: Identify which business domain
 - Section 2.3: Find related modules
 - Section 3.2: Check process-module mapping matrix
@@ -133,7 +133,7 @@ Check for impact on:
 
 ### Module Location Checklist
 
-- [ ] Which business domain? (SYSTEM-OVERVIEW.md Section 1.2)
+- [ ] Which business domain? (system-overview.md Section 1.2)
 - [ ] Which modules in that domain? (Section 2.3)
 - [ ] What processes are involved? (Section 3.1)
 - [ ] Which modules does the process touch? (Section 3.2 matrix)

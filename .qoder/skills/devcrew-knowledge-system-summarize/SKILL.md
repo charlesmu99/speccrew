@@ -1,12 +1,12 @@
 ---
 name: devcrew-knowledge-system-summarize
-description: Generate complete SYSTEM-OVERVIEW.md by reading all MODULE-OVERVIEW.md files. Aggregates module information, builds dependency graph, and creates system-level documentation.
+description: Generate complete system-overview.md by reading all {name}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation.
 tools: Read, Write, Glob
 ---
 
 # System Summarize - Complete System Overview
 
-Read all MODULE-OVERVIEW.md files, aggregate information to generate complete SYSTEM-OVERVIEW.md with module index, topology, and business flows.
+Read all {name}-overview.md files, aggregate information to generate complete system-overview.md with module index, topology, and business flows.
 
 ## Trigger Scenarios
 
@@ -20,32 +20,32 @@ Worker Agent (devcrew-task-worker)
 
 ## Input
 
-- `modules_path`: Path to modules directory containing all MODULE-*/MODULE-*-OVERVIEW.md files
-- `output_path`: Output path for SYSTEM-OVERVIEW.md
+- `modules_path`: Path to modules directory containing all {name}/{name}-overview.md files
+- `output_path`: Output path for system-overview.md
 
 ## Output
 
-- `{output_path}/SYSTEM-OVERVIEW.md` - Complete system overview
+- `{output_path}/system-overview.md` - Complete system overview
 
 ## Workflow
 
 ### Step 1: Discover All Modules
 
-Find all `{modules_path}/MODULE-*/MODULE-*-OVERVIEW.md` files.
+Find all `{modules_path}/{name}/{name}-overview.md` files.
 
 Extract module list:
 ```
-MODULE-ORDER/
-  └── MODULE-ORDER-OVERVIEW.md
-MODULE-PAYMENT/
-  └── MODULE-PAYMENT-OVERVIEW.md
-MODULE-INVENTORY/
-  └── MODULE-INVENTORY-OVERVIEW.md
+order/
+  └── order-overview.md
+payment/
+  └── payment-overview.md
+inventory/
+  └── inventory-overview.md
 ```
 
 ### Step 2: Read All Module Overviews
 
-Read each MODULE-OVERVIEW.md and extract:
+Read each {name}-overview.md and extract:
 - Module name and purpose
 - Business domain
 - Entity list
@@ -59,8 +59,8 @@ Create module index table:
 
 | Module | Domain | Purpose | Entities | APIs | Detail Doc |
 |--------|--------|---------|----------|------|------------|
-| ORDER | Sales | Order lifecycle | Order, OrderItem | 8 | [View](MODULE-ORDER/MODULE-ORDER-OVERVIEW.md) |
-| PAYMENT | Finance | Payment processing | Payment, Refund | 5 | [View](MODULE-PAYMENT/MODULE-PAYMENT-OVERVIEW.md) |
+| order | Sales | Order lifecycle | Order, OrderItem | 8 | [View](order/order-overview.md) |
+| payment | Finance | Payment processing | Payment, Refund | 5 | [View](payment/payment-overview.md) |
 
 ### Step 4: Build Dependency Graph
 
@@ -105,9 +105,9 @@ Create flow-module mapping matrix:
 | Order-Payment | ✅ | ✅ | ✅ | ✅ |
 | Refund | ✅ | ✅ | ✅ | ✅ |
 
-### Step 7: Generate SYSTEM-OVERVIEW.md
+### Step 7: Generate system-overview.md
 
-Use SYSTEM-OVERVIEW-TEMPLATE.md, fill all sections:
+Use template `.qoder/skills/devcrew-knowledge-system-summarize/templates/system-overview-template.md`, fill all sections:
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp
@@ -149,17 +149,17 @@ System summarization completed:
 - APIs Counted: {N}
 - Dependencies Mapped: {N}
 - Business Flows Identified: {N}
-- Output: SYSTEM-OVERVIEW.md (complete)
+- Output: system-overview.md (complete)
 - Status: success
 ```
 
 ## Checklist
 
-- [ ] All MODULE-OVERVIEW.md files discovered
+- [ ] All {name}-overview.md files discovered
 - [ ] Module information extracted
 - [ ] Module index table created
 - [ ] Dependency graph built
 - [ ] Business domains identified
 - [ ] End-to-end flows mapped
-- [ ] SYSTEM-OVERVIEW.md generated with all sections
+- [ ] system-overview.md generated with all sections
 - [ ] Results reported

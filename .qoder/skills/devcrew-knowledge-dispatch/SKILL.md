@@ -20,7 +20,6 @@ Leader Agent (devcrew-team-leader)
 
 ## Prerequisites
 
-- Project diagnosis report at `devcrew-workspace/diagnosis-reports/`
 - Source code available for analysis
 
 ## Input
@@ -30,7 +29,7 @@ Leader Agent (devcrew-team-leader)
 
 ## Output
 
-- Task status records in `devcrew-workspace/.tasks/knowledge-bizs-init/`
+- Task status records in `devcrew-workspace/docs/crew-init/knowledge-bizs/`
 - Generated documentation in `{output_path}/`
 
 ## 4-Stage Pipeline Workflow
@@ -40,17 +39,43 @@ Leader Agent (devcrew-team-leader)
 **Goal**: Scan source code and identify all modules.
 
 **Action**:
-- Invoke 1 Worker Agent with `devcrew-knowledge-bizs-init` skill
+- Invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-bizs-init/SKILL.md`
 - Task: Analyze project structure, detect modules
+- Parameters to pass to skill:
+  - `source_path`: Source code directory path (default: project root)
+  - `output_path`: Output directory (default: `devcrew-workspace/docs/crew-init/knowledge-bizs/`)
 
 **Output**:
-- `devcrew-workspace/.tasks/knowledge-bizs-init/modules.json`
+- `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
 ```json
 {
-  "modules": ["order", "payment", "inventory", "user"],
-  "tech_stack": "nestjs",
-  "source_path": "...",
-  "generated_at": "..."
+  "generated_at": "2024-01-15T10:30:00Z",
+  "analysis_method": "ui-based",
+  "source_path": "/project",
+  "module_count": 4,
+  "modules": [
+    {
+      "name": "Order Management",
+      "code_name": "order",
+      "user_value": "Handle customer orders from creation to fulfillment",
+      "entry_points": ["/orders", "/orders/:id", "/order-create"],
+      "system_type": "ui"
+    },
+    {
+      "name": "Payment & Billing",
+      "code_name": "payment",
+      "user_value": "Process payments and manage invoices",
+      "entry_points": ["/payments", "/invoices"],
+      "system_type": "ui"
+    },
+    {
+      "name": "Product Catalog",
+      "code_name": "product",
+      "user_value": "Manage product information and categories",
+      "entry_points": ["/products", "/categories"],
+      "system_type": "ui"
+    }
+  ]
 }
 ```
 
@@ -59,24 +84,27 @@ Leader Agent (devcrew-team-leader)
 **Goal**: Analyze each module in parallel to generate feature details.
 
 **Action**:
-- Read `modules.json`
-- For each module, invoke 1 Worker Agent in parallel
-- Use skill: `devcrew-knowledge-module-analyze`
+- Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
+- For each module, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-analyze/SKILL.md`
+- Parameters to pass to skill:
+  - `module_name`: Module code_name from modules.json
+  - `source_path`: Source code root path (from input or project root)
+  - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{module_name}/`)
 
 **Parallel Tasks**:
 ```
-Worker 1: module="order",     output="knowledge/bizs/modules/MODULE-ORDER/"
-Worker 2: module="payment",   output="knowledge/bizs/modules/MODULE-PAYMENT/"
-Worker 3: module="inventory", output="knowledge/bizs/modules/MODULE-INVENTORY/"
-Worker 4: module="user",      output="knowledge/bizs/modules/MODULE-USER/"
+Worker 1: module="order",     output="knowledge/bizs/order/"
+Worker 2: module="payment",   output="knowledge/bizs/payment/"
+Worker 3: module="inventory", output="knowledge/bizs/inventory/"
+Worker 4: module="user",      output="knowledge/bizs/user/"
 ```
 
 **Output per Module**:
-- `MODULE-{NAME}-OVERVIEW.md` (initial version with feature list)
-- `features/FEATURE-*-DETAIL.md` (one per feature)
+- `{name}-overview.md` (initial version with feature list)
+- `features/{feature-name}.md` (one per feature)
 
 **Status Tracking**:
-- `devcrew-workspace/.tasks/knowledge-bizs-init/stage2-status.json`
+- `devcrew-workspace/docs/crew-init/knowledge-bizs/stage2-status.json`
 
 ### Stage 3: Module Summarize (Parallel)
 
@@ -85,40 +113,39 @@ Worker 4: module="user",      output="knowledge/bizs/modules/MODULE-USER/"
 **Prerequisite**: Stage 2 completed for the module.
 
 **Action**:
-- For each module, invoke 1 Worker Agent in parallel
-- Use skill: `devcrew-knowledge-module-summarize`
+- For each module, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-summarize/SKILL.md`
+- Parameters to pass to skill:
+  - `module_name`: Module code_name from modules.json
+  - `module_path`: Path to module directory (e.g., `knowledge/bizs/{module_name}/`)
 
 **Parallel Tasks**:
 ```
-Worker 1: module="order",     module_path="knowledge/bizs/modules/MODULE-ORDER/"
-Worker 2: module="payment",   module_path="knowledge/bizs/modules/MODULE-PAYMENT/"
-Worker 3: module="inventory", module_path="knowledge/bizs/modules/MODULE-INVENTORY/"
-Worker 4: module="user",      module_path="knowledge/bizs/modules/MODULE-USER/"
+Worker 1: module="order",     module_path="knowledge/bizs/order/"
+Worker 2: module="payment",   module_path="knowledge/bizs/payment/"
+Worker 3: module="inventory", module_path="knowledge/bizs/inventory/"
+Worker 4: module="user",      module_path="knowledge/bizs/user/"
 ```
 
 **Output per Module**:
-- `MODULE-{NAME}-OVERVIEW.md` (complete version)
+- `{name}-overview.md` (complete version)
 
 **Status Tracking**:
-- `devcrew-workspace/.tasks/knowledge-bizs-init/stage3-status.json`
+- `devcrew-workspace/docs/crew-init/knowledge-bizs/stage3-status.json`
 
 ### Stage 4: System Summarize (Single Task)
 
-**Goal**: Generate complete SYSTEM-OVERVIEW.md.
+**Goal**: Generate complete system-overview.md.
 
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Action**:
-- Invoke 1 Worker Agent
-- Use skill: `devcrew-knowledge-system-summarize`
-
-**Task**:
-```
-Worker: modules_path="knowledge/bizs/modules/", output_path="knowledge/bizs/"
-```
+- Invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-system-summarize/SKILL.md`
+- Parameters to pass to skill:
+  - `modules_path`: Path to modules directory (e.g., `knowledge/bizs/`)
+  - `output_path`: Output path for system-overview.md (e.g., `knowledge/bizs/`)
 
 **Output**:
-- `knowledge/bizs/SYSTEM-OVERVIEW.md` (complete with module index)
+- `knowledge/bizs/system-overview.md` (complete with module index)
 
 ### Stage 5: Generate Final Report
 
@@ -143,13 +170,13 @@ Statistics:
 - Total APIs: 56
 
 Output Files:
-- knowledge/bizs/SYSTEM-OVERVIEW.md
-- knowledge/bizs/modules/MODULE-ORDER/MODULE-ORDER-OVERVIEW.md
-- knowledge/bizs/modules/MODULE-ORDER/features/FEATURE-*-DETAIL.md (8 files)
+- knowledge/bizs/system-overview.md
+- knowledge/bizs/order/order-overview.md
+- knowledge/bizs/order/features/*.md (8 files)
 - [Other modules...]
 
 Next Steps:
-- Review SYSTEM-OVERVIEW.md for system structure
+- Review system-overview.md for system structure
 - Use devcrew-pm-requirement-assess for new requirements
 ```
 
@@ -169,5 +196,5 @@ Next Steps:
 - [ ] Stage 3: All modules summarized in parallel
 - [ ] Stage 4: System overview generated
 - [ ] Stage 5: Final report generated
-- [ ] Status files created in `.tasks/knowledge-bizs-init/`
+- [ ] Status files created in `docs/crew-init/knowledge-bizs/`
 - [ ] All outputs verified
