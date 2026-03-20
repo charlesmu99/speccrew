@@ -52,13 +52,27 @@ Worker Agent (devcrew-task-worker)
 
 Analyze project to determine if it has a UI layer:
 
-**Check for Frontend Indicators:**
-| Indicator | Evidence |
-|-----------|----------|
-| Frontend framework | React, Vue, Angular, Next.js, Nuxt in package.json |
-| Page directories | `pages/`, `views/`, `app/`, `routes/` |
-| Route config | `router/`, `routes.ts`, `router.config.js` |
-| UI components | `components/`, `ui/`, `antd/`, `material-ui/` |
+**Check for UI Indicators:**
+
+| Platform Type | Indicators | Evidence |
+|---------------|------------|----------|
+| **Web Frontend** | Frontend frameworks | React, Vue, Angular, Next.js, Nuxt in package.json |
+| | Page directories | `pages/`, `views/`, `app/`, `routes/` |
+| | Route config | `router/`, `routes.ts`, `router.config.js` |
+| | UI components | `components/`, `ui/`, `antd/`, `material-ui/` |
+| **Mobile (Android)** | Android projects | `build.gradle`, `AndroidManifest.xml`, `res/layout/`, `.kt`/`.java` files |
+| | Jetpack Compose | `@Composable` functions, `setContent { }` blocks |
+| **Mobile (iOS)** | iOS projects | `.xcodeproj`, `Info.plist`, `Storyboard`, `.swift`/`.m` files |
+| | SwiftUI | `SwiftUI` imports, `struct ContentView: View` |
+| **Cross-Platform Mobile** | Flutter | `pubspec.yaml`, `lib/main.dart`, `flutter/` directory |
+| | React Native | `react-native` in package.json, `ios/`, `android/` directories |
+| | UniApp | `manifest.json`, `pages.json`, `uni-app` in package.json |
+| | Mini Programs | `app.json`, `project.config.json`, `pages/` directory |
+| **Desktop Client** | WPF | `.csproj`, `.xaml` files, `App.xaml` |
+| | WinForms | `.cs`/`.vb` files, `Form` classes, `Designer.cs` |
+| | Electron | `electron` in package.json, `main.js`, `preload.js` |
+| | Tauri | `tauri.conf.json`, `src-tauri/` directory |
+| | Qt | `.pro`, `.qml`, `CMakeLists.txt` with Qt references |
 
 **Decision:**
 - If frontend indicators found → Follow "UI-Based Analysis"
@@ -200,39 +214,100 @@ For each identified module, extract:
 
 ### Step 4: Generate modules.json
 
-Create JSON file for pipeline orchestration:
+Create JSON file for pipeline orchestration using the unified format:
 
 ```json
 {
   "generated_at": "2024-01-15T10:30:00Z",
   "analysis_method": "ui-based",
   "source_path": "/project",
-  "module_count": 4,
-  "modules": [
+  "language": "en",
+  "platform_count": 2,
+  "platforms": [
     {
-      "name": "Order Management",
-      "code_name": "order",
-      "user_value": "Handle customer orders from creation to fulfillment",
-      "entry_points": ["/orders", "/orders/:id", "/order-create"],
-      "system_type": "ui"
+      "platform_name": "Web Frontend",
+      "platform_type": "web",
+      "source_path": "/project/web",
+      "tech_stack": ["react", "typescript"],
+      "module_count": 4,
+      "modules": [
+        {
+          "name": "Order Management",
+          "code_name": "order",
+          "user_value": "Handle customer orders from creation to fulfillment",
+          "entry_points": [
+            "src/pages/orders/index.tsx",
+            "src/pages/orders/[id].tsx",
+            "src/pages/orders/create.tsx"
+          ],
+          "system_type": "ui"
+        },
+        {
+          "name": "Payment & Billing",
+          "code_name": "payment",
+          "user_value": "Process payments and manage invoices",
+          "entry_points": [
+            "src/pages/payments/index.tsx",
+            "src/pages/invoices/index.tsx"
+          ],
+          "system_type": "ui"
+        }
+      ]
     },
     {
-      "name": "Payment & Billing",
-      "code_name": "payment",
-      "user_value": "Process payments and manage invoices",
-      "entry_points": ["/payments", "/invoices"],
-      "system_type": "ui"
-    },
-    {
-      "name": "Product Catalog",
-      "code_name": "product",
-      "user_value": "Manage product information and categories",
-      "entry_points": ["/products", "/categories"],
-      "system_type": "ui"
+      "platform_name": "Mobile App",
+      "platform_type": "mobile-flutter",
+      "source_path": "/project/mobile",
+      "tech_stack": ["flutter", "dart"],
+      "module_count": 4,
+      "modules": [
+        {
+          "name": "Order Management",
+          "code_name": "order",
+          "user_value": "Handle customer orders from creation to fulfillment",
+          "entry_points": [
+            "lib/pages/orders/list.dart",
+            "lib/pages/orders/detail.dart"
+          ],
+          "system_type": "ui"
+        }
+      ]
     }
   ]
 }
 ```
+
+**Field Descriptions:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `generated_at` | string | ISO 8601 timestamp |
+| `analysis_method` | string | Analysis approach: `"ui-based"` if any UI platform found, `"api-based"` if only API platforms |
+| `source_path` | string | Root path of analyzed source code |
+| `language` | string | Language code used for generated content (e.g., "zh", "en") |
+| `platform_count` | number | Number of platforms identified |
+| `platforms` | array | List of platform objects |
+
+**Platform Object:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `platform_name` | string | Human-readable platform name |
+| `platform_type` | string | Platform identifier: `web`, `mobile-android`, `mobile-ios`, `mobile-flutter`, `mobile-react-native`, `miniprogram`, `desktop-electron`, `desktop-wpf`, `api` |
+| `source_path` | string | Path to platform-specific source |
+| `tech_stack` | array | Technologies used (languages, frameworks) |
+| `module_count` | number | Modules in this platform |
+| `modules` | array | Business module list |
+
+**Module Object:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Business module name |
+| `code_name` | string | Technical identifier (snake_case) |
+| `user_value` | string | What users accomplish with this module |
+| `entry_points` | array | Relative file paths (from `source_path`) to entry point files. For UI: page component files; For API: controller/handler files |
+| `system_type` | string | `"ui"` or `"api"` |
 
 **Output Path**: `{output_path}/modules.json`
 
@@ -241,8 +316,10 @@ Create JSON file for pipeline orchestration:
 ```
 Stage 1 completed: Business Module List Generated
 - Analysis Method: [UI-Based / API-Based]
-- System Type: [Full-Stack / Frontend-Only / Backend-Only]
-- Business Modules Found: [N]
+- Platforms Found: [N]
+  - Platform 1: [platform_name] ([platform_type]) - [module_count] modules
+  - Platform 2: [platform_name] ([platform_type]) - [module_count] modules
+- Total Business Modules: [N]
 - Output: {output_path}/modules.json
 - Next: Dispatch parallel tasks for Stage 2 (Module Feature Analysis)
 ```
@@ -255,6 +332,7 @@ Stage 1 completed: Business Module List Generated
 2. **Use business terminology**: "Order Management" not "OrderController"
 3. **Consider navigation structure**: Menus often reveal module boundaries
 4. **Look for CRUD patterns**: List → Detail → Edit → Create flows
+5. **Identify platform boundaries**: Separate Web, Mobile, Desktop into different platforms
 
 ### For API-Based Systems
 
@@ -262,14 +340,23 @@ Stage 1 completed: Business Module List Generated
 2. **Analyze URL patterns**: Common prefixes indicate modules
 3. **Consider business capabilities**: What business function does this API enable?
 4. **Look for controller boundaries**: One controller often equals one module
+5. **Detect multi-language backends**: Identify if APIs are implemented across different languages
+
+### For Multi-Platform Projects
+
+1. **Create separate platform entries**: Each UI platform (Web, iOS, Android, Mini Program) gets its own platform object
+2. **Use consistent module naming**: Same business concept should have same `code_name` across platforms
+3. **Record platform-specific paths**: `entry_points` should reflect each platform's file structure
+4. **Document tech stack**: Include languages and frameworks in `tech_stack` array
 
 ## Checklist
 
-- [ ] System type determined (UI-based vs API-based)
-- [ ] Analysis method selected appropriately
-- [ ] Entry points identified (pages for UI, endpoints for API)
+- [ ] Platforms identified (Web, Mobile, Desktop, or API)
+- [ ] Each platform has `platform_name`, `platform_type`, `source_path`, `tech_stack`
+- [ ] Modules grouped by platform
+- [ ] `entry_points` are relative file paths (not URL routes)
 - [ ] Business modules mapped from user/product perspective
-- [ ] Module metadata extracted (name, user_value, entry_points)
-- [ ] modules.json generated with complete business module list
+- [ ] Module metadata extracted (name, code_name, user_value, entry_points, system_type)
+- [ ] modules.json generated with unified platform-based structure
 - [ ] Output path verified
 - [ ] Results reported

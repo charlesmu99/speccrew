@@ -63,28 +63,56 @@ Leader Agent (devcrew-team-leader)
   "generated_at": "2024-01-15T10:30:00Z",
   "analysis_method": "ui-based",
   "source_path": "/project",
-  "module_count": 4,
-  "modules": [
+  "platform_count": 2,
+  "platforms": [
     {
-      "name": "Order Management",
-      "code_name": "order",
-      "user_value": "Handle customer orders from creation to fulfillment",
-      "entry_points": ["/orders", "/orders/:id", "/order-create"],
-      "system_type": "ui"
+      "platform_name": "Web Frontend",
+      "platform_type": "web",
+      "source_path": "/project/web",
+      "tech_stack": ["react", "typescript"],
+      "module_count": 4,
+      "modules": [
+        {
+          "name": "Order Management",
+          "code_name": "order",
+          "user_value": "Handle customer orders from creation to fulfillment",
+          "entry_points": [
+            "src/pages/orders/index.tsx",
+            "src/pages/orders/[id].tsx",
+            "src/pages/orders/create.tsx"
+          ],
+          "system_type": "ui"
+        },
+        {
+          "name": "Payment & Billing",
+          "code_name": "payment",
+          "user_value": "Process payments and manage invoices",
+          "entry_points": [
+            "src/pages/payments/index.tsx",
+            "src/pages/invoices/index.tsx"
+          ],
+          "system_type": "ui"
+        }
+      ]
     },
     {
-      "name": "Payment & Billing",
-      "code_name": "payment",
-      "user_value": "Process payments and manage invoices",
-      "entry_points": ["/payments", "/invoices"],
-      "system_type": "ui"
-    },
-    {
-      "name": "Product Catalog",
-      "code_name": "product",
-      "user_value": "Manage product information and categories",
-      "entry_points": ["/products", "/categories"],
-      "system_type": "ui"
+      "platform_name": "Mobile App",
+      "platform_type": "mobile-flutter",
+      "source_path": "/project/mobile",
+      "tech_stack": ["flutter", "dart"],
+      "module_count": 4,
+      "modules": [
+        {
+          "name": "Order Management",
+          "code_name": "order",
+          "user_value": "Handle customer orders from creation to fulfillment",
+          "entry_points": [
+            "lib/pages/orders/list.dart",
+            "lib/pages/orders/detail.dart"
+          ],
+          "system_type": "ui"
+        }
+      ]
     }
   ]
 }
@@ -96,19 +124,28 @@ Leader Agent (devcrew-team-leader)
 
 **Action**:
 - Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
-- For each module, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-analyze/SKILL.md`
+- Iterate through each `platform` in `platforms` array
+- For each module within the platform, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-analyze/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
-  - `source_path`: Source code root path (from input or project root)
-  - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{module_name}/`)
+  - `platform_name`: Platform name (e.g., "Web Frontend", "Mobile App")
+  - `platform_type`: Platform type (e.g., "web", "mobile-flutter")
+  - `system_type`: Module system type - `"ui"` or `"api"` (from modules.json)
+  - `source_path`: Platform-specific source path (from platform.source_path)
+  - `tech_stack`: Platform tech stack array
+  - `entry_points`: Module entry points (relative file paths)
+  - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
-**Parallel Tasks**:
+**Parallel Tasks** (grouped by platform):
 ```
-Worker 1: module="order",     output="knowledge/bizs/order/"
-Worker 2: module="payment",   output="knowledge/bizs/payment/"
-Worker 3: module="inventory", output="knowledge/bizs/inventory/"
-Worker 4: module="user",      output="knowledge/bizs/user/"
+Platform: Web Frontend (web)
+  Worker 1: module="order",   source="/project/web",   output="knowledge/bizs/web/order/"
+  Worker 2: module="payment", source="/project/web",   output="knowledge/bizs/web/payment/"
+
+Platform: Mobile App (mobile-flutter)
+  Worker 3: module="order",   source="/project/mobile", output="knowledge/bizs/mobile-flutter/order/"
+  Worker 4: module="payment", source="/project/mobile", output="knowledge/bizs/mobile-flutter/payment/"
 ```
 
 **Output per Module**:
@@ -125,18 +162,24 @@ Worker 4: module="user",      output="knowledge/bizs/user/"
 **Prerequisite**: Stage 2 completed for the module.
 
 **Action**:
-- For each module, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-summarize/SKILL.md`
+- Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
+- Iterate through each `platform` in `platforms` array
+- For each module within the platform, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
-  - `module_path`: Path to module directory (e.g., `knowledge/bizs/{module_name}/`)
+  - `platform_type`: Platform type (e.g., "web", "mobile-flutter")
+  - `module_path`: Path to module directory (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
-**Parallel Tasks**:
+**Parallel Tasks** (grouped by platform):
 ```
-Worker 1: module="order",     module_path="knowledge/bizs/order/"
-Worker 2: module="payment",   module_path="knowledge/bizs/payment/"
-Worker 3: module="inventory", module_path="knowledge/bizs/inventory/"
-Worker 4: module="user",      module_path="knowledge/bizs/user/"
+Platform: Web Frontend (web)
+  Worker 1: module="order",   module_path="knowledge/bizs/web/order/"
+  Worker 2: module="payment", module_path="knowledge/bizs/web/payment/"
+
+Platform: Mobile App (mobile-flutter)
+  Worker 3: module="order",   module_path="knowledge/bizs/mobile-flutter/order/"
+  Worker 4: module="payment", module_path="knowledge/bizs/mobile-flutter/payment/"
 ```
 
 **Output per Module**:
@@ -147,50 +190,60 @@ Worker 4: module="user",      module_path="knowledge/bizs/user/"
 
 ### Stage 4: System Summarize (Single Task)
 
-**Goal**: Generate complete system-overview.md.
+**Goal**: Generate complete system-overview.md aggregating all platforms and modules.
 
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Action**:
+- Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json` to get platform structure
 - Invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-system-summarize/SKILL.md`
 - Parameters to pass to skill:
-  - `modules_path`: Path to modules directory (e.g., `knowledge/bizs/`)
+  - `modules_json_path`: Path to modules.json file
+  - `knowledge_base_path`: Path to knowledge base directory (e.g., `knowledge/bizs/`)
   - `output_path`: Output path for system-overview.md (e.g., `knowledge/bizs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
-- `knowledge/bizs/system-overview.md` (complete with module index)
+- `knowledge/bizs/system-overview.md` (complete with platform index and module hierarchy)
 
 ### Stage 5: Generate Final Report
 
 **Action**:
 - Read all status files
-- Generate summary report
+- Read modules.json for platform structure
+- Generate summary report grouped by platform
 
 **Output**:
 ```
 Knowledge base initialization completed:
 
 Pipeline Summary:
-- Stage 1 (Module List): ✅ Completed - 4 modules identified
-- Stage 2 (Analysis): ✅ Completed - 4/4 modules analyzed
-- Stage 3 (Summarize): ✅ Completed - 4/4 modules summarized
+- Stage 1 (Module List): ✅ Completed - 2 platforms, 8 modules identified
+- Stage 2 (Analysis): ✅ Completed - 8/8 modules analyzed
+- Stage 3 (Summarize): ✅ Completed - 8/8 modules summarized
 - Stage 4 (System): ✅ Completed
 
+Platform Breakdown:
+- Web Frontend (web): 4 modules, 16 features
+- Mobile App (mobile-flutter): 4 modules, 16 features
+
 Statistics:
-- Modules: 4
+- Platforms: 2
+- Total Modules: 8
 - Total Features: 32
 - Total Entities: 18
 - Total APIs: 56
 
 Output Files:
 - knowledge/bizs/system-overview.md
-- knowledge/bizs/order/order-overview.md
-- knowledge/bizs/order/features/*.md (8 files)
-- [Other modules...]
+- knowledge/bizs/web/order/order-overview.md
+- knowledge/bizs/web/order/features/*.md (4 files)
+- knowledge/bizs/mobile-flutter/order/order-overview.md
+- knowledge/bizs/mobile-flutter/order/features/*.md (4 files)
+- [Other platforms and modules...]
 
 Next Steps:
-- Review system-overview.md for system structure
+- Review system-overview.md for complete system structure
 - Use devcrew-pm-requirement-assess for new requirements
 ```
 
@@ -199,16 +252,16 @@ Next Steps:
 | Stage | Failure Handling |
 |-------|-----------------|
 | Stage 1 | Abort entire pipeline, report error |
-| Stage 2 | Continue with successful modules, report failed modules |
-| Stage 3 | Continue with successful modules, report failed modules |
-| Stage 4 | Abort if < 50% modules completed successfully |
+| Stage 2 | Continue with successful modules per platform, report failed modules |
+| Stage 3 | Continue with successful modules per platform, report failed modules |
+| Stage 4 | Abort if < 50% modules completed successfully across all platforms |
 
 ## Checklist
 
-- [ ] Stage 1: Module list generated
-- [ ] Stage 2: All modules analyzed in parallel
-- [ ] Stage 3: All modules summarized in parallel
-- [ ] Stage 4: System overview generated
-- [ ] Stage 5: Final report generated
+- [ ] Stage 1: Platform list generated with modules.json
+- [ ] Stage 2: All modules across all platforms analyzed in parallel
+- [ ] Stage 3: All modules across all platforms summarized in parallel
+- [ ] Stage 4: System overview generated with platform hierarchy
+- [ ] Stage 5: Final report generated with platform breakdown
 - [ ] Status files created in `docs/crew-init/knowledge-bizs/`
 - [ ] All outputs verified

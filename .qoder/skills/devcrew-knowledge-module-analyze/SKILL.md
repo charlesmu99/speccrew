@@ -30,9 +30,14 @@ Worker Agent (devcrew-task-worker)
 
 ## Input
 
-- `module_name`: Module name to analyze
-- `source_path`: Source code root path
-- `output_path`: Output directory for generated documents
+- `module_name`: Module code_name from modules.json
+- `platform_name`: Platform name (e.g., "Web Frontend", "Mobile App")
+- `platform_type`: Platform type (e.g., "web", "mobile-flutter", "api")
+- `system_type`: Module system type - `"ui"` or `"api"` (from modules.json)
+- `source_path`: Platform-specific source path (from platform.source_path)
+- `tech_stack`: Platform tech stack array (e.g., ["react", "typescript"])
+- `entry_points`: Module entry points (relative file paths from modules.json)
+- `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
@@ -44,13 +49,44 @@ Worker Agent (devcrew-task-worker)
 
 ### Step 1: Locate Module Source
 
-Find module source files:
-- Directory: `src/modules/{module_name}/` or `modules/{module_name}/`
-- Pattern: `**/{module_name}/**/*.{ts,js,java,go}`
+Use `entry_points` from input to locate module source files directly:
+
+**System Type Determination:**
+
+Use `system_type` parameter to determine analysis approach:
+- `system_type: "ui"` → Follow UI-based analysis
+- `system_type: "api"` → Follow API-based analysis
+
+**For UI-based modules (system_type = "ui"):**
+- Entry points are page/component files (e.g., `src/pages/orders/index.tsx`)
+- Analyze page structure, components, props, state management
+- Extract user interactions and navigation flows
+
+**For API-based modules (system_type = "api"):**
+- Entry points are controller/handler files (e.g., `src/controllers/order.controller.ts`)
+- Parse decorators and method signatures to extract features
+- Extract request/response DTOs and validation rules
+
+**Fallback (if entry_points analysis insufficient):**
+- Search: `**/{module_name}/**/*.{ts,js,java,go,py}`
+- Consider `tech_stack` to determine file extensions (e.g., Flutter → `.dart`, Python → `.py`)
 
 ### Step 2: Extract Module Information
 
-From module source code, extract:
+Based on `system_type`, extract different information:
+
+**For UI-based modules (system_type = "ui"):**
+
+| Information | Source |
+|-------------|--------|
+| Module Purpose | Page comments, README, or route config comments |
+| Pages/Screens | Entry point files and their imports |
+| Components | Imported component files |
+| State Management | Store files, hooks (e.g., `useStore`, `redux`, `pinia`) |
+| User Interactions | Event handlers, form submissions |
+| Navigation | Router configurations, navigation links |
+
+**For API-based modules (system_type = "api"):**
 
 | Information | Source |
 |-------------|--------|
@@ -61,6 +97,52 @@ From module source code, extract:
 | Public APIs | Route decorators: `@Get`, `@Post`, `@Put`, `@Delete` |
 
 ### Step 3: Identify Features
+
+**For UI-based modules (system_type = "ui"):**
+
+Each page/screen or major user interaction = one feature:
+
+```typescript
+// Example: From page component
+export default function OrderListPage() {
+  // Feature: list-orders
+  const [orders, setOrders] = useState([]);
+  
+  // API call analysis
+  useEffect(() => {
+    fetchOrders();  // → Find and analyze: GET /api/orders
+  }, []);
+  
+  // Feature: create-order (navigation)
+  const handleCreate = () => router.push('/orders/create');
+  
+  // Feature: get-order-detail (navigation)
+  const handleView = (id) => router.push(`/orders/${id}`);
+}
+```
+
+For each feature, extract:
+- **Frontend Layer:**
+  - Feature name (from page name or user action)
+  - Page/Component file path
+  - User interactions (clicks, form submissions)
+  - State management (local state, store)
+  - Navigation paths
+  
+- **Backend API Layer:**
+  - API calls made by the feature (trace `fetch`, `axios`, `apiClient` calls)
+  - API endpoint (method + path)
+  - Request parameters and payload structure
+  - Response data structure
+  - Error handling patterns
+  
+- **Data Storage Layer:**
+  - Database entities/models referenced by the API
+  - Data relationships (foreign keys, associations)
+  - Key data fields and their purposes
+  - Data flow: UI → API → Database → API → UI
+
+**For API-based modules (system_type = "api"):**
 
 Each public API endpoint = one feature:
 
@@ -134,7 +216,11 @@ Key requirements:
 
 ```
 Module analysis completed:
+- Platform: {platform_name} ({platform_type})
 - Module: {module_name}
+- Source Path: {source_path}
+- Tech Stack: {tech_stack}
+- Entry Points Analyzed: {entry_points.length}
 - Features Found: {N}
 - Generated:
   - {name}-overview.md (initial)
@@ -145,11 +231,13 @@ Module analysis completed:
 
 ## Checklist
 
-- [ ] Module source files located
-- [ ] Controllers/Handlers identified
-- [ ] Features extracted from API endpoints
-- [ ] Request/Response DTOs analyzed
+- [ ] Platform context received (platform_name, platform_type, tech_stack)
+- [ ] Entry points resolved from source_path + entry_points
+- [ ] Module source files located using entry points
+- [ ] Controllers/Handlers identified (API) or Pages/Components identified (UI)
+- [ ] Features extracted from entry point analysis
+- [ ] Request/Response DTOs analyzed (API) or Props/State analyzed (UI)
 - [ ] Validation rules documented
 - [ ] {feature-name}.md generated for each feature
 - [ ] {name}-overview.md (initial) generated with feature list
-- [ ] Results reported
+- [ ] Results reported with platform context
