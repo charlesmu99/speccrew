@@ -85,6 +85,19 @@ INVENTORY depends on: PRODUCT
 
 Generate Mermaid dependency diagram.
 
+**Mermaid Diagram Requirements**
+
+When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
+- **Reference**: `devcrew-workspace/rules/mermaid-rule.md`
+
+Key requirements:
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
 ### Step 5: Identify Business Domains
 
 Group modules by business domain:

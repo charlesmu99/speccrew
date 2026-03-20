@@ -103,6 +103,19 @@ For each feature, use template `.qoder/skills/devcrew-knowledge-module-analyze/t
 
 Use template `.qoder/skills/devcrew-knowledge-module-analyze/templates/module-overview-template.md`, fill sections:
 
+**Mermaid Diagram Requirements**
+
+When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
+- **Reference**: `devcrew-workspace/rules/mermaid-rule.md`
+
+Key requirements:
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
 **Section 1: Module Basic Info**
 - Module name from input
 - Purpose from code analysis

@@ -52,6 +52,19 @@ Fill in according to template structure, requirements:
 - **UI Solution**: Page/component list and interaction description
 - **Risks & Constraints**: Identify potential risks in implementation
 
+**Mermaid Diagram Requirements**
+
+When generating Mermaid diagrams (sequence diagrams, architecture diagrams, etc.), you **MUST** follow the compatibility guidelines defined in:
+- **Reference**: `devcrew-workspace/rules/mermaid-rule.md`
+
+Key requirements:
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` or `sequenceDiagram` syntax only
+
 ## Step 4: Write to File
 
 Write path: `projects/pXXX/02.solutions/[feature-name]-solution.md`

@@ -94,6 +94,19 @@ Collect all business rules from feature details:
 
 Use `templates/MODULE-OVERVIEW-TEMPLATE.md` (in this skill directory), fill all sections:
 
+**Mermaid Diagram Requirements**
+
+When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
+- **Reference**: `devcrew-workspace/rules/mermaid-rule.md`
+
+Key requirements:
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
 **Section 1: Module Basic Info** (from initial version)
 - Keep existing information
 
