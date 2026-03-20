@@ -182,6 +182,39 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. Testing
 ```
 
+### 4. Uninstall DevCrew
+
+**Method 1: One-click Uninstall Script (Recommended)**
+
+```bash
+# macOS / Linux / WSL - Uninstall from GitHub
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+
+# macOS / Linux / WSL - Uninstall from Gitee (China Mirror)
+curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+```
+
+```powershell
+# Windows - Uninstall from GitHub
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+
+# Windows - Uninstall from Gitee (China Mirror)
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+```
+
+**Method 2: Manual Uninstall**
+
+```bash
+# Remove devcrew-workspace directory
+rm -rf devcrew-workspace/
+
+# Remove devcrew- prefixed Agent and Skill (preserve custom content)
+rm -rf .qoder/agents/devcrew-*.md
+rm -rf .qoder/skills/devcrew-*/
+```
+
+> **Note**: Uninstallation will preserve your custom Agents and Skills in the `.qoder/` directory. To completely remove all Qoder configurations, manually delete the `.qoder/` directory.
+
 ---
 
 ## Directory Structure

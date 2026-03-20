@@ -182,6 +182,39 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. 测试验证
 ```
 
+### 4. 卸载 DevCrew
+
+**方式一：一键卸载脚本（推荐）**
+
+```bash
+# macOS / Linux / WSL - 从 GitHub 卸载
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+
+# macOS / Linux / WSL - 从 Gitee 卸载（中国镜像）
+curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+```
+
+```powershell
+# Windows - 从 GitHub 卸载
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+
+# Windows - 从 Gitee 卸载（中国镜像）
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+```
+
+**方式二：手动卸载**
+
+```bash
+# 删除 devcrew-workspace 目录
+rm -rf devcrew-workspace/
+
+# 删除 devcrew- 前缀的 Agent 和 Skill（保留自定义内容）
+rm -rf .qoder/agents/devcrew-*.md
+rm -rf .qoder/skills/devcrew-*/
+```
+
+> **注意**：卸载会保留你在 `.qoder/` 目录中的自定义 Agent 和 Skill。如需完全删除所有 Qoder 配置，请手动删除 `.qoder/` 目录。
+
 ---
 
 ## 目录结构

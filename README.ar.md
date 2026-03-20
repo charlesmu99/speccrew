@@ -182,6 +182,39 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. الاختبار
 ```
 
+### 4. إلغاء تثبيت DevCrew
+
+**الطريقة 1: سكريبت إلغاء التثبيت بنقرة واحدة (موصى به)**
+
+```bash
+# macOS / Linux / WSL - إلغاء التثبيت من GitHub
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+
+# macOS / Linux / WSL - إلغاء التثبيت من Gitee (مرآة الصين)
+curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+```
+
+```powershell
+# Windows - إلغاء التثبيت من GitHub
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+
+# Windows - إلغاء التثبيت من Gitee (مرآة الصين)
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+```
+
+**الطريقة 2: إلغاء التثبيت اليدوي**
+
+```bash
+# حذف دليل devcrew-workspace
+rm -rf devcrew-workspace/
+
+# حذف Agent و Skill ببادئة devcrew- (الحفاظ على المحتوى المخصص)
+rm -rf .qoder/agents/devcrew-*.md
+rm -rf .qoder/skills/devcrew-*/
+```
+
+> **ملاحظة**: سيؤدي إلغاء التثبيت إلى الحفاظ على Agents و Skills المخصصة في دليل `.qoder/`. لإزالة جميع تكوينات Qoder بالكامل، احذف دليل `.qoder/` يدوياً.
+
 ---
 
 ## هيكل الدليل
