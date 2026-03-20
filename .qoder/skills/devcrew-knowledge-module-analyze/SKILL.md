@@ -1,6 +1,6 @@
 ---
 name: devcrew-knowledge-module-analyze
-description: Analyze a single module from source code to extract features and generate feature details. Used by Worker Agent in parallel execution during knowledge base initialization.
+description: Analyze a single module from source code to extract features and generate feature details. Used by Worker Agent in parallel execution during knowledge base initialization. In incremental mode, this skill is only invoked for NEW/CHANGED modules determined by devcrew-knowledge-dispatch.
 tools: Read, Write, Glob, Grep, SearchCodebase
 ---
 
@@ -37,6 +37,7 @@ Worker Agent (devcrew-task-worker)
 - `source_path`: Platform-specific source path (from platform.source_path)
 - `tech_stack`: Platform tech stack array (e.g., ["react", "typescript"])
 - `entry_points`: Module entry points (relative file paths from modules.json)
+- `backend_apis`: Associated backend API endpoints for this module (only when `system_type: "ui"`)
 - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 

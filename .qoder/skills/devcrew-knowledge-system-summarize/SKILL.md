@@ -1,6 +1,6 @@
 ---
 name: devcrew-knowledge-system-summarize
-description: Generate complete system-overview.md by reading all {name}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation.
+description: Generate complete system-overview.md by reading all {name}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation. In incremental mode, this skill always regenerates the system overview from the latest module overviews.
 tools: Read, Write, Glob
 ---
 

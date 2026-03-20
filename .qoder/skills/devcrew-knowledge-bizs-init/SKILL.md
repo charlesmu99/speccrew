@@ -209,13 +209,35 @@ API Pattern Analysis:
 
 For each identified module, extract:
 
-| Field | Source | Example |
-|-------|--------|---------|
-| name | Business term from UI/API | "Order Management" |
-| code_name | Technical identifier | "order" |
-| user_value | What users accomplish | "Handle customer orders from creation to fulfillment" |
-| entry_points | Pages or API groups | ["/orders", "/order-create"] or ["GET /orders", "POST /orders"] |
-| system_type | UI or API-based | "ui" or "api" |
+| Field | Source | Example | Condition |
+|-------|--------|---------|-----------|
+| name | Business term from UI/API | "Order Management" | Always |
+| code_name | Technical identifier | "order" | Always |
+| user_value | What users accomplish | "Handle customer orders from creation to fulfillment" | Always |
+| entry_points | Relative file paths to entry points | ["src/pages/orders/index.tsx", "src/pages/orders/[id].tsx"] | Always |
+| system_type | UI or API-based | "ui" or "api" | Always |
+| backend_apis | Associated backend API endpoints | ["GET /api/orders", "POST /api/orders", "GET /api/orders/:id"] | Only when `system_type: "ui"` |
+
+**How to determine `backend_apis` for UI-based modules:**
+
+1. From frontend API client calls:
+   - Search in entry_point files and their imports for HTTP calls (e.g., `fetch`, `axios`, `apiClient`, `request`)
+   - Extract method and URL pattern, normalize as `METHOD /path` (e.g., `GET /api/orders`)
+
+2. From shared API client definitions (if exists):
+   - Look for central API client modules (e.g., `src/api/orders.ts`, `src/services/orderService.ts`)
+   - Map functions like `getOrders`, `createOrder` to endpoints (if clearly documented or named)
+
+3. Heuristic fallback (optional, only when explicit mapping is missing):
+   - Infer RESTful endpoints from module `code_name` and common patterns:
+     - List: `GET /api/{code_name}s`
+     - Detail: `GET /api/{code_name}s/:id`
+     - Create: `POST /api/{code_name}s`
+     - Update: `PUT /api/{code_name}s/:id`
+     - Delete: `DELETE /api/{code_name}s/:id`
+   - Mark inferred endpoints as *heuristic* in internal reasoning, but keep JSON clean
+
+For API-based modules (`system_type: "api"`), do **NOT** populate `backend_apis`; their endpoints are already covered by `entry_points` or API grouping in Step 2B.
 
 ### Step 4: Generate modules.json
 
@@ -245,7 +267,14 @@ Create JSON file for pipeline orchestration using the unified format:
             "src/pages/orders/[id].tsx",
             "src/pages/orders/create.tsx"
           ],
-          "system_type": "ui"
+          "system_type": "ui",
+          "backend_apis": [
+            "GET /api/orders",
+            "POST /api/orders",
+            "GET /api/orders/:id",
+            "PUT /api/orders/:id",
+            "DELETE /api/orders/:id"
+          ]
         },
         {
           "name": "Payment & Billing",
@@ -255,7 +284,12 @@ Create JSON file for pipeline orchestration using the unified format:
             "src/pages/payments/index.tsx",
             "src/pages/invoices/index.tsx"
           ],
-          "system_type": "ui"
+          "system_type": "ui",
+          "backend_apis": [
+            "GET /api/payments",
+            "POST /api/payments",
+            "GET /api/invoices"
+          ]
         }
       ]
     },
@@ -290,6 +324,7 @@ Create JSON file for pipeline orchestration using the unified format:
 | `analysis_method` | string | Analysis approach: `"ui-based"` if any UI platform found, `"api-based"` if only API platforms |
 | `source_path` | string | Root path of analyzed source code |
 | `language` | string | Language code used for generated content (e.g., "zh", "en") |
+| `source_commit` | string | Git commit hash at generation time (if available) |
 | `platform_count` | number | Number of platforms identified |
 | `platforms` | array | List of platform objects |
 

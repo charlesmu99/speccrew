@@ -36,7 +36,12 @@ Leader Agent (devcrew-team-leader)
 
 - `source_path`: Source code root path (default: project root)
 - `output_path`: Output directory (default: `knowledge/bizs/`)
-
+- `sync_mode`: Knowledge base update mode - `"full"` or `"incremental"` (default: `"full"`)
+  - `full`: Rebuild knowledge base for all modules
+  - `incremental`: Only update modules affected by recent code changes (Git-managed projects)
+- `base_commit` (optional, incremental mode only): Git commit hash used as the comparison base
+- `head_commit` (optional, incremental mode only): Git commit hash for current HEAD. If omitted, assume `HEAD`.
+- `changed_files` (optional, incremental mode only): Pre-computed list of changed files between `base_commit` and `head_commit` (e.g., from `git diff --name-only`)
 ## Output
 
 - Task status records in `devcrew-workspace/docs/crew-init/knowledge-bizs/`
@@ -122,7 +127,7 @@ Leader Agent (devcrew-team-leader)
 
 **Goal**: Analyze each module in parallel to generate feature details.
 
-**Action**:
+**Action (full mode)**:
 - Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
 - For each module within the platform, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-analyze/SKILL.md`
@@ -136,6 +141,20 @@ Leader Agent (devcrew-team-leader)
   - `entry_points`: Module entry points (relative file paths)
   - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
+
+**Action (incremental mode)**:
+- Precondition: Caller has prepared `base_commit`, `head_commit` and `changed_files` (file list from `git diff --name-only base_commit head_commit`).
+- Read both previous and latest `modules.json` snapshots if available (e.g., `modules.json` from `base_commit` and current one from Stage 1).
+- For each platform and module in the **latest** `modules.json`:
+  - Build `Files(module)` from:
+    - `platform.source_path + entry_points[*]`
+    - (Optional) files that implement `backend_apis` (e.g., controllers/services).
+  - Determine module status:
+    - **NEW**: module only exists in latest `modules.json`
+    - **CHANGED**: `Files(module)` intersects with `changed_files`
+    - **DELETED**: module only exists in previous `modules.json`
+    - **UNMODIFIED**: all others
+- Only dispatch Workers for modules with status **NEW** or **CHANGED**.
 
 **Parallel Tasks** (grouped by platform):
 ```
@@ -159,9 +178,9 @@ Platform: Mobile App (mobile-flutter)
 
 **Goal**: Complete each module overview based on feature details.
 
-**Prerequisite**: Stage 2 completed for the module.
+**Prerequisite**: Stage 2 completed for the module (in full or incremental mode).
 
-**Action**:
+**Action (full mode)**:
 - Read `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
 - For each module within the platform, invoke 1 Worker Agent (`.qoder/agents/devcrew-task-worker.md`) with skill `.qoder/skills/devcrew-knowledge-module-summarize/SKILL.md`
@@ -170,6 +189,10 @@ Platform: Mobile App (mobile-flutter)
   - `platform_type`: Platform type (e.g., "web", "mobile-flutter")
   - `module_path`: Path to module directory (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
+
+**Action (incremental mode)**:
+- Reuse module status from Stage 2 (NEW / CHANGED / DELETED / UNMODIFIED).
+- Only dispatch Workers for modules with status **NEW** or **CHANGED**.
 
 **Parallel Tasks** (grouped by platform):
 ```
