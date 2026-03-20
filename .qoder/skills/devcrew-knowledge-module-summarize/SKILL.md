@@ -81,7 +81,7 @@ Collect all business rules from feature details:
 
 ### Step 6: Generate Complete MODULE-OVERVIEW.md
 
-Use MODULE-OVERVIEW-TEMPLATE.md, fill all sections:
+Use `templates/MODULE-OVERVIEW-TEMPLATE.md` (in this skill directory), fill all sections:
 
 **Section 1: Module Basic Info** (from initial version)
 - Keep existing information
