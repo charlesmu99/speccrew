@@ -25,3 +25,6 @@ Thumbs.db
 # Symbolic links to external projects
 OpenSpec/
 spec-kit/
+
+# Test folder
+test/
