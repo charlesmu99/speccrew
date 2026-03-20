@@ -25,7 +25,78 @@
 
 ## 3. Functional Requirements
 
-### 3.1 Feature List
+### 3.1 Use Case Diagram
+
+```mermaid
+graph TB
+    %% Actor definitions
+    U[User Role]
+    A[Admin Role]
+    
+    %% Use case nodes
+    UC1[Core Feature 1]
+    UC2[Core Feature 2]
+    UC3[Core Feature 3]
+    UC4[Management Feature]
+    
+    %% Relationships
+    U --> UC1
+    U --> UC2
+    U --> UC3
+    A --> UC4
+    A --> UC1
+    
+    %% Include relationships
+    UC1 -.-> UC2
+```
+
+**Use Case Description:**
+
+| Use Case ID | Name | Actor | Description |
+|-------------|------|-------|-------------|
+| UC-001 | Core Feature 1 | User, Admin | [Description] |
+| UC-002 | Core Feature 2 | User | [Description] |
+| UC-003 | Core Feature 3 | User | [Description] |
+| UC-004 | Management Feature | Admin | [Description] |
+
+### 3.2 Business Process Flow
+
+```mermaid
+graph TB
+    %% Process stages
+    START([Start])
+    P1[Stage 1: Input/Preparation]
+    P2[Stage 2: Processing]
+    P3[Stage 3: Validation]
+    P4[Stage 4: Completion]
+    END([End])
+    
+    %% Decision points
+    D1{Valid?}
+    D2{Approved?}
+    
+    %% Flow
+    START --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> D1
+    D1 -->|Yes| D2
+    D1 -->|No| P1
+    D2 -->|Yes| P4
+    D2 -->|No| END
+    P4 --> END
+```
+
+**Process Description:**
+
+| Stage | Description | Input | Output | Responsible Role |
+|-------|-------------|-------|--------|------------------|
+| Stage 1 | [Description] | [Input data] | [Output data] | [Role] |
+| Stage 2 | [Description] | [Input data] | [Output data] | [Role] |
+| Stage 3 | [Description] | [Input data] | [Output data] | [Role] |
+| Stage 4 | [Description] | [Input data] | [Output data] | [Role] |
+
+### 3.3 Feature List
 
 | Feature | Priority | Description | Acceptance Criteria |
 |---------|----------|-------------|---------------------|
@@ -55,6 +126,41 @@
 **Exception Scenarios:**
 - [Exception 1]: [Handling method]
 - [Exception 2]: [Handling method]
+
+**Operation Flow Diagram:**
+
+```mermaid
+graph LR
+    %% Operation steps
+    S1[Step 1: Action]
+    S2[Step 2: Action]
+    S3[Step 3: Action]
+    S4[Step 4: Action]
+    
+    %% Alternative paths
+    ALT1[Alternative Path A]
+    ALT2[Alternative Path B]
+    
+    %% Flow
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    
+    %% Alternative flows
+    S2 -.-> ALT1
+    S3 -.-> ALT2
+    ALT1 --> S4
+    ALT2 --> S4
+```
+
+**Operation Steps Detail:**
+
+| Step | Action | System Response | User Feedback | Exception Handling |
+|------|--------|-----------------|---------------|-------------------|
+| 1 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
+| 2 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
+| 3 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
+| 4 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
 
 ## 4. Non-functional Requirements
 

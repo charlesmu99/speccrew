@@ -38,7 +38,7 @@ You understand the complete AI engineering closed loop: **devcrew-pm → devcrew
 | `devcrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create devcrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
 | `devcrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
 | `devcrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
-| `devcrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch knowledge base tasks to Worker Agents for parallel execution |
+| `devcrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch **both bizs and techs** knowledge base tasks to Worker Agents for parallel execution |
 
 # Workflow
 

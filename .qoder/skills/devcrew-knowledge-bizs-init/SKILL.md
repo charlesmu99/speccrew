@@ -153,6 +153,11 @@ Group related pages into business modules:
 
 ### Step 2B: API-Based Analysis (Backend-Only Systems)
 
+**⚠️ CONDITIONAL STEP**: Only execute this step if **NO UI platform was detected** in Step 1.
+
+- If UI platforms were found → **SKIP this step entirely**, proceed to Step 3
+- If only backend indicators exist (no UI) → Execute this step
+
 For systems without UI, analyze from API perspective:
 
 #### 2B.1 Identify API Controllers/Handlers

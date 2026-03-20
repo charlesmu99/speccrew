@@ -13,7 +13,7 @@ Agent knowledge sources are organized in three layers:
 
 | Layer | Directory | Content | Update Frequency |
 |-------|-----------|---------|------------------|
-| **L1 System Knowledge** | `devcrew-workspace/knowledge/` | Current system architecture, business functions, development conventions | Low frequency, evolves with system |
+| **L1 System Knowledge** | `devcrew-workspace/knowledge/` | Current system technology, business functions, development conventions | Low frequency, evolves with system |
 | **L2 Domain Knowledge** | `devcrew-workspace/knowledge/domain/` | Industry standards, business terminology, QA experience | Irregular supplementation |
 | **L3 Iteration Deliverables** | `devcrew-workspace/projects/pXXX/` | Current iteration PRD, Solution, design documents | Produced each iteration |
 
@@ -29,8 +29,8 @@ Agent knowledge sources are organized in three layers:
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
-| System Business Function Overview | `knowledge/bizs/modules/` | Required, load first | Understand existing functions, avoid duplication |
-| Core Business Processes | `knowledge/bizs/flows/` | On-demand | Connection points between new requirements and existing processes |
+| System Overview | `knowledge/bizs/system-overview.md` | Required, load first | Understand overall system structure, platforms, and modules |
+| Module Business Function | `knowledge/bizs/{platform}/{module}/{module}-overview.md` | On-demand | Understand specific module functions, entities, and business rules |
 | Industry Knowledge & Standards | `knowledge/domain/standards/` | On-demand | Requirement rationality judgment |
 | Business Glossary | `knowledge/domain/glossary/` | On-demand | Unified terminology, avoid ambiguity |
 | FAQ | `knowledge/domain/qa/` | On-demand | Identify known issues, avoid repetition |
@@ -39,8 +39,8 @@ Agent knowledge sources are organized in three layers:
 #### Loading Strategy
 
 ```
-1. Must load: knowledge/bizs/modules/ → Understand system existing functions
-2. On-demand load: Select corresponding flows/ files based on business domain
+1. Must load: knowledge/bizs/system-overview.md → Understand overall system structure and existing modules
+2. On-demand load: Load specific module overview files based on business domain
 3. On-demand load: Consult domain/standards/ when requirements involve industry standards
 4. Do not load: System architecture, technical details (PM doesn't need)
 ```
@@ -50,34 +50,28 @@ Agent knowledge sources are organized in three layers:
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
 | PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | Per template | Can only proceed after user confirmation |
+| Feature PRD Documents | `projects/pXXX/01.prds/[module-name]/[feature-name]-prd.md` | Per template | For complex requirements, organized by module |
 
 ---
 
 ### Solution Agent (Solution Planning)
 
-**Responsibility**: Output overall technical solution based on PRD, maintain full-chain perspective
+**Responsibility**: Output business process solution based on PRD, describing frontend, backend, and database operations to implement business requirements
 
 #### Input Knowledge
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
 | PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | Required, load first | Core input |
-| System Architecture Overview | `knowledge/architecture/system/` | Required | Understand overall technical boundaries |
-| Business Function Module List | `knowledge/bizs/modules/` | Required | Identify reusable functions |
-| Core Business Processes | `knowledge/bizs/flows/` | Required | Basis for designing sequence diagrams |
-| Data Architecture | `knowledge/architecture/data/` | On-demand | When involving database design |
-| Frontend Architecture Overview | `knowledge/architecture/frontend/` | On-demand | When involving frontend page design |
-| Backend Architecture Overview | `knowledge/architecture/backend/` | On-demand | When involving backend API design |
+| System Business Overview | `knowledge/bizs/system-overview.md` | Required | Understand system modules and their relationships |
+| Module Business Details | `knowledge/bizs/{platform}/{module}/{module}-overview.md` | On-demand | Understand specific module features, entities, and business rules |
 
 #### Loading Strategy
 
 ```
-1. Must load: PRD + System Architecture Overview + Business Function Modules
-2. On-demand load: Select based on requirement type:
-   - Database changes → Load architecture/data/
-   - Frontend pages → Load architecture/frontend/
-   - Backend APIs → Load architecture/backend/
-3. Do not load: Development conventions, testing conventions (Solution doesn't involve implementation details)
+1. Must load: PRD + System Business Overview
+2. On-demand load: Load specific module overview files when requirement involves existing modules
+3. Do not load: System architecture, technical details, development conventions (Solution focuses on business solution only)
 ```
 
 #### Deliverables
@@ -85,6 +79,7 @@ Agent knowledge sources are organized in three layers:
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
 | Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Per template (with Mermaid sequence/ER diagrams) | Can only proceed after user confirmation |
+| Feature Solution Documents | `projects/pXXX/02.solutions/[module-name]/[feature-name]-solution.md` | Per template | For complex requirements, organized by module |
 | API Contract Document | `projects/pXXX/02.solutions/[feature-name]-api-contract.md` | Structured table | Frontend-backend shared boundary, read-only during design/development |
 
 ---
@@ -98,11 +93,11 @@ Agent knowledge sources are organized in three layers:
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
 | Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Required, load first | Core input |
-| Frontend Architecture Details | `knowledge/architecture/frontend/` | Required for frontend design | Component conventions, state management agreements |
-| Backend Architecture Details | `knowledge/architecture/backend/` | Required for backend design | Service layering conventions, DI agreements |
-| Data Architecture Details | `knowledge/architecture/data/` | On-demand | When involving database operations |
-| Development Conventions | `knowledge/architecture/conventions/` | Required | Naming conventions, directory agreements, code style |
-| Similar Implemented Modules | `knowledge/bizs/modules/` | On-demand | Reference existing implementations for consistency |
+| Frontend Architecture Details | `knowledge/techs/frontend/` | Required for frontend design | Component conventions, state management agreements |
+| Backend Architecture Details | `knowledge/techs/backend/` | Required for backend design | Service layering conventions, DI agreements |
+| Data Architecture Details | `knowledge/techs/data/` | On-demand | When involving database operations |
+| Development Conventions | `knowledge/techs/conventions/` | Required | Naming conventions, directory agreements, code style |
+| Similar Implemented Modules | `knowledge/bizs/{platform}/{module}/{module}-overview.md` | On-demand | Reference existing implementations for consistency |
 
 #### Loading Strategy
 
@@ -136,9 +131,9 @@ Backend Designer Agent:
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
 | Frontend/Backend Detailed Design | `projects/pXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Core input |
-| Development Conventions | `knowledge/architecture/conventions/` | Required | Code conventions, commit conventions |
-| Frontend/Backend Architecture Details | `knowledge/architecture/[platform]/` | On-demand | Reference when design document is ambiguous |
-| Unit Testing Conventions | `knowledge/architecture/conventions/testing.md` | Required | Test writing conventions |
+| Development Conventions | `knowledge/techs/conventions/` | Required | Code conventions, commit conventions |
+| Frontend/Backend Architecture Details | `knowledge/techs/[platform]/` | On-demand | Reference when design document is ambiguous |
+| Unit Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test writing conventions |
 
 #### Loading Strategy
 
@@ -169,7 +164,7 @@ Backend Designer Agent:
 |----------------|------|----------------|---------|
 | Frontend/Backend Detailed Design | `projects/pXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Basis for generating test cases |
 | Solution Document | `projects/pXXX/02.solutions/[feature-name]-solution.md` | Required | Basis for acceptance test cases |
-| Testing Conventions | `knowledge/architecture/conventions/testing.md` | Required | Test case format, coverage requirements |
+| Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test case format, coverage requirements |
 | PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | On-demand | Trace back when acceptance criteria is disputed |
 
 #### Loading Strategy
@@ -193,24 +188,24 @@ Backend Designer Agent:
 
 ```
 knowledge/                          projects/pXXX/
-├── bizs/modules/     ───────→      ├── 01.prds/          ←── PM Agent output
-├── bizs/flows/       ───────→      │                         (user confirmed)
+├── bizs/system-overview.md ───→    ├── 01.prds/          ←── PM Agent output
+├── bizs/{platform}/{module}/ ──→   │                         (user confirmed)
 ├── domain/standards/ ───────→      │                             │
 ├── domain/glossary/  ───────→      ├── 02.solutions/     ←── Solution Agent output
 │                   PM Agent ───────┘  (user confirmed)
 │                                          │
-├── architecture/system/   ─────────── Solution Agent
-├── architecture/frontend/ ───→
-├── architecture/backend/  ───→      ├── 03.designs/
-├── architecture/data/     ───→      │  ├── frontend/   ←── Frontend Designer Agent output
-├── architecture/conventions/ →      │  └── backend/    ←── Backend Designer Agent output
+├── techs/system/   ─────────── Solution Agent
+├── techs/frontend/ ───→
+├── techs/backend/  ───→      ├── 03.designs/
+├── techs/data/     ───→      │  ├── frontend/   ←── Frontend Designer Agent output
+├── techs/conventions/ →      │  └── backend/    ←── Backend Designer Agent output
 │                 Designer Agent ─────┘          │
 │                                          ├── 04.tasks/
 │                                          │  ├── frontend/ ←── Frontend Dev Agent output
-├── architecture/conventions/ ─────────────┘  └── backend/  ←── Backend Dev Agent output
+├── techs/conventions/ ─────────────┘  └── backend/  ←── Backend Dev Agent output
 │                 Dev Agent                              │
 │                                          └── 05.tests/
-└── architecture/conventions/testing.md        ├── cases/    ←── Test Agent output
+└── techs/conventions/testing.md        ├── cases/    ←── Test Agent output
                    Test Agent ────────────────── └── reports/
 ```
 
