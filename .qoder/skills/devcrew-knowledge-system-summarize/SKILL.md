@@ -8,6 +8,16 @@ tools: Read, Write, Glob
 
 Read all {name}-overview.md files, aggregate information to generate complete system-overview.md with module index, topology, and business flows.
 
+## Language Adaptation
+
+**CRITICAL**: Generate all content in the language specified by the `language` parameter.
+
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
+
+**All output content (system description, module summaries, flow descriptions) must be in the target language only.**
+
 ## Trigger Scenarios
 
 - "Generate system overview from modules"
@@ -22,6 +32,7 @@ Worker Agent (devcrew-task-worker)
 
 - `modules_path`: Path to modules directory containing all {name}/{name}-overview.md files
 - `output_path`: Output path for system-overview.md
+- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 

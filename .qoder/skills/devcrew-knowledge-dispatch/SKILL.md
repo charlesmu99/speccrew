@@ -8,6 +8,16 @@ tools: Read, Write, Task
 
 Orchestrate bizs knowledge base generation with 4-stage parallel pipeline.
 
+## Language Adaptation
+
+**CRITICAL**: All generated documents must match the user's language. Detect the language from the user's input and pass it to all downstream Worker Agents.
+
+- User writes in 中文 → Generate Chinese documents, pass `language: "zh"` to workers
+- User writes in English → Generate English documents, pass `language: "en"` to workers
+- User writes in other languages → Use appropriate language code
+
+**All downstream skills must receive the `language` parameter and generate content in that language only.**
+
 ## Trigger Scenarios
 
 - "Initialize knowledge base"
@@ -44,6 +54,7 @@ Leader Agent (devcrew-team-leader)
 - Parameters to pass to skill:
   - `source_path`: Source code directory path (default: project root)
   - `output_path`: Output directory (default: `devcrew-workspace/docs/crew-init/knowledge-bizs/`)
+  - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
 - `devcrew-workspace/docs/crew-init/knowledge-bizs/modules.json`
@@ -90,6 +101,7 @@ Leader Agent (devcrew-team-leader)
   - `module_name`: Module code_name from modules.json
   - `source_path`: Source code root path (from input or project root)
   - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{module_name}/`)
+  - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Parallel Tasks**:
 ```
@@ -117,6 +129,7 @@ Worker 4: module="user",      output="knowledge/bizs/user/"
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
   - `module_path`: Path to module directory (e.g., `knowledge/bizs/{module_name}/`)
+  - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Parallel Tasks**:
 ```
@@ -143,6 +156,7 @@ Worker 4: module="user",      module_path="knowledge/bizs/user/"
 - Parameters to pass to skill:
   - `modules_path`: Path to modules directory (e.g., `knowledge/bizs/`)
   - `output_path`: Output path for system-overview.md (e.g., `knowledge/bizs/`)
+  - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
 - `knowledge/bizs/system-overview.md` (complete with module index)

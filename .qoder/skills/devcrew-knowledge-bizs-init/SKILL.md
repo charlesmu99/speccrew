@@ -8,6 +8,16 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 Analyze system from user/product manager perspective, identify business functional modules based on system type, and generate modules.json for downstream parallel processing.
 
+## Language Adaptation
+
+**CRITICAL**: Generate all content in the language specified by the `language` parameter.
+
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
+
+**All output content (module names, descriptions, user_value fields) must be in the target language only.**
+
 ## Core Principle
 
 **User-centric perspective**: Identify modules from how users interact with the system, not from code structure.
@@ -30,6 +40,7 @@ Worker Agent (devcrew-task-worker)
 
 - `source_path`: Source code directory path (default: project root)
 - `output_path`: Output directory for modules.json (default: `devcrew-workspace/docs/crew-init/knowledge-bizs/`)
+- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 

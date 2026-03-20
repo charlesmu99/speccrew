@@ -8,6 +8,16 @@ tools: Read, Write, Glob
 
 Read all {feature-name}.md files of a specific module, extract and summarize information to complete {name}-overview.md (full version with entities, dependencies, flows, and rules).
 
+## Language Adaptation
+
+**CRITICAL**: Generate all content in the language specified by the `language` parameter.
+
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
+
+**All output content (entity names, descriptions, business rules, flow descriptions) must be in the target language only.**
+
 ## Trigger Scenarios
 
 - "Summarize module {name} features"
@@ -24,6 +34,7 @@ Worker Agent (devcrew-task-worker)
 - `module_path`: Path to module directory containing:
   - {name}-overview.md (initial version)
   - features/{feature-name}.md files
+- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 

@@ -8,6 +8,16 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 Analyze one specific module from source code, extract all features, generate {name}-overview.md (initial version with feature list) and all {feature-name}.md files.
 
+## Language Adaptation
+
+**CRITICAL**: Generate all content in the language specified by the `language` parameter.
+
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
+
+**All output content (feature names, descriptions, business rules) must be in the target language only.**
+
 ## Trigger Scenarios
 
 - "Analyze module {name} from source code"
@@ -23,6 +33,7 @@ Worker Agent (devcrew-task-worker)
 - `module_name`: Module name to analyze
 - `source_path`: Source code root path
 - `output_path`: Output directory for generated documents
+- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 
