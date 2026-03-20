@@ -75,8 +75,13 @@ Analyze project to determine if it has a UI layer:
 | | Qt | `.pro`, `.qml`, `CMakeLists.txt` with Qt references |
 
 **Decision:**
-- If frontend indicators found → Follow "UI-Based Analysis"
-- If only backend indicators → Follow "API-Based Analysis"
+- If any UI platform detected → **ONLY** generate UI platform(s), skip backend API platform generation
+  - Analyze each UI platform (Web, Mobile, Desktop, Mini Program) separately
+  - All modules will have `system_type: "ui"`
+  - Backend API analysis will be done by downstream skills when tracing feature implementations
+- If only backend indicators (no UI) → Generate API platform(s)
+  - Create single platform with `platform_type: "api"`
+  - All modules will have `system_type: "api"`
 
 ### Step 2A: UI-Based Analysis (Systems with Frontend)
 
