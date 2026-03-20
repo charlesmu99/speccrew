@@ -1,8 +1,12 @@
 # DevCrew workspace generated files
-devcrew-workspace/docs/
+devcrew-workspace/docs/*.md
 devcrew-workspace/diagnosis-reports/
 devcrew-workspace/knowledge/
 devcrew-workspace/projects/
+
+# Keep rules directory (contains skill reference files)
+!devcrew-workspace/docs/rules/
+!devcrew-workspace/docs/rules/*.md
 
 # Personal reference files (not for open source)
 devcrew-workspace/docs/ref01.md

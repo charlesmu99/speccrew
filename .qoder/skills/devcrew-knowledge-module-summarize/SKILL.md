@@ -97,7 +97,7 @@ Use `templates/MODULE-OVERVIEW-TEMPLATE.md` (in this skill directory), fill all 
 **Mermaid Diagram Requirements**
 
 When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `devcrew-workspace/rules/mermaid-rule.md`
+- **Reference**: `devcrew-workspace/docs/rules/mermaid-rule.md`
 
 Key requirements:
 - Use only basic node definitions: `A[text content]`

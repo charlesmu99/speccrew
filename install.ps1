@@ -253,6 +253,23 @@ function Install-DevCrew($zipPath) {
                     Write-Info "Added new doc: $($_.Name)"
                 }
             }
+            
+            # Copy rules subdirectory (always overwrite)
+            $rulesSource = Join-Path $docsSource "rules"
+            if (Test-Path $rulesSource) {
+                $rulesTarget = Join-Path $docsTarget "rules"
+                New-Item -ItemType Directory -Path $rulesTarget -Force | Out-Null
+                Get-ChildItem -Path $rulesSource -Filter "*.md" | ForEach-Object {
+                    $ruleTarget = Join-Path $rulesTarget $_.Name
+                    $exists = Test-Path $ruleTarget
+                    Copy-Item -Path $_.FullName -Destination $ruleTarget -Force
+                    if ($exists) {
+                        Write-Info "Updated rule: $($_.Name)"
+                    } else {
+                        Write-Info "Added new rule: $($_.Name)"
+                    }
+                }
+            }
         }
         
         Write-Success "Updated devcrew-workspace/ directory from archive."

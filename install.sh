@@ -259,6 +259,22 @@ install_devcrew() {
                     cp "$doc" "$TARGET_DIR/devcrew-workspace/docs/"
                 fi
             done
+            
+            # Copy rules subdirectory (always overwrite)
+            if [ -d "$extracted_dir/devcrew-workspace/docs/rules" ]; then
+                mkdir -p "$TARGET_DIR/devcrew-workspace/docs/rules"
+                for rule in "$extracted_dir/devcrew-workspace/docs/rules"/*.md; do
+                    if [ -f "$rule" ]; then
+                        rule_name=$(basename "$rule")
+                        if [ -f "$TARGET_DIR/devcrew-workspace/docs/rules/$rule_name" ]; then
+                            print_info "Updated rule: $rule_name"
+                        else
+                            print_info "Added new rule: $rule_name"
+                        fi
+                        cp "$rule" "$TARGET_DIR/devcrew-workspace/docs/rules/"
+                    fi
+                done
+            fi
         fi
         
         print_success "Updated devcrew-workspace/ directory from archive."
