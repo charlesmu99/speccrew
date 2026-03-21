@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - التثبيت من GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - التثبيت من GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 **الطريقة 2: النسخ اليدوي**
@@ -188,18 +188,18 @@ cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ```bash
 # macOS / Linux / WSL - إلغاء التثبيت من GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - إلغاء التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - إلغاء التثبيت من GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - إلغاء التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 **الطريقة 2: إلغاء التثبيت اليدوي**

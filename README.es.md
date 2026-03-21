@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - Instalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Instalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - Instalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 **Método 2: Copia Manual**
@@ -188,18 +188,18 @@ cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ```bash
 # macOS / Linux / WSL - Desinstalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - Desinstalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Desinstalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - Desinstalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 **Método 2: Desinstalación Manual**
