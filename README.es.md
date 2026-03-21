@@ -1,4 +1,4 @@
-# DevCrew - Framework de Ingeniería de Software Impulsado por IA
+# SpecCrew - Framework de Ingeniería de Software Impulsado por IA
 
 <p align="center">
   <a href="./README.md">中文</a> |
@@ -9,9 +9,9 @@
 
 > Un equipo de desarrollo virtual de IA que permite la implementación de ingeniería rápida para cualquier proyecto de software
 
-## ¿Qué es DevCrew?
+## ¿Qué es SpecCrew?
 
-DevCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
+SpecCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD �?Solution �?Design �?Dev �?Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
 
 Al integrar Agentes y Skills en proyectos existentes mediante CLI o copia, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
@@ -45,8 +45,8 @@ El desarrollo solo necesita "llenar la carne" basándose en el stack técnico es
 
 **Solución**: Cubrir el ciclo de vida completo de ingeniería de software:
 ```
-PRD (Requisitos) → Solution (Planificación) → API Contract
-    → Design → Dev (Desarrollo) → Test (Pruebas)
+PRD (Requisitos) �?Solution (Planificación) �?API Contract
+    �?Design �?Dev (Desarrollo) �?Test (Pruebas)
 ```
 - La salida de cada fase es la entrada de la siguiente fase
 - Cada paso requiere confirmación humana antes de proceder
@@ -109,20 +109,20 @@ graph LR
 
 | Fase | Agente | Entrada | Salida | Confirmación Humana |
 |------|--------|---------|--------|---------------------|
-| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | ✅ Requerido |
-| Solution | Planner | PRD | Solución Técnica + Contrato API | ✅ Requerido |
-| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | ✅ Requerido |
-| Dev | Dev | Design | Código + Registros de Tareas | ✅ Requerido |
-| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | ✅ Requerido |
+| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | �?Requerido |
+| Solution | Planner | PRD | Solución Técnica + Contrato API | �?Requerido |
+| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | �?Requerido |
+| Dev | Dev | Design | Código + Registros de Tareas | �?Requerido |
+| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | �?Requerido |
 
 ---
 
 ## Comparación con Soluciones Existentes
 
-| Dimensión | Vibe Coding | Ralph Loop | **DevCrew** |
+| Dimensión | Vibe Coding | Ralph Loop | **SpecCrew** |
 |-----------|-------------|------------|-------------|
 | Dependencia de Documentos | Ignora documentos existentes | Depende de AGENTS.md | **Base de conocimiento estructurada** |
-| Transferencia de Requisitos | Codificación directa | PRD → Code | **PRD → Solution → Design → Code** |
+| Transferencia de Requisitos | Codificación directa | PRD �?Code | **PRD �?Solution �?Design �?Code** |
 | Participación Humana | Mínima | Al inicio | **En cada fase** |
 | Completitud del Proceso | Débil | Media | **Flujo de trabajo de ingeniería completo** |
 | Colaboración en Equipo | Difícil de compartir | Eficiencia personal | **Compartir conocimiento en equipo** |
@@ -134,41 +134,41 @@ graph LR
 
 ## Inicio Rápido
 
-### 1. Instalar DevCrew
+### 1. Instalar SpecCrew
 
 **Método 1: Script de Instalación con Un Clic (Recomendado)**
 
 ```bash
 # macOS / Linux / WSL - Instalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install.sh | bash
 
 # macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install.sh | bash
 ```
 
 ```powershell
 # Windows - Instalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install.ps1").Content
 
 # Windows - Instalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install.ps1").Content
 ```
 
 **Método 2: Copia Manual**
 
 ```bash
 # Clonar repositorio y copiar a proyecto existente
-git clone https://github.com/charlesmu99/devcrew.git
-# o: git clone https://gitee.com/amutek/devcrew.git
+git clone https://github.com/charlesmu99/SpecCrew.git
+# o: git clone https://gitee.com/amutek/SpecCrew.git
 
-cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
+cp -r SpecCrew/.qoder SpecCrew/SpecCrew-workspace /path/to/your-project/
 ```
 
 ### 2. Inicializar Proyecto
 
 ```bash
 # Ejecutar Skill de inicialización para generar automáticamente base de conocimiento y estructura del proyecto
-# Ejecutado automáticamente por el Skill devcrew-project-init
+# Ejecutado automáticamente por el Skill SpecCrew-project-init
 ```
 
 ### 3. Iniciar Flujo de Trabajo de Desarrollo
@@ -182,35 +182,35 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. Pruebas
 ```
 
-### 4. Desinstalar DevCrew
+### 4. Desinstalar SpecCrew
 
 **Método 1: Script de Desinstalación con Un Clic (Recomendado)**
 
 ```bash
 # macOS / Linux / WSL - Desinstalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall.sh | bash
 
 # macOS / Linux / WSL - Desinstalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall.sh | bash
 ```
 
 ```powershell
 # Windows - Desinstalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall.ps1").Content
 
 # Windows - Desinstalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall.ps1").Content
 ```
 
 **Método 2: Desinstalación Manual**
 
 ```bash
-# Eliminar directorio devcrew-workspace
-rm -rf devcrew-workspace/
+# Eliminar directorio SpecCrew-workspace
+rm -rf SpecCrew-workspace/
 
-# Eliminar Agent y Skill con prefijo devcrew- (preservar contenido personalizado)
-rm -rf .qoder/agents/devcrew-*.md
-rm -rf .qoder/skills/devcrew-*/
+# Eliminar Agent y Skill con prefijo SpecCrew- (preservar contenido personalizado)
+rm -rf .qoder/agents/SpecCrew-*.md
+rm -rf .qoder/skills/SpecCrew-*/
 ```
 
 > **Nota**: La desinstalación preservará tus Agents y Skills personalizados en el directorio `.qoder/`. Para eliminar completamente todas las configuraciones de Qoder, elimina manualmente el directorio `.qoder/`.
@@ -221,19 +221,19 @@ rm -rf .qoder/skills/devcrew-*/
 
 ```
 your-project/
-├── .qoder/                          # Configuración DevCrew (tiempo de ejecución)
-│   ├── agents/                      # 6 Agentes de rol
-│   └── skills/                      # 16 Skills
-│
-└── devcrew-workspace/              # Espacio de trabajo (generado durante inicialización)
+├── .qoder/                          # Configuración SpecCrew (tiempo de ejecución)
+�?  ├── agents/                      # 6 Agentes de rol
+�?  └── skills/                      # 16 Skills
+�?
+└── SpecCrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos
-    │   └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
+    �?  └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
     ├── knowledge/                   # Base de conocimiento del proyecto (generada dinámicamente)
-    │   ├── README.md
-    │   ├── constitution.md
-    │   ├── architecture/
-    │   ├── bizs/
-    │   └── domain/
+    �?  ├── README.md
+    �?  ├── constitution.md
+    �?  ├── architecture/
+    �?  ├── bizs/
+    �?  └── domain/
     └── projects/                    # Proyectos de iteración (generados dinámicamente)
         ├── p001-user-auth/          # Requisito como proyecto, iteración independiente
         └── archive/                 # Archivado de iteraciones completadas
@@ -255,13 +255,13 @@ your-project/
 
 ## Casos de Uso
 
-### ✅ Recomendado Para
+### �?Recomendado Para
 - Proyectos medianos a grandes que requieren flujos de trabajo estandarizados
 - Desarrollo de software colaborativo en equipo
 - Transformación de ingeniería de proyectos heredados
 - Productos que requieren mantenimiento a largo plazo
 
-### ❌ No Adecuado Para
+### �?No Adecuado Para
 - Validación rápida de prototipos personales
 - Proyectos exploratorios con requisitos altamente inciertos
 - Scripts o herramientas de una sola vez
@@ -270,14 +270,14 @@ your-project/
 
 ## Más Información
 
-- **Mapa de Conocimiento del Agente**: [devcrew-workspace/docs/agent-knowledge-map.md](./devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/charlesmu99/devcrew
-- **Gitee**: https://gitee.com/amutek/devcrew
+- **Mapa de Conocimiento del Agente**: [SpecCrew-workspace/docs/agent-knowledge-map.md](./SpecCrew-workspace/docs/agent-knowledge-map.md)
+- **GitHub**: https://github.com/charlesmu99/SpecCrew
+- **Gitee**: https://gitee.com/amutek/SpecCrew
 - **Qoder IDE**: https://qoder.com/
 
 ---
 
-> **DevCrew no se trata de reemplazar a los desarrolladores, sino de automatizar las partes tediosas para que los equipos puedan enfocarse en trabajo más valioso.**
+> **SpecCrew no se trata de reemplazar a los desarrolladores, sino de automatizar las partes tediosas para que los equipos puedan enfocarse en trabajo más valioso.**
 
 ---
 

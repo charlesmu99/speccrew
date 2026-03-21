@@ -1,12 +1,12 @@
 #!/bin/bash
-# DevCrew Uninstaller Script
+# SpecCrew Uninstaller Script
 # Supports macOS and Linux/WSL
 #
 # Uninstall from GitHub:
-#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall.sh | bash
 #
 # Uninstall from Gitee (China):
-#   curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+#   curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall.sh | bash
 
 set -e
 
@@ -38,42 +38,42 @@ print_error() {
 }
 
 # Main uninstall function
-uninstall_devcrew() {
+uninstall_SpecCrew() {
     echo "========================================"
-    echo -e "${YELLOW}  DevCrew Uninstaller${NC}"
+    echo -e "${YELLOW}  SpecCrew Uninstaller${NC}"
     echo "========================================"
     echo ""
     
-    # Check if DevCrew is installed
-    local devcrew_found=false
+    # Check if SpecCrew is installed
+    local SpecCrew_found=false
     
-    if [ -d "$TARGET_DIR/devcrew-workspace" ]; then
-        devcrew_found=true
+    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
+        SpecCrew_found=true
     fi
     
     if [ -d "$TARGET_DIR/.qoder/agents" ]; then
-        if ls "$TARGET_DIR/.qoder/agents"/devcrew-*.md 1> /dev/null 2>&1; then
-            devcrew_found=true
+        if ls "$TARGET_DIR/.qoder/agents"/SpecCrew-*.md 1> /dev/null 2>&1; then
+            SpecCrew_found=true
         fi
     fi
     
     if [ -d "$TARGET_DIR/.qoder/skills" ]; then
-        for skill_dir in "$TARGET_DIR/.qoder/skills"/devcrew-*; do
+        for skill_dir in "$TARGET_DIR/.qoder/skills"/SpecCrew-*; do
             if [ -d "$skill_dir" ]; then
-                devcrew_found=true
+                SpecCrew_found=true
                 break
             fi
         done
     fi
     
-    if [ "$devcrew_found" = false ]; then
-        print_warning "DevCrew does not appear to be installed in this directory."
+    if [ "$SpecCrew_found" = false ]; then
+        print_warning "SpecCrew does not appear to be installed in this directory."
         echo ""
         print_info "Nothing to uninstall."
         return
     fi
     
-    print_warning "This will remove all DevCrew-related files while preserving your custom agents and skills."
+    print_warning "This will remove all SpecCrew-related files while preserving your custom agents and skills."
     echo ""
     read -p "Do you want to proceed with uninstallation? (y/N): " -n 1 -r
     echo ""
@@ -82,11 +82,11 @@ uninstall_devcrew() {
         return
     fi
     
-    print_info "Uninstalling DevCrew..."
+    print_info "Uninstalling SpecCrew..."
     
-    # Remove devcrew-prefixed agents
+    # Remove SpecCrew-prefixed agents
     if [ -d "$TARGET_DIR/.qoder/agents" ]; then
-        for agent in "$TARGET_DIR/.qoder/agents"/devcrew-*.md; do
+        for agent in "$TARGET_DIR/.qoder/agents"/SpecCrew-*.md; do
             if [ -f "$agent" ]; then
                 agent_name=$(basename "$agent")
                 rm -f "$agent"
@@ -95,9 +95,9 @@ uninstall_devcrew() {
         done
     fi
     
-    # Remove devcrew-prefixed skills
+    # Remove SpecCrew-prefixed skills
     if [ -d "$TARGET_DIR/.qoder/skills" ]; then
-        for skill_dir in "$TARGET_DIR/.qoder/skills"/devcrew-*; do
+        for skill_dir in "$TARGET_DIR/.qoder/skills"/SpecCrew-*; do
             if [ -d "$skill_dir" ]; then
                 skill_name=$(basename "$skill_dir")
                 rm -rf "$skill_dir"
@@ -106,14 +106,14 @@ uninstall_devcrew() {
         done
     fi
     
-    # Remove devcrew-workspace directory
-    if [ -d "$TARGET_DIR/devcrew-workspace" ]; then
-        rm -rf "$TARGET_DIR/devcrew-workspace"
-        print_info "Removed directory: devcrew-workspace/"
+    # Remove SpecCrew-workspace directory
+    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
+        rm -rf "$TARGET_DIR/SpecCrew-workspace"
+        print_info "Removed directory: SpecCrew-workspace/"
     fi
     
     echo ""
-    print_success "DevCrew has been successfully uninstalled!"
+    print_success "SpecCrew has been successfully uninstalled!"
     echo ""
     echo -e "${BLUE}Note:${NC} Your custom agents and skills in .qoder/ have been preserved."
     echo -e "${BLUE}To completely remove all Qoder configurations, manually delete the .qoder/ directory.${NC}"
@@ -121,7 +121,7 @@ uninstall_devcrew() {
 
 # Main function
 main() {
-    uninstall_devcrew
+    uninstall_SpecCrew
     
     # Pause to keep terminal open
     echo ""

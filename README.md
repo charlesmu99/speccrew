@@ -1,4 +1,4 @@
-# DevCrew - AI 驱动的软件工程化框架
+# SpecCrew - AI 驱动的软件工程化框架
 
 <p align="center">
   <a href="./README.md">中文</a> |
@@ -9,9 +9,9 @@
 
 > 让任何软件项目快速实现工程化落地的虚拟 AI 开发团队
 
-## 什么是 DevCrew？
+## 什么是 SpecCrew？
 
-DevCrew 是一套嵌入式的虚拟 AI 开发团队框架，基于 [Qoder](https://qoder.com/) 构建。它将专业的软件工程流程（PRD → Solution → Design → Dev → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD）。
+SpecCrew 是一套嵌入式的虚拟 AI 开发团队框架，基于 [Qoder](https://qoder.com/) 构建。它将专业的软件工程流程（PRD → Solution → Design → Dev → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD）。
 
 通过 CLI 或复制方式将 Agent 和 Skill 集成到现有项目，即可快速初始化项目文档体系和虚拟软件团队，按照标准工程流程分步实现功能的新增和修改。
 
@@ -119,7 +119,7 @@ graph LR
 
 ## 与现有方案对比
 
-| 维度 | Vibe Coding | Ralph 循环 | **DevCrew** |
+| 维度 | Vibe Coding | Ralph 循环 | **SpecCrew** |
 |------|-------------|------------|-------------|
 | 文档依赖 | 忽略现有文档 | 依赖 AGENTS.md | **结构化知识库** |
 | 需求传递 | 直接编码 | PRD → 代码 | **PRD → Solution → Design → 代码** |
@@ -134,7 +134,7 @@ graph LR
 
 ## 快速开始
 
-### 1. 安装 DevCrew
+### 1. 安装 SpecCrew
 
 **方式一：一键安装脚本（推荐）**
 
@@ -161,14 +161,14 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/
 git clone https://github.com/charlesmu99/devcrew.git
 # 或：git clone https://gitee.com/amutek/devcrew.git
 
-cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
+cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
 ```
 
 ### 2. 初始化项目
 
 ```bash
 # 运行初始化 Skill，自动生成知识库和项目结构
-# 由 devcrew-project-init Skill 自动执行
+# 由 speccrew-project-init Skill 自动执行
 ```
 
 ### 3. 开始开发流程
@@ -182,7 +182,7 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. 测试验证
 ```
 
-### 4. 卸载 DevCrew
+### 4. 卸载 SpecCrew
 
 **方式一：一键卸载脚本（推荐）**
 
@@ -205,12 +205,12 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/
 **方式二：手动卸载**
 
 ```bash
-# 删除 devcrew-workspace 目录
-rm -rf devcrew-workspace/
+# 删除 speccrew-workspace 目录
+rm -rf speccrew-workspace/
 
-# 删除 devcrew- 前缀的 Agent 和 Skill（保留自定义内容）
-rm -rf .qoder/agents/devcrew-*.md
-rm -rf .qoder/skills/devcrew-*/
+# 删除 speccrew- 前缀的 Agent 和 Skill（保留自定义内容）
+rm -rf .qoder/agents/speccrew-*.md
+rm -rf .qoder/skills/speccrew-*/
 ```
 
 > **注意**：卸载会保留你在 `.qoder/` 目录中的自定义 Agent 和 Skill。如需完全删除所有 Qoder 配置，请手动删除 `.qoder/` 目录。
@@ -221,33 +221,33 @@ rm -rf .qoder/skills/devcrew-*/
 
 ```
 your-project/
-├── .qoder/                          # DevCrew 配置（运行时）
+├── .qoder/                          # SpecCrew 配置（运行时）
 │   ├── agents/                      # 6 个角色 Agent
-│   │   ├── devcrew-pm.md
-│   │   ├── devcrew-planner.md
-│   │   ├── devcrew-designer-frontend.md
-│   │   ├── devcrew-designer-backend.md
-│   │   ├── devcrew-dev-[framework].md
-│   │   └── devcrew-test-[framework].md
+│   │   ├── speccrew-pm.md
+│   │   ├── speccrew-planner.md
+│   │   ├── speccrew-designer-frontend.md
+│   │   ├── speccrew-designer-backend.md
+│   │   ├── speccrew-dev-[framework].md
+│   │   └── speccrew-test-[framework].md
 │   └── skills/                      # 16 个 Skill
-│       ├── devcrew-pm-prd/
-│       ├── devcrew-solution-plan/
-│       ├── devcrew-solution-api-contract/
-│       ├── devcrew-design-frontend/
-│       ├── devcrew-design-backend/
-│       ├── devcrew-dev-task/
-│       ├── devcrew-test-report/
-│       ├── devcrew-knowledge-dispatch/
-│       ├── devcrew-knowledge-bizs-init/
-│       ├── devcrew-knowledge-bizs-sync/
-│       ├── devcrew-knowledge-arch-init/
-│       ├── devcrew-knowledge-arch-sync/
-│       ├── devcrew-workflow-diagnose/
-│       ├── devcrew-create-se-infrastructure/
-│       ├── devcrew-skill-develop/
-│       └── devcrew-agent-optimize/
+│       ├── speccrew-pm-prd/
+│       ├── speccrew-solution-plan/
+│       ├── speccrew-solution-api-contract/
+│       ├── speccrew-design-frontend/
+│       ├── speccrew-design-backend/
+│       ├── speccrew-dev-task/
+│       ├── speccrew-test-report/
+│       ├── speccrew-knowledge-dispatch/
+│       ├── speccrew-knowledge-bizs-init/
+│       ├── speccrew-knowledge-bizs-sync/
+│       ├── speccrew-knowledge-arch-init/
+│       ├── speccrew-knowledge-arch-sync/
+│       ├── speccrew-workflow-diagnose/
+│       ├── speccrew-create-se-infrastructure/
+│       ├── speccrew-skill-develop/
+│       └── speccrew-agent-optimize/
 │
-└── devcrew-workspace/              # 工作区（初始化时生成）
+└── speccrew-workspace/              # 工作区（初始化时生成）
     ├── docs/                        # 管理性文档
     │   ├── README.md
     │   ├── agent-knowledge-map.md
@@ -306,11 +306,11 @@ your-project/
 
 ## 更多信息
 
-- **Agent 知识地图**: [devcrew-workspace/docs/agent-knowledge-map.md](./devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/charlesmu99/devcrew
-- **Gitee**: https://gitee.com/amutek/devcrew
+- **Agent 知识地图**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **GitHub**: https://github.com/charlesmu99/speccrew
+- **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/
 
 ---
 
-> **DevCrew 不是取代开发者，而是自动化那些枯燥的部分，让团队能专注于更有价值的工作。**
+> **SpecCrew 不是取代开发者，而是自动化那些枯燥的部分，让团队能专注于更有价值的工作。**

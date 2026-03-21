@@ -1,4 +1,4 @@
-# DevCrew - AI-Driven Software Engineering Framework
+# SpecCrew - AI-Driven Software Engineering Framework
 
 <p align="center">
   <a href="./README.md">中文</a> |
@@ -9,9 +9,9 @@
 
 > A virtual AI development team that enables rapid engineering implementation for any software project
 
-## What is DevCrew?
+## What is SpecCrew?
 
-DevCrew is an embedded virtual AI development team framework built on [Qoder](https://qoder.com/). It transforms professional software engineering workflows (PRD → Solution → Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD).
+SpecCrew is an embedded virtual AI development team framework built on [Qoder](https://qoder.com/). It transforms professional software engineering workflows (PRD → Solution → Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD).
 
 By integrating Agents and Skills into existing projects via CLI or copy, teams can quickly initialize project documentation systems and virtual software teams, implementing new features and modifications following standard engineering workflows.
 
@@ -119,7 +119,7 @@ graph LR
 
 ## Comparison with Existing Solutions
 
-| Dimension | Vibe Coding | Ralph Loop | **DevCrew** |
+| Dimension | Vibe Coding | Ralph Loop | **SpecCrew** |
 |-----------|-------------|------------|-------------|
 | Document Dependency | Ignores existing docs | Relies on AGENTS.md | **Structured Knowledge Base** |
 | Requirement Transfer | Direct coding | PRD → Code | **PRD → Solution → Design → Code** |
@@ -134,41 +134,41 @@ graph LR
 
 ## Quick Start
 
-### 1. Install DevCrew
+### 1. Install SpecCrew
 
 **Method 1: One-click Install Script (Recommended)**
 
 ```bash
 # macOS / Linux / WSL - Install from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/speccrew/main/install.sh | bash
 
 # macOS / Linux / WSL - Install from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/install.sh | bash
 ```
 
 ```powershell
 # Windows - Install from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/speccrew/main/install.ps1").Content
 
 # Windows - Install from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/install.ps1").Content
 ```
 
 **Method 2: Manual Copy**
 
 ```bash
 # Clone repository and copy to existing project
-git clone https://github.com/charlesmu99/devcrew.git
-# or: git clone https://gitee.com/amutek/devcrew.git
+git clone https://github.com/charlesmu99/speccrew.git
+# or: git clone https://gitee.com/amutek/speccrew.git
 
-cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
+cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
 ```
 
 ### 2. Initialize Project
 
 ```bash
 # Run initialization Skill to automatically generate knowledge base and project structure
-# Executed automatically by devcrew-project-init Skill
+# Executed automatically by speccrew-project-init Skill
 ```
 
 ### 3. Start Development Workflow
@@ -182,35 +182,35 @@ cp -r devcrew/.qoder devcrew/devcrew-workspace /path/to/your-project/
 # 6. Testing
 ```
 
-### 4. Uninstall DevCrew
+### 4. Uninstall SpecCrew
 
 **Method 1: One-click Uninstall Script (Recommended)**
 
 ```bash
 # macOS / Linux / WSL - Uninstall from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/speccrew/main/uninstall.sh | bash
 
 # macOS / Linux / WSL - Uninstall from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/uninstall.sh | bash
 ```
 
 ```powershell
 # Windows - Uninstall from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/speccrew/main/uninstall.ps1").Content
 
 # Windows - Uninstall from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/uninstall.ps1").Content
 ```
 
 **Method 2: Manual Uninstall**
 
 ```bash
-# Remove devcrew-workspace directory
-rm -rf devcrew-workspace/
+# Remove speccrew-workspace directory
+rm -rf speccrew-workspace/
 
-# Remove devcrew- prefixed Agent and Skill (preserve custom content)
-rm -rf .qoder/agents/devcrew-*.md
-rm -rf .qoder/skills/devcrew-*/
+# Remove speccrew- prefixed Agent and Skill (preserve custom content)
+rm -rf .qoder/agents/speccrew-*.md
+rm -rf .qoder/skills/speccrew-*/
 ```
 
 > **Note**: Uninstallation will preserve your custom Agents and Skills in the `.qoder/` directory. To completely remove all Qoder configurations, manually delete the `.qoder/` directory.
@@ -221,11 +221,11 @@ rm -rf .qoder/skills/devcrew-*/
 
 ```
 your-project/
-├── .qoder/                          # DevCrew configuration (runtime)
+├── .qoder/                          # SpecCrew configuration (runtime)
 │   ├── agents/                      # 6 role Agents
 │   └── skills/                      # 16 Skills
 │
-└── devcrew-workspace/              # Workspace (generated during initialization)
+└── speccrew-workspace/              # Workspace (generated during initialization)
     ├── docs/                        # Management documents
     │   └── agent-knowledge-map.md   # Agent knowledge map
     ├── knowledge/                   # Project knowledge base (dynamically generated)
@@ -270,14 +270,14 @@ your-project/
 
 ## More Information
 
-- **Agent Knowledge Map**: [devcrew-workspace/docs/agent-knowledge-map.md](./devcrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/charlesmu99/devcrew
-- **Gitee**: https://gitee.com/amutek/devcrew
+- **Agent Knowledge Map**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **GitHub**: https://github.com/charlesmu99/speccrew
+- **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/
 
 ---
 
-> **DevCrew is not about replacing developers, but automating the tedious parts so teams can focus on more valuable work.**
+> **SpecCrew is not about replacing developers, but automating the tedious parts so teams can focus on more valuable work.**
 
 ---
 
