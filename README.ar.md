@@ -136,7 +136,7 @@ graph LR
 
 ### 1. تثبيت SpecCrew
 
-**الطريقة 1: سكريبت التثبيت بنقرة واحدة (موصى به)**
+**الطريقة 1: سكريبت التثبيت بنقرة واحدة (موصى به، Qoder IDE فقط)**
 
 ```bash
 # macOS / Linux / WSL - التثبيت من GitHub
@@ -154,14 +154,22 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
-**الطريقة 2: النسخ اليدوي**
+> **ملاحظة**: سكريبت التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط. للـ IDEs الأخرى (VS Code, Cursor, إلخ)، يرجى استخدام طريقة النسخ اليدوي أدناه.
+
+**الطريقة 2: النسخ اليدوي (عالمي لجميع IDEs)**
 
 ```bash
 # استنساخ المستودع والنسخ إلى مشروع موجود
 git clone https://github.com/charlesmu99/SpecCrew.git
 # أو: git clone https://gitee.com/amutek/SpecCrew.git
 
-cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
+# نسخ إلى المشروع الهدف (تعديل حسب دليل تكوين IDE الخاص بك)
+cp -r SpecCrew/.speccrew /path/to/your-project/
+cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
+
+# لـ Qoder IDE، انسخ أيضًا إلى دليل .qoder/
+cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
+cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 ```
 
 ### 2. تهيئة المشروع
@@ -184,7 +192,7 @@ cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ### 4. إلغاء تثبيت SpecCrew
 
-**الطريقة 1: سكريبت إلغاء التثبيت بنقرة واحدة (موصى به)**
+**الطريقة 1: سكريبت إلغاء التثبيت بنقرة واحدة (موصى به، Qoder IDE فقط)**
 
 ```bash
 # macOS / Linux / WSL - إلغاء التثبيت من GitHub
@@ -202,18 +210,24 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
-**الطريقة 2: إلغاء التثبيت اليدوي**
+> **ملاحظة**: سكريبت إلغاء التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط.
+
+**الطريقة 2: إلغاء التثبيت اليدوي (عالمي لجميع IDEs)**
 
 ```bash
 # حذف دليل SpecCrew-workspace
 rm -rf SpecCrew-workspace/
 
-# حذف Agent و Skill ببادئة SpecCrew- (الحفاظ على المحتوى المخصص)
+# حذف الملفات ببادئة SpecCrew- في .speccrew/ (الحفاظ على المحتوى المخصص)
 rm -rf .speccrew/agents/SpecCrew-*.md
 rm -rf .speccrew/skills/SpecCrew-*/
+
+# لـ Qoder IDE، نظف أيضًا دليل .qoder/
+rm -rf .qoder/agents/SpecCrew-*.md
+rm -rf .qoder/skills/SpecCrew-*/
 ```
 
-> **ملاحظة**: سيؤدي إلغاء التثبيت إلى الحفاظ على ملفات المصدر والمحتوى المخصص في `.speccrew/`. لإزالة تكوينات Qoder IDE بالكامل، احذف دليل `.qoder/` يدوياً.
+> **ملاحظة**: سيؤدي إلغاء التثبيت إلى الحفاظ على ملفات المصدر والمحتوى المخصص في `.speccrew/`. لإزالة تكوينات IDE بالكامل، احذف دليل التكوين المقابل يدوياً (مثل `.qoder/`).
 
 ---
 

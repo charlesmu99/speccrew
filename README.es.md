@@ -136,7 +136,7 @@ graph LR
 
 ### 1. Instalar SpecCrew
 
-**Método 1: Script de Instalación con Un Clic (Recomendado)**
+**Método 1: Script de Instalación con Un Clic (Recomendado, solo Qoder IDE)**
 
 ```bash
 # macOS / Linux / WSL - Instalar desde GitHub
@@ -154,14 +154,22 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
-**Método 2: Copia Manual**
+> **Nota**: El script de instalación con un clic actualmente solo soporta Qoder IDE. Para otros IDEs (VS Code, Cursor, etc.), use el método de copia manual a continuación.
+
+**Método 2: Copia Manual (Universal para todos los IDEs)**
 
 ```bash
 # Clonar repositorio y copiar a proyecto existente
 git clone https://github.com/charlesmu99/SpecCrew.git
 # o: git clone https://gitee.com/amutek/SpecCrew.git
 
-cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
+# Copiar al proyecto destino (ajustar según el directorio de configuración de su IDE)
+cp -r SpecCrew/.speccrew /path/to/your-project/
+cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
+
+# Para Qoder IDE, también copiar al directorio .qoder/
+cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
+cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 ```
 
 ### 2. Inicializar Proyecto
@@ -184,7 +192,7 @@ cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ### 4. Desinstalar SpecCrew
 
-**Método 1: Script de Desinstalación con Un Clic (Recomendado)**
+**Método 1: Script de Desinstalación con Un Clic (Recomendado, solo Qoder IDE)**
 
 ```bash
 # macOS / Linux / WSL - Desinstalar desde GitHub
@@ -202,18 +210,24 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
-**Método 2: Desinstalación Manual**
+> **Nota**: El script de desinstalación con un clic actualmente solo soporta Qoder IDE.
+
+**Método 2: Desinstalación Manual (Universal para todos los IDEs)**
 
 ```bash
 # Eliminar directorio SpecCrew-workspace
 rm -rf SpecCrew-workspace/
 
-# Eliminar Agent y Skill con prefijo SpecCrew- (preservar contenido personalizado)
+# Eliminar archivos con prefijo SpecCrew- en .speccrew/ (preservar contenido personalizado)
 rm -rf .speccrew/agents/SpecCrew-*.md
 rm -rf .speccrew/skills/SpecCrew-*/
+
+# Para Qoder IDE, también limpiar el directorio .qoder/
+rm -rf .qoder/agents/SpecCrew-*.md
+rm -rf .qoder/skills/SpecCrew-*/
 ```
 
-> **Nota**: La desinstalación preservará los archivos fuente y contenido personalizado en `.speccrew/`. Para eliminar completamente las configuraciones de Qoder IDE, elimina manualmente el directorio `.qoder/`.
+> **Nota**: La desinstalación preservará los archivos fuente y contenido personalizado en `.speccrew/`. Para eliminar completamente las configuraciones del IDE, elimina manualmente el directorio de configuración correspondiente (ej., `.qoder/`).
 
 ---
 

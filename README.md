@@ -136,7 +136,7 @@ graph LR
 
 ### 1. 安装 SpecCrew
 
-**方式一：一键安装脚本（推荐）**
+**方式一：一键安装脚本（推荐，仅适用于 Qoder IDE）**
 
 ```bash
 # macOS / Linux / WSL - 从 GitHub 安装
@@ -154,14 +154,22 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
-**方式二：手动复制**
+> **注意**：一键安装脚本目前仅支持 Qoder IDE。对于其他 IDE（如 VS Code、Cursor 等），请使用下方手动复制方式。
+
+**方式二：手动复制（适用于所有 IDE）**
 
 ```bash
 # 克隆仓库后复制到现有项目
-git clone https://github.com/charlesmu99/devcrew.git
-# 或：git clone https://gitee.com/amutek/devcrew.git
+git clone https://github.com/charlesmu99/SpecCrew.git
+# 或：git clone https://gitee.com/amutek/SpecCrew.git
 
-cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
+# 复制到目标项目（根据你的 IDE 配置目录调整）
+cp -r SpecCrew/.speccrew /path/to/your-project/
+cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
+
+# 对于 Qoder IDE，还需复制到 .qoder/ 目录
+cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
+cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 ```
 
 ### 2. 初始化项目
@@ -184,7 +192,7 @@ cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ### 4. 卸载 SpecCrew
 
-**方式一：一键卸载脚本（推荐）**
+**方式一：一键卸载脚本（推荐，仅适用于 Qoder IDE）**
 
 ```bash
 # macOS / Linux / WSL - 从 GitHub 卸载
@@ -202,18 +210,24 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/cha
 Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
-**方式二：手动卸载**
+> **注意**：一键卸载脚本目前仅支持 Qoder IDE。
+
+**方式二：手动卸载（适用于所有 IDE）**
 
 ```bash
 # 删除 speccrew-workspace 目录
 rm -rf speccrew-workspace/
 
-# 删除 speccrew- 前缀的 Agent 和 Skill（保留自定义内容）
+# 删除 .speccrew/ 中的 SpecCrew 前缀文件（保留自定义内容）
 rm -rf .speccrew/agents/SpecCrew-*.md
 rm -rf .speccrew/skills/SpecCrew-*/
+
+# 对于 Qoder IDE，还需清理 .qoder/ 目录
+rm -rf .qoder/agents/SpecCrew-*.md
+rm -rf .qoder/skills/SpecCrew-*/
 ```
 
-> **注意**：卸载会保留你在 `.speccrew/` 目录中的源文件和自定义内容。如需完全删除 Qoder IDE 配置，请手动删除 `.qoder/` 目录。
+> **注意**：卸载会保留你在 `.speccrew/` 目录中的源文件和自定义内容。如需完全删除 IDE 配置，请手动删除对应的 IDE 配置目录（如 `.qoder/`）。
 
 ---
 
