@@ -11,9 +11,9 @@
 
 ## ¿Qué es SpecCrew?
 
-SpecCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
+SpecCrew es un framework de equipo de desarrollo virtual de IA integrado. Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD), especialmente adecuado para proyectos existentes.
 
-Al integrar Agentes y Skills en proyectos existentes mediante CLI o copia, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
+Al integrar Agentes y Skills en proyectos existentes, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
 ---
 
