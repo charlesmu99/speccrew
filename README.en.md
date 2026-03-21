@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - Install from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/speccrew/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
 
 # macOS / Linux / WSL - Install from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/install.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Install from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/speccrew/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.ps1").Content
 
 # Windows - Install from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.ps1").Content
 ```
 
 **Method 2: Manual Copy**
@@ -161,7 +161,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw
 git clone https://github.com/charlesmu99/speccrew.git
 # or: git clone https://gitee.com/amutek/speccrew.git
 
-cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
+cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 ```
 
 ### 2. Initialize Project
@@ -188,18 +188,18 @@ cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
 
 ```bash
 # macOS / Linux / WSL - Uninstall from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/speccrew/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - Uninstall from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/uninstall.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Uninstall from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/speccrew/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.ps1").Content
 
 # Windows - Uninstall from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.ps1").Content
 ```
 
 **Method 2: Manual Uninstall**
@@ -209,11 +209,11 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw
 rm -rf speccrew-workspace/
 
 # Remove speccrew- prefixed Agent and Skill (preserve custom content)
-rm -rf .qoder/agents/speccrew-*.md
-rm -rf .qoder/skills/speccrew-*/
+rm -rf .speccrew/agents/SpecCrew-*.md
+rm -rf .speccrew/skills/SpecCrew-*/
 ```
 
-> **Note**: Uninstallation will preserve your custom Agents and Skills in the `.qoder/` directory. To completely remove all Qoder configurations, manually delete the `.qoder/` directory.
+> **Note**: Uninstallation will preserve source files and custom content in `.speccrew/`. To completely remove Qoder IDE configurations, manually delete the `.qoder/` directory.
 
 ---
 
@@ -221,7 +221,8 @@ rm -rf .qoder/skills/speccrew-*/
 
 ```
 your-project/
-├── .qoder/                          # SpecCrew configuration (runtime)
+├── .speccrew/                       # SpecCrew source files (version controllable)
+├── .qoder/                          # Qoder IDE configuration (runtime)
 │   ├── agents/                      # 6 role Agents
 │   └── skills/                      # 16 Skills
 │

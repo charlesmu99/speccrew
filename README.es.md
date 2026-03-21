@@ -11,7 +11,7 @@
 
 ## ¿Qué es SpecCrew?
 
-SpecCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD �?Solution �?Design �?Dev �?Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
+SpecCrew es un framework de equipo de desarrollo virtual de IA integrado, construido sobre [Qoder](https://qoder.com/). Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD).
 
 Al integrar Agentes y Skills en proyectos existentes mediante CLI o copia, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
@@ -45,8 +45,8 @@ El desarrollo solo necesita "llenar la carne" basándose en el stack técnico es
 
 **Solución**: Cubrir el ciclo de vida completo de ingeniería de software:
 ```
-PRD (Requisitos) �?Solution (Planificación) �?API Contract
-    �?Design �?Dev (Desarrollo) �?Test (Pruebas)
+PRD (Requisitos) → Solution (Planificación) → API Contract
+    → Design → Dev (Desarrollo) → Test (Pruebas)
 ```
 - La salida de cada fase es la entrada de la siguiente fase
 - Cada paso requiere confirmación humana antes de proceder
@@ -109,11 +109,11 @@ graph LR
 
 | Fase | Agente | Entrada | Salida | Confirmación Humana |
 |------|--------|---------|--------|---------------------|
-| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | �?Requerido |
-| Solution | Planner | PRD | Solución Técnica + Contrato API | �?Requerido |
-| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | �?Requerido |
-| Dev | Dev | Design | Código + Registros de Tareas | �?Requerido |
-| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | �?Requerido |
+| PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | ✅ Requerido |
+| Solution | Planner | PRD | Solución Técnica + Contrato API | ✅ Requerido |
+| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | ✅ Requerido |
+| Dev | Dev | Design | Código + Registros de Tareas | ✅ Requerido |
+| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | ✅ Requerido |
 
 ---
 
@@ -122,7 +122,7 @@ graph LR
 | Dimensión | Vibe Coding | Ralph Loop | **SpecCrew** |
 |-----------|-------------|------------|-------------|
 | Dependencia de Documentos | Ignora documentos existentes | Depende de AGENTS.md | **Base de conocimiento estructurada** |
-| Transferencia de Requisitos | Codificación directa | PRD �?Code | **PRD �?Solution �?Design �?Code** |
+| Transferencia de Requisitos | Codificación directa | PRD → Code | **PRD → Solution → Design → Code** |
 | Participación Humana | Mínima | Al inicio | **En cada fase** |
 | Completitud del Proceso | Débil | Media | **Flujo de trabajo de ingeniería completo** |
 | Colaboración en Equipo | Difícil de compartir | Eficiencia personal | **Compartir conocimiento en equipo** |
@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - Instalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
 
 # macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Instalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.ps1").Content
 
 # Windows - Instalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.ps1").Content
 ```
 
 **Método 2: Copia Manual**
@@ -161,7 +161,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw
 git clone https://github.com/charlesmu99/SpecCrew.git
 # o: git clone https://gitee.com/amutek/SpecCrew.git
 
-cp -r SpecCrew/.qoder SpecCrew/SpecCrew-workspace /path/to/your-project/
+cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 ```
 
 ### 2. Inicializar Proyecto
@@ -188,18 +188,18 @@ cp -r SpecCrew/.qoder SpecCrew/SpecCrew-workspace /path/to/your-project/
 
 ```bash
 # macOS / Linux / WSL - Desinstalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - Desinstalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - Desinstalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.ps1").Content
 
 # Windows - Desinstalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.ps1").Content
 ```
 
 **Método 2: Desinstalación Manual**
@@ -209,11 +209,11 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw
 rm -rf SpecCrew-workspace/
 
 # Eliminar Agent y Skill con prefijo SpecCrew- (preservar contenido personalizado)
-rm -rf .qoder/agents/SpecCrew-*.md
-rm -rf .qoder/skills/SpecCrew-*/
+rm -rf .speccrew/agents/SpecCrew-*.md
+rm -rf .speccrew/skills/SpecCrew-*/
 ```
 
-> **Nota**: La desinstalación preservará tus Agents y Skills personalizados en el directorio `.qoder/`. Para eliminar completamente todas las configuraciones de Qoder, elimina manualmente el directorio `.qoder/`.
+> **Nota**: La desinstalación preservará los archivos fuente y contenido personalizado en `.speccrew/`. Para eliminar completamente las configuraciones de Qoder IDE, elimina manualmente el directorio `.qoder/`.
 
 ---
 
@@ -221,19 +221,20 @@ rm -rf .qoder/skills/SpecCrew-*/
 
 ```
 your-project/
-├── .qoder/                          # Configuración SpecCrew (tiempo de ejecución)
-�?  ├── agents/                      # 6 Agentes de rol
-�?  └── skills/                      # 16 Skills
-�?
+├── .speccrew/                       # Archivos fuente SpecCrew (controlables por versión)
+├── .qoder/                          # Configuración Qoder IDE (tiempo de ejecución)
+│   ├── agents/                      # 6 Agentes de rol
+│   └── skills/                      # 16 Skills
+│
 └── SpecCrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos
-    �?  └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
+    │   └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
     ├── knowledge/                   # Base de conocimiento del proyecto (generada dinámicamente)
-    �?  ├── README.md
-    �?  ├── constitution.md
-    �?  ├── architecture/
-    �?  ├── bizs/
-    �?  └── domain/
+    │   ├── README.md
+    │   ├── constitution.md
+    │   ├── architecture/
+    │   ├── bizs/
+    │   └── domain/
     └── projects/                    # Proyectos de iteración (generados dinámicamente)
         ├── p001-user-auth/          # Requisito como proyecto, iteración independiente
         └── archive/                 # Archivado de iteraciones completadas
@@ -255,13 +256,13 @@ your-project/
 
 ## Casos de Uso
 
-### �?Recomendado Para
+### ✅ Recomendado Para
 - Proyectos medianos a grandes que requieren flujos de trabajo estandarizados
 - Desarrollo de software colaborativo en equipo
 - Transformación de ingeniería de proyectos heredados
 - Productos que requieren mantenimiento a largo plazo
 
-### �?No Adecuado Para
+### ❌ No Adecuado Para
 - Validación rápida de prototipos personales
 - Proyectos exploratorios con requisitos altamente inciertos
 - Scripts o herramientas de una sola vez

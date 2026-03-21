@@ -219,7 +219,7 @@ The pipeline uses `SpecCrew-task-worker` Agent for task execution. Leader Agent 
 subagent_type: "SpecCrew-task-worker"
 description: "Brief task description"
 prompt: |
-  skill_path: .qoder/skills/{skill-name}/skill.md
+  skill_path: .speccrew/skills/{skill-name}/SKILL.md
   context:
     param1: value1
     param2: value2
@@ -233,7 +233,7 @@ prompt: |
 subagent_type: "SpecCrew-task-worker"
 description: "Analyze order module features"
 prompt: |
-  skill_path: .qoder/skills/SpecCrew-knowledge-module-analyze/skill.md
+  skill_path: .speccrew/skills/SpecCrew-knowledge-module-analyze/SKILL.md
   context:
     module_name: order
     source_path: src/modules/order
@@ -243,7 +243,7 @@ prompt: |
 subagent_type: "SpecCrew-task-worker"
 description: "Analyze payment module features"
 prompt: |
-  skill_path: .qoder/skills/SpecCrew-knowledge-module-analyze/skill.md
+  skill_path: .speccrew/skills/SpecCrew-knowledge-module-analyze/SKILL.md
   context:
     module_name: payment
     source_path: src/modules/payment
@@ -259,7 +259,7 @@ prompt: |
 subagent_type: "SpecCrew-task-worker"
 description: "Summarize order module overview"
 prompt: |
-  skill_path: .qoder/skills/SpecCrew-knowledge-module-summarize/skill.md
+  skill_path: .speccrew/skills/SpecCrew-knowledge-module-summarize/SKILL.md
   context:
     module_name: order
     module_path: knowledge/bizs/order/
@@ -447,10 +447,10 @@ This design keeps the heavy Git operations outside of Worker Agents, while reusi
 
 | Document | Location | Description |
 |----------|----------|-------------|
-| system-overview-template.md | `.qoder/skills/SpecCrew-knowledge-bizs-init/templates/` | System panorama template |
+| system-overview-template.md | `.speccrew/skills/SpecCrew-knowledge-bizs-init/templates/` | System panorama template |
 | {name}-overview-template.md | Same as above | Module overview template |
 | {feature-name}-template.md | Same as above | Feature detail template |
-| SpecCrew-pm-requirement-assess | `.qoder/skills/` | PM requirement assessment Skill |
+| SpecCrew-pm-requirement-assess | `.speccrew/skills/` | PM requirement assessment Skill |
 
 ---
 

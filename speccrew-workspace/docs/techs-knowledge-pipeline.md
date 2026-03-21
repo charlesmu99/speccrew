@@ -279,7 +279,7 @@ The pipeline uses `SpecCrew-task-worker` Agent for task execution. Leader Agent 
 subagent_type: "SpecCrew-task-worker"
 description: "Brief task description"
 prompt: |
-  skill_path: .qoder/skills/{skill-name}/skill.md
+  skill_path: .speccrew/skills/{skill-name}/SKILL.md
   context:
     param1: value1
     param2: value2
@@ -293,7 +293,7 @@ prompt: |
 subagent_type: "SpecCrew-task-worker"
 description: "Generate web-react technology documents"
 prompt: |
-  skill_path: .qoder/skills/SpecCrew-knowledge-techs-generate/skill.md
+  skill_path: .speccrew/skills/SpecCrew-knowledge-techs-generate/SKILL.md
   context:
     platform_id: web-react
     platform_type: web
@@ -306,7 +306,7 @@ prompt: |
 subagent_type: "SpecCrew-task-worker"
 description: "Generate backend-nestjs technology documents"
 prompt: |
-  skill_path: .qoder/skills/SpecCrew-knowledge-techs-generate/skill.md
+  skill_path: .speccrew/skills/SpecCrew-knowledge-techs-generate/SKILL.md
   context:
     platform_id: backend-nestjs
     platform_type: backend
@@ -412,7 +412,7 @@ When new platforms are added to source code:
 Templates are organized by platform type and framework:
 
 ```
-.qoder/skills/SpecCrew-knowledge-techs-generate/templates/
+.speccrew/skills/SpecCrew-knowledge-techs-generate/templates/
 ├── web-react/
 │  ├── INDEX-TEMPLATE.md
 │  ├── tech-stack-TEMPLATE.md

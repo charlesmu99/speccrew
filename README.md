@@ -140,18 +140,18 @@ graph LR
 
 ```bash
 # macOS / Linux / WSL - 从 GitHub 安装
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
 
 # macOS / Linux / WSL - 从 Gitee 安装（中国镜像）
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/install.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - 从 GitHub 安装
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.ps1").Content
 
 # Windows - 从 Gitee 安装（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/install.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.ps1").Content
 ```
 
 **方式二：手动复制**
@@ -161,7 +161,7 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/
 git clone https://github.com/charlesmu99/devcrew.git
 # 或：git clone https://gitee.com/amutek/devcrew.git
 
-cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
+cp -r SpecCrew/.speccrew SpecCrew/SpecCrew-workspace /path/to/your-project/
 ```
 
 ### 2. 初始化项目
@@ -188,18 +188,18 @@ cp -r speccrew/.qoder speccrew/speccrew-workspace /path/to/your-project/
 
 ```bash
 # macOS / Linux / WSL - 从 GitHub 卸载
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - 从 Gitee 卸载（中国镜像）
-curl -fsSL https://gitee.com/amutek/devcrew/raw/main/uninstall.sh | bash
+curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
 ```
 
 ```powershell
 # Windows - 从 GitHub 卸载
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/devcrew/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.ps1").Content
 
 # Windows - 从 Gitee 卸载（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/main/uninstall.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.ps1").Content
 ```
 
 **方式二：手动卸载**
@@ -209,11 +209,11 @@ Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/devcrew/raw/
 rm -rf speccrew-workspace/
 
 # 删除 speccrew- 前缀的 Agent 和 Skill（保留自定义内容）
-rm -rf .qoder/agents/speccrew-*.md
-rm -rf .qoder/skills/speccrew-*/
+rm -rf .speccrew/agents/SpecCrew-*.md
+rm -rf .speccrew/skills/SpecCrew-*/
 ```
 
-> **注意**：卸载会保留你在 `.qoder/` 目录中的自定义 Agent 和 Skill。如需完全删除所有 Qoder 配置，请手动删除 `.qoder/` 目录。
+> **注意**：卸载会保留你在 `.speccrew/` 目录中的源文件和自定义内容。如需完全删除 Qoder IDE 配置，请手动删除 `.qoder/` 目录。
 
 ---
 
@@ -221,7 +221,8 @@ rm -rf .qoder/skills/speccrew-*/
 
 ```
 your-project/
-├── .qoder/                          # SpecCrew 配置（运行时）
+├── .speccrew/                       # SpecCrew 源文件（可版本控制）
+├── .qoder/                          # Qoder IDE 配置（运行时）
 │   ├── agents/                      # 6 个角色 Agent
 │   │   ├── speccrew-pm.md
 │   │   ├── speccrew-planner.md
