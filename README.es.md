@@ -73,7 +73,7 @@ PRD (Requisitos) → Solution (Planificación) → API Contract
 **Problema**: Múltiples requisitos mezclados en la misma rama se afectan entre sí, haciendo difícil el seguimiento y la reversión.
 
 **Solución**: **Cada Requisito como Proyecto Independiente**:
-- Cada requisito crea un directorio de iteración independiente `projects/pXXX-[nombre-requisito]/`
+- Cada requisito crea un directorio de iteración independiente `iterations/iXXX-[nombre-requisito]/`
 - Aislamiento completo: documentos, diseño, código y pruebas gestionados independientemente
 - Iteración rápida: entrega de pequeña granularidad, verificación rápida, despliegue rápido
 - Archivado flexible: después de la finalización, archivado a `archive/` con trazabilidad histórica clara
@@ -249,8 +249,8 @@ your-project/
     │   ├── architecture/
     │   ├── bizs/
     │   └── domain/
-    └── projects/                    # Proyectos de iteración (generados dinámicamente)
-        ├── p001-user-auth/          # Requisito como proyecto, iteración independiente
+    └── iterations/                  # Proyectos de iteración (generados dinámicamente)
+        ├── i001-user-auth/          # Requisito como proyecto, iteración independiente
         └── archive/                 # Archivado de iteraciones completadas
 ```
 

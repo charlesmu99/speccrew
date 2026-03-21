@@ -73,7 +73,7 @@ PRD (Requirements) → Solution (Planning) → API Contract
 **Problem**: Multiple requirements mixed in the same branch affect each other, making tracking and rollback difficult.
 
 **Solution**: **Each Requirement as an Independent Project**:
-- Each requirement creates an independent iteration directory `projects/pXXX-[requirement-name]/`
+- Each requirement creates an independent iteration directory `iterations/iXXX-[requirement-name]/`
 - Complete isolation: documents, design, code, and tests managed independently
 - Rapid iteration: small granularity delivery, rapid verification, rapid deployment
 - Flexible archiving: after completion, archive to `archive/` with clear historical traceability
@@ -249,8 +249,8 @@ your-project/
     │   ├── architecture/
     │   ├── bizs/
     │   └── domain/
-    └── projects/                    # Iteration projects (dynamically generated)
-        ├── p001-user-auth/          # Requirement as project, independent iteration
+    └── iterations/                  # Iteration projects (dynamically generated)
+        ├── i001-user-auth/          # Requirement as project, independent iteration
         └── archive/                 # Completed iteration archiving
 ```
 

@@ -73,7 +73,7 @@ PRD（需求）→ Solution（方案）→ API Contract（契约）
 **问题**：多个需求混杂在同一分支，相互影响，难以追踪和回滚。
 
 **解决**：**每个需求作为独立项目**：
-- 每个需求创建独立迭代目录 `projects/pXXX-[需求名]/`
+- 每个需求创建独立迭代目录 `iterations/iXXX-[需求名]/`
 - 完整隔离：文档、设计、代码、测试独立管理
 - 快速迭代：小粒度交付，快速验证，快速上线
 - 灵活归档：完成后归档至 `archive/`，历史清晰可追溯
@@ -273,18 +273,18 @@ your-project/
     │   ├── architecture/
     │   ├── bizs/
     │   └── domain/
-    └── projects/                    # 迭代项目（动态生成）
-        ├── p001-user-auth/          # 需求即项目，独立迭代
+    └── iterations/                   # 迭代项目（动态生成）
+        ├── i001-user-auth/          # 需求即项目，独立迭代
         │   ├── 00.meta/
         │   ├── 01.prds/
         │   ├── 02.solutions/
         │   ├── 03.designs/
-        │   ├── 04.tasks/
+        │   ├── 04.dev/
         │   ├── 05.tests/
         │   └── tech-debt/
-        ├── p002-dashboard-v2/       # 另一个独立需求
+        ├── i002-dashboard-v2/       # 另一个独立需求
         └── archive/                 # 已完成迭代归档
-            ├── p000-onboarding-archived-2026-03-01/
+            ├── i000-onboarding-archived-2026-03-01/
             └── tech-debt/
 ```
 
