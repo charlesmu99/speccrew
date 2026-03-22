@@ -121,6 +121,19 @@ Extract conventions from configuration files:
 - File naming patterns
 - Module organization
 
+**Mermaid Diagram Requirements**
+
+When generating Mermaid diagrams in architecture.md, you **MUST** follow the compatibility guidelines defined in:
+- **Reference**: `SpecCrew-workspace/docs/rules/mermaid-rule.md`
+
+Key requirements:
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
 ### Step 4: Generate Documents
 
 Use templates to generate each document. Templates located at:
