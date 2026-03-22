@@ -174,6 +174,7 @@ knowledges/
 │       └── sync-history/          # 同步历史
 │
 ├── bizs/                          # 业务知识
+│   ├── system-overview.md         # 系统整体概览（聚合所有模块）
 │   └── {platform-type}/           # web, mobile-flutter, api
 │       └── {module-name}/         # 业务模块
 │           ├── {name}-overview.md # 模块概览
