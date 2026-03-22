@@ -16,8 +16,8 @@ tools: Read, Write, Glob, Grep
 Read in order:
 
 1. Current iteration PRD: `projects/pXXX/01.prds/[feature-name]-prd.md`
-2. System architecture status: `SpecCrew-workspace/knowledge/architecture/system/system-arch.md`
-3. Business module list: `SpecCrew-workspace/knowledge/bizs/modules/modules.md`
+2. System architecture status: `speccrew-workspace/knowledge/architecture/system/system-arch.md`
+3. Business module list: `speccrew-workspace/knowledge/bizs/modules/modules.md`
 4. Solution template: `SpecCrew-solution-plan/templates/SOLUTION-TEMPLATE.md`
 
 ## Step 2: Solution Analysis
@@ -55,7 +55,7 @@ Fill in according to template structure, requirements:
 **Mermaid Diagram Requirements**
 
 When generating Mermaid diagrams (sequence diagrams, architecture diagrams, etc.), you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `SpecCrew-workspace/docs/rules/mermaid-rule.md`
+- **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
 
 Key requirements:
 - Use only basic node definitions: `A[text content]`

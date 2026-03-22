@@ -27,12 +27,19 @@ Ask the user questions to confirm the following (ask for anything unclear):
 
 ## Step 2: Load Business Knowledge
 
-Read the following files to understand the current system status:
+Read the system overview file to understand the current system status:
 
 ```
-SpecCrew-workspace/knowledges/bizs/modules/modules.md
-SpecCrew-workspace/knowledges/bizs/flows/flows.md
+speccrew-workspace/knowledges/bizs/system-overview.md
 ```
+
+The system overview contains:
+- Module list and brief descriptions
+- Business flow summary
+- Key domain concepts
+- Links to detailed module documentation
+
+If more details are needed, follow the links in system-overview.md to navigate to specific module documentation.
 
 Confirmation items:
 - [ ] Does the requirement overlap with existing modules? If so, is it an extension or new build?
@@ -84,7 +91,7 @@ If stories need splitting, update the PRD before proceeding to the next step.
 
 Ask the user for the current iteration number and determine the file path:
 ```
-SpecCrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md
+speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md
 ```
 
 If the iteration directory does not exist, refer to the `000-sample` directory structure to create it.
@@ -94,7 +101,7 @@ If the iteration directory does not exist, refer to the `000-sample` directory s
 After writing the PRD to file, show the summary to the user and explicitly request confirmation:
 
 ```
-PRD generated: SpecCrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
+PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
 ```
 Please confirm the following key points:
 1. Is the feature boundary accurate?

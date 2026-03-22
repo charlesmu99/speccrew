@@ -15,7 +15,7 @@ tools: Read, Write, Glob, Grep
 
 1. Solution 文档：`projects/pXXX/02.solutions/[功能名]-solution.md`
 2. 接口契约：`projects/pXXX/02.solutions/[功能名]-api-contract.md`
-3. 后端架构规范：`SpecCrew-workspace/knowledge/architecture/backend/README.md`
+3. 后端架构规范：`speccrew-workspace/knowledge/architecture/backend/README.md`
 4. 后端设计模板：`SpecCrew-design-backend/templates/DESIGN-TEMPLATE.md`
 
 ## 步骤二：分析现有代码结构（按需）

@@ -39,7 +39,7 @@ Worker Agent (SpecCrew-task-worker)
 ## Input
 
 - `source_path`: Source code directory path (default: project root)
-- `output_path`: Output directory for modules.json (default: `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
+- `output_path`: Output directory for modules.json (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output

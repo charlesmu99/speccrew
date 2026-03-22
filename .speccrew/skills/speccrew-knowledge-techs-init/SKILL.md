@@ -32,7 +32,7 @@ Worker Agent (SpecCrew-task-worker)
 ## Input
 
 - `source_path`: Source code root directory (default: project root)
-- `output_path`: Output directory for techs-manifest.json (default: `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
+- `output_path`: Output directory for techs-manifest.json (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output

@@ -16,7 +16,7 @@ tools: Read, Write, Glob, Grep
 1. PRD Acceptance Criteria: `projects/pXXX/01.prds/[feature-name]-prd.md` (focus on "Acceptance Criteria" section)
 2. API Contract: `projects/pXXX/02.solutions/[feature-name]-api-contract.md`
 3. Development Task Records: `projects/pXXX/04.tasks/[frontend|backend]/[feature-name]-task.md` (understand deviations)
-4. Testing Conventions: `SpecCrew-workspace/knowledge/architecture/conventions/testing.md`
+4. Testing Conventions: `speccrew-workspace/knowledge/architecture/conventions/testing.md`
 
 ## Step 2: Prepare Test Cases
 

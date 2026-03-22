@@ -189,7 +189,7 @@ Use template `SpecCrew-knowledge-module-analyze/templates/module-overview-templa
 **Mermaid Diagram Requirements**
 
 When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `SpecCrew-workspace/docs/rules/mermaid-rule.md`
+- **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
 
 Key requirements:
 - Use only basic node definitions: `A[text content]`

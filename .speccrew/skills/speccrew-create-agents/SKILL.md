@@ -5,14 +5,14 @@ description: Creates or updates tech-stack-specific Agents and project-level Ski
 
 # Create Agents and Skills
 
-Based on the diagnosis report in `SpecCrew-workspace/diagnosis-reports/`, generate or update tech-stack-specific Agents and project-level Skills for the project.
+Based on the diagnosis report in `speccrew-workspace/diagnosis-reports/`, generate or update tech-stack-specific Agents and project-level Skills for the project.
 
 ## Prerequisites
 
-**Must complete project diagnosis first**, ensure `SpecCrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `SpecCrew-project-diagnosis` Skill first.
+**Must complete project diagnosis first**, ensure `speccrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `SpecCrew-project-diagnosis` Skill first.
 
 **Read the latest diagnosis report**:
-1. List all diagnosis report files in `SpecCrew-workspace/diagnosis-reports/` directory
+1. List all diagnosis report files in `speccrew-workspace/diagnosis-reports/` directory
 2. Sort by filename date, select the latest report
 3. Read report content as generation basis
 

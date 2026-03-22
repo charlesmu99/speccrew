@@ -26,7 +26,7 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 
 ---
 
-**Diagnosis Report Output**: `SpecCrew-workspace/docs/diagnosis-reports/diagnosis-report-{YYYY-MM-DD-HHmm}.md`
+**Diagnosis Report Output**: `speccrew-workspace/docs/diagnosis-reports/diagnosis-report-{YYYY-MM-DD-HHmm}.md`
 
 - **Template**: [templates/DIAGNOSIS-REPORT-TEMPLATE.md](templates/DIAGNOSIS-REPORT-TEMPLATE.md)
 - **Naming Convention**: Date-time suffix using 24-hour format `HHmm` (e.g., `diagnosis-report-2026-03-15-1326.md` for 13:26), supports multiple diagnoses on the same day
@@ -122,7 +122,7 @@ Collect business module names from the following locations (examples, no deep un
 
 ### 4.1 Create Diagnosis Report Directory
 
-Ensure `SpecCrew-workspace/docs/diagnosis-reports/` directory exists.
+Ensure `speccrew-workspace/docs/diagnosis-reports/` directory exists.
 
 ### 4.2 Generate Diagnosis Report Filename
 

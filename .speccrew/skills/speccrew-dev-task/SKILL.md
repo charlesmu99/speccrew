@@ -15,7 +15,7 @@ tools: Read, Write, Glob, Grep
 
 1. 详细设计文档：`projects/pXXX/03.designs/[frontend|backend]/[功能名]-design.md`
 2. 接口契约：`projects/pXXX/02.solutions/[功能名]-api-contract.md`
-3. 开发规范：`SpecCrew-workspace/knowledge/architecture/conventions/conventions.md`
+3. 开发规范：`speccrew-workspace/knowledge/architecture/conventions/conventions.md`
 4. 任务记录模板：`SpecCrew-dev-task/templates/TASK-[FRONTEND|BACKEND]-TEMPLATE.md`
 
 ## 步骤二：创建任务记录文件

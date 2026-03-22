@@ -49,7 +49,7 @@ Leader Agent (SpecCrew-team-leader)
 - `changed_files` (optional, incremental mode only): Pre-computed list of changed files between `base_commit` and `head_commit` (e.g., from `git diff --name-only`)
 ## Output
 
-- Task status records in `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/` and/or `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/`
+- Task status records in `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/` and/or `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`
 - Generated documentation in `knowledge/bizs/` and/or `knowledge/techs/`
 
 ## Workflow Overview
@@ -96,11 +96,11 @@ Leader Agent (SpecCrew-team-leader)
 - Task: Analyze project structure, detect modules
 - Parameters to pass to skill:
   - `source_path`: Source code directory path (default: project root)
-  - `output_path`: Output directory (default: `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
+  - `output_path`: Output directory (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
-- `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
+- `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
 ```json
 {
   "generated_at": "2024-01-15T10:30:00Z",
@@ -166,7 +166,7 @@ Leader Agent (SpecCrew-team-leader)
 **Goal**: Analyze each module in parallel to generate feature details.
 
 **Action (full mode)**:
-- Read `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
+- Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
 - For each module within the platform, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-module-analyze/SKILL.md`
 - Parameters to pass to skill:
@@ -210,7 +210,7 @@ Platform: Mobile App (mobile-flutter)
 - `features/{feature-name}.md` (one per feature)
 
 **Status Tracking**:
-- `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage2-status.json`
+- `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage2-status.json`
 
 ### Bizs Stage 3: Module Summarize (Parallel)
 
@@ -219,7 +219,7 @@ Platform: Mobile App (mobile-flutter)
 **Prerequisite**: Stage 2 completed for the module (in full or incremental mode).
 
 **Action (full mode)**:
-- Read `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
+- Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
 - For each module within the platform, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-module-summarize/SKILL.md`
 - Parameters to pass to skill:
@@ -247,7 +247,7 @@ Platform: Mobile App (mobile-flutter)
 - `{name}-overview.md` (complete version)
 
 **Status Tracking**:
-- `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage3-status.json`
+- `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage3-status.json`
 
 ### Bizs Stage 4: System Summarize (Single Task)
 
@@ -256,7 +256,7 @@ Platform: Mobile App (mobile-flutter)
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Action**:
-- Read `SpecCrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json` to get platform structure
+- Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json` to get platform structure
 - Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-system-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `modules_json_path`: Path to modules.json file
@@ -282,11 +282,11 @@ Platform: Mobile App (mobile-flutter)
 - Task: Analyze project structure, detect technology platforms
 - Parameters to pass to skill:
   - `source_path`: Source code directory path
-  - `output_path`: Output directory (default: `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
+  - `output_path`: Output directory (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
-- `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
+- `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
 
 ```json
 {
@@ -323,7 +323,7 @@ Platform: Mobile App (mobile-flutter)
 **Goal**: Generate technology documentation for each platform in parallel.
 
 **Action**:
-- Read `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
+- Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
 - For each platform in `platforms` array, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-techs-generate/SKILL.md`
 - Parameters to pass to skill:
   - `platform_id`: Platform identifier from manifest
@@ -381,7 +381,7 @@ knowledge/techs/{platform_id}/
 ```
 
 **Status Tracking**:
-- `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-status.json`
+- `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-status.json`
 
 ---
 
@@ -392,7 +392,7 @@ knowledge/techs/{platform_id}/
 **Prerequisite**: All Techs Stage 2 tasks completed.
 
 **Action**:
-- Read `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
+- Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
 - Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-techs-index/SKILL.md`
 - Parameters to pass to skill:
   - `manifest_path`: Path to techs-manifest.json

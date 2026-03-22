@@ -15,7 +15,7 @@ tools: Read, Write, Glob, Grep
 
 1. Solution document: `projects/pXXX/02.solutions/[feature-name]-solution.md`
 2. API Contract template: `SpecCrew-solution-api-contract/templates/API-CONTRACT-TEMPLATE.md`
-3. System architecture (API specification part): `SpecCrew-workspace/knowledge/architecture/backend/README.md` (refer to API naming conventions)
+3. System architecture (API specification part): `speccrew-workspace/knowledge/architecture/backend/README.md` (refer to API naming conventions)
 
 ## Step 2: Organize API List
 
@@ -27,7 +27,7 @@ Extract all APIs from Solution document and organize into a list:
 
 Naming conventions:
 - URL uses RESTful style, plural nouns
-- Follow API specifications in `SpecCrew-workspace/knowledge/architecture/backend/README.md`
+- Follow API specifications in `speccrew-workspace/knowledge/architecture/backend/README.md`
 
 ## Step 3: Define Contract for Each API
 
