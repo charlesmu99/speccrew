@@ -255,8 +255,6 @@ your-project/
 │       ├── speccrew-knowledge-dispatch/
 │       ├── speccrew-knowledge-bizs-init/
 │       ├── speccrew-knowledge-bizs-sync/
-│       ├── speccrew-knowledge-arch-init/
-│       ├── speccrew-knowledge-arch-sync/
 │       ├── speccrew-workflow-diagnose/
 │       ├── speccrew-create-se-infrastructure/
 │       ├── speccrew-skill-develop/
@@ -264,28 +262,35 @@ your-project/
 │
 └── speccrew-workspace/              # 工作区（初始化时生成）
     ├── docs/                        # 管理性文档
-    │   ├── README.md
-    │   ├── agent-knowledge-map.md
-    │   └── PROJECT-INTRODUCTION.md
-    ├── knowledge/                   # 项目知识库（动态生成）
-    │   ├── README.md
-    │   ├── constitution.md
-    │   ├── architecture/
-    │   ├── bizs/
-    │   └── domain/
-    └── iterations/                   # 迭代项目（动态生成）
-        ├── i001-user-auth/          # 需求即项目，独立迭代
-        │   ├── 00.meta/
-        │   ├── 01.prds/
-        │   ├── 02.solutions/
-        │   ├── 03.designs/
-        │   ├── 04.dev/
-        │   ├── 05.tests/
-        │   └── tech-debt/
-        ├── i002-dashboard-v2/       # 另一个独立需求
-        └── archive/                 # 已完成迭代归档
-            ├── i000-onboarding-archived-2026-03-01/
-            └── tech-debt/
+    │   ├── rules/                   # 规则配置
+    │   └── solutions/               # 解决方案文档
+    │       └── agent-knowledge-map.md
+    │
+    ├── iterations/                  # 迭代项目（动态生成）
+    │   └── {序号}-{类型}-{名称}/     # 如 001-feature-order
+    │       ├── 00.docs/             # 原始需求文档
+    │       ├── 01.prd/              # 产品需求文档
+    │       ├── 02.solution/         # 解决方案
+    │       ├── 03.design/           # 设计文档
+    │       ├── 04.dev/              # 开发阶段
+    │       ├── 05.test/             # 测试阶段
+    │       └── 06.delivery/         # 交付阶段
+    │
+    ├── iteration-archives/          # 迭代归档
+    │   └── {序号}-{类型}-{名称}-{日期}/
+    │
+    └── knowledges/                  # 知识库
+        ├── base/                    # 基础/元数据
+        │   ├── diagnosis-reports/   # 诊断报告
+        │   ├── sync-state/          # 同步状态
+        │   └── tech-debts/          # 技术债
+        │
+        ├── bizs/                    # 业务知识
+        │   └── {platform-type}/
+        │       └── {module-name}/
+        │
+        └── techs/                   # 技术知识
+            └── {platform-id}/
 ```
 
 ---

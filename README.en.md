@@ -242,16 +242,35 @@ your-project/
 │
 └── speccrew-workspace/              # Workspace (generated during initialization)
     ├── docs/                        # Management documents
-    │   └── agent-knowledge-map.md   # Agent knowledge map
-    ├── knowledge/                   # Project knowledge base (dynamically generated)
-    │   ├── README.md
-    │   ├── constitution.md
-    │   ├── architecture/
-    │   ├── bizs/
-    │   └── domain/
-    └── iterations/                  # Iteration projects (dynamically generated)
-        ├── i001-user-auth/          # Requirement as project, independent iteration
-        └── archive/                 # Completed iteration archiving
+    │   ├── rules/                   # Rule configurations
+    │   └── solutions/               # Solution documents
+    │       └── agent-knowledge-map.md
+    │
+    ├── iterations/                  # Iteration projects (dynamically generated)
+    │   └── {number}-{type}-{name}/  # e.g., 001-feature-order
+    │       ├── 00.docs/             # Original requirements
+    │       ├── 01.prd/              # Product requirements
+    │       ├── 02.solution/         # Solution design
+    │       ├── 03.design/           # Design documents
+    │       ├── 04.dev/              # Development phase
+    │       ├── 05.test/             # Testing phase
+    │       └── 06.delivery/         # Delivery phase
+    │
+    ├── iteration-archives/          # Iteration archives
+    │   └── {number}-{type}-{name}-{date}/
+    │
+    └── knowledges/                  # Knowledge base
+        ├── base/                    # Base metadata
+        │   ├── diagnosis-reports/   # Diagnosis reports
+        │   ├── sync-state/          # Sync state
+        │   └── tech-debts/          # Technical debts
+        │
+        ├── bizs/                    # Business knowledge
+        │   └── {platform-type}/
+        │       └── {module-name}/
+        │
+        └── techs/                   # Technical knowledge
+            └── {platform-id}/
 ```
 
 ---

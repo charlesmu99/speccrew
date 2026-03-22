@@ -12,9 +12,9 @@ Scan project source code to identify all technology platforms, extract configura
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 **All output content must be in the target language only.**
 
@@ -32,7 +32,7 @@ Worker Agent (SpecCrew-task-worker)
 ## Input
 
 - `source_path`: Source code root directory (default: project root)
-- `output_path`: Output directory for techs-manifest.json (default: `SpecCrew-workspace/docs/crew-init/knowledge-techs/`)
+- `output_path`: Output directory for techs-manifest.json (default: `SpecCrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
@@ -210,7 +210,7 @@ If a project contains multiple platforms (e.g., web + backend + mobile):
 For monorepos with multiple packages:
 - Detect platforms in each package directory
 - Use relative paths for source_path
-- Example: `packages/web-app` �?web-react platform
+- Example: `packages/web-app` → web-react platform
 
 ### Framework Version Detection
 

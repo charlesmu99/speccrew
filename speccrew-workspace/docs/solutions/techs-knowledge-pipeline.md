@@ -15,7 +15,7 @@ The technology knowledge generation adopts a **multi-stage pipeline** architectu
 │                    Techs Pipeline                              │
 ├─────────┬─────────┬─────────┬─────────│                       │
 │Stage 1 │Stage 2 │Stage 3 │Report │                       │
-│(Single)│Parallel)│Single) │Single)│                       │
+│(Single)│(Parallel)│(Single)│(Single)│                       │
 ├─────────┼─────────┼─────────┼─────────│                       │
 │Detect  │Generate│Generate│Generate│                       │
 │Platform│Techs   │Index   │Report  │                       │

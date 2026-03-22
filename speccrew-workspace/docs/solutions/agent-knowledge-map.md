@@ -39,7 +39,7 @@ Agent knowledge sources are organized in three layers:
 #### Loading Strategy
 
 ```
-1. Must load: knowledge/bizs/system-overview.md �?Understand overall system structure and existing modules
+1. Must load: knowledge/bizs/system-overview.md → Understand overall system structure and existing modules
 2. On-demand load: Load specific module overview files based on business domain
 3. On-demand load: Consult domain/standards/ when requirements involve industry standards
 4. Do not load: System architecture, technical details (PM doesn't need)
@@ -188,23 +188,23 @@ Backend Designer Agent:
 
 ```
 knowledge/                          iterations/iXXX/
-├── bizs/system-overview.md ───�?   ├── 01.prds/          ←── PM Agent output
-├── bizs/{platform}/{module}/ ──�?  �?                        (user confirmed)
-├── domain/standards/ ───────�?     �?                            �?
-├── domain/glossary/  ───────�?     ├── 02.solutions/     ←── Solution Agent output
-�?                  PM Agent ───────�? (user confirmed)
-�?                                         �?
+├── bizs/system-overview.md ───→   ├── 01.prds/          ←── PM Agent output
+├── bizs/{platform}/{module}/ ──→  │                        (user confirmed)
+├── domain/standards/ ───────→     │                            │
+├── domain/glossary/  ───────→     ├── 02.solutions/     ←── Solution Agent output
+│                  PM Agent ───────→ (user confirmed)
+│                                         │
 ├── techs/system/   ─────────── Solution Agent
-├── techs/frontend/ ───�?
-├── techs/backend/  ───�?     ├── 03.designs/
-├── techs/data/     ───�?     �? ├── frontend/   ←── Frontend Designer Agent output
-├── techs/conventions/ �?     �? └── backend/    ←── Backend Designer Agent output
-�?                Designer Agent ─────�?         �?
-�?                                         ├── 04.dev/
-�?                                         �? ├── frontend/ ←── Frontend Dev Agent output
-├── techs/conventions/ ─────────────�? └── backend/  ←── Backend Dev Agent output
-�?                Dev Agent                              �?
-�?                                         └── 05.tests/
+├── techs/frontend/ ───→
+├── techs/backend/  ───→     ├── 03.designs/
+├── techs/data/     ───→     │ ├── frontend/   ←── Frontend Designer Agent output
+├── techs/conventions/ →     │ └── backend/    ←── Backend Designer Agent output
+│                Designer Agent ─────→         │
+│                                         ├── 04.dev/
+│                                         │ ├── frontend/ ←── Frontend Dev Agent output
+├── techs/conventions/ ─────────────→ └── backend/  ←── Backend Dev Agent output
+│                Dev Agent                              │
+│                                         └── 05.tests/
 └── techs/conventions/testing.md        ├── cases/    ←── Test Agent output
                    Test Agent ────────────────── └── reports/
 ```
@@ -218,9 +218,9 @@ When downstream discovers issues, escalate and correct along the following path:
 ```
 Test Failure
   └→ Dev Agent fixes code
-       └→ If design issue �?Designer Agent corrects detailed design
-            └→ If solution issue �?Solution Agent corrects Solution
-                 └→ If requirement issue �?PM Agent + user confirmation
+       └→ If design issue → Designer Agent corrects detailed design
+            └→ If solution issue → Solution Agent corrects Solution
+                 └→ If requirement issue → PM Agent + user confirmation
 ```
 
 **Principle**: Do not assume, do not skip levels, must trace back to the root cause.

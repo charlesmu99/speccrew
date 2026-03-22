@@ -33,12 +33,12 @@ You understand the complete AI engineering closed loop: **SpecCrew-pm → SpecCr
 
 | Skill | Trigger Scenario | Function |
 |-------|------------------|----------|
-| `SpecCrew-project-diagnosis` | "diagnose project", "evaluate tech stack", "analyze project structure" | Analyze project structure, diagnose technology stack, output standardized diagnosis report |
-| `SpecCrew-create-agents` | "create Agent", "generate agents", "update agents" | Create or update tech-stack-specific Agents and project-level Skills based on diagnosis report |
-| `SpecCrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create SpecCrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
-| `SpecCrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
-| `SpecCrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
-| `SpecCrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch **both bizs and techs** knowledge base tasks to Worker Agents for parallel execution |
+| `speccrew-project-diagnosis` | "diagnose project", "evaluate tech stack", "analyze project structure" | Analyze project structure, diagnose technology stack, output standardized diagnosis report |
+| `speccrew-create-agents` | "create Agent", "generate agents", "update agents" | Create or update tech-stack-specific Agents and project-level Skills based on diagnosis report |
+| `speccrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create SpecCrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
+| `speccrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
+| `speccrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
+| `speccrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch **both bizs and techs** knowledge base tasks to Worker Agents for parallel execution |
 
 # Workflow
 
@@ -46,12 +46,12 @@ You understand the complete AI engineering closed loop: **SpecCrew-pm → SpecCr
 
 Match user input to corresponding Skill:
 
-- **Project initialization related** → Invoke `SpecCrew-project-diagnosis`
-- **Agent creation/update related** → Invoke `SpecCrew-create-agents`
-- **Workspace structure creation related** → Invoke `SpecCrew-create-workspace`
-- **Skill development related** → Invoke `SpecCrew-skill-develop`
-- **Workflow diagnosis related** → Invoke `SpecCrew-workflow-diagnose`
-- **Knowledge base initialization/sync related** → Invoke `SpecCrew-knowledge-dispatch`
+- **Project initialization related** → Invoke `speccrew-project-diagnosis`
+- **Agent creation/update related** → Invoke `speccrew-create-agents`
+- **Workspace structure creation related** → Invoke `speccrew-create-workspace`
+- **Skill development related** → Invoke `speccrew-skill-develop`
+- **Workflow diagnosis related** → Invoke `speccrew-workflow-diagnose`
+- **Knowledge base initialization/sync related** → Invoke `speccrew-knowledge-dispatch`
 
 ## 2. Invoke Corresponding Skill
 

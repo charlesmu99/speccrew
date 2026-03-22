@@ -12,9 +12,9 @@ Read all {name}-overview.md files, aggregate information to generate complete sy
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 **All output content (system description, module summaries, flow descriptions) must be in the target language only.**
 
@@ -114,20 +114,20 @@ Analyze cross-module dependencies to identify business flows:
 
 **Order-to-Payment Flow:**
 ```
-USER �?ORDER �?INVENTORY �?PAYMENT �?NOTIFICATION
+USER → ORDER → INVENTORY → PAYMENT → NOTIFICATION
 ```
 
 **Refund Flow:**
 ```
-ORDER �?PAYMENT �?INVENTORY �?NOTIFICATION
+ORDER → PAYMENT → INVENTORY → NOTIFICATION
 ```
 
 Create flow-module mapping matrix:
 
 | Flow / Module | ORDER | INVENTORY | PAYMENT | NOTIFICATION |
 |---------------|-------|-----------|---------|--------------|
-| Order-Payment | �?| �?| �?| �?|
-| Refund | �?| �?| �?| �?|
+| Order-Payment | ✓ | ✓ | ✓ | ✓ |
+| Refund | ✓ | ✓ | ✓ | ✓ |
 
 ### Step 7: Generate system-overview.md
 

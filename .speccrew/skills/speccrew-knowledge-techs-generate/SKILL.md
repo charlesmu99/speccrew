@@ -12,9 +12,9 @@ Generate comprehensive technology documentation for a specific platform by analy
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 ## Trigger Scenarios
 
@@ -234,13 +234,13 @@ Create output directory if not exists, then write all generated documents.
 
 ```
 Platform Technology Documents Generated: {platform_id}
-- INDEX.md: �?
-- tech-stack.md: �?
-- architecture.md: �?
-- conventions-design.md: �?
-- conventions-dev.md: �?
-- conventions-test.md: �?
-- conventions-data.md: �?(or skipped if not applicable)
+- INDEX.md: ✓
+- tech-stack.md: ✓
+- architecture.md: ✓
+- conventions-design.md: ✓
+- conventions-dev.md: ✓
+- conventions-test.md: ✓
+- conventions-data.md: ✓ (or skipped if not applicable)
 - Output Directory: {output_path}
 ```
 
@@ -255,24 +255,24 @@ Platform Technology Documents Generated: {platform_id}
 ### Be Specific
 
 Extract actual values from config files:
-- �?"React 18.2.0" (from package.json)
-- �?"React (version varies)"
+- ✓ "React 18.2.0" (from package.json)
+- ✗ "React (version varies)"
 
 ### Be Concise
 
 Focus on actionable conventions:
-- �?"Use PascalCase for component files: UserProfile.tsx"
-- �?"There are many naming conventions to consider..."
+- ✓ "Use PascalCase for component files: UserProfile.tsx"
+- ✗ "There are many naming conventions to consider..."
 
 ### Include Examples
 
 Wherever possible, include concrete examples:
 ```markdown
 ### Component Naming
-- �?UserProfile.tsx
-- �?OrderList.tsx
-- �?userProfile.tsx
-- �?order-list.tsx
+- ✓ UserProfile.tsx
+- ✓ OrderList.tsx
+- ✗ userProfile.tsx
+- ✗ order-list.tsx
 ```
 
 ## Checklist

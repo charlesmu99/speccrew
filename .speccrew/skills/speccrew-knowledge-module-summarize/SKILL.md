@@ -12,9 +12,9 @@ Read all {feature-name}.md files of a specific module, extract and summarize inf
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 **All output content (entity names, descriptions, business rules, flow descriptions) must be in the target language only.**
 

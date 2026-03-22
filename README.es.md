@@ -242,16 +242,35 @@ your-project/
 │
 └── SpecCrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos
-    │   └── agent-knowledge-map.md   # Mapa de conocimiento del Agente
-    ├── knowledge/                   # Base de conocimiento del proyecto (generada dinámicamente)
-    │   ├── README.md
-    │   ├── constitution.md
-    │   ├── architecture/
-    │   ├── bizs/
-    │   └── domain/
-    └── iterations/                  # Proyectos de iteración (generados dinámicamente)
-        ├── i001-user-auth/          # Requisito como proyecto, iteración independiente
-        └── archive/                 # Archivado de iteraciones completadas
+    │   ├── rules/                   # Configuraciones de reglas
+    │   └── solutions/               # Documentos de soluciones
+    │       └── agent-knowledge-map.md
+    │
+    ├── iterations/                  # Proyectos de iteración (generados dinámicamente)
+    │   └── {número}-{tipo}-{nombre}/ # ej., 001-feature-order
+    │       ├── 00.docs/             # Requisitos originales
+    │       ├── 01.prd/              # Requisitos del producto
+    │       ├── 02.solution/         # Diseño de solución
+    │       ├── 03.design/           # Documentos de diseño
+    │       ├── 04.dev/              # Fase de desarrollo
+    │       ├── 05.test/             # Fase de pruebas
+    │       └── 06.delivery/         # Fase de entrega
+    │
+    ├── iteration-archives/          # Archivos de iteración
+    │   └── {número}-{tipo}-{nombre}-{fecha}/
+    │
+    └── knowledges/                  # Base de conocimiento
+        ├── base/                    # Metadatos base
+        │   ├── diagnosis-reports/   # Informes de diagnóstico
+        │   ├── sync-state/          # Estado de sincronización
+        │   └── tech-debts/          # Deudas técnicas
+        │
+        ├── bizs/                    # Conocimiento de negocio
+        │   └── {tipo-de-plataforma}/
+        │       └── {nombre-del-módulo}/
+        │
+        └── techs/                   # Conocimiento técnico
+            └── {id-de-plataforma}/
 ```
 
 ---
