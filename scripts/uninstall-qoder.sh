@@ -19,7 +19,6 @@ NC='\033[0m'
 # IDE-specific configuration
 IDEName="Qoder"
 IDEConfigDir=".qoder"
-SourceDir=".speccrew"
 
 # Default target directory
 TARGET_DIR="${1:-.}"
@@ -120,7 +119,6 @@ uninstall_SpecCrew() {
     print_success "SpecCrew has been successfully uninstalled from $IDEName!"
     echo ""
     echo -e "${BLUE}Note:${NC} Your custom agents and skills in $IDEConfigDir/ have been preserved."
-    echo -e "${BLUE}Note:${NC} Source files in $SourceDir/ have been preserved (may be under version control)."
     echo ""
     echo -e "${BLUE}To completely remove $IDEName configurations, manually delete the $IDEConfigDir/ directory.${NC}"
 }

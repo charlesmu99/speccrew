@@ -15,7 +15,6 @@ $ErrorActionPreference = "Stop"
 # IDE-specific configuration
 $IDEName = "Qoder"
 $IDEConfigDir = ".qoder"
-$SourceDir = ".speccrew"
 
 # Colors for output
 function Write-Info($message) {
@@ -109,7 +108,6 @@ function Uninstall-SpecCrew {
     Write-Success "SpecCrew has been successfully uninstalled from $IDEName!"
     Write-Host ""
     Write-Host "Note: Your custom agents and skills in $IDEConfigDir/ have been preserved." -ForegroundColor Cyan
-    Write-Host "Note: Source files in $SourceDir/ have been preserved (may be under version control)." -ForegroundColor Cyan
     Write-Host ""
     Write-Host "To completely remove $IDEName configurations, manually delete the $IDEConfigDir/ directory." -ForegroundColor Cyan
 }
