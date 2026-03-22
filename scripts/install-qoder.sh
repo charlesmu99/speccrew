@@ -105,10 +105,10 @@ uninstall_SpecCrew() {
         done
     fi
     
-    # Remove SpecCrew-workspace directory
-    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
-        rm -rf "$TARGET_DIR/SpecCrew-workspace"
-        print_info "Removed directory: SpecCrew-workspace/"
+    # Remove speccrew-workspace directory
+    if [ -d "$TARGET_DIR/speccrew-workspace" ]; then
+        rm -rf "$TARGET_DIR/speccrew-workspace"
+        print_info "Removed directory: speccrew-workspace/"
     fi
     
     echo ""
@@ -140,8 +140,8 @@ function check_existing_installation() {
         done
     fi
     
-    # Check for SpecCrew-workspace
-    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
+    # Check for speccrew-workspace
+    if [ -d "$TARGET_DIR/speccrew-workspace" ]; then
         SpecCrew_installed=true
     fi
     
@@ -245,72 +245,72 @@ install_SpecCrew() {
     
     print_success "Updated $IDEConfigDir/ directory for $IDEName."
     
-    # Copy SpecCrew-workspace directory
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace"
+    # Copy speccrew-workspace directory
+    mkdir -p "$TARGET_DIR/speccrew-workspace"
     
-    if [ -d "$extracted_dir/SpecCrew-workspace" ]; then
+    if [ -d "$extracted_dir/speccrew-workspace" ]; then
         # Copy docs from archive
-        if [ -d "$extracted_dir/SpecCrew-workspace/docs" ]; then
-            mkdir -p "$TARGET_DIR/SpecCrew-workspace/docs"
-            for doc in "$extracted_dir/SpecCrew-workspace/docs"/*.md; do
+        if [ -d "$extracted_dir/speccrew-workspace/docs" ]; then
+            mkdir -p "$TARGET_DIR/speccrew-workspace/docs"
+            for doc in "$extracted_dir/speccrew-workspace/docs"/*.md; do
                 if [ -f "$doc" ]; then
                     doc_name=$(basename "$doc")
-                    if [ -f "$TARGET_DIR/SpecCrew-workspace/docs/$doc_name" ]; then
+                    if [ -f "$TARGET_DIR/speccrew-workspace/docs/$doc_name" ]; then
                         print_info "Updated doc: $doc_name"
                     else
                         print_info "Added new doc: $doc_name"
                     fi
-                    cp "$doc" "$TARGET_DIR/SpecCrew-workspace/docs/"
+                    cp "$doc" "$TARGET_DIR/speccrew-workspace/docs/"
                 fi
             done
             
             # Copy rules subdirectory
-            if [ -d "$extracted_dir/SpecCrew-workspace/docs/rules" ]; then
-                mkdir -p "$TARGET_DIR/SpecCrew-workspace/docs/rules"
-                for rule in "$extracted_dir/SpecCrew-workspace/docs/rules"/*.md; do
+            if [ -d "$extracted_dir/speccrew-workspace/docs/rules" ]; then
+                mkdir -p "$TARGET_DIR/speccrew-workspace/docs/rules"
+                for rule in "$extracted_dir/speccrew-workspace/docs/rules"/*.md; do
                     if [ -f "$rule" ]; then
                         rule_name=$(basename "$rule")
-                        if [ -f "$TARGET_DIR/SpecCrew-workspace/docs/rules/$rule_name" ]; then
+                        if [ -f "$TARGET_DIR/speccrew-workspace/docs/rules/$rule_name" ]; then
                             print_info "Updated rule: $rule_name"
                         else
                             print_info "Added new rule: $rule_name"
                         fi
-                        cp "$rule" "$TARGET_DIR/SpecCrew-workspace/docs/rules/"
+                        cp "$rule" "$TARGET_DIR/speccrew-workspace/docs/rules/"
                     fi
                 done
             fi
             
             # Copy solutions subdirectory
-            if [ -d "$extracted_dir/SpecCrew-workspace/docs/solutions" ]; then
-                mkdir -p "$TARGET_DIR/SpecCrew-workspace/docs/solutions"
-                for solution in "$extracted_dir/SpecCrew-workspace/docs/solutions"/*.md; do
+            if [ -d "$extracted_dir/speccrew-workspace/docs/solutions" ]; then
+                mkdir -p "$TARGET_DIR/speccrew-workspace/docs/solutions"
+                for solution in "$extracted_dir/speccrew-workspace/docs/solutions"/*.md; do
                     if [ -f "$solution" ]; then
                         solution_name=$(basename "$solution")
-                        if [ -f "$TARGET_DIR/SpecCrew-workspace/docs/solutions/$solution_name" ]; then
+                        if [ -f "$TARGET_DIR/speccrew-workspace/docs/solutions/$solution_name" ]; then
                             print_info "Updated solution: $solution_name"
                         else
                             print_info "Added new solution: $solution_name"
                         fi
-                        cp "$solution" "$TARGET_DIR/SpecCrew-workspace/docs/solutions/"
+                        cp "$solution" "$TARGET_DIR/speccrew-workspace/docs/solutions/"
                     fi
                 done
             fi
         fi
         
-        print_success "Updated SpecCrew-workspace/ directory."
+        print_success "Updated speccrew-workspace/ directory."
     fi
     
     # Create workspace directories if not exist
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/iterations"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/iteration-archives"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/diagnosis-reports"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/sync-state"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/tech-debts"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/bizs"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/techs"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/iterations"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/iteration-archives"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/knowledges/base/diagnosis-reports"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/knowledges/base/sync-state"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/knowledges/base/tech-debts"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/knowledges/bizs"
+    mkdir -p "$TARGET_DIR/speccrew-workspace/knowledges/techs"
     
-    # Copy README and LICENSE files to SpecCrew-workspace/docs
-    local docs_target="$TARGET_DIR/SpecCrew-workspace/docs"
+    # Copy README and LICENSE files to speccrew-workspace/docs
+    local docs_target="$TARGET_DIR/speccrew-workspace/docs"
     for readme in "$extracted_dir"/README*.md; do
         if [ -f "$readme" ]; then
             readme_name=$(basename "$readme")
@@ -345,8 +345,8 @@ verify_installation() {
         errors=$((errors + 1))
     fi
     
-    if [ ! -d "$TARGET_DIR/SpecCrew-workspace" ]; then
-        print_error "SpecCrew-workspace/ directory not found after installation."
+    if [ ! -d "$TARGET_DIR/speccrew-workspace" ]; then
+        print_error "speccrew-workspace/ directory not found after installation."
         errors=$((errors + 1))
     fi
     
@@ -367,7 +367,7 @@ print_next_steps() {
     echo ""
     echo "Directory structure:"
     echo "  - $IDEConfigDir/       : $IDEName IDE configuration"
-    echo "  - SpecCrew-workspace/  : Working directory"
+    echo "  - speccrew-workspace/  : Working directory"
     echo ""
     echo "Next steps:"
     echo ""
@@ -383,7 +383,7 @@ print_next_steps() {
     echo "     - Knowledge base initialization"
     echo ""
     echo "Documentation:"
-    echo "  - Agent Knowledge Map: SpecCrew-workspace/docs/solutions/agent-knowledge-map.md"
+    echo "  - Agent Knowledge Map: speccrew-workspace/docs/solutions/agent-knowledge-map.md"
     echo ""
     echo "To uninstall:"
     echo "  Run: ./install-qoder.sh --uninstall (or -u)"

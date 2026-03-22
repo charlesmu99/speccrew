@@ -91,11 +91,11 @@ function Uninstall-SpecCrew {
         }
     }
     
-    # Remove SpecCrew-workspace directory
-    $workspacePath = Join-Path $TargetDir "SpecCrew-workspace"
+    # Remove speccrew-workspace directory
+    $workspacePath = Join-Path $TargetDir "speccrew-workspace"
     if (Test-Path $workspacePath) {
         Remove-Item -Recurse -Force $workspacePath
-        Write-Info "Removed directory: SpecCrew-workspace/"
+        Write-Info "Removed directory: speccrew-workspace/"
     }
     
     Write-Host ""
@@ -111,7 +111,7 @@ function Check-ExistingInstallation {
     $SpecCrewInstalled = $false
     $agentsPath = Join-Path $TargetDir "$IDEConfigDir\agents"
     $skillsPath = Join-Path $TargetDir "$IDEConfigDir\skills"
-    $workspacePath = Join-Path $TargetDir "SpecCrew-workspace"
+    $workspacePath = Join-Path $TargetDir "speccrew-workspace"
     
     # Check for SpecCrew-prefixed agents in IDE config
     if (Test-Path $agentsPath) {
@@ -129,7 +129,7 @@ function Check-ExistingInstallation {
         }
     }
     
-    # Check for SpecCrew-workspace
+    # Check for speccrew-workspace
     if (Test-Path $workspacePath) {
         $SpecCrewInstalled = $true
     }
@@ -236,9 +236,9 @@ function Install-SpecCrew($zipPath) {
     
     Write-Success "Updated $IDEConfigDir/ directory for $IDEName."
     
-    # Copy SpecCrew-workspace directory
-    $workspaceSource = Join-Path $extractedDir.FullName "SpecCrew-workspace"
-    $workspaceTarget = Join-Path $TargetDir "SpecCrew-workspace"
+    # Copy speccrew-workspace directory
+    $workspaceSource = Join-Path $extractedDir.FullName "speccrew-workspace"
+    $workspaceTarget = Join-Path $TargetDir "speccrew-workspace"
     New-Item -ItemType Directory -Path $workspaceTarget -Force | Out-Null
     
     if (Test-Path $workspaceSource) {
@@ -293,7 +293,7 @@ function Install-SpecCrew($zipPath) {
             }
         }
         
-        Write-Success "Updated SpecCrew-workspace/ directory."
+        Write-Success "Updated speccrew-workspace/ directory."
     }
     
     # Create workspace directories if not exist
@@ -320,7 +320,7 @@ function Install-SpecCrew($zipPath) {
     New-Item -ItemType Directory -Path $syncStatePath -Force | Out-Null
     New-Item -ItemType Directory -Path $techDebtsPath -Force | Out-Null
     
-    # Copy README and LICENSE files to SpecCrew-workspace/docs
+    # Copy README and LICENSE files to speccrew-workspace/docs
     $docsTarget = Join-Path $workspaceTarget "docs"
     Get-ChildItem -Path $extractedDir.FullName -Filter "README*.md" | ForEach-Object {
         $docTargetPath = Join-Path $docsTarget $_.Name
@@ -353,7 +353,7 @@ function Verify-Installation {
     $errors = 0
     
     $idePath = Join-Path $TargetDir $IDEConfigDir
-    $workspacePath = Join-Path $TargetDir "SpecCrew-workspace"
+    $workspacePath = Join-Path $TargetDir "speccrew-workspace"
     
     if (-not (Test-Path $idePath)) {
         Write-Error "$IDEConfigDir/ directory not found after installation."
@@ -361,7 +361,7 @@ function Verify-Installation {
     }
     
     if (-not (Test-Path $workspacePath)) {
-        Write-Error "SpecCrew-workspace/ directory not found after installation."
+        Write-Error "speccrew-workspace/ directory not found after installation."
         $errors++
     }
     
@@ -383,7 +383,7 @@ function Print-NextSteps {
     Write-Host ""
     Write-Host "Directory structure:"
     Write-Host "  - $IDEConfigDir/       : $IDEName IDE configuration"
-    Write-Host "  - SpecCrew-workspace/  : Working directory"
+    Write-Host "  - speccrew-workspace/  : Working directory"
     Write-Host ""
     Write-Host "Next steps:"
     Write-Host ""
@@ -399,7 +399,7 @@ function Print-NextSteps {
     Write-Host "     - Knowledge base initialization"
     Write-Host ""
     Write-Host "Documentation:"
-    Write-Host "  - Agent Knowledge Map: SpecCrew-workspace/docs/solutions/agent-knowledge-map.md"
+    Write-Host "  - Agent Knowledge Map: speccrew-workspace/docs/solutions/agent-knowledge-map.md"
     Write-Host ""
     Write-Host "To uninstall:"
     Write-Host "  Run: .\install-qoder.ps1 -Uninstall"

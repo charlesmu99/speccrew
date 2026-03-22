@@ -50,7 +50,7 @@ uninstall_SpecCrew() {
     # Check if SpecCrew is installed
     local SpecCrew_found=false
     
-    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
+    if [ -d "$TARGET_DIR/speccrew-workspace" ]; then
         SpecCrew_found=true
     fi
     
@@ -109,10 +109,10 @@ uninstall_SpecCrew() {
         done
     fi
     
-    # Remove SpecCrew-workspace directory
-    if [ -d "$TARGET_DIR/SpecCrew-workspace" ]; then
-        rm -rf "$TARGET_DIR/SpecCrew-workspace"
-        print_info "Removed directory: SpecCrew-workspace/"
+    # Remove speccrew-workspace directory
+    if [ -d "$TARGET_DIR/speccrew-workspace" ]; then
+        rm -rf "$TARGET_DIR/speccrew-workspace"
+        print_info "Removed directory: speccrew-workspace/"
     fi
     
     echo ""

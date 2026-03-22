@@ -44,7 +44,7 @@ function Uninstall-SpecCrew {
     $SpecCrewFound = $false
     $agentsPath = Join-Path $TargetDir "$IDEConfigDir\agents"
     $skillsPath = Join-Path $TargetDir "$IDEConfigDir\skills"
-    $workspacePath = Join-Path $TargetDir "SpecCrew-workspace"
+    $workspacePath = Join-Path $TargetDir "speccrew-workspace"
     
     if (Test-Path $workspacePath) {
         $SpecCrewFound = $true
@@ -98,10 +98,10 @@ function Uninstall-SpecCrew {
         }
     }
     
-    # Remove SpecCrew-workspace directory
+    # Remove speccrew-workspace directory
     if (Test-Path $workspacePath) {
         Remove-Item -Recurse -Force $workspacePath
-        Write-Info "Removed directory: SpecCrew-workspace/"
+        Write-Info "Removed directory: speccrew-workspace/"
     }
     
     Write-Host ""
