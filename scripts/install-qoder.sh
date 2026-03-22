@@ -2,10 +2,10 @@
 # SpecCrew Installer for Qoder (macOS/Linux)
 #
 # Install from GitHub:
-#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/install-qoder.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 #
 # Install from Gitee (China):
-#   curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/install-qoder.sh | bash
+#   curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
 #
 # Install to specific directory:
 #   curl -fsSL <url> | bash -s /path/to/project

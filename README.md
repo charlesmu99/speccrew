@@ -143,7 +143,7 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - 从 Gitee 安装（中国镜像）
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
@@ -151,7 +151,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh |
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - 从 Gitee 安装（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 > **注意**：一键安装脚本目前仅支持 Qoder IDE。对于其他 IDE（如 VS Code、Cursor 等），请使用下方手动复制方式。
@@ -199,7 +199,7 @@ cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - 从 Gitee 卸载（中国镜像）
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
@@ -207,7 +207,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - 从 Gitee 卸载（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 > **注意**：一键卸载脚本目前仅支持 Qoder IDE。

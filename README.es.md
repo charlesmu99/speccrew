@@ -143,7 +143,7 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
@@ -151,7 +151,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh |
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - Instalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 > **Nota**: El script de instalación con un clic actualmente solo soporta Qoder IDE. Para otros IDEs (VS Code, Cursor, etc.), use el método de copia manual a continuación.
@@ -199,7 +199,7 @@ cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - Desinstalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
@@ -207,7 +207,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - Desinstalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 > **Nota**: El script de desinstalación con un clic actualmente solo soporta Qoder IDE.

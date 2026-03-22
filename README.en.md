@@ -143,7 +143,7 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - Install from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
@@ -151,7 +151,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh |
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - Install from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 > **Note**: One-click installation script currently only supports Qoder IDE. For other IDEs (VS Code, Cursor, etc.), please use manual copy method below.
@@ -199,7 +199,7 @@ cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - Uninstall from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
@@ -207,7 +207,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - Uninstall from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 > **Note**: One-click uninstall script currently only supports Qoder IDE.

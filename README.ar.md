@@ -143,7 +143,7 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
 
 # macOS / Linux / WSL - التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
 ```
 
 ```powershell
@@ -151,7 +151,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.sh |
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
 
 # Windows - التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/install-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
 ```
 
 > **ملاحظة**: سكريبت التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط. للـ IDEs الأخرى (VS Code, Cursor, إلخ)، يرجى استخدام طريقة النسخ اليدوي أدناه.
@@ -199,7 +199,7 @@ cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
 curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 
 # macOS / Linux / WSL - إلغاء التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh | bash
+curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
 ```
 
 ```powershell
@@ -207,7 +207,7 @@ curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.sh
 Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
 
 # Windows - إلغاء التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/SpecCrew/raw/main/scripts/uninstall-qoder.ps1").Content
+Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
 ```
 
 > **ملاحظة**: سكريبت إلغاء التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط.

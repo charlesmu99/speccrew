@@ -2,10 +2,10 @@
 # SpecCrew Uninstaller for Qoder (macOS/Linux)
 #
 # Uninstall from GitHub:
-#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/uninstall-qoder.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
 #
 # Uninstall from Gitee (China):
-#   curl -fsSL https://gitee.com/amutek/SpecCrew/raw/main/uninstall-qoder.sh | bash
+#   curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
 
 set -e
 
