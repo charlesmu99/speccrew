@@ -30,8 +30,8 @@ Ask the user questions to confirm the following (ask for anything unclear):
 Read the following files to understand the current system status:
 
 ```
-SpecCrew-workspace/knowledge/bizs/modules/modules.md
-SpecCrew-workspace/knowledge/bizs/flows/flows.md
+SpecCrew-workspace/knowledges/bizs/modules/modules.md
+SpecCrew-workspace/knowledges/bizs/flows/flows.md
 ```
 
 Confirmation items:
@@ -84,18 +84,18 @@ If stories need splitting, update the PRD before proceeding to the next step.
 
 Ask the user for the current iteration number and determine the file path:
 ```
-SpecCrew-workspace/projects/p[number]-[iteration-name]/01.prds/[feature-name]-prd.md
+SpecCrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md
 ```
 
-If the iteration directory does not exist, refer to the `p000-sample` directory structure to create it.
+If the iteration directory does not exist, refer to the `000-sample` directory structure to create it.
 
 ## Step 7: Write File and Request Confirmation
 
 After writing the PRD to file, show the summary to the user and explicitly request confirmation:
 
 ```
-PRD generated: SpecCrew-workspace/projects/pXXX/01.prds/[feature-name]-prd.md
-
+PRD generated: SpecCrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
+```
 Please confirm the following key points:
 1. Is the feature boundary accurate?
 2. Are the acceptance criteria quantifiable?
