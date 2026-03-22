@@ -25,30 +25,15 @@ Ask the user questions to confirm the following (ask for anything unclear):
 
 **Principle**: Better to ask more questions than to make assumptions.
 
-## Step 2: Load Business Knowledge
+## Step 2: Confirm Business Boundaries
 
-### 2.1 Read System Overview
+After loading knowledge (per Agent's Knowledge Loading Strategy), confirm:
 
-Read the system overview file to understand the current system status:
-
-```
-speccrew-workspace/knowledges/bizs/system-overview.md
-```
-
-The system overview contains:
-- Module list and brief descriptions
-- Business flow summary
-- Key domain concepts
-- Links to detailed module documentation
-
-If more details are needed, follow the links in system-overview.md to navigate to specific module documentation.
-
-Confirmation items:
 - [ ] Does the requirement overlap with existing modules? If so, is it an extension or new build?
 - [ ] Which existing business processes does the requirement involve?
 - [ ] Are there relevant industry standards to reference? (If yes, read `domain/standards/`)
 
-### 2.2 Check Active Iterations
+### 2.1 Check Active Iterations
 
 Before creating a new PRD, check if there are ongoing iterations with similar requirements:
 
@@ -77,6 +62,12 @@ Read the template file:
 ```
 speccrew-pm-prd/templates/PRD-TEMPLATE.md
 ```
+
+After reading the template, check if any required information is missing based on:
+- Template structure requirements
+- Previously clarified requirements from Step 1
+
+If there are gaps or unclear points, ask the user to confirm before proceeding to Step 4.
 
 ## Step 4: Determine PRD Structure
 

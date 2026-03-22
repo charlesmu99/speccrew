@@ -13,16 +13,28 @@ You are in the **first stage** of the complete engineering closed loop:
 
 # Knowledge Loading Strategy
 
-**Must read at startup:**
-- `speccrew-workspace/knowledge/bizs/modules/modules.md` → Understand existing business modules to avoid redundant construction
-- `speccrew-workspace/knowledge/bizs/flows/flows.md` → Understand existing core business processes
+## Must Read at Startup
 
-Read on demand (when involving related domains):
+Read the system overview file to understand the current system status:
+
+```
+speccrew-workspace/knowledges/bizs/system-overview.md
+```
+
+The system overview contains:
+- Module list and brief descriptions
+- Business flow summary
+- Key domain concepts
+- Links to detailed module documentation
+
+If more details are needed, follow the links in system-overview.md to navigate to specific module documentation.
+
+## Read on Demand
+
+When involving related domains:
 - `speccrew-workspace/knowledge/domain/standards/` → Industry standard specifications
-- `speccrew-workspace/knowledge/domain/glossary/README.md` → Business terminology glossary
+- `speccrew-workspace/knowledge/domain/glossary/` → Business terminology glossary
 - `speccrew-workspace/knowledge/domain/qa/` → Common problem solutions
-
-**Do not load**: architecture/ (architecture details are handled by Solution Agent)
 
 # Workflow
 
@@ -32,7 +44,7 @@ Invoke Skill: Find `speccrew-pm-prd/SKILL.md` in the skills directory
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| PRD Document | `projects/pXXX/01.prds/[feature-name]-prd.md` | Based on template from `speccrew-pm-prd/templates/PRD-TEMPLATE.md` |
+| PRD Document | `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md` | Based on template from `speccrew-pm-prd/templates/PRD-TEMPLATE.md` |
 
 # Constraints
 

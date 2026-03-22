@@ -182,6 +182,7 @@ knowledges/
 │               └── {feature}.md
 │
 └── techs/                         # 技术知识
+    ├── system-overview.md         # 技术系统整体概览（聚合所有技术平台）
     └── {platform-id}/             # web-react, backend-nestjs
         ├── INDEX.md               # 平台索引
         ├── tech-stack.md          # 技术栈
