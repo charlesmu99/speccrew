@@ -115,7 +115,6 @@ uninstall_SpecCrew() {
     print_success "SpecCrew has been successfully uninstalled from $IDEName!"
     echo ""
     echo -e "${BLUE}Note:${NC} Your custom agents and skills in $IDEConfigDir/ have been preserved."
-    echo -e "${BLUE}Note:${NC} Source files in $SourceDir/ have been preserved (may be under version control).${NC}"
 }
 
 # Check if SpecCrew is already installed
@@ -192,51 +191,17 @@ install_SpecCrew() {
     # Create target directory if it doesn't exist
     mkdir -p "$TARGET_DIR"
     
-    # Install to .speccrew/ (source directory)
-    local source_target="$TARGET_DIR/$SourceDir"
+    # Get source directory from archive
     local source_source="$extracted_dir/$SourceDir"
     
-    if [ -d "$source_source" ]; then
-        mkdir -p "$source_target"
-        
-        # Copy agents to .speccrew/
-        if [ -d "$source_source/agents" ]; then
-            mkdir -p "$source_target/agents"
-            for agent in "$source_source/agents"/*.md; do
-                if [ -f "$agent" ]; then
-                    agent_name=$(basename "$agent")
-                    cp "$agent" "$source_target/agents/"
-                    print_info "Installed agent: $agent_name"
-                fi
-            done
-        fi
-        
-        # Copy skills to .speccrew/
-        if [ -d "$source_source/skills" ]; then
-            mkdir -p "$source_target/skills"
-            for skill_dir in "$source_source/skills"/*; do
-                if [ -d "$skill_dir" ]; then
-                    skill_name=$(basename "$skill_dir")
-                    if [ -d "$source_target/skills/$skill_name" ]; then
-                        rm -rf "$source_target/skills/$skill_name"
-                    fi
-                    cp -r "$skill_dir" "$source_target/skills/"
-                    print_info "Installed skill: $skill_name"
-                fi
-            done
-        fi
-        
-        print_success "Updated $SourceDir/ directory."
-    fi
-    
-    # Copy from .speccrew/ to IDE config directory
+    # Copy directly to IDE config directory
     local ide_path="$TARGET_DIR/$IDEConfigDir"
     mkdir -p "$ide_path"
     
     # Copy agents to IDE config (incremental update)
-    if [ -d "$source_target/agents" ]; then
+    if [ -d "$source_source/agents" ]; then
         mkdir -p "$ide_path/agents"
-        for agent in "$source_target/agents"/*.md; do
+        for agent in "$source_source/agents"/*.md; do
             if [ -f "$agent" ]; then
                 agent_name=$(basename "$agent")
                 is_SpecCrew=false
@@ -256,9 +221,9 @@ install_SpecCrew() {
     fi
     
     # Copy skills to IDE config (incremental update)
-    if [ -d "$source_target/skills" ]; then
+    if [ -d "$source_source/skills" ]; then
         mkdir -p "$ide_path/skills"
-        for skill_dir in "$source_target/skills"/*; do
+        for skill_dir in "$source_source/skills"/*; do
             if [ -d "$skill_dir" ]; then
                 skill_name=$(basename "$skill_dir")
                 is_SpecCrew=false
@@ -375,11 +340,6 @@ verify_installation() {
     
     local errors=0
     
-    if [ ! -d "$TARGET_DIR/$SourceDir" ]; then
-        print_error "$SourceDir/ directory not found after installation."
-        errors=$((errors + 1))
-    fi
-    
     if [ ! -d "$TARGET_DIR/$IDEConfigDir" ]; then
         print_error "$IDEConfigDir/ directory not found after installation."
         errors=$((errors + 1))
@@ -406,7 +366,6 @@ print_next_steps() {
     echo "========================================"
     echo ""
     echo "Directory structure:"
-    echo "  - $SourceDir/          : Source files (can be version controlled)"
     echo "  - $IDEConfigDir/       : $IDEName IDE configuration"
     echo "  - SpecCrew-workspace/  : Working directory"
     echo ""
@@ -424,8 +383,7 @@ print_next_steps() {
     echo "     - Knowledge base initialization"
     echo ""
     echo "Documentation:"
-    echo "  - Agent Knowledge Map: SpecCrew-workspace/docs/agent-knowledge-map.md"
-    echo "  - Project Introduction: $SourceDir/README.md"
+    echo "  - Agent Knowledge Map: SpecCrew-workspace/docs/solutions/agent-knowledge-map.md"
     echo ""
     echo "To uninstall:"
     echo "  Run: ./install-qoder.sh --uninstall (or -u)"

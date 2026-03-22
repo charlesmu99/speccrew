@@ -98,13 +98,10 @@ function Uninstall-SpecCrew {
         Write-Info "Removed directory: SpecCrew-workspace/"
     }
     
-    # Note: We don't remove .speccrew/ as it may be a git submodule or user-managed
-    
     Write-Host ""
     Write-Success "SpecCrew has been successfully uninstalled from $IDEName!"
     Write-Host ""
     Write-Host "Note: Your custom agents and skills in $IDEConfigDir/ have been preserved." -ForegroundColor Cyan
-    Write-Host "Note: Source files in $SourceDir/ have been preserved (may be under version control)." -ForegroundColor Cyan
 }
 
 # Check if SpecCrew is already installed
@@ -187,57 +184,21 @@ function Install-SpecCrew($zipPath) {
         New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     }
     
-    # Install to .speccrew/ (source directory)
-    $sourceTarget = Join-Path $TargetDir $SourceDir
+    # Get source directory from archive
     $sourceSource = Join-Path $extractedDir.FullName $SourceDir
     
-    if (Test-Path $sourceSource) {
-        if (-not (Test-Path $sourceTarget)) {
-            New-Item -ItemType Directory -Path $sourceTarget -Force | Out-Null
-        }
-        
-        # Copy agents to .speccrew/
-        $agentsSource = Join-Path $sourceSource "agents"
-        if (Test-Path $agentsSource) {
-            $agentsTarget = Join-Path $sourceTarget "agents"
-            New-Item -ItemType Directory -Path $agentsTarget -Force | Out-Null
-            Get-ChildItem -Path $agentsSource -Filter "*.md" | ForEach-Object {
-                $agentTarget = Join-Path $agentsTarget $_.Name
-                Copy-Item -Path $_.FullName -Destination $agentTarget -Force
-                Write-Info "Installed agent: $($_.Name)"
-            }
-        }
-        
-        # Copy skills to .speccrew/
-        $skillsSource = Join-Path $sourceSource "skills"
-        if (Test-Path $skillsSource) {
-            $skillsTarget = Join-Path $sourceTarget "skills"
-            New-Item -ItemType Directory -Path $skillsTarget -Force | Out-Null
-            Get-ChildItem -Path $skillsSource -Directory | ForEach-Object {
-                $skillTarget = Join-Path $skillsTarget $_.Name
-                if (Test-Path $skillTarget) {
-                    Remove-Item -Recurse -Force $skillTarget
-                }
-                Copy-Item -Recurse -Path $_.FullName -Destination $skillTarget
-                Write-Info "Installed skill: $($_.Name)"
-            }
-        }
-        
-        Write-Success "Updated $SourceDir/ directory."
-    }
-    
-    # Copy from .speccrew/ to IDE config directory (.qoder/)
+    # Copy directly to IDE config directory (.qoder/)
     $idePath = Join-Path $TargetDir $IDEConfigDir
     if (-not (Test-Path $idePath)) {
         New-Item -ItemType Directory -Path $idePath -Force | Out-Null
     }
     
     # Copy agents to IDE config (incremental update)
-    $sourceAgents = Join-Path $sourceTarget "agents"
+    $agentsSource = Join-Path $sourceSource "agents"
     $ideAgents = Join-Path $idePath "agents"
-    if (Test-Path $sourceAgents) {
+    if (Test-Path $agentsSource) {
         New-Item -ItemType Directory -Path $ideAgents -Force | Out-Null
-        Get-ChildItem -Path $sourceAgents -Filter "*.md" | ForEach-Object {
+        Get-ChildItem -Path $agentsSource -Filter "*.md" | ForEach-Object {
             $agentTarget = Join-Path $ideAgents $_.Name
             $isSpecCrew = $_.Name -match '^SpecCrew-'
             $exists = Test-Path $agentTarget
@@ -253,11 +214,11 @@ function Install-SpecCrew($zipPath) {
     }
     
     # Copy skills to IDE config (incremental update)
-    $sourceSkills = Join-Path $sourceTarget "skills"
+    $skillsSource = Join-Path $sourceSource "skills"
     $ideSkills = Join-Path $idePath "skills"
-    if (Test-Path $sourceSkills) {
+    if (Test-Path $skillsSource) {
         New-Item -ItemType Directory -Path $ideSkills -Force | Out-Null
-        Get-ChildItem -Path $sourceSkills -Directory | ForEach-Object {
+        Get-ChildItem -Path $skillsSource -Directory | ForEach-Object {
             $skillTarget = Join-Path $ideSkills $_.Name
             $isSpecCrew = $_.Name -match '^SpecCrew-'
             $exists = Test-Path $skillTarget
@@ -391,14 +352,8 @@ function Verify-Installation {
     
     $errors = 0
     
-    $sourcePath = Join-Path $TargetDir $SourceDir
     $idePath = Join-Path $TargetDir $IDEConfigDir
     $workspacePath = Join-Path $TargetDir "SpecCrew-workspace"
-    
-    if (-not (Test-Path $sourcePath)) {
-        Write-Error "$SourceDir/ directory not found after installation."
-        $errors++
-    }
     
     if (-not (Test-Path $idePath)) {
         Write-Error "$IDEConfigDir/ directory not found after installation."
@@ -427,7 +382,6 @@ function Print-NextSteps {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Directory structure:"
-    Write-Host "  - $SourceDir/          : Source files (can be version controlled)"
     Write-Host "  - $IDEConfigDir/       : $IDEName IDE configuration"
     Write-Host "  - SpecCrew-workspace/  : Working directory"
     Write-Host ""
@@ -445,8 +399,7 @@ function Print-NextSteps {
     Write-Host "     - Knowledge base initialization"
     Write-Host ""
     Write-Host "Documentation:"
-    Write-Host "  - Agent Knowledge Map: SpecCrew-workspace/docs/agent-knowledge-map.md"
-    Write-Host "  - Project Introduction: $SourceDir/README.md"
+    Write-Host "  - Agent Knowledge Map: SpecCrew-workspace/docs/solutions/agent-knowledge-map.md"
     Write-Host ""
     Write-Host "To uninstall:"
     Write-Host "  Run: .\install-qoder.ps1 -Uninstall"
