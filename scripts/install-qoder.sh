@@ -314,14 +314,35 @@ install_SpecCrew() {
                     fi
                 done
             fi
+            
+            # Copy solutions subdirectory
+            if [ -d "$extracted_dir/SpecCrew-workspace/docs/solutions" ]; then
+                mkdir -p "$TARGET_DIR/SpecCrew-workspace/docs/solutions"
+                for solution in "$extracted_dir/SpecCrew-workspace/docs/solutions"/*.md; do
+                    if [ -f "$solution" ]; then
+                        solution_name=$(basename "$solution")
+                        if [ -f "$TARGET_DIR/SpecCrew-workspace/docs/solutions/$solution_name" ]; then
+                            print_info "Updated solution: $solution_name"
+                        else
+                            print_info "Added new solution: $solution_name"
+                        fi
+                        cp "$solution" "$TARGET_DIR/SpecCrew-workspace/docs/solutions/"
+                    fi
+                done
+            fi
         fi
         
         print_success "Updated SpecCrew-workspace/ directory."
     fi
     
-    # Create knowledge and projects directories if not exist
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledge"
-    mkdir -p "$TARGET_DIR/SpecCrew-workspace/projects"
+    # Create workspace directories if not exist
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/iterations"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/iteration-archives"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/diagnosis-reports"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/sync-state"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/base/tech-debts"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/bizs"
+    mkdir -p "$TARGET_DIR/SpecCrew-workspace/knowledges/techs"
     
     # Copy README and LICENSE files to SpecCrew-workspace/docs
     local docs_target="$TARGET_DIR/SpecCrew-workspace/docs"

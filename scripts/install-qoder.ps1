@@ -313,16 +313,51 @@ function Install-SpecCrew($zipPath) {
                     }
                 }
             }
+            
+            # Copy solutions subdirectory
+            $solutionsSource = Join-Path $docsSource "solutions"
+            if (Test-Path $solutionsSource) {
+                $solutionsTarget = Join-Path $docsTarget "solutions"
+                New-Item -ItemType Directory -Path $solutionsTarget -Force | Out-Null
+                Get-ChildItem -Path $solutionsSource -Filter "*.md" | ForEach-Object {
+                    $solutionTarget = Join-Path $solutionsTarget $_.Name
+                    $exists = Test-Path $solutionTarget
+                    Copy-Item -Path $_.FullName -Destination $solutionTarget -Force
+                    if ($exists) {
+                        Write-Info "Updated solution: $($_.Name)"
+                    } else {
+                        Write-Info "Added new solution: $($_.Name)"
+                    }
+                }
+            }
         }
         
         Write-Success "Updated SpecCrew-workspace/ directory."
     }
     
-    # Create knowledge and projects directories if not exist
-    $knowledgePath = Join-Path $workspaceTarget "knowledge"
-    $projectsPath = Join-Path $workspaceTarget "projects"
-    New-Item -ItemType Directory -Path $knowledgePath -Force | Out-Null
-    New-Item -ItemType Directory -Path $projectsPath -Force | Out-Null
+    # Create workspace directories if not exist
+    $iterationsPath = Join-Path $workspaceTarget "iterations"
+    $archivesPath = Join-Path $workspaceTarget "iteration-archives"
+    $knowledgesPath = Join-Path $workspaceTarget "knowledges"
+    New-Item -ItemType Directory -Path $iterationsPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $archivesPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $knowledgesPath -Force | Out-Null
+    
+    # Create knowledges subdirectories
+    $basePath = Join-Path $knowledgesPath "base"
+    $bizsPath = Join-Path $knowledgesPath "bizs"
+    $techsPath = Join-Path $knowledgesPath "techs"
+    New-Item -ItemType Directory -Path $basePath -Force | Out-Null
+    New-Item -ItemType Directory -Path $bizsPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $techsPath -Force | Out-Null
+    
+    # Create base subdirectories
+    $diagnosisPath = Join-Path $basePath "diagnosis-reports"
+    $syncStatePath = Join-Path $basePath "sync-state"
+    $techDebtsPath = Join-Path $basePath "tech-debts"
+    New-Item -ItemType Directory -Path $diagnosisPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $syncStatePath -Force | Out-Null
+    New-Item -ItemType Directory -Path $techDebtsPath -Force | Out-Null
     
     # Copy README and LICENSE files to SpecCrew-workspace/docs
     $docsTarget = Join-Path $workspaceTarget "docs"
