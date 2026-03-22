@@ -10,12 +10,12 @@ Guide PM Agent to quickly assess new requirements using system documentation and
 
 ## Trigger Scenarios
 
-- "评估这个新需求的影响范围"
-- "分析需求涉及哪些模�?
-- "判断这个需求是新增还是修改"
-- "需求快速评�?
-- "新需求影响分�?
-- "需求变更类型判�?
+- "Assess impact scope of new requirement"
+- "Analyze which modules are affected by requirement"
+- "Determine if requirement is new or modification"
+- "Quick requirement assessment"
+- "New requirement impact analysis"
+- "Requirement change type determination"
 
 ## User
 
@@ -57,21 +57,21 @@ Use decision tree:
 
 ```
 New Requirement
-    �?
-    ├──�?Involves new business entity?
-    �?      └──�?NEW FEATURE
-    �?
-    ├──�?Modifies core attributes of existing entity?
-    �?      └──�?MODIFICATION
-    �?
-    ├──�?Adds new process steps but reuses existing entities?
-    �?      └──�?MIXED (New + Modify)
-    �?
-    ├──�?Affects cross-module data flow?
-    �?      └──�?CROSS-MODULE CHANGE
-    �?
-    └──�?Can be handled by configuration?
-            └──�?CONFIGURATION
+    |
+    +-- Involves new business entity?
+    |      +-- NEW FEATURE
+    |
+    +-- Modifies core attributes of existing entity?
+    |      +-- MODIFICATION
+    |
+    +-- Adds new process steps but reuses existing entities?
+    |      +-- MIXED (New + Modify)
+    |
+    +-- Affects cross-module data flow?
+    |      +-- CROSS-MODULE CHANGE
+    |
+    +-- Can be handled by configuration?
+           +-- CONFIGURATION
 ```
 
 ### Step 4: Identify Impact Scope
