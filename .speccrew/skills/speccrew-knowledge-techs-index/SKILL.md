@@ -12,9 +12,9 @@ Aggregate all platform technology documentation into a single root INDEX.md that
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` â†?Generate all content in ä¸­æ–‡
-- `language: "en"` â†?Generate all content in English
-- Other languages â†?Use the specified language
+- `language: "zh"` â†’ Generate all content in ä¸­æ–‡
+- `language: "en"` â†’ Generate all content in English
+- Other languages â†’ Use the specified language
 
 ## Trigger Scenarios
 
@@ -242,8 +242,8 @@ Write the generated INDEX.md to `{output_path}/INDEX.md`.
 ```
 Stage 3 completed: Root Technology Index Generated
 - Platforms Indexed: {N}
-  - web-react: âœ?
-  - backend-nestjs: âœ?
+  - web-react: âœ“
+  - backend-nestjs: âœ“
 - Root Index: {output_path}/INDEX.md
 - Agent Mappings: Documented for all platforms
 ```

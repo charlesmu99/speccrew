@@ -12,9 +12,9 @@ Scan project source code to identify all technology platforms, extract configura
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 **All output content must be in the target language only.**
 
@@ -210,7 +210,7 @@ If a project contains multiple platforms (e.g., web + backend + mobile):
 For monorepos with multiple packages:
 - Detect platforms in each package directory
 - Use relative paths for source_path
-- Example: `packages/web-app` �?web-react platform
+- Example: `packages/web-app` → web-react platform
 
 ### Framework Version Detection
 

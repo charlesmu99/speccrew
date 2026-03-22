@@ -12,8 +12,8 @@ Analyze one specific module from source code, extract all features, generate {na
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` â†?Generate all content in ä¸­æ–‡
-- `language: "en"` â†?Generate all content in English
+- `language: "zh"` â†’ Generate all content in ä¸­æ–‡
+- `language: "en"` â†’ Generate all content in English
 - Other languages â†’Use the specified language
 
 **All output content (feature names, descriptions, business rules) must be in the target language only.**
@@ -55,8 +55,8 @@ Use `entry_points` from input to locate module source files directly:
 **System Type Determination:**
 
 Use `system_type` parameter to determine analysis approach:
-- `system_type: "ui"` â†?Follow UI-based analysis
-- `system_type: "api"` â†?Follow API-based analysis
+- `system_type: "ui"` â†’ Follow UI-based analysis
+- `system_type: "api"` â†’ Follow API-based analysis
 
 **For UI-based modules (system_type = "ui"):**
 - Entry points are page/component files (e.g., `src/pages/orders/index.tsx`)
@@ -70,7 +70,7 @@ Use `system_type` parameter to determine analysis approach:
 
 **Fallback (if entry_points analysis insufficient):**
 - Search: `**/{module_name}/**/*.{ts,js,java,go,py}`
-- Consider `tech_stack` to determine file extensions (e.g., Flutter â†?`.dart`, Python â†?`.py`)
+- Consider `tech_stack` to determine file extensions (e.g., Flutter â†’ `.dart`, Python â†’ `.py`)
 
 ### Step 2: Extract Module Information
 
@@ -111,7 +111,7 @@ export default function OrderListPage() {
   
   // API call analysis
   useEffect(() => {
-    fetchOrders();  // â†?Find and analyze: GET /api/orders
+    fetchOrders();  // â†’ Find and analyze: GET /api/orders
   }, []);
   
   // Feature: create-order (navigation)
@@ -141,7 +141,7 @@ For each feature, extract:
   - Database entities/models referenced by the API
   - Data relationships (foreign keys, associations)
   - Key data fields and their purposes
-  - Data flow: UI â†?API â†’Database â†?API â†’UI
+  - Data flow: UI â†’ API â†’Database â†’ API â†’UI
 
 **For API-based modules (system_type = "api"):**
 
@@ -151,11 +151,11 @@ Each public API endpoint = one feature:
 // Example: From controller
 @Controller('orders')
 export class OrderController {
-  @Post()           â†?Feature: create-order
-  @Get()            â†?Feature: list-orders
-  @Get(':id')       â†?Feature: get-order-detail
-  @Patch(':id')     â†?Feature: update-order
-  @Delete(':id')    â†?Feature: delete-order
+  @Post()           â†’ Feature: create-order
+  @Get()            â†’ Feature: list-orders
+  @Get(':id')       â†’ Feature: get-order-detail
+  @Patch(':id')     â†’ Feature: update-order
+  @Delete(':id')    â†’ Feature: delete-order
 }
 ```
 
@@ -208,8 +208,8 @@ Key requirements:
 
 | Feature | API | Status | Detail Doc |
 |---------|-----|--------|------------|
-| create-order | POST /orders | â†?Generated | [View](features/create-order.md) |
-| list-orders | GET /orders | â†?Generated | [View](features/list-orders.md) |
+| create-order | POST /orders | â†’ Generated | [View](features/create-order.md) |
+| list-orders | GET /orders | â†’ Generated | [View](features/list-orders.md) |
 
 **Section 3-6**: Mark as "TBD - Will be completed in summarize stage"
 

@@ -15,9 +15,9 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 
 **CRITICAL**: Before generating the diagnosis report, detect the language used by the user throughout the conversation. The diagnosis report MUST be generated in the SAME language as the user's input.
 
-- If user communicated in Chinese ï¿?Generate report in Chinese
-- If user communicated in English ï¿?Generate report in English
-- If user communicated in other languages ï¿?Generate report in that language
+- If user communicated in Chinese ï¿½?Generate report in Chinese
+- If user communicated in English ï¿½?Generate report in English
+- If user communicated in other languages ï¿½?Generate report in that language
 - Do NOT default to English if user used another language
 
 # Diagnosis Goal
@@ -148,11 +148,11 @@ Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnos
 **Dynamic Content Filling Rules**:
 
 1. **architecture/ Subdirectories**: Based on project type determined in Phase 2, select corresponding subdirectory combinations
-   - Web Full-Stack ï¿?system, conventions, frontend, backend, data
-   - Frontend Only ï¿?system, conventions, frontend
-   - Backend Only ï¿?system, conventions, backend, data
-   - Desktop Client ï¿?system, conventions, desktop
-   - Mobile ï¿?system, conventions, mobile
+   - Web Full-Stack ï¿½?system, conventions, frontend, backend, data
+   - Frontend Only ï¿½?system, conventions, frontend
+   - Backend Only ï¿½?system, conventions, backend, data
+   - Desktop Client ï¿½?system, conventions, desktop
+   - Mobile ï¿½?system, conventions, mobile
 
 2. **bizs/modules/ Initial Clues**: Fill in business module names collected in Phase 3.3
 

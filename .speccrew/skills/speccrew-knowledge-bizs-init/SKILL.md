@@ -12,9 +12,9 @@ Analyze system from user/product manager perspective, identify business function
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` �?Generate all content in 中文
-- `language: "en"` �?Generate all content in English
-- Other languages �?Use the specified language
+- `language: "zh"` → Generate all content in 中文
+- `language: "en"` → Generate all content in English
+- Other languages → Use the specified language
 
 **All output content (module names, descriptions, user_value fields) must be in the target language only.**
 
@@ -75,11 +75,11 @@ Analyze project to determine if it has a UI layer:
 | | Qt | `.pro`, `.qml`, `CMakeLists.txt` with Qt references |
 
 **Decision:**
-- If any UI platform detected �?**ONLY** generate UI platform(s), skip backend API platform generation
+- If any UI platform detected → **ONLY** generate UI platform(s), skip backend API platform generation
   - Analyze each UI platform (Web, Mobile, Desktop, Mini Program) separately
   - All modules will have `system_type: "ui"`
   - Backend API analysis will be done by downstream skills when tracing feature implementations
-- If only backend indicators (no UI) �?Generate API platform(s)
+- If only backend indicators (no UI) → Generate API platform(s)
   - Create single platform with `platform_type: "api"`
   - All modules will have `system_type: "api"`
 
@@ -94,22 +94,22 @@ Find and parse route configurations:
 **React Router Example:**
 ```typescript
 // routes.ts or App.tsx
-{ path: '/orders', component: OrderListPage },     �?Order Management Module
+{ path: '/orders', component: OrderListPage },     → Order Management Module
 { path: '/orders/:id', component: OrderDetailPage },
-{ path: '/payments', component: PaymentListPage }, �?Payment Module
-{ path: '/users', component: UserManagementPage }, �?User Management Module
+{ path: '/payments', component: PaymentListPage }, → Payment Module
+{ path: '/users', component: UserManagementPage }, → User Management Module
 ```
 
 **Next.js Pages Router:**
 ```
 pages/
 ├── orders/
-    ├── index.tsx      �?Order List Page
-    └── [id].tsx       �?Order Detail Page
+    ├── index.tsx      → Order List Page
+    └── [id].tsx       → Order Detail Page
 ├── payments/
-    └── index.tsx      �?Payment Management Page
+    └── index.tsx      → Payment Management Page
 └── users/
-    └── index.tsx      �?User Management Page
+    └── index.tsx      → User Management Page
 ```
 
 **Vue Router Example:**
@@ -119,7 +119,7 @@ pages/
   path: '/inventory',
   component: InventoryLayout,
   children: [
-    { path: 'products', component: ProductList },  �?Inventory Module
+    { path: 'products', component: ProductList },  → Inventory Module
     { path: 'stock', component: StockManagement }
   ]
 }
@@ -133,10 +133,10 @@ Look for menu configurations that reveal business modules:
 // Typical menu config
 const menuItems = [
   { key: 'dashboard', label: 'Dashboard', icon: 'Home' },
-  { key: 'orders', label: 'Order Management', icon: 'ShoppingCart' },  �?Order Module
-  { key: 'products', label: 'Product Catalog', icon: 'Package' },       �?Product Module
-  { key: 'customers', label: 'Customer Center', icon: 'Users' },        �?Customer Module
-  { key: 'reports', label: 'Reports & Analytics', icon: 'BarChart' },   �?Report Module
+  { key: 'orders', label: 'Order Management', icon: 'ShoppingCart' },  → Order Module
+  { key: 'products', label: 'Product Catalog', icon: 'Package' },       → Product Module
+  { key: 'customers', label: 'Customer Center', icon: 'Users' },        → Customer Module
+  { key: 'reports', label: 'Reports & Analytics', icon: 'BarChart' },   → Report Module
 ];
 ```
 
@@ -155,8 +155,8 @@ Group related pages into business modules:
 
 **⚠️ CONDITIONAL STEP**: Only execute this step if **NO UI platform was detected** in Step 1.
 
-- If UI platforms were found �?**SKIP this step entirely**, proceed to Step 3
-- If only backend indicators exist (no UI) �?Execute this step
+- If UI platforms were found → **SKIP this step entirely**, proceed to Step 3
+- If only backend indicators exist (no UI) → Execute this step
 
 For systems without UI, analyze from API perspective:
 
@@ -165,26 +165,26 @@ For systems without UI, analyze from API perspective:
 **NestJS Example:**
 ```typescript
 // Controllers represent business modules
-@Controller('orders')      �?Order Management Module
-@Controller('payments')    �?Payment Processing Module
-@Controller('users')       �?User Management Module
-@Controller('inventory')   �?Inventory Management Module
+@Controller('orders')      → Order Management Module
+@Controller('payments')    → Payment Processing Module
+@Controller('users')       → User Management Module
+@Controller('inventory')   → Inventory Management Module
 ```
 
 **Spring Boot Example:**
 ```java
 @RestController
-@RequestMapping("/api/orders")     �?Order Module
-@RequestMapping("/api/inventory")  �?Inventory Module
-@RequestMapping("/api/customers")  �?Customer Module
+@RequestMapping("/api/orders")     → Order Module
+@RequestMapping("/api/inventory")  → Inventory Module
+@RequestMapping("/api/customers")  → Customer Module
 ```
 
 **Express.js Example:**
 ```javascript
 // Route files represent modules
-app.use('/api/orders', orderRoutes);      �?Order Module
-app.use('/api/products', productRoutes);  �?Product Module
-app.use('/api/auth', authRoutes);         �?Authentication Module
+app.use('/api/orders', orderRoutes);      → Order Module
+app.use('/api/products', productRoutes);  → Product Module
+app.use('/api/auth', authRoutes);         → Authentication Module
 ```
 
 #### 2B.2 Group APIs by Business Domain
@@ -194,11 +194,11 @@ Analyze API paths to identify business modules:
 ```
 API Pattern Analysis:
 
-/orders, /orders/:id, /orders/:id/cancel        �?Order Management
-/payments, /payments/:id/refund, /invoices      �?Payment & Billing
-/products, /categories, /inventory/stock        �?Product & Inventory
-/users, /users/:id/profile, /auth/login         �?User & Authentication
-/reports/sales, /reports/inventory              �?Reporting & Analytics
+/orders, /orders/:id, /orders/:id/cancel        → Order Management
+/payments, /payments/:id/refund, /invoices      → Payment & Billing
+/products, /categories, /inventory/stock        → Product & Inventory
+/users, /users/:id/profile, /auth/login         → User & Authentication
+/reports/sales, /reports/inventory              → Reporting & Analytics
 ```
 
 #### 2B.3 Map APIs to Business Modules
@@ -376,7 +376,7 @@ Stage 1 completed: Business Module List Generated
 1. **Focus on user journeys**: Group pages by user workflow
 2. **Use business terminology**: "Order Management" not "OrderController"
 3. **Consider navigation structure**: Menus often reveal module boundaries
-4. **Look for CRUD patterns**: List �?Detail �?Edit �?Create flows
+4. **Look for CRUD patterns**: List → Detail → Edit → Create flows
 5. **Identify platform boundaries**: Separate Web, Mobile, Desktop into different platforms
 
 ### For API-Based Systems
