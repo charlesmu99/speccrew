@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-pm-requirement-assess
+name: speccrew-pm-requirement-assess
 description: Assess new requirements by analyzing impact scope, affected modules, and change type based on existing system documentation. Use when PM Agent needs to evaluate new requirements, determine impact range, or plan implementation approach.
 tools: Read, SearchCodebase
 ---
@@ -19,7 +19,7 @@ Guide PM Agent to quickly assess new requirements using system documentation and
 
 ## User
 
-PM Agent (SpecCrew-product-manager)
+PM Agent (speccrew-product-manager)
 
 ## Input
 

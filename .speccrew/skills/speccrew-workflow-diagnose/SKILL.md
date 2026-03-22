@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-workflow-diagnose
+name: speccrew-workflow-diagnose
 description: Diagnose issues in AI engineering workflows. Analyze workflow bottlenecks, Agent behavior anomalies, deliverable quality issues, and provide solutions. Trigger scenarios: user mentions "workflow stuck", "diagnose problem", "Agent not working as expected", "poor deliverable quality"
 tools: Read, Glob, Grep
 ---

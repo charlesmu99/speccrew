@@ -26,7 +26,7 @@ Read on demand (when involving related domains):
 
 # Workflow
 
-Invoke Skill: Find `SpecCrew-pm-prd/SKILL.md` in the skills directory
+Invoke Skill: Find `speccrew-pm-prd/SKILL.md` in the skills directory
 
 # Deliverables
 

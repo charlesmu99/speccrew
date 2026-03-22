@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-test-report
+name: speccrew-test-report
 description: Test execution and reporting SOP. Based on PRD acceptance criteria and test cases, execute tests, record results, output test reports, and request deployment confirmation.
 tools: Read, Write, Glob, Grep
 ---
@@ -24,7 +24,7 @@ Check if test case file exists: `projects/pXXX/05.tests/cases/[feature-name]-tes
 
 **If not, create one**, read template:
 ```
-SpecCrew-test-report/templates/TEST-CASE-TEMPLATE.md
+speccrew-test-report/templates/TEST-CASE-TEMPLATE.md
 ```
 
 Decompose test cases from PRD acceptance criteria:
@@ -70,7 +70,7 @@ Compare with actual code implementation, check for **unreported deviations**:
 
 ## Step 5: Generate Test Report
 
-Read template: `SpecCrew-test-report/templates/TEST-REPORT-TEMPLATE.md`
+Read template: `speccrew-test-report/templates/TEST-REPORT-TEMPLATE.md`
 
 Fill in test report, including:
 - Overall conclusion (pass rate, remaining defects count)

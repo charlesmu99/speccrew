@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-pm-prd
+name: speccrew-pm-prd
 description: PRD Writing SOP. Guide PM Agent through requirements clarification, business module boundary confirmation, and PRD document generation.
 tools: Read, Write, Glob, Grep
 ---
@@ -50,7 +50,7 @@ Confirmation items:
 
 Read the template file:
 ```
-SpecCrew-pm-prd/templates/PRD-TEMPLATE.md
+speccrew-pm-prd/templates/PRD-TEMPLATE.md
 ```
 
 ## Step 4: Write PRD

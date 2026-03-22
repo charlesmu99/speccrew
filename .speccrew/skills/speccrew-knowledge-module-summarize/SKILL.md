@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-module-summarize
+name: speccrew-knowledge-module-summarize
 description: Summarize a module's features to complete MODULE-OVERVIEW.md. Reads all FEATURE-DETAIL.md files of a module and generates the complete module overview with entities, dependencies, and business rules.
 tools: Read, Write, Glob
 ---
@@ -12,9 +12,9 @@ Read all {feature-name}.md files of a specific module, extract and summarize inf
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` → Generate all content in 中文
-- `language: "en"` → Generate all content in English
-- Other languages → Use the specified language
+- `language: "zh"` �?Generate all content in 中文
+- `language: "en"` �?Generate all content in English
+- Other languages �?Use the specified language
 
 **All output content (entity names, descriptions, business rules, flow descriptions) must be in the target language only.**
 
@@ -26,7 +26,7 @@ Read all {feature-name}.md files of a specific module, extract and summarize inf
 
 ## User
 
-Worker Agent (SpecCrew-task-worker)
+Worker Agent (speccrew-task-worker)
 
 ## Input
 

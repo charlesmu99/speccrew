@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-system-summarize
+name: speccrew-knowledge-system-summarize
 description: Generate complete system-overview.md by reading all {name}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation. In incremental mode, this skill always regenerates the system overview from the latest module overviews.
 tools: Read, Write, Glob
 ---
@@ -12,9 +12,9 @@ Read all {name}-overview.md files, aggregate information to generate complete sy
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` â†’ Generate all content in ä¸­æ–‡
-- `language: "en"` â†’ Generate all content in English
-- Other languages â†’ Use the specified language
+- `language: "zh"` â†?Generate all content in ä¸­æ–‡
+- `language: "en"` â†?Generate all content in English
+- Other languages â†?Use the specified language
 
 **All output content (system description, module summaries, flow descriptions) must be in the target language only.**
 
@@ -26,7 +26,7 @@ Read all {name}-overview.md files, aggregate information to generate complete sy
 
 ## User
 
-Worker Agent (SpecCrew-task-worker)
+Worker Agent (speccrew-task-worker)
 
 ## Input
 
@@ -114,24 +114,24 @@ Analyze cross-module dependencies to identify business flows:
 
 **Order-to-Payment Flow:**
 ```
-USER â†’ ORDER â†’ INVENTORY â†’ PAYMENT â†’ NOTIFICATION
+USER â†?ORDER â†?INVENTORY â†?PAYMENT â†?NOTIFICATION
 ```
 
 **Refund Flow:**
 ```
-ORDER â†’ PAYMENT â†’ INVENTORY â†’ NOTIFICATION
+ORDER â†?PAYMENT â†?INVENTORY â†?NOTIFICATION
 ```
 
 Create flow-module mapping matrix:
 
 | Flow / Module | ORDER | INVENTORY | PAYMENT | NOTIFICATION |
 |---------------|-------|-----------|---------|--------------|
-| Order-Payment | âœ“ | âœ“ | âœ“ | âœ“ |
-| Refund | âœ“ | âœ“ | âœ“ | âœ“ |
+| Order-Payment | âœ?| âœ?| âœ?| âœ?|
+| Refund | âœ?| âœ?| âœ?| âœ?|
 
 ### Step 7: Generate system-overview.md
 
-Use template `SpecCrew-knowledge-system-summarize/templates/system-overview-template.md`, fill all sections:
+Use template `speccrew-knowledge-system-summarize/templates/system-overview-template.md`, fill all sections:
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp
@@ -161,7 +161,7 @@ Use template `SpecCrew-knowledge-system-summarize/templates/system-overview-temp
 - Integration interface list
 
 **Section 5: Requirement Assessment Guide**
-- Reference to `SpecCrew-pm-requirement-assess` skill
+- Reference to `speccrew-pm-requirement-assess` skill
 - Quick location guide (which section to reference)
 
 ### Step 8: Report Results

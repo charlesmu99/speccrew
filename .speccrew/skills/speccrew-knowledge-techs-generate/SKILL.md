@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-techs-generate
+name: speccrew-knowledge-techs-generate
 description: Stage 2 of technology knowledge initialization - Generate technology documentation for a specific platform. Extracts tech stack, architecture, and conventions from configuration files and source code. Creates INDEX.md, tech-stack.md, architecture.md, and conventions-*.md files. Used by Worker Agent in parallel for each detected platform.
 tools: Read, Write, Glob, Grep
 ---
@@ -12,9 +12,9 @@ Generate comprehensive technology documentation for a specific platform by analy
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` â†’ Generate all content in ä¸­æ–‡
-- `language: "en"` â†’ Generate all content in English
-- Other languages â†’ Use the specified language
+- `language: "zh"` â†?Generate all content in ä¸­æ–‡
+- `language: "en"` â†?Generate all content in English
+- Other languages â†?Use the specified language
 
 ## Trigger Scenarios
 
@@ -25,7 +25,7 @@ Generate comprehensive technology documentation for a specific platform by analy
 
 ## User
 
-Worker Agent (SpecCrew-task-worker)
+Worker Agent (speccrew-task-worker)
 
 ## Input
 
@@ -137,8 +137,8 @@ Key requirements:
 ### Step 4: Generate Documents
 
 Use templates to generate each document. Templates located at:
-- `SpecCrew-knowledge-techs-generate/templates/{platform-type}-{framework}/`
-- Fallback: `SpecCrew-knowledge-techs-generate/templates/generic/`
+- `speccrew-knowledge-techs-generate/templates/{platform-type}-{framework}/`
+- Fallback: `speccrew-knowledge-techs-generate/templates/generic/`
 
 #### Document 1: INDEX.md
 
@@ -247,13 +247,13 @@ Create output directory if not exists, then write all generated documents.
 
 ```
 Platform Technology Documents Generated: {platform_id}
-- INDEX.md: âœ“
-- tech-stack.md: âœ“
-- architecture.md: âœ“
-- conventions-design.md: âœ“
-- conventions-dev.md: âœ“
-- conventions-test.md: âœ“
-- conventions-data.md: âœ“ (or skipped if not applicable)
+- INDEX.md: âœ?
+- tech-stack.md: âœ?
+- architecture.md: âœ?
+- conventions-design.md: âœ?
+- conventions-dev.md: âœ?
+- conventions-test.md: âœ?
+- conventions-data.md: âœ?(or skipped if not applicable)
 - Output Directory: {output_path}
 ```
 
@@ -268,24 +268,24 @@ Platform Technology Documents Generated: {platform_id}
 ### Be Specific
 
 Extract actual values from config files:
-- âœ“ "React 18.2.0" (from package.json)
-- âœ— "React (version varies)"
+- âœ?"React 18.2.0" (from package.json)
+- âœ?"React (version varies)"
 
 ### Be Concise
 
 Focus on actionable conventions:
-- âœ“ "Use PascalCase for component files: UserProfile.tsx"
-- âœ— "There are many naming conventions to consider..."
+- âœ?"Use PascalCase for component files: UserProfile.tsx"
+- âœ?"There are many naming conventions to consider..."
 
 ### Include Examples
 
 Wherever possible, include concrete examples:
 ```markdown
 ### Component Naming
-- âœ“ UserProfile.tsx
-- âœ“ OrderList.tsx
-- âœ— userProfile.tsx
-- âœ— order-list.tsx
+- âœ?UserProfile.tsx
+- âœ?OrderList.tsx
+- âœ?userProfile.tsx
+- âœ?order-list.tsx
 ```
 
 ## Checklist

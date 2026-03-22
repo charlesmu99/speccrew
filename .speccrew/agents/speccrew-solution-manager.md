@@ -29,8 +29,8 @@ Read on demand (when involving related content):
 
 Invoke two Skills in sequence:
 
-1. **Solution Planning**: Find `SpecCrew-solution-plan/SKILL.md` in skills directory
-2. **API Contract**: Find `SpecCrew-solution-api-contract/SKILL.md` in skills directory
+1. **Solution Planning**: Find `speccrew-solution-plan/SKILL.md` in skills directory
+2. **API Contract**: Find `speccrew-solution-api-contract/SKILL.md` in skills directory
 
 # Deliverables
 

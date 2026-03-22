@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-create-workspace
+name: speccrew-create-workspace
 description: Creates speccrew-workspace directory structure based on project diagnosis report. Generates project documentation directories, knowledge bases, and deliverable templates. Use after project diagnosis completion when setting up or updating the workspace structure.
 ---
 
@@ -9,7 +9,7 @@ Based on the diagnosis report in `speccrew-workspace/diagnosis-reports/`, genera
 
 ## Prerequisites
 
-**Must complete project diagnosis first**, ensure `speccrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `SpecCrew-project-diagnosis` Skill first.
+**Must complete project diagnosis first**, ensure `speccrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `speccrew-project-diagnosis` Skill first.
 
 **Read the latest diagnosis report**:
 1. List all diagnosis report files in `speccrew-workspace/diagnosis-reports/` directory

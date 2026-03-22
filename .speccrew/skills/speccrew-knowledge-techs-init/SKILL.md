@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-techs-init
+name: speccrew-knowledge-techs-init
 description: Stage 1 of technology knowledge initialization - Scan source code to detect technology platforms and generate techs-manifest.json. Identifies web, mobile, backend, and desktop platforms by analyzing configuration files and project structure. Used by Worker Agent to kick off the techs pipeline.
 tools: Read, Write, Glob, Grep, SearchCodebase
 ---
@@ -12,9 +12,9 @@ Scan project source code to identify all technology platforms, extract configura
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` → Generate all content in 中文
-- `language: "en"` → Generate all content in English
-- Other languages → Use the specified language
+- `language: "zh"` �?Generate all content in 中文
+- `language: "en"` �?Generate all content in English
+- Other languages �?Use the specified language
 
 **All output content must be in the target language only.**
 
@@ -27,7 +27,7 @@ Scan project source code to identify all technology platforms, extract configura
 
 ## User
 
-Worker Agent (SpecCrew-task-worker)
+Worker Agent (speccrew-task-worker)
 
 ## Input
 
@@ -210,7 +210,7 @@ If a project contains multiple platforms (e.g., web + backend + mobile):
 For monorepos with multiple packages:
 - Detect platforms in each package directory
 - Use relative paths for source_path
-- Example: `packages/web-app` → web-react platform
+- Example: `packages/web-app` �?web-react platform
 
 ### Framework Version Detection
 

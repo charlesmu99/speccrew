@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-create-agents
+name: speccrew-create-agents
 description: Creates or updates tech-stack-specific Agents and project-level Skills based on project diagnosis report. Generates role Agents using predefined templates. Use after project diagnosis completion when setting up or updating the AI collaboration system.
 ---
 
@@ -9,7 +9,7 @@ Based on the diagnosis report in `speccrew-workspace/diagnosis-reports/`, genera
 
 ## Prerequisites
 
-**Must complete project diagnosis first**, ensure `speccrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `SpecCrew-project-diagnosis` Skill first.
+**Must complete project diagnosis first**, ensure `speccrew-workspace/diagnosis-reports/diagnosis-report-{date}.md` exists and contains complete information. If not exists, prompt user to execute `speccrew-project-diagnosis` Skill first.
 
 **Read the latest diagnosis report**:
 1. List all diagnosis report files in `speccrew-workspace/diagnosis-reports/` directory
@@ -45,9 +45,9 @@ Scan `agents/` and `skills/` directories, record existing files. For existing Ag
 
 Read the **Recommended Agents to Generate** section from diagnosis report, create or update tech-stack-specific Agents in `agents/`:
 
-- `SpecCrew-designer-[techstack]` (e.g., SpecCrew-designer-react, SpecCrew-designer-fastapi) - use `templates/agents/designer-agent.md`
-- `SpecCrew-dev-[techstack]` (e.g., SpecCrew-dev-nextjs, SpecCrew-dev-springboot) - use `templates/agents/dev-agent.md`
-- `SpecCrew-test-[techstack]` (e.g., SpecCrew-test-playwright, SpecCrew-test-junit) - use `templates/agents/test-agent.md`
+- `speccrew-designer-[techstack]` (e.g., speccrew-designer-react, speccrew-designer-fastapi) - use `templates/agents/designer-agent.md`
+- `speccrew-dev-[techstack]` (e.g., speccrew-dev-nextjs, speccrew-dev-springboot) - use `templates/agents/dev-agent.md`
+- `speccrew-test-[techstack]` (e.g., speccrew-test-playwright, speccrew-test-junit) - use `templates/agents/test-agent.md`
 
 **Template Usage**:
 - **If Agent does not exist**: Copy template, replace `[techstack]` placeholder with actual technology stack name from diagnosis report, embed project-specific information
@@ -65,7 +65,7 @@ Read the **Recommended Agents to Generate** section from diagnosis report, creat
 
 Create or update project-level Skill directory structure in `skills/`.
 
-**Note**: Specific Skill content (such as add-page, add-api, etc.) is not generated at this stage, but gradually created by Dev Agent through `SpecCrew-skill-develop` Skill after identifying repetitive operation patterns during development.
+**Note**: Specific Skill content (such as add-page, add-api, etc.) is not generated at this stage, but gradually created by Dev Agent through `speccrew-skill-develop` Skill after identifying repetitive operation patterns during development.
 
 This step only creates necessary directory structure and basic configuration Skills (such as pre-commit-check, if configured). Existing Skill files are preserved.
 

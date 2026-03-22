@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-techs-index
+name: speccrew-knowledge-techs-index
 description: Stage 3 of technology knowledge initialization - Generate root INDEX.md by aggregating all platform technology documents. Creates the master index that maps platforms to their documentation and provides Agent-to-Platform mapping guide. Used by Worker Agent after all platform documents are generated.
 tools: Read, Write
 ---
@@ -12,9 +12,9 @@ Aggregate all platform technology documentation into a single root INDEX.md that
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` â†’ Generate all content in ä¸­æ–‡
-- `language: "en"` â†’ Generate all content in English
-- Other languages â†’ Use the specified language
+- `language: "zh"` â†?Generate all content in ä¸­æ–‡
+- `language: "en"` â†?Generate all content in English
+- Other languages â†?Use the specified language
 
 ## Trigger Scenarios
 
@@ -25,7 +25,7 @@ Aggregate all platform technology documentation into a single root INDEX.md that
 
 ## User
 
-Worker Agent (SpecCrew-task-worker)
+Worker Agent (speccrew-task-worker)
 
 ## Input
 
@@ -159,9 +159,9 @@ This section maps dynamically generated Agents to their respective platform docu
 
 | Agent Role | Agent Name | Documentation Path |
 |------------|------------|-------------------|
-| Designer | SpecCrew-designer-web-react | [knowledge/techs/web-react/](web-react/) |
-| Developer | SpecCrew-dev-web-react | [knowledge/techs/web-react/](web-react/) |
-| Tester | SpecCrew-test-web-react | [knowledge/techs/web-react/](web-react/) |
+| Designer | speccrew-designer-web-react | [knowledge/techs/web-react/](web-react/) |
+| Developer | speccrew-dev-web-react | [knowledge/techs/web-react/](web-react/) |
+| Tester | speccrew-test-web-react | [knowledge/techs/web-react/](web-react/) |
 
 **Key Documents for Web Agents:**
 - Designer: [architecture.md](web-react/architecture.md), [conventions-design.md](web-react/conventions-design.md)
@@ -172,9 +172,9 @@ This section maps dynamically generated Agents to their respective platform docu
 
 | Agent Role | Agent Name | Documentation Path |
 |------------|------------|-------------------|
-| Designer | SpecCrew-designer-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
-| Developer | SpecCrew-dev-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
-| Tester | SpecCrew-test-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
+| Designer | speccrew-designer-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
+| Developer | speccrew-dev-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
+| Tester | speccrew-test-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
 
 **Key Documents for Backend Agents:**
 - Designer: [architecture.md](backend-nestjs/architecture.md), [conventions-design.md](backend-nestjs/conventions-design.md)
@@ -242,15 +242,15 @@ Write the generated INDEX.md to `{output_path}/INDEX.md`.
 ```
 Stage 3 completed: Root Technology Index Generated
 - Platforms Indexed: {N}
-  - web-react: âœ“
-  - backend-nestjs: âœ“
+  - web-react: âœ?
+  - backend-nestjs: âœ?
 - Root Index: {output_path}/INDEX.md
 - Agent Mappings: Documented for all platforms
 ```
 
 ## Template
 
-Use template at `SpecCrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md`:
+Use template at `speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md`:
 
 **Template Variables:**
 - `{{generated_at}}`: ISO timestamp

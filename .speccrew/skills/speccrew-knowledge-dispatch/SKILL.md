@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-knowledge-dispatch
+name: speccrew-knowledge-dispatch
 description: Dispatch knowledge base initialization tasks to Worker Agents with parallel execution support. Used by Leader Agent to orchestrate parallel pipelines for both bizs and techs knowledge generation.
 tools: Read, Write, Task
 ---
@@ -12,9 +12,9 @@ Orchestrate **both bizs and techs knowledge base generation** in parallel with m
 
 **CRITICAL**: All generated documents must match the user's language. Detect the language from the user's input and pass it to all downstream Worker Agents.
 
-- User writes in 中文 → Generate Chinese documents, pass `language: "zh"` to workers
-- User writes in English → Generate English documents, pass `language: "en"` to workers
-- User writes in other languages → Use appropriate language code
+- User writes in 中文 �?Generate Chinese documents, pass `language: "zh"` to workers
+- User writes in English �?Generate English documents, pass `language: "en"` to workers
+- User writes in other languages �?Use appropriate language code
 
 **All downstream skills must receive the `language` parameter and generate content in that language only.**
 
@@ -27,7 +27,7 @@ Orchestrate **both bizs and techs knowledge base generation** in parallel with m
 
 ## User
 
-Leader Agent (SpecCrew-team-leader)
+Leader Agent (speccrew-team-leader)
 
 ## Prerequisites
 
@@ -55,32 +55,32 @@ Leader Agent (SpecCrew-team-leader)
 ## Workflow Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   Knowledge Base Dispatch                               │
-├─────────────────────────────────────────────────────────────────────────│
-│ IF knowledge_types = "bizs"    │ IF knowledge_types = "techs"           │
-│ OR knowledge_types = "both"    │ OR knowledge_types = "both"            │
-├─────────────────────────────────────────────────────────────────────────│
-║                                                                ║        │
-│ ┌─────────────────────┐       ┌─────────────────────┐       │        │
-│ │  Bizs Pipeline      │       │  Techs Pipeline     │       │        │
-│ │  (4 Stages)         │       │  (3 Stages)         │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 1: Scan        │       │Stage 1: Detect      │       │        │
-│ │         Modules     │       │         Platforms   │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 2: Analyze     │       │Stage 2: Generate    │       │        │
-│ │         Modules     │       │         Tech Docs   │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 3: Summarize   │       │Stage 3: Generate    │       │        │
-│ │         Modules     │       │         Index       │       │        │
-│ ├─────────────────────┤       └─────────────────────┘       │        │
-│ │Stage 4: System       │                                      │        │
-│ │         Summary      │                                      │        │
-│ └─────────────────────┘                                      │        │
-║                                                                ║        │
-│ Both pipelines run in PARALLEL when knowledge_types = "both"  │        │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────�?
+�?                  Knowledge Base Dispatch                               �?
+├─────────────────────────────────────────────────────────────────────────�?
+�?IF knowledge_types = "bizs"    �?IF knowledge_types = "techs"           �?
+�?OR knowledge_types = "both"    �?OR knowledge_types = "both"            �?
+├─────────────────────────────────────────────────────────────────────────�?
+�?                                                               �?       �?
+�?┌─────────────────────�?      ┌─────────────────────�?      �?       �?
+�?�? Bizs Pipeline      �?      �? Techs Pipeline     �?      �?       �?
+�?�? (4 Stages)         �?      �? (3 Stages)         �?      �?       �?
+�?├─────────────────────�?      ├─────────────────────�?      �?       �?
+�?│Stage 1: Scan        �?      │Stage 1: Detect      �?      �?       �?
+�?�?        Modules     �?      �?        Platforms   �?      �?       �?
+�?├─────────────────────�?      ├─────────────────────�?      �?       �?
+�?│Stage 2: Analyze     �?      │Stage 2: Generate    �?      �?       �?
+�?�?        Modules     �?      �?        Tech Docs   �?      �?       �?
+�?├─────────────────────�?      ├─────────────────────�?      �?       �?
+�?│Stage 3: Summarize   �?      │Stage 3: Generate    �?      �?       �?
+�?�?        Modules     �?      �?        Index       �?      �?       �?
+�?├─────────────────────�?      └─────────────────────�?      �?       �?
+�?│Stage 4: System       �?                                     �?       �?
+�?�?        Summary      �?                                     �?       �?
+�?└─────────────────────�?                                     �?       �?
+�?                                                               �?       �?
+�?Both pipelines run in PARALLEL when knowledge_types = "both"  �?       �?
+└─────────────────────────────────────────────────────────────────────────�?
 ```
 
 ---
@@ -92,7 +92,7 @@ Leader Agent (SpecCrew-team-leader)
 **Goal**: Scan source code and identify all modules.
 
 **Action**:
-- Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-bizs-init/SKILL.md`
+- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-bizs-init/SKILL.md`
 - Task: Analyze project structure, detect modules
 - Parameters to pass to skill:
   - `source_path`: Source code directory path (default: project root)
@@ -168,7 +168,7 @@ Leader Agent (SpecCrew-team-leader)
 **Action (full mode)**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
-- For each module within the platform, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-module-analyze/SKILL.md`
+- For each module within the platform, invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-module-analyze/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
   - `platform_name`: Platform name (e.g., "Web Frontend", "Mobile App")
@@ -221,7 +221,7 @@ Platform: Mobile App (mobile-flutter)
 **Action (full mode)**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
 - Iterate through each `platform` in `platforms` array
-- For each module within the platform, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-module-summarize/SKILL.md`
+- For each module within the platform, invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-module-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
   - `platform_type`: Platform type (e.g., "web", "mobile-flutter")
@@ -257,7 +257,7 @@ Platform: Mobile App (mobile-flutter)
 
 **Action**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json` to get platform structure
-- Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-system-summarize/SKILL.md`
+- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-system-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `modules_json_path`: Path to modules.json file
   - `knowledge_base_path`: Path to knowledge base directory (e.g., `knowledge/bizs/`)
@@ -278,7 +278,7 @@ Platform: Mobile App (mobile-flutter)
 **Goal**: Scan source code and identify all technology platforms.
 
 **Action**:
-- Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-techs-init/SKILL.md`
+- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-init/SKILL.md`
 - Task: Analyze project structure, detect technology platforms
 - Parameters to pass to skill:
   - `source_path`: Source code directory path
@@ -324,7 +324,7 @@ Platform: Mobile App (mobile-flutter)
 
 **Action**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
-- For each platform in `platforms` array, invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-techs-generate/SKILL.md`
+- For each platform in `platforms` array, invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-generate/SKILL.md`
 - Parameters to pass to skill:
   - `platform_id`: Platform identifier from manifest
   - `platform_type`: Platform type (web, mobile, backend, desktop)
@@ -338,10 +338,10 @@ Platform: Mobile App (mobile-flutter)
 **Parallel Tasks**:
 ```yaml
 # Worker 1 - Generate web-react tech docs
-subagent_type: "SpecCrew-task-worker"
+subagent_type: "speccrew-task-worker"
 description: "Generate web-react technology documents"
 prompt: |
-  skill_path: SpecCrew-knowledge-techs-generate/SKILL.md
+  skill_path: speccrew-knowledge-techs-generate/SKILL.md
   context:
     platform_id: web-react
     platform_type: web
@@ -353,10 +353,10 @@ prompt: |
     language: zh
 
 # Worker 2 - Generate backend-nestjs tech docs
-subagent_type: "SpecCrew-task-worker"
+subagent_type: "speccrew-task-worker"
 description: "Generate backend-nestjs technology documents"
 prompt: |
-  skill_path: SpecCrew-knowledge-techs-generate/SKILL.md
+  skill_path: speccrew-knowledge-techs-generate/SKILL.md
   context:
     platform_id: backend-nestjs
     platform_type: backend
@@ -393,7 +393,7 @@ knowledge/techs/{platform_id}/
 
 **Action**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
-- Invoke 1 Worker Agent (`SpecCrew-task-worker.md`) with skill `SpecCrew-knowledge-techs-index/SKILL.md`
+- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-index/SKILL.md`
 - Parameters to pass to skill:
   - `manifest_path`: Path to techs-manifest.json
   - `techs_base_path`: Base path for techs documentation (e.g., `knowledge/techs/`)
@@ -412,13 +412,13 @@ knowledge/techs/{platform_id}/
 Both pipelines execute in parallel from Stage 1:
 
 ```
-Time →
+Time �?
 ─────────────────────────────────────────────────────────────────────────────
 
 Bizs Pipeline:   [Stage 1] →[Stage 2 Parallel] →[Stage 3 Parallel] →[Stage 4] →[Report]
-                      │          │                   │
+                      �?         �?                  �?
 Techs Pipeline:   [Stage 1] →[Stage 2 Parallel] →[Stage 3] →[Report]
-                      │          │
+                      �?         �?
                   Both Stage 1s run in parallel
                   (independent tasks)
 
@@ -445,10 +445,10 @@ Techs Pipeline:   [Stage 1] →[Stage 2 Parallel] →[Stage 3] →[Report]
 Knowledge base initialization completed:
 
 Pipeline Summary:
-- Stage 1 (Module List): ✅ Completed - 2 platforms, 8 modules identified
-- Stage 2 (Analysis): ✅ Completed - 8/8 modules analyzed
-- Stage 3 (Summarize): ✅ Completed - 8/8 modules summarized
-- Stage 4 (System): ✅ Completed
+- Stage 1 (Module List): �?Completed - 2 platforms, 8 modules identified
+- Stage 2 (Analysis): �?Completed - 8/8 modules analyzed
+- Stage 3 (Summarize): �?Completed - 8/8 modules summarized
+- Stage 4 (System): �?Completed
 
 Platform Breakdown:
 - Web Frontend (web): 4 modules, 16 features
@@ -471,7 +471,7 @@ Output Files:
 
 Next Steps:
 - Review system-overview.md for complete system structure
-- Use SpecCrew-pm-requirement-assess for new requirements
+- Use speccrew-pm-requirement-assess for new requirements
 ```
 
 ## Master Execution Flow
@@ -491,10 +491,10 @@ Next Steps:
 ### Step 2: Launch Stage 1 (Parallel when knowledge_types = "both")
 
 **IF knowledge_types = "bizs" OR "both"**:
-- Launch Bizs Stage 1 Worker (SpecCrew-knowledge-bizs-init)
+- Launch Bizs Stage 1 Worker (speccrew-knowledge-bizs-init)
 
 **IF knowledge_types = "techs" OR "both"**:
-- Launch Techs Stage 1 Worker (SpecCrew-knowledge-techs-init)
+- Launch Techs Stage 1 Worker (speccrew-knowledge-techs-init)
 
 **Wait for all Stage 1 Workers to complete**.
 
@@ -528,34 +528,34 @@ Next Steps:
 **Output Format** (when knowledge_types = "both"):
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
-║          Knowledge Base Initialization Completed                     ║
+�?         Knowledge Base Initialization Completed                     �?
 ╠══════════════════════════════════════════════════════════════════════╣
-║                                                                     │
-║ [Bizs Pipeline]                                                      ║
-║ ─────────────────────────────────────────────────────────────────   │
-║ Stage 1 (Module List):     ✅ Completed - 2 platforms, 8 modules     ║
-║ Stage 2 (Module Analysis): ✅ Completed - 8/8 modules analyzed       ║
-║ Stage 3 (Module Summary):  ✅ Completed - 8/8 modules summarized     ║
-║ Stage 4 (System Summary):  ✅ Completed                              ║
-║                                                                     │
-║ [Techs Pipeline]                                                     ║
-║ ─────────────────────────────────────────────────────────────────   │
-║ Stage 1 (Platform Detection): ✅ Completed - 3 platforms detected    ║
-║ Stage 2 (Doc Generation):     ✅ Completed - 3/3 platforms           ║
-║ Stage 3 (Index Generation):   ✅ Completed                           ║
-║                                                                     │
-║ Platform Breakdown:                                                  ║
-║ ─────────────────────────────────────────────────────────────────   │
-║ Bizs:  Web Frontend (4 modules), Mobile App (4 modules)              ║
-║ Techs: web-react, backend-nestjs, mobile-flutter                     ║
-║                                                                     │
-║ Generated Documents:                                                 ║
-║ ─────────────────────────────────────────────────────────────────   │
-║   📄 knowledge/bizs/system-overview.md                               ║
-║   📄 knowledge/bizs/{platform}/{module}/... (8 modules)              ║
-║   📄 knowledge/techs/INDEX.md                                        ║
-║   📄 knowledge/techs/{platform}/... (3 platforms)                    ║
-║                                                                     │
+�?                                                                    �?
+�?[Bizs Pipeline]                                                      �?
+�?─────────────────────────────────────────────────────────────────   �?
+�?Stage 1 (Module List):     �?Completed - 2 platforms, 8 modules     �?
+�?Stage 2 (Module Analysis): �?Completed - 8/8 modules analyzed       �?
+�?Stage 3 (Module Summary):  �?Completed - 8/8 modules summarized     �?
+�?Stage 4 (System Summary):  �?Completed                              �?
+�?                                                                    �?
+�?[Techs Pipeline]                                                     �?
+�?─────────────────────────────────────────────────────────────────   �?
+�?Stage 1 (Platform Detection): �?Completed - 3 platforms detected    �?
+�?Stage 2 (Doc Generation):     �?Completed - 3/3 platforms           �?
+�?Stage 3 (Index Generation):   �?Completed                           �?
+�?                                                                    �?
+�?Platform Breakdown:                                                  �?
+�?─────────────────────────────────────────────────────────────────   �?
+�?Bizs:  Web Frontend (4 modules), Mobile App (4 modules)              �?
+�?Techs: web-react, backend-nestjs, mobile-flutter                     �?
+�?                                                                    �?
+�?Generated Documents:                                                 �?
+�?─────────────────────────────────────────────────────────────────   �?
+�?  📄 knowledge/bizs/system-overview.md                               �?
+�?  📄 knowledge/bizs/{platform}/{module}/... (8 modules)              �?
+�?  📄 knowledge/techs/INDEX.md                                        �?
+�?  📄 knowledge/techs/{platform}/... (3 platforms)                    �?
+�?                                                                    �?
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 

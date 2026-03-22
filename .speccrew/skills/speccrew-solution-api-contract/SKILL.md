@@ -1,12 +1,12 @@
 ---
-name: SpecCrew-solution-api-contract
+name: speccrew-solution-api-contract
 description: API Contract Generation SOP. Based on Solution document, outputs structured frontend-backend API contract document. Once confirmed, the contract cannot be modified in downstream stages.
 tools: Read, Write, Glob, Grep
 ---
 
 # Trigger Scenarios
 
-- Automatically triggered by SpecCrew-solution-plan Skill after Solution document completion
+- Automatically triggered by speccrew-solution-plan Skill after Solution document completion
 - User requests "Generate API documentation" or "Define API contract"
 
 # Workflow
@@ -14,7 +14,7 @@ tools: Read, Write, Glob, Grep
 ## Step 1: Read Input
 
 1. Solution document: `projects/pXXX/02.solutions/[feature-name]-solution.md`
-2. API Contract template: `SpecCrew-solution-api-contract/templates/API-CONTRACT-TEMPLATE.md`
+2. API Contract template: `speccrew-solution-api-contract/templates/API-CONTRACT-TEMPLATE.md`
 3. System architecture (API specification part): `speccrew-workspace/knowledge/architecture/backend/README.md` (refer to API naming conventions)
 
 ## Step 2: Organize API List

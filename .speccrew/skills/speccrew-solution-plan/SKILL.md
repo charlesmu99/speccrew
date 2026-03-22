@@ -1,5 +1,5 @@
 ---
-name: SpecCrew-solution-plan
+name: speccrew-solution-plan
 description: Solution Planning SOP. Guide Solution Agent to complete solution analysis, technology selection, data model design, and output Solution document.
 tools: Read, Write, Glob, Grep
 ---
@@ -18,7 +18,7 @@ Read in order:
 1. Current iteration PRD: `projects/pXXX/01.prds/[feature-name]-prd.md`
 2. System architecture status: `speccrew-workspace/knowledge/architecture/system/system-arch.md`
 3. Business module list: `speccrew-workspace/knowledge/bizs/modules/modules.md`
-4. Solution template: `SpecCrew-solution-plan/templates/SOLUTION-TEMPLATE.md`
+4. Solution template: `speccrew-solution-plan/templates/SOLUTION-TEMPLATE.md`
 
 ## Step 2: Solution Analysis
 
@@ -73,7 +73,7 @@ If iteration directory does not exist, refer to `p000-sample` to create complete
 
 ## Step 5: Synchronously Execute API Contract
 
-After Solution document is complete, continue calling `SpecCrew-solution-api-contract/SKILL.md` to generate API contract document.
+After Solution document is complete, continue calling `speccrew-solution-api-contract/SKILL.md` to generate API contract document.
 
 # Checklist
 
