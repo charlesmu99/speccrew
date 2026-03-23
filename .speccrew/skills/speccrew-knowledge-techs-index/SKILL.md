@@ -30,8 +30,8 @@ Worker Agent (speccrew-task-worker)
 ## Input
 
 - `manifest_path`: Path to techs-manifest.json
-- `techs_base_path`: Base path for techs documentation (default: `knowledge/techs/`)
-- `output_path`: Output path for root INDEX.md (default: `knowledge/techs/`)
+- `techs_base_path`: Base path for techs documentation (default: `speccrew-workspace/knowledges/techs/`)
+- `output_path`: Output path for root INDEX.md (default: `speccrew-workspace/knowledges/techs/`)
 - `language`: Target language (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
@@ -71,7 +71,7 @@ Read `techs-manifest.json` to get the list of all platforms:
 For each platform in manifest, verify that platform documents exist:
 
 ```
-knowledge/techs/{platform_id}/
+speccrew-workspace/knowledges/techs/{platform_id}/
 ├── INDEX.md
 ├── tech-stack.md
 ├── architecture.md
@@ -159,9 +159,9 @@ This section maps dynamically generated Agents to their respective platform docu
 
 | Agent Role | Agent Name | Documentation Path |
 |------------|------------|-------------------|
-| Designer | speccrew-designer-web-react | [knowledge/techs/web-react/](web-react/) |
-| Developer | speccrew-dev-web-react | [knowledge/techs/web-react/](web-react/) |
-| Tester | speccrew-test-web-react | [knowledge/techs/web-react/](web-react/) |
+| Designer | speccrew-designer-web-react | [speccrew-workspace/knowledges/techs/web-react/](web-react/) |
+| Developer | speccrew-dev-web-react | [speccrew-workspace/knowledges/techs/web-react/](web-react/) |
+| Tester | speccrew-test-web-react | [speccrew-workspace/knowledges/techs/web-react/](web-react/) |
 
 **Key Documents for Web Agents:**
 - Designer: [architecture.md](web-react/architecture.md), [conventions-design.md](web-react/conventions-design.md)
@@ -172,9 +172,9 @@ This section maps dynamically generated Agents to their respective platform docu
 
 | Agent Role | Agent Name | Documentation Path |
 |------------|------------|-------------------|
-| Designer | speccrew-designer-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
-| Developer | speccrew-dev-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
-| Tester | speccrew-test-backend-nestjs | [knowledge/techs/backend-nestjs/](backend-nestjs/) |
+| Designer | speccrew-designer-backend-nestjs | [speccrew-workspace/knowledges/techs/backend-nestjs/](backend-nestjs/) |
+| Developer | speccrew-dev-backend-nestjs | [speccrew-workspace/knowledges/techs/backend-nestjs/](backend-nestjs/) |
+| Tester | speccrew-test-backend-nestjs | [speccrew-workspace/knowledges/techs/backend-nestjs/](backend-nestjs/) |
 
 **Key Documents for Backend Agents:**
 - Designer: [architecture.md](backend-nestjs/architecture.md), [conventions-design.md](backend-nestjs/conventions-design.md)

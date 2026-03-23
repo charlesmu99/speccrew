@@ -30,8 +30,8 @@ Worker Agent (speccrew-task-worker)
 
 ## Input
 
-- `modules_path`: Path to modules directory containing all {name}/{name}-overview.md files
-- `output_path`: Output path for system-overview.md
+- `modules_path`: Path to modules directory (e.g., `speccrew-workspace/knowledges/bizs/`) containing all {platform_type}/{module_name}/{name}-overview.md files
+- `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
@@ -97,6 +97,19 @@ Key requirements:
 - No `direction` keyword
 - No `style` definitions
 - Use standard `graph TB/LR` syntax only
+
+**Mermaid Diagram Types:**
+
+Select appropriate diagram type based on scenario:
+
+| Diagram Type | Use Case | Example |
+|---------|---------|------|
+| `graph TB/LR` | System structure, module dependencies | System architecture, module dependency graph |
+| `sequenceDiagram` | Cross-module interaction flow | User operation flow, service call chain |
+| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
+| `classDiagram` | Class structure, entity relationships | Data model, service interface |
+| `erDiagram` | Database table relationships | Entity relationship diagram |
+| `stateDiagram-v2` | State machine | Order status, approval status |
 
 ### Step 5: Identify Business Domains
 
@@ -164,6 +177,32 @@ Use template `speccrew-knowledge-system-summarize/templates/system-overview-temp
 - Reference to `speccrew-pm-requirement-assess` skill
 - Quick location guide (which section to reference)
 
+**Source Traceability:**
+
+Aggregate source file references from all module overview documents:
+
+1. **File Reference Block** (at document start):
+```markdown
+<cite>
+**Referenced Files**
+- Aggregated from all module overview documents
+- [OrderController.java](file://path/to/controller)
+- [PaymentController.java](file://path/to/controller)
+</cite>
+```
+
+2. **Diagram Source** (after each Mermaid diagram):
+```markdown
+**Diagram Source**
+- Aggregated from: order-overview.md, payment-overview.md
+```
+
+3. **Section Source** (at end of document):
+```markdown
+**Section Source**
+- Aggregated from all module overview documents
+```
+
 ### Step 8: Report Results
 
 ```
@@ -181,10 +220,13 @@ System summarization completed:
 
 - [ ] All {name}-overview.md files discovered
 - [ ] Module information extracted
+- [ ] Source file references aggregated from module documents
 - [ ] Module index table created
 - [ ] Dependency graph built
 - [ ] Business domains identified
 - [ ] End-to-end flows mapped
 - [ ] system-overview.md generated with all sections
+- [ ] Source traceability information included
+- [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported
 

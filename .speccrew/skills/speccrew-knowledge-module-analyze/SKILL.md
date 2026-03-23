@@ -38,7 +38,7 @@ Worker Agent (speccrew-task-worker)
 - `tech_stack`: Platform tech stack array (e.g., ["react", "typescript"])
 - `entry_points`: Module entry points (relative file paths from modules.json)
 - `backend_apis`: Associated backend API endpoints for this module (only when `system_type: "ui"`)
-- `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
+- `output_path`: Output directory for the module (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
@@ -98,6 +98,23 @@ Based on `system_type`, extract different information:
 | Public APIs | Route decorators: `@Get`, `@Post`, `@Put`, `@Delete` |
 
 ### Step 3: Identify Features
+
+#### 3.1 Feature Granularity Rules
+
+Determine splitting strategy based on feature complexity:
+
+| Complexity | Criteria | Splitting Strategy | Example |
+|--------|---------|---------|------|
+| Simple | ≤3 API endpoints, no complex business flow | Merge into single document | Data Dictionary Management |
+| Medium | 3-8 API endpoints, independent business scenarios | Split by operation type | User CRUD, User Status Management |
+| Complex | >8 API endpoints, multiple business scenarios | Split by business scenario | Payment Order Management, Payment Security Mechanism |
+
+**Feature Naming Convention:**
+- Feature group document: `{module-name}-overview.md` (Module Overview)
+- Feature detail document: `{feature-name}.md` (Named by core feature)
+- Use target language for naming, maintain semantic clarity
+
+#### 3.2 Feature Extraction
 
 **For UI-based modules (system_type = "ui"):**
 
@@ -166,6 +183,17 @@ For each feature, extract:
 - Validation rules
 - Business rules from code comments
 
+#### 3.3 Source File Tracking
+
+**CRITICAL**: For each extracted feature, track the source files:
+
+| Feature | Controller File | Service File | Entity/DTO Files |
+|---------|----------------|--------------|------------------|
+| create-order | OrderController.java#L45-L60 | OrderService.java#L30-L50 | CreateOrderDTO.java, OrderDO.java |
+| list-orders | OrderController.java#L62-L75 | OrderService.java#L52-L70 | OrderQueryVO.java, OrderDO.java |
+
+These source file references will be used in the generated documents for traceability.
+
 ### Step 4: Generate {feature-name}.md Files
 
 For each feature, use template `speccrew-knowledge-module-analyze/templates/feature-detail-template.md`:
@@ -179,8 +207,34 @@ For each feature, use template `speccrew-knowledge-module-analyze/templates/feat
 - `{{ResponseDto}}`: Response DTO fields
 - `{{ValidationRules}}`: Validation decorators
 - `{{BusinessRules}}`: Extracted from code comments
+- `{{SourceFiles}}`: Source file references for traceability
 
 **Output:** `{output_path}/features/{feature-name}.md`
+
+**Source Traceability Requirements:**
+
+Each generated document must include source code traceability information:
+
+1. **File Reference Block** (at document start):
+```markdown
+<cite>
+**Referenced Files**
+- [OrderController.java](file://path/to/controller)
+- [OrderService.java](file://path/to/service)
+</cite>
+```
+
+2. **Diagram Source** (after each Mermaid diagram):
+```markdown
+**Diagram Source**
+- [OrderController.java](file://path/to/controller#L45-L60)
+```
+
+3. **Section Source** (at end of each major section):
+```markdown
+**Section Source**
+- [OrderService.java](file://path/to/service#L30-L50)
+```
 
 ### Step 5: Generate {name}-overview.md (Initial)
 
@@ -199,6 +253,19 @@ Key requirements:
 - No `style` definitions
 - Use standard `graph TB/LR` syntax only
 
+**Mermaid Diagram Types:**
+
+Select appropriate diagram type based on scenario:
+
+| Diagram Type | Use Case | Example |
+|---------|---------|------|
+| `graph TB/LR` | Module structure, dependencies | Project structure diagram, dependency graph |
+| `sequenceDiagram` | Interaction flow, API calls | User operation flow, service call chain |
+| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
+| `classDiagram` | Class structure, entity relationships | Data model, service interface |
+| `erDiagram` | Database table relationships | Entity relationship diagram |
+| `stateDiagram-v2` | State machine | Order status, approval status |
+
 **Section 1: Module Basic Info**
 - Module name from input
 - Purpose from code analysis
@@ -212,6 +279,18 @@ Key requirements:
 | list-orders | GET /orders | → Generated | [View](features/list-orders.md) |
 
 **Section 3-6**: Mark as "TBD - Will be completed in summarize stage"
+
+**Source Traceability:**
+
+Module overview document must also include source code traceability information:
+
+```markdown
+<cite>
+**Referenced Files**
+- [OrderController.java](file://path/to/controller)
+- [OrderService.java](file://path/to/service)
+</cite>
+```
 
 ### Step 6: Report Results
 
@@ -236,10 +315,13 @@ Module analysis completed:
 - [ ] Entry points resolved from source_path + entry_points
 - [ ] Module source files located using entry points
 - [ ] Controllers/Handlers identified (API) or Pages/Components identified (UI)
-- [ ] Features extracted from entry point analysis
+- [ ] Features extracted with complexity assessment (Simple/Medium/Complex)
+- [ ] Feature granularity strategy determined (Merge/Split by operation/Split by scenario)
+- [ ] Source files tracked for each feature (Controller, Service, Entity/DTO)
 - [ ] Request/Response DTOs analyzed (API) or Props/State analyzed (UI)
 - [ ] Validation rules documented
-- [ ] {feature-name}.md generated for each feature
-- [ ] {name}-overview.md (initial) generated with feature list
+- [ ] {feature-name}.md generated with source traceability for each feature
+- [ ] {name}-overview.md (initial) generated with feature list and source traceability
+- [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported with platform context
 

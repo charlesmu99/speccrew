@@ -1,11 +1,17 @@
 # System Overview Document - [System Name]
 
 > **Applicable Scenario**: Functional panoramic map of ToB software system, for AI Agent (PM Agent / Solution Agent) to read and understand system structure, module relationships, assisting requirement analysis and solution planning
-> **Target Audience**: devcrew-product-manager, devcrew-solution-manager
+> **Target Audience**: devcrew-product-manager, devcrew-solution-manager, devcrew-developer
 > **Update Frequency**: Updated with major system iterations
 > 
 > <!-- AI-TAG: SYSTEM_OVERVIEW -->
 > <!-- AI-CONTEXT: Read this document to understand overall system structure, module division, business processes, used for requirement impact scope judgment and solution planning -->
+
+<cite>
+**Referenced Files**
+- Aggregated from all module overview documents
+- [{Module}Controller.java](file://path/to/controller)
+</cite>
 
 ---
 
@@ -51,16 +57,14 @@
 
 ```mermaid
 graph TB
-    subgraph System["[{System Name}]"]
-        direction TB
-        
-        subgraph DA["Domain A - {Core Domain Description}"]
+    subgraph System["{System Name}"]
+        subgraph DA["Domain A - Core Domain Description"]
             A1[Module A1]
             A2[Module A2]
             A3[Module A3]
         end
         
-        subgraph DB["Domain B - {Support Domain Description}"]
+        subgraph DB["Domain B - Support Domain Description"]
             B1[Module B1]
             B2[Module B2]
         end
@@ -78,6 +82,9 @@ graph TB
     end
 ```
 
+**Diagram Source**
+- Aggregated from all module overview documents
+
 | Business Domain | Responsibility Description | Core Modules | Business Value |
 |-----------------|---------------------------|--------------|----------------|
 | {Domain A} | {One sentence description} | {Module A1, A2, A3} | {What problem it solves} |
@@ -94,13 +101,13 @@ graph TB
 
 ```mermaid
 graph TD
-    SYS["[{System Name}]"]
+    SYS["{System Name}"]
     
     DA["Domain A"]
     DB["Domain B"]
     DC["Common Domain"]
     
-    A1["Module A1<br/>(Core)"]
+    A1["Module A1 (Core)"]
     A2["Module A2"]
     A3["Module A3"]
     B1["Module B1"]
@@ -127,6 +134,9 @@ graph TD
     A1 --> A1_2
 ```
 
+**Diagram Source**
+- Aggregated from module hierarchy analysis
+
 ### 2.2 Module Dependency Diagram
 
 <!-- AI-TAG: MODULE_DEPENDENCIES -->
@@ -138,21 +148,16 @@ graph LR
     B1 --> C1["Module C1"]
     A1 --> B2["Module B2"]
     B1 --> B2
-    
-    style A1 fill:#e1f5ff
-    style B1 fill:#e1f5ff
-    style C1 fill:#fff4e1
-    style B2 fill:#f0f0f0
-    
-    %% Legend
-    %% Blue: Core Module | Yellow: External Dependency | Gray: Support Module
 ```
+
+**Diagram Source**
+- Aggregated from module dependency analysis
 
 **Dependency Description:**
 - Arrow direction indicates dependency (A → B means A depends on B)
-- **Core Modules** (Blue): {Module A1, B1} - Business core
-- **External Dependencies** (Yellow): {Module C1} - External systems
-- **Support Modules** (Gray): {Module B2} - Basic services
+- **Core Modules**: {Module A1, B1} - Business core
+- **External Dependencies**: {Module C1} - External systems
+- **Support Modules**: {Module B2} - Basic services
 
 ### 2.3 Module List Index
 
@@ -192,18 +197,16 @@ graph LR
 
 ```mermaid
 flowchart LR
-    Start([Start<br/>Place Order]) --> A1[Module A1<br/>Order Review]
-    A1 -->|Pass| B1[Module B1<br/>Shipment Processing]
-    A1 -->|Reject| Reject[Exception Handling<br/>Order Rejected]
-    B1 --> C1[Module C1<br/>Settlement Processing]
-    C1 --> End([End<br/>Order Complete])
+    Start([Start: Place Order]) --> A1[Module A1: Order Review]
+    A1 -->|Pass| B1[Module B1: Shipment Processing]
+    A1 -->|Reject| Reject[Exception Handling: Order Rejected]
+    B1 --> C1[Module C1: Settlement Processing]
+    C1 --> End([End: Order Complete])
     Reject --> End
-    
-    style A1 fill:#e1f5ff
-    style B1 fill:#e1f5ff
-    style C1 fill:#e1f5ff
-    style Reject fill:#ffe1e1
 ```
+
+**Diagram Source**
+- Aggregated from cross-module flow analysis
 
 **Process Description:**
 | Step | Module | Processing Content | Output Status |
@@ -223,7 +226,7 @@ flowchart LR
 
 ```mermaid
 graph TB
-    subgraph ThisSystem["[This System]"]
+    subgraph ThisSystem["This System"]
         A[Module A]
         B[Module B]
         C[Module C]
@@ -239,13 +242,10 @@ graph TB
     B -->|Payment Request| PAY
     C -->|Logistics Query| LOG
     D -->|Notification Push| MSG
-    
-    style ThisSystem fill:#e1f5ff
-    style ERP fill:#fff4e1
-    style PAY fill:#fff4e1
-    style LOG fill:#fff4e1
-    style MSG fill:#fff4e1
 ```
+
+**Diagram Source**
+- Aggregated from external integration analysis
 
 ### 4.2 Integration Interface List
 
@@ -284,3 +284,6 @@ When PM Agent receives new requirements, should:
 **Document Status:** 📝 Draft / 👀 In Review / ✅ Published  
 **Last Updated:** {Date}  
 **Maintainer:** {Name}
+
+**Section Source**
+- Aggregated from all module overview documents

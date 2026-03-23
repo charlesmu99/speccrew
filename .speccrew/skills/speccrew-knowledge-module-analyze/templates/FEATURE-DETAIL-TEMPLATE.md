@@ -1,11 +1,19 @@
 # Feature Detail Design Template - [Feature Name]
 
 > **Applicable Scenario**: Detailed design for a single feature, including UI prototypes, interaction flows, and data definitions, for AI Agent generation and reading
-> **Target Audience**: devcrew-product-manager, devcrew-solution-manager, devcrew-designer
+> **Target Audience**: devcrew-product-manager, devcrew-solution-manager, devcrew-designer, devcrew-developer
 > **Related Document**: [Module Overview Document](../{{module-name}}-overview.md)
 > 
 > <!-- AI-TAG: FEATURE_DETAIL -->
 > <!-- AI-CONTEXT: This document describes the UI, interaction, and data rules of a single feature in detail. AI should fill all placeholders when generating. -->
+
+<cite>
+**本文引用的文件**
+- [{Controller}.java](file://path/to/controller)
+- [{Service}.java](file://path/to/service)
+- [{Entity}.java](file://path/to/entity)
+- [{DTO}.java](file://path/to/dto)
+</cite>
 
 ---
 
@@ -212,12 +220,11 @@ flowchart TD
     
     Save -->|Success| Success[Show Success]
     Success --> List[Return to List]
-    
-    style FEError fill:#fff3cd
-    style BEError fill:#fff3cd
-    style DBError fill:#ffe1e1
-    style Success fill:#d4edda
 ```
+
+**图表来源**
+- [{Controller}.java](file://path/to/controller#L45-L80)
+- [{Service}.java](file://path/to/service#L30-L60)
 
 ### 3.3 Interaction Rules
 
@@ -237,12 +244,12 @@ flowchart TD
 
 ### 4.1 Core Field List
 
-| Field Name | Field Type | Data Format | Constraint Rules | Remarks |
-|------------|------------|-------------|------------------|---------|
-| {Field 1} | String/Number/Boolean | {e.g., length ≤32, phone format} | {e.g., required, unique, default value} | {Additional notes} |
-| {Field 2} | String | {e.g., length 1-64} | {Required, supports fuzzy query} | - |
-| {Field 3} | Number | {e.g., ≥0, ≤9999} | {Optional, default 0} | Unit: pcs |
-| {Field 4} | Enum | {e.g., 0-Disabled, 1-Enabled} | {Required, default 1} | - |
+| Field Name | Field Type | Data Format | Constraint Rules | Index Suggestion | Remarks |
+|------------|------------|-------------|------------------|------------------|---------|
+| {Field 1} | String/Number/Boolean | {e.g., length ≤32, phone format} | {e.g., required, unique, default value} | {e.g., INDEX, UNIQUE} | {Additional notes} |
+| {Field 2} | String | {e.g., length 1-64} | {Required, supports fuzzy query} | {INDEX for query} | - |
+| {Field 3} | Number | {e.g., ≥0, ≤9999} | {Optional, default 0} | - | Unit: pcs |
+| {Field 4} | Enum | {e.g., 0-Disabled, 1-Enabled} | {Required, default 1} | - | - |
 
 ### 4.2 Data Source Description
 
@@ -302,32 +309,157 @@ flowchart TD
 
 ### 5.3 Validation Rules
 
-| Validation Scenario | Validation Rule | Prompt Message | Validation Timing |
-|--------------------|-----------------|----------------|-------------------|
-| Form submission | Product name cannot be empty | Please enter product name | Frontend blur + Backend submit |
-| Form submission | Product code format error (must start with SP) | Product code must start with SP, please check | Backend submit |
-| Delete operation | Cannot delete when product is associated with orders | This product is associated with orders and cannot be deleted | Before backend deletion |
+| Validation Scenario | Validation Rule | Prompt Message | Validation Timing | Error Code |
+|--------------------|-----------------|----------------|-------------------|------------|
+| Form submission | Product name cannot be empty | Please enter product name | Frontend blur + Backend submit | ERR_001 |
+| Form submission | Product code format error (must start with SP) | Product code must start with SP, please check | Backend submit | ERR_002 |
+| Delete operation | Cannot delete when product is associated with orders | This product is associated with orders and cannot be deleted | Before backend deletion | ERR_003 |
 
 ---
 
-## 6. Notes and Additional Information
+## 6. Dependency Analysis
+
+<!-- AI-TAG: DEPENDENCIES -->
+
+### 6.1 Module Dependencies
+
+| Dependency Module | Dependency Type | Purpose | Impact Scope |
+|-------------------|-----------------|---------|--------------|
+| {Module A} | Strong | {Purpose description} | {Impact when unavailable} |
+| {Module B} | Weak | {Purpose description} | {Degraded functionality} |
+
+### 6.2 Service Dependencies
+
+```mermaid
+graph LR
+    A[This Feature] --> B[Dependency Service 1]
+    A --> C[Dependency Service 2]
+    B --> D[Database]
+    C --> D
+```
+
+**图表来源**
+- [{Service}.java](file://path/to/service#L10-L50)
+
+### 6.3 External Dependencies
+
+| External System | Interface Type | Call Scenario | Degradation Strategy |
+|-----------------|----------------|---------------|---------------------|
+| {Payment Gateway} | REST API | {Payment processing} | {Queue and retry} |
+| {SMS Service} | REST API | {Verification code} | {Skip and log} |
+
+---
+
+## 7. Performance Considerations
+
+<!-- AI-TAG: PERFORMANCE -->
+
+### 7.1 Performance Bottlenecks
+
+| Scenario | Bottleneck Description | Optimization Suggestion | Priority |
+|----------|----------------------|------------------------|----------|
+| {List query} | {Large data volume} | {Add index, pagination} | High |
+| {Batch operation} | {Database lock} | {Async processing} | Medium |
+
+### 7.2 Index Suggestions
+
+| Table Name | Index Fields | Index Type | Scenario Description |
+|------------|--------------|------------|---------------------|
+| {table_name} | {field1, field2} | {COMPOSITE INDEX} | {Query optimization} |
+| {table_name} | {field3} | {INDEX} | {Filter condition} |
+
+### 7.3 Caching Strategy
+
+| Cache Scenario | Cache Strategy | Expiration Time | Invalidation Strategy |
+|----------------|----------------|-----------------|----------------------|
+| {User info} | {Redis} | {30 minutes} | {Write-through} |
+| {Configuration} | {Local cache} | {5 minutes} | {TTL expiration} |
+
+### 7.4 Transaction Boundaries
+
+| Operation Scenario | Transaction Scope | Isolation Level | Timeout Setting |
+|-------------------|-------------------|-----------------|-----------------|
+| {Create order} | {Order + Details} | {READ_COMMITTED} | {30 seconds} |
+| {Payment} | {Order + Payment} | {SERIALIZABLE} | {60 seconds} |
+
+---
+
+## 8. Troubleshooting Guide
+
+<!-- AI-TAG: TROUBLESHOOTING -->
+
+### 8.1 Common Issues
+
+| Issue Symptom | Possible Cause | Troubleshooting Steps | Solution |
+|---------------|----------------|----------------------|----------|
+| {Query timeout} | {Missing index} | {Check execution plan} | {Add index} |
+| {Data inconsistency} | {Transaction failure} | {Check transaction logs} | {Manual correction} |
+| {Permission denied} | {Role not assigned} | {Check user roles} | {Assign correct role} |
+
+### 8.2 Error Code Reference
+
+| Error Code | Error Description | Trigger Condition | Handling Suggestion |
+|------------|-------------------|-------------------|---------------------|
+| ERR_001 | {Required field empty} | {Form submission} | {Check required fields} |
+| ERR_002 | {Format validation failed} | {Data validation} | {Check data format} |
+| ERR_003 | {Business rule violation} | {Business operation} | {Check business rules} |
+
+### 8.3 Key Log Points
+
+| Log Location | Log Level | Key Information | Troubleshooting Purpose |
+|--------------|-----------|-----------------|------------------------|
+| {Service layer} | ERROR | {Exception stack trace} | {Locate error root cause} |
+| {Controller} | INFO | {Request parameters} | {Reproduce issue} |
+| {Database} | DEBUG | {SQL statements} | {Performance analysis} |
+
+---
+
+## 9. Notes and Additional Information
 
 <!-- AI-TAG: ADDITIONAL_NOTES -->
 
-### 6.1 Compatibility Adaptation
+### 9.1 Compatibility Adaptation
 
 - **Interface Adaptation**: Supports PC 1920×1080 resolution, responsive adaptation for 1366×768 and above
 - **Interaction Adaptation**: Supports mouse click/Enter to trigger actions, supports keyboard Tab key to switch focus
 
-### 6.2 Pending Confirmations
+### 9.2 Pending Confirmations
 
 - [ ] **{Pending 1}**: {e.g., Whether product category dropdown needs to support fuzzy search}
 - [ ] **{Pending 2}**: {e.g., Whether delete operation needs secondary confirmation}
 
-### 6.3 Extension Notes
+### 9.3 Extension Notes
 
 - This prototype is a simplified version of the core process, extended fields/features can be added in subsequent iterations
 - ASCII wireframe prototype only expresses layout and interaction logic, visual styles (e.g., colors, fonts) should refer to product visual specifications
+
+---
+
+## 10. Appendix
+
+### 10.1 Best Practices
+
+- {Best practice 1: e.g., Use batch operations for large datasets}
+- {Best practice 2: e.g., Implement idempotency for critical operations}
+- {Best practice 3: e.g., Add proper logging for troubleshooting}
+
+### 10.2 Configuration Examples
+
+```yaml
+# Configuration example
+feature:
+  enabled: true
+  timeout: 30s
+  retry:
+    max_attempts: 3
+    delay: 1s
+```
+
+### 10.3 Related Documents
+
+- [API Documentation](link)
+- [Database Design](link)
+- [Module Overview](../{module-name}-overview.md)
 
 ---
 
@@ -335,3 +467,8 @@ flowchart TD
 **Last Updated:** {Date}  
 **Maintainer:** {Name}  
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
+
+**章节来源**
+- [{Controller}.java](file://path/to/controller#L1-L100)
+- [{Service}.java](file://path/to/service#L1-L80)
+- [{Entity}.java](file://path/to/entity#L1-L50)

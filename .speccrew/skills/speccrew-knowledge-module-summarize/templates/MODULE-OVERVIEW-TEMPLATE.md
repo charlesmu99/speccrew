@@ -1,11 +1,18 @@
 # Module Overview Document - [Module Name]
 
 > **Applicable Scenario**: Describes a single business module's responsibility boundaries, feature list, entity relationships, and external dependencies, for AI Agent to understand module details
-> **Target Audience**: devcrew-product-manager, devcrew-solution-manager
+> **Target Audience**: devcrew-product-manager, devcrew-solution-manager, devcrew-developer
 > **Related Document**: [System Overview Document](../system-overview.md)
 > 
 > <!-- AI-TAG: MODULE_OVERVIEW -->
 > <!-- AI-CONTEXT: Read this document to understand module responsibilities, feature list, entity relationships, and dependency interfaces, used for requirement analysis and solution design -->
+
+<cite>
+**Referenced Files**
+- [{Controller}.java](file://path/to/controller)
+- [{Service}.java](file://path/to/service)
+- [{Entity}.java](file://path/to/entity)
+</cite>
 
 ---
 
@@ -27,32 +34,28 @@
 
 ```mermaid
 graph TB
-    subgraph ThisModule["[{Module Name}]"]
-        direction TB
-        
+    subgraph ThisModule["{Module Name}"]
         subgraph Responsible["Responsible"]
-            R1[{Responsibility 1: e.g., Order lifecycle management}]
-            R2[{Responsibility 2: e.g., Order status flow control}]
-            R3[{Responsibility 3: e.g., Order data statistics}]
+            R1[Responsibility 1: Order lifecycle management]
+            R2[Responsibility 2: Order status flow control]
+            R3[Responsibility 3: Order data statistics]
         end
     end
     
     subgraph External["External Modules"]
-        direction TB
-        
         subgraph DependsOn["This Module Depends On"]
-            D1[Module X<br/>Get user data]
-            D2[Module Y<br/>Get product data]
+            D1[Module X: Get user data]
+            D2[Module Y: Get product data]
         end
         
         subgraph DependedBy["Depend On This Module"]
-            U1[Module Z<br/>Use order data]
-            U2[Module W<br/>Receive status notification]
+            U1[Module Z: Use order data]
+            U2[Module W: Receive status notification]
         end
         
         subgraph NotResponsible["Not Responsible"]
-            NR1[Payment Processing<br/>Payment Module]
-            NR2[Logistics Tracking<br/>Logistics Module]
+            NR1[Payment Processing: Payment Module]
+            NR2[Logistics Tracking: Logistics Module]
         end
     end
     
@@ -60,12 +63,10 @@ graph TB
     ThisModule -.-> D2
     U1 -.-> ThisModule
     U2 -.-> ThisModule
-    
-    style Responsible fill:#d4edda
-    style NotResponsible fill:#f8d7da
-    style DependsOn fill:#fff3cd
-    style DependedBy fill:#d1ecf1
 ```
+
+**Diagram Source**
+- [{Module}Controller.java](file://path/to/controller#L1-L50)
 
 **Boundary Description:**
 | Type | Content | Description |
@@ -267,16 +268,10 @@ flowchart TD
     Notify -->|Success| End2([End])
     Notify -->|Failed| LogError[Log Compensation]
     LogError --> End2
-    
-    style Validate fill:#e1f5ff
-    style Calculate fill:#e1f5ff
-    style Save fill:#e1f5ff
-    style Notify fill:#e1f5ff
-    style ValError fill:#ffe1e1
-    style CalError fill:#ffe1e1
-    style SaveError fill:#ffe1e1
-    style LogError fill:#fff4e1
 ```
+
+**Diagram Source**
+- [{Module}Service.java](file://path/to/service#L30-L100)
 
 **Process Step Description:**
 
@@ -357,3 +352,8 @@ flowchart TD
 **Last Updated:** {Date}  
 **Maintainer:** {Name}  
 **Related System Document:** [System Overview Document](../system-overview.md)
+
+**Section Source**
+- [{Module}Controller.java](file://path/to/controller#L1-L100)
+- [{Module}Service.java](file://path/to/service#L1-L80)
+- [{Module}Entity.java](file://path/to/entity#L1-L50)

@@ -40,7 +40,7 @@ Leader Agent (speccrew-team-leader)
   - `bizs`: Generate business knowledge only
   - `techs`: Generate technology knowledge only
   - `both`: Generate both bizs and techs knowledge in parallel
-- `output_path`: Output directory (default: `knowledge/`)
+- `output_path`: Output directory (default: `speccrew-workspace/knowledges/`)
 - `sync_mode`: Knowledge base update mode - `"full"` or `"incremental"` (default: `"full"`)
   - `full`: Rebuild knowledge base for all modules/platforms
   - `incremental`: Only update modules/platforms affected by recent code changes (Git-managed projects)
@@ -50,7 +50,7 @@ Leader Agent (speccrew-team-leader)
 ## Output
 
 - Task status records in `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/` and/or `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`
-- Generated documentation in `knowledge/bizs/` and/or `knowledge/techs/`
+- Generated documentation in `speccrew-workspace/knowledges/bizs/` and/or `speccrew-workspace/knowledges/techs/`
 
 ## Workflow Overview
 
@@ -177,7 +177,8 @@ Leader Agent (speccrew-team-leader)
   - `source_path`: Platform-specific source path (from platform.source_path)
   - `tech_stack`: Platform tech stack array
   - `entry_points`: Module entry points (relative file paths)
-  - `output_path`: Output directory for the module (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
+  - `backend_apis`: Associated backend API endpoints for this module (from modules.json, only when `system_type: "ui"`)
+  - `output_path`: Output directory for the module (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Action (incremental mode)**:
@@ -197,12 +198,12 @@ Leader Agent (speccrew-team-leader)
 **Parallel Tasks** (grouped by platform):
 ```
 Platform: Web Frontend (web)
-  Worker 1: module="order",   source="/project/web",   output="knowledge/bizs/web/order/"
-  Worker 2: module="payment", source="/project/web",   output="knowledge/bizs/web/payment/"
+  Worker 1: module="order",   source="/project/web",   output="speccrew-workspace/knowledges/bizs/web/order/"
+  Worker 2: module="payment", source="/project/web",   output="speccrew-workspace/knowledges/bizs/web/payment/"
 
 Platform: Mobile App (mobile-flutter)
-  Worker 3: module="order",   source="/project/mobile", output="knowledge/bizs/mobile-flutter/order/"
-  Worker 4: module="payment", source="/project/mobile", output="knowledge/bizs/mobile-flutter/payment/"
+  Worker 3: module="order",   source="/project/mobile", output="speccrew-workspace/knowledges/bizs/mobile-flutter/order/"
+  Worker 4: module="payment", source="/project/mobile", output="speccrew-workspace/knowledges/bizs/mobile-flutter/payment/"
 ```
 
 **Output per Module**:
@@ -224,8 +225,7 @@ Platform: Mobile App (mobile-flutter)
 - For each module within the platform, invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-module-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name from modules.json
-  - `platform_type`: Platform type (e.g., "web", "mobile-flutter")
-  - `module_path`: Path to module directory (e.g., `knowledge/bizs/{platform_type}/{module_name}/`)
+  - `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Action (incremental mode)**:
@@ -235,12 +235,12 @@ Platform: Mobile App (mobile-flutter)
 **Parallel Tasks** (grouped by platform):
 ```
 Platform: Web Frontend (web)
-  Worker 1: module="order",   module_path="knowledge/bizs/web/order/"
-  Worker 2: module="payment", module_path="knowledge/bizs/web/payment/"
+  Worker 1: module="order",   module_path="speccrew-workspace/knowledges/bizs/web/order/"
+  Worker 2: module="payment", module_path="speccrew-workspace/knowledges/bizs/web/payment/"
 
 Platform: Mobile App (mobile-flutter)
-  Worker 3: module="order",   module_path="knowledge/bizs/mobile-flutter/order/"
-  Worker 4: module="payment", module_path="knowledge/bizs/mobile-flutter/payment/"
+  Worker 3: module="order",   module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/order/"
+  Worker 4: module="payment", module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/payment/"
 ```
 
 **Output per Module**:
@@ -259,13 +259,12 @@ Platform: Mobile App (mobile-flutter)
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json` to get platform structure
 - Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-system-summarize/SKILL.md`
 - Parameters to pass to skill:
-  - `modules_json_path`: Path to modules.json file
-  - `knowledge_base_path`: Path to knowledge base directory (e.g., `knowledge/bizs/`)
-  - `output_path`: Output path for system-overview.md (e.g., `knowledge/bizs/`)
+  - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `speccrew-workspace/knowledges/bizs/`)
+  - `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
-- `knowledge/bizs/system-overview.md` (complete with platform index and module hierarchy)
+- `speccrew-workspace/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)
 
 ### Bizs Stage 5: Generate Final Report
 
@@ -332,7 +331,7 @@ Platform: Mobile App (mobile-flutter)
   - `source_path`: Platform source directory
   - `config_files`: List of configuration file paths
   - `convention_files`: List of convention file paths
-  - `output_path`: Output directory for platform docs (e.g., `knowledge/techs/{platform_id}/`)
+  - `output_path`: Output directory for platform docs (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Parallel Tasks**:
@@ -349,7 +348,7 @@ prompt: |
     source_path: src/web
     config_files: ["src/web/package.json", "src/web/tsconfig.json", "src/web/vite.config.ts"]
     convention_files: ["src/web/.eslintrc.js", "src/web/.prettierrc"]
-    output_path: knowledge/techs/web-react/
+    output_path: speccrew-workspace/knowledges/techs/web-react/
     language: zh
 
 # Worker 2 - Generate backend-nestjs tech docs
@@ -364,13 +363,13 @@ prompt: |
     source_path: src/server
     config_files: ["src/server/package.json", "src/server/nest-cli.json", "src/server/tsconfig.json"]
     convention_files: ["src/server/.eslintrc.js"]
-    output_path: knowledge/techs/backend-nestjs/
+    output_path: speccrew-workspace/knowledges/techs/backend-nestjs/
     language: zh
 ```
 
 **Output per Platform**:
 ```
-knowledge/techs/{platform_id}/
+speccrew-workspace/knowledges/techs/{platform_id}/
 ├── INDEX.md
 ├── tech-stack.md
 ├── architecture.md
@@ -396,12 +395,12 @@ knowledge/techs/{platform_id}/
 - Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-index/SKILL.md`
 - Parameters to pass to skill:
   - `manifest_path`: Path to techs-manifest.json
-  - `techs_base_path`: Base path for techs documentation (e.g., `knowledge/techs/`)
-  - `output_path`: Output path for root INDEX.md (e.g., `knowledge/techs/`)
+  - `techs_base_path`: Base path for techs documentation (e.g., `speccrew-workspace/knowledges/techs/`)
+  - `output_path`: Output path for root INDEX.md (e.g., `speccrew-workspace/knowledges/techs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
 **Output**:
-- `knowledge/techs/INDEX.md` (complete with platform index and Agent mapping)
+- `speccrew-workspace/knowledges/techs/INDEX.md` (complete with platform index and Agent mapping)
 
 ---
 
@@ -485,8 +484,8 @@ Next Steps:
 
 2. Set default paths:
    - `source_path`: Project root if not specified
-   - `bizs_output`: `knowledge/bizs/`
-   - `techs_output`: `knowledge/techs/`
+   - `bizs_output`: `speccrew-workspace/knowledges/bizs/`
+   - `techs_output`: `speccrew-workspace/knowledges/techs/`
 
 ### Step 2: Launch Stage 1 (Parallel when knowledge_types = "both")
 
@@ -551,10 +550,10 @@ Next Steps:
 ║                                                                     │
 ║ Generated Documents:                                                 ║
 ║ ─────────────────────────────────────────────────────────────────   │
-║   📄 knowledge/bizs/system-overview.md                               ║
-║   📄 knowledge/bizs/{platform}/{module}/... (8 modules)              ║
-║   📄 knowledge/techs/INDEX.md                                        ║
-║   📄 knowledge/techs/{platform}/... (3 platforms)                    ║
+║   📄 speccrew-workspace/knowledges/bizs/system-overview.md           ║
+║   📄 speccrew-workspace/knowledges/bizs/{platform}/{module}/... (8 modules)              ║
+║   📄 speccrew-workspace/knowledges/techs/INDEX.md                    ║
+║   📄 speccrew-workspace/knowledges/techs/{platform}/... (3 platforms)                    ║
 ║                                                                     │
 ╚══════════════════════════════════════════════════════════════════════╝
 ```

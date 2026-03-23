@@ -31,7 +31,7 @@ Worker Agent (speccrew-task-worker)
 ## Input
 
 - `module_name`: Module name to summarize
-- `module_path`: Path to module directory containing:
+- `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`) containing:
   - {name}-overview.md (initial version)
   - features/{feature-name}.md files
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
@@ -107,6 +107,19 @@ Key requirements:
 - No `style` definitions
 - Use standard `graph TB/LR` syntax only
 
+**Mermaid Diagram Types:**
+
+Select appropriate diagram type based on scenario:
+
+| Diagram Type | Use Case | Example |
+|---------|---------|------|
+| `graph TB/LR` | Module structure, dependencies | Project structure diagram, dependency graph |
+| `sequenceDiagram` | Interaction flow, API calls | User operation flow, service call chain |
+| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
+| `classDiagram` | Class structure, entity relationships | Data model, service interface |
+| `erDiagram` | Database table relationships | Entity relationship diagram |
+| `stateDiagram-v2` | State machine | Order status, approval status |
+
 **Section 1: Module Basic Info** (from initial version)
 - Keep existing information
 
@@ -144,6 +157,32 @@ Based on feature interactions, identify core flows:
 | R001 | Order amount > 0 | Order total must be positive | create-order |
 | R002 | Stock check | Must check inventory before order | create-order |
 
+**Source Traceability:**
+
+Aggregate source file references from all feature documents:
+
+1. **File Reference Block** (at document start):
+```markdown
+<cite>
+**Referenced Files**
+- [OrderController.java](file://path/to/controller)
+- [OrderService.java](file://path/to/service)
+</cite>
+```
+
+2. **Diagram Source** (after each Mermaid diagram):
+```markdown
+**Diagram Source**
+- [OrderController.java](file://path/to/controller#L45-L60)
+```
+
+3. **Section Source** (at end of document):
+```markdown
+**Section Source**
+- [OrderController.java](file://path/to/controller#L1-L100)
+- [OrderService.java](file://path/to/service#L1-L80)
+```
+
 ### Step 7: Report Results
 
 ```
@@ -161,9 +200,12 @@ Module summarization completed:
 
 - [ ] Initial {name}-overview.md read
 - [ ] All {feature-name}.md files read
+- [ ] Source file references extracted from feature documents
 - [ ] Entities extracted and aggregated
 - [ ] Dependencies identified
 - [ ] Business rules collected
 - [ ] Section 3-6 completed in {name}-overview.md
+- [ ] Source traceability information included
+- [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported
 

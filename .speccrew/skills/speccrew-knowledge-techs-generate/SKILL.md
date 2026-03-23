@@ -35,7 +35,7 @@ Worker Agent (speccrew-task-worker)
 - `source_path`: Platform source directory
 - `config_files`: List of configuration file paths
 - `convention_files`: List of convention file paths (eslint, prettier, etc.)
-- `output_path`: Output directory for generated documents
+- `output_path`: Output directory for generated documents (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
 - `language`: Target language (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
