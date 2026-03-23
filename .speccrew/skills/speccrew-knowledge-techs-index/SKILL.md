@@ -8,6 +8,13 @@ tools: Read, Write
 
 Aggregate all platform technology documentation into a single root INDEX.md that serves as the master navigation hub for technology knowledge.
 
+## Target Audience
+
+Generated documents serve:
+- **devcrew-designer-{platform_id}**: Architecture patterns, design conventions
+- **devcrew-dev-{platform_id}**: Development conventions, coding standards
+- **devcrew-test-{platform_id}**: Testing conventions, quality requirements
+
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -99,6 +106,30 @@ Create the master index document with the following sections:
 
 ```markdown
 # Technology Knowledge Index
+
+<cite>
+**Files Referenced in This Document**
+- [techs-manifest.json](file://path/to/techs-manifest.json)
+</cite>
+
+> **Target Audience**: devcrew-designer-*, devcrew-dev-*, devcrew-test-*
+
+## 目录 / Table of Contents
+
+1. [引言 / Introduction](#引言)
+2. [项目结构 / Project Structure](#项目结构)
+3. [核心组件 / Core Components](#核心组件)
+4. [架构总览 / Architecture Overview](#架构总览)
+5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
+6. [依赖分析 / Dependency Analysis](#依赖分析)
+7. [性能考虑 / Performance Considerations](#性能考虑)
+8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
+9. [结论 / Conclusion](#结论)
+10. [附录 / Appendix](#附录)
+
+## 引言
+
+本技术知识索引面向项目所有平台，提供平台概览、文档导航与 Agent 使用指南。
 
 > Generated at: {generated_at}
 > Source: {source_path}
@@ -272,5 +303,7 @@ Use template at `speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md`:
 - [ ] Document guide included
 - [ ] Usage guide included
 - [ ] Output file written successfully
+- [ ] **Source traceability**: `<cite>` block added to root INDEX.md
+- [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] Results reported
 

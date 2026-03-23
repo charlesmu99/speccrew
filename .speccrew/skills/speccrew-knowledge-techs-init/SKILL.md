@@ -8,6 +8,12 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 Scan project source code to identify all technology platforms, extract configuration metadata, and generate techs-manifest.json for downstream document generation.
 
+## Target Audience
+
+Generated manifest enables:
+- **speccrew-knowledge-techs-generate**: Platform-specific document generation
+- **speccrew-knowledge-techs-index**: Root index aggregation
+
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -226,6 +232,7 @@ Extract version information when available:
 - [ ] Configuration files identified and paths recorded
 - [ ] Convention files (eslint, prettier) identified
 - [ ] techs-manifest.json generated with valid JSON structure
+- [ ] **Source traceability**: All config_file paths recorded for downstream use
 - [ ] Output path verified
 - [ ] Results reported with platform summary
 

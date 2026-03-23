@@ -8,6 +8,13 @@ tools: Read, Write, Glob, Grep
 
 Generate comprehensive technology documentation for a specific platform by analyzing its configuration files and source code structure.
 
+## Target Audience
+
+Generated documents serve:
+- **devcrew-designer-{platform_id}**: Architecture patterns, design conventions
+- **devcrew-dev-{platform_id}**: Development conventions, coding standards
+- **devcrew-test-{platform_id}**: Testing conventions, quality requirements
+
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -123,7 +130,7 @@ Extract conventions from configuration files:
 
 **Mermaid Diagram Requirements**
 
-When generating Mermaid diagrams in architecture.md, you **MUST** follow the compatibility guidelines defined in:
+When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
 - **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
 
 Key requirements:
@@ -134,11 +141,95 @@ Key requirements:
 - No `style` definitions
 - Use standard `graph TB/LR` syntax only
 
+### Mermaid Diagram Types Guide
+
+| Diagram Type | Use Case | Example Scenario |
+|--------------|----------|------------------|
+| `graph TB/LR` | Structure & Dependency | Module relationships, component hierarchy |
+| `flowchart TD` | Business Logic Flow | Request processing, decision trees |
+| `sequenceDiagram` | Interaction Flow | API calls, service communication |
+| `classDiagram` | Class Structure | Entity relationships, inheritance |
+| `erDiagram` | Database Schema | Table relationships, data model |
+| `stateDiagram-v2` | State Machine | Order status, workflow states |
+
+### Source Traceability Requirements
+
+**CRITICAL**: All generated documents must include source traceability.
+
+#### 1. File Reference Block (`<cite>`)
+
+Place at the beginning of each document:
+
+```markdown
+<cite>
+**Files Referenced in This Document**
+- [package.json](file://path/to/package.json)
+- [tsconfig.json](file://path/to/tsconfig.json)
+</cite>
+```
+
+#### 2. Diagram Source Annotation
+
+After each Mermaid diagram:
+
+```markdown
+**Diagram Source**
+- [file-name.ext](file://path/to/file.ext#L10-L50)
+```
+
+#### 3. Section Source Annotation
+
+At the end of each major section:
+
+```markdown
+**Section Source**
+- [file-name.ext](file://path/to/file.ext#L10-L50)
+```
+
+For generic guidance sections without specific file references:
+
+```markdown
+[This section provides general guidance, no specific file reference required]
+```
+
 ### Step 4: Generate Documents
 
-Use templates to generate each document. Templates located at:
-- `speccrew-knowledge-techs-generate/templates/{platform-type}-{framework}/`
-- Fallback: `speccrew-knowledge-techs-generate/templates/generic/`
+Use unified templates located at:
+- `speccrew-knowledge-techs-generate/templates/`
+
+All templates follow a unified 10-section structure for consistency.
+
+### Document Structure Standard
+
+All generated documents must follow this structure:
+
+```markdown
+# {{platform_name}} {{document_type}}
+
+<cite>
+**Files Referenced in This Document**
+{{source_files}}
+</cite>
+
+> **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
+
+## 目录 / Table of Contents
+1. [引言 / Introduction](#引言)
+2. [项目结构 / Project Structure](#项目结构)
+3. [核心组件 / Core Components](#核心组件)
+4. [架构总览 / Architecture Overview](#架构总览)
+5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
+6. [依赖分析 / Dependency Analysis](#依赖分析)
+7. [性能考虑 / Performance Considerations](#性能考虑)
+8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
+9. [结论 / Conclusion](#结论)
+10. [附录 / Appendix](#附录)
+
+... content sections ...
+
+**Section Source**
+- [file.ext](file://path#Lstart-Lend)
+```
 
 #### Document 1: INDEX.md
 
@@ -257,11 +348,24 @@ Platform Technology Documents Generated: {platform_id}
 - Output Directory: {output_path}
 ```
 
-## Template Selection
+## Template Usage
 
-1. Look for specific template: `templates/{platform_type}-{framework}/`
-2. If not found, look for generic platform template: `templates/{platform_type}/`
-3. If not found, use generic template: `templates/generic/`
+All templates are unified and located in `templates/` directory:
+
+| Template File | Purpose |
+|---------------|---------|
+| `INDEX-TEMPLATE.md` | Platform overview and navigation hub |
+| `tech-stack-TEMPLATE.md` | Technology stack details |
+| `architecture-TEMPLATE.md` | Architecture patterns and conventions |
+| `conventions-design-TEMPLATE.md` | Design principles and patterns |
+| `conventions-dev-TEMPLATE.md` | Development conventions |
+| `conventions-test-TEMPLATE.md` | Testing conventions |
+| `conventions-data-TEMPLATE.md` | Data layer conventions |
+
+Platform-specific content is generated dynamically based on:
+- Platform type (web, mobile, backend, desktop)
+- Framework (react, vue, springboot, etc.)
+- Analyzed configuration files
 
 ## Document Generation Guidelines
 
@@ -301,5 +405,9 @@ Wherever possible, include concrete examples:
 - [ ] conventions-test.md generated with testing requirements
 - [ ] conventions-data.md generated (if applicable)
 - [ ] All files written to output_path
+- [ ] **Source traceability**: `<cite>` block added to each document
+- [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
+- [ ] **Source traceability**: Section Source annotations added at end of major sections
+- [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
 - [ ] Results reported
 
