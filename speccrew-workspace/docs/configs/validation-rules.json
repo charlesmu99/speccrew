@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "description": "Cross-skill validation rules for consistent data validation across all skills",
+  "last_updated": "2026-03-23",
+  "naming_conventions": {
+    "skill_name": {
+      "pattern": "^speccrew-[a-z]+(-[a-z]+)*$",
+      "description": "Skill names must use lowercase with hyphens, prefixed with 'speccrew-'",
+      "examples": ["speccrew-knowledge-bizs-init", "speccrew-knowledge-dispatch"],
+      "invalid_examples": ["Speccrew-Knowledge", "speccrew_knowledge", "knowledge-bizs-init"]
+    },
+    "module_name": {
+      "pattern": "^[a-z]+(-[a-z]+)*$",
+      "description": "Module names must use lowercase with hyphens",
+      "examples": ["order-management", "user-center", "payment-gateway"],
+      "invalid_examples": ["OrderManagement", "order_management", "Order-Center"]
+    },
+    "platform_id": {
+      "pattern": "^(web|mobile|backend|desktop|api)-[a-z]+$",
+      "description": "Platform ID must follow {platform_type}-{framework} format",
+      "examples": ["web-react", "mobile-flutter", "backend-spring"],
+      "invalid_examples": ["web_react", "Mobile-Flutter", "backend"]
+    },
+    "feature_name": {
+      "pattern": "^[a-z]+(-[a-z]+)*$",
+      "description": "Feature names must use lowercase with hyphens",
+      "examples": ["create-order", "list-users", "get-user-detail"],
+      "invalid_examples": ["CreateOrder", "create_order", "Create-Order"]
+    },
+    "file_name": {
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.md$",
+      "description": "Markdown file names must use lowercase with hyphens",
+      "examples": ["order-overview.md", "create-order.md", "system-summarize.md"],
+      "invalid_examples": ["OrderOverview.md", "create_order.md", "Create-Order.md"]
+    }
+  },
+  "required_fields": {
+    "modules_json": {
+      "fields": ["code_name", "display_name", "system_type", "entry_points"],
+      "conditional_fields": {
+        "system_type:ui": ["backend_apis"],
+        "system_type:api": ["base_path"]
+      }
+    },
+    "platform_config": {
+      "fields": ["platform_type", "platform_subtype", "source_path", "tech_stack"]
+    },
+    "feature_detail": {
+      "fields": ["feature_name", "module_name", "api_method", "api_path"],
+      "optional_fields": ["validation_rules", "business_rules", "source_files"]
+    }
+  },
+  "path_validations": {
+    "workspace_root": {
+      "pattern": "^speccrew-workspace/$",
+      "description": "All knowledge outputs must be under speccrew-workspace/"
+    },
+    "knowledge_base_path": {
+      "pattern": "^speccrew-workspace/knowledges/(bizs|techs|base)/",
+      "description": "Knowledge files must be under bizs/, techs/, or base/"
+    },
+    "module_output_path": {
+      "pattern": "^speccrew-workspace/knowledges/(bizs|techs)/{platform_type}/{module_name}/$",
+      "description": "Module output must follow platform_type/module_name structure"
+    }
+  },
+  "language_codes": {
+    "valid_codes": ["zh", "en", "ja", "ko", "fr", "de", "es"],
+    "default": "zh",
+    "mapping": {
+      "zh": "中文",
+      "en": "English",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "de": "Deutsch",
+      "es": "Español"
+    }
+  },
+  "system_type_values": {
+    "valid_values": ["ui", "api"],
+    "descriptions": {
+      "ui": "UI-based modules with pages/components",
+      "api": "API-based modules with controllers/handlers"
+    }
+  }
+}

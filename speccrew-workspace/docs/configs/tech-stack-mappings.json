@@ -1,0 +1,273 @@
+{
+  "version": "1.0.0",
+  "description": "Technology stack mappings for file extensions, API patterns, and analysis rules",
+  "last_updated": "2026-03-23",
+  "tech_stacks": {
+    "web": {
+      "react": {
+        "extensions": [".tsx", ".ts", ".jsx", ".js"],
+        "entry_patterns": ["src/pages/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
+        "api_call_patterns": ["fetch(", "axios.", "apiClient.", "useQuery", "useMutation"],
+        "state_management": ["useState", "useReducer", "Redux", "Zustand", "MobX"],
+        "routing": ["react-router", "next/router"],
+        "component_patterns": ["export default function", "export const", "React.FC"]
+      },
+      "vue": {
+        "extensions": [".vue", ".ts", ".js"],
+        "entry_patterns": ["src/views/**/*.vue", "src/components/**/*.vue", "pages/**/*.vue"],
+        "api_call_patterns": ["axios.", "fetch(", "$http", "useFetch"],
+        "state_management": ["Pinia", "Vuex", "ref", "reactive", "computed"],
+        "routing": ["vue-router"],
+        "component_patterns": ["<template>", "export default", "defineComponent"]
+      },
+      "angular": {
+        "extensions": [".ts", ".html", ".scss", ".css"],
+        "entry_patterns": ["src/app/components/**/*.ts", "src/app/pages/**/*.ts"],
+        "api_call_patterns": ["HttpClient", "http.get", "http.post"],
+        "state_management": ["RxJS", "NgRx", "BehaviorSubject", "Observable"],
+        "routing": ["@angular/router"],
+        "component_patterns": ["@Component", "export class", "implements OnInit"]
+      },
+      "nextjs": {
+        "extensions": [".tsx", ".ts", ".jsx", ".js"],
+        "entry_patterns": ["app/**/*.{tsx,jsx}", "pages/**/*.{tsx,jsx}"],
+        "api_call_patterns": ["fetch(", "axios.", "useSWR", "React Query"],
+        "state_management": ["useState", "Zustand", "Redux", "Context API"],
+        "routing": ["file-system routing", "next/navigation"],
+        "component_patterns": ["export default", "async function", "'use client'"]
+      },
+      "nuxt": {
+        "extensions": [".vue", ".ts", ".js"],
+        "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
+        "api_call_patterns": ["$fetch", "useFetch", "axios."],
+        "state_management": ["Pinia", "useState", "composables"],
+        "routing": ["file-system routing", "vue-router"],
+        "component_patterns": ["<template>", "<script setup>", "definePageMeta"]
+      },
+      "svelte": {
+        "extensions": [".svelte", ".ts", ".js"],
+        "entry_patterns": ["src/**/*.svelte", "routes/**/*.svelte"],
+        "api_call_patterns": ["fetch(", "axios."],
+        "state_management": ["writable", "readable", "derived", "Svelte Store"],
+        "routing": ["svelte-routing", "file-system routing"],
+        "component_patterns": ["<script>", "export let", "{#if}"]
+      }
+    },
+    "mobile": {
+      "flutter": {
+        "extensions": [".dart"],
+        "entry_patterns": ["lib/**/*.dart", "lib/pages/**/*.dart", "lib/screens/**/*.dart"],
+        "api_call_patterns": ["http.", "dio.", "Dio()", "get(", "post("],
+        "state_management": ["Provider", "Riverpod", "Bloc", "GetX", "MobX"],
+        "routing": ["Navigator", "GoRouter", "Get.to"],
+        "component_patterns": ["class.*extends StatelessWidget", "class.*extends StatefulWidget", "@override Widget build"]
+      },
+      "react-native": {
+        "extensions": [".tsx", ".ts", ".jsx", ".js"],
+        "entry_patterns": ["src/screens/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
+        "api_call_patterns": ["fetch(", "axios.", "apiClient."],
+        "state_management": ["useState", "Redux", "MobX", "Zustand", "Recoil"],
+        "routing": ["react-navigation", "expo-router"],
+        "component_patterns": ["export default function", "const.*=.*=>"]
+      },
+      "uniapp": {
+        "extensions": [".vue", ".ts", ".js"],
+        "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
+        "api_call_patterns": ["uni.request", "uni.uploadFile", "uni.downloadFile"],
+        "state_management": ["Vuex", "Pinia", "globalData"],
+        "routing": ["pages.json", "uni.navigateTo"],
+        "component_patterns": ["<template>", "export default", "onLoad", "onShow"]
+      },
+      "android": {
+        "extensions": [".kt", ".java", ".xml"],
+        "entry_patterns": ["app/src/main/java/**/*.kt", "app/src/main/java/**/*.java"],
+        "api_call_patterns": ["Retrofit", "OkHttp", "HttpURLConnection"],
+        "state_management": ["ViewModel", "LiveData", "StateFlow", "Compose State"],
+        "routing": ["Intent", "Navigation Component", "Jetpack Navigation"],
+        "component_patterns": ["class.*Activity", "class.*Fragment", "@Composable"]
+      },
+      "ios": {
+        "extensions": [".swift", ".m", ".h", ".storyboard"],
+        "entry_patterns": ["**/*.swift", "ViewControllers/**/*.swift"],
+        "api_call_patterns": ["URLSession", "Alamofire", "AF.request"],
+        "state_management": ["@State", "@ObservedObject", "@StateObject", "Combine"],
+        "routing": ["NavigationView", "TabView", "UIStoryboardSegue"],
+        "component_patterns": ["struct.*View", "class.*ViewController", "var body: some View"]
+      },
+      "miniprogram": {
+        "extensions": [".js", ".ts", ".wxml", ".wxss", ".json"],
+        "entry_patterns": ["pages/**/*.js", "pages/**/*.ts", "components/**/*.js"],
+        "api_call_patterns": ["wx.request", "wx.uploadFile", "wx.downloadFile"],
+        "state_management": ["Page data", "globalData", "MobX", "Westore"],
+        "routing": ["app.json pages", "wx.navigateTo", "wx.redirectTo"],
+        "component_patterns": ["Page({", "Component({", "properties:", "data:"]
+      }
+    },
+    "backend": {
+      "spring": {
+        "extensions": [".java", ".kt"],
+        "entry_patterns": ["**/*Controller.java", "**/*Controller.kt", "**/*Service.java"],
+        "api_patterns": {
+          "controller": ["@Controller", "@RestController", "@RequestMapping"],
+          "methods": ["@GetMapping", "@PostMapping", "@PutMapping", "@DeleteMapping", "@PatchMapping"],
+          "parameters": ["@RequestBody", "@PathVariable", "@RequestParam", "@Valid"]
+        },
+        "dto_patterns": ["class.*DTO", "class.*VO", "class.*Request", "class.*Response"],
+        "entity_patterns": ["@Entity", "@Table", "class.*DO", "class.*PO"],
+        "validation": ["@Valid", "@NotNull", "@NotBlank", "@Size", "@Pattern"]
+      },
+      "nestjs": {
+        "extensions": [".ts"],
+        "entry_patterns": ["**/*.controller.ts", "**/*.service.ts", "**/*.module.ts"],
+        "api_patterns": {
+          "controller": ["@Controller"],
+          "methods": ["@Get", "@Post", "@Put", "@Delete", "@Patch", "@Query", "@Param", "@Body"],
+          "parameters": ["@Req", "@Res", "@Query", "@Param", "@Body", "@Headers"]
+        },
+        "dto_patterns": ["class.*Dto", "class.*DTO", "interface.*Dto"],
+        "entity_patterns": ["@Entity", "class.*Entity", "interface.*Entity"],
+        "validation": ["class-validator", "@IsString", "@IsNumber", "@IsOptional", "@Validate"]
+      },
+      "express": {
+        "extensions": [".js", ".ts"],
+        "entry_patterns": ["routes/**/*.js", "controllers/**/*.js", "**/*.routes.ts"],
+        "api_patterns": {
+          "router": ["router.get", "router.post", "router.put", "router.delete", "router.patch"],
+          "app": ["app.get", "app.post", "app.use"],
+          "middleware": ["req, res, next", "async (req, res)"]
+        },
+        "dto_patterns": ["Joi validation", "express-validator", "manual validation"],
+        "entity_patterns": ["mongoose model", "sequelize model", "prisma schema"],
+        "validation": ["Joi.object", "body()", "param()", "query()"]
+      },
+      "fastify": {
+        "extensions": [".js", ".ts"],
+        "entry_patterns": ["routes/**/*.js", "**/*.routes.ts"],
+        "api_patterns": {
+          "routes": ["fastify.get", "fastify.post", "fastify.route"],
+          "schema": ["schema:", "body:", "querystring:", "params:"]
+        },
+        "dto_patterns": ["JSON Schema", "typebox", "fastify-schema"],
+        "entity_patterns": ["mongoose", "prisma", "typeorm"],
+        "validation": ["ajv", "JSON Schema validation"]
+      },
+      "django": {
+        "extensions": [".py"],
+        "entry_patterns": ["views.py", "**/views/*.py", "api/*.py"],
+        "api_patterns": {
+          "views": ["def.*request", "class.*APIView", "@api_view"],
+          "decorators": ["@require_http_methods", "@csrf_exempt", "@permission_classes"]
+        },
+        "dto_patterns": ["Serializer", "ModelSerializer", "Form"],
+        "entity_patterns": ["class.*models.Model", "models.CharField", "models.ForeignKey"],
+        "validation": ["serializer.is_valid", "form.is_valid", "validate_*"]
+      },
+      "fastapi": {
+        "extensions": [".py"],
+        "entry_patterns": ["main.py", "routers/*.py", "api/*.py"],
+        "api_patterns": {
+          "routes": ["@app.get", "@app.post", "@app.put", "@app.delete", "@router.get"],
+          "dependencies": ["Depends", "Query", "Path", "Body"]
+        },
+        "dto_patterns": ["BaseModel", "Pydantic model", "class.*Schema"],
+        "entity_patterns": ["SQLAlchemy", "Tortoise ORM", "Prisma Client"],
+        "validation": ["Pydantic validation", "Field(...)", "validator"]
+      },
+      "go": {
+        "extensions": [".go"],
+        "entry_patterns": ["**/*.go", "handlers/*.go", "controllers/*.go"],
+        "api_patterns": {
+          "router": ["gin.Router", "echo.Echo", "mux.Router", "http.HandleFunc"],
+          "handlers": ["gin.HandlerFunc", "echo.HandlerFunc", "func.*http.ResponseWriter"]
+        },
+        "dto_patterns": ["struct.*Request", "struct.*Response", "type.*DTO"],
+        "entity_patterns": ["gorm.Model", "bun:", "ent.*"],
+        "validation": ["go-playground/validator", "validate struct tags"]
+      },
+      "rust": {
+        "extensions": [".rs"],
+        "entry_patterns": ["src/**/*.rs", "handlers/*.rs", "routes/*.rs"],
+        "api_patterns": {
+          "frameworks": ["actix-web", "axum", "rocket", "warp"],
+          "handlers": ["#[get]", "#[post]", "async fn", "HttpResponse"]
+        },
+        "dto_patterns": ["struct.*Request", "struct.*Response", "#[derive(Deserialize)]"],
+        "entity_patterns": ["diesel", "sea-orm", "sqlx"],
+        "validation": ["validator crate", "#[validate]", "Validate trait"]
+      }
+    },
+    "desktop": {
+      "electron": {
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".html"],
+        "entry_patterns": ["src/main.ts", "src/renderer/**/*.tsx", "src/preload.ts"],
+        "ipc_patterns": ["ipcMain", "ipcRenderer", "contextBridge"],
+        "state_management": ["Redux", "Zustand", "Electron Store"],
+        "component_patterns": ["React", "Vue", "Angular in renderer"]
+      },
+      "tauri": {
+        "extensions": [".rs", ".ts", ".tsx", ".vue"],
+        "entry_patterns": ["src-tauri/src/main.rs", "src/**/*.ts", "src/**/*.vue"],
+        "ipc_patterns": ["invoke", "listen", "emit", "#[tauri::command]"],
+        "state_management": ["Pinia", "Redux", "Tauri Store"],
+        "component_patterns": ["Frontend framework components", "Rust commands"]
+      },
+      "wpf": {
+        "extensions": [".cs", ".xaml"],
+        "entry_patterns": ["**/*.xaml.cs", "ViewModels/**/*.cs", "Views/**/*.xaml"],
+        "patterns": ["INotifyPropertyChanged", "ICommand", "MVVM"],
+        "state_management": ["MVVM", "ObservableObject", "RelayCommand"]
+      },
+      "winforms": {
+        "extensions": [".cs", ".vb"],
+        "entry_patterns": ["**/*.cs", "Forms/**/*.cs"],
+        "patterns": ["Form class", "Event handlers", "Control bindings"],
+        "state_management": ["DataBinding", "INotifyPropertyChanged"]
+      },
+      "qt": {
+        "extensions": [".cpp", ".h", ".ui", ".py"],
+        "entry_patterns": ["src/**/*.cpp", "widgets/**/*.cpp", "*.ui"],
+        "patterns": ["Q_OBJECT", "signals:", "slots:", "connect("],
+        "state_management": ["Qt Property System", "QAbstractItemModel"]
+      }
+    },
+    "api": {
+      "rest": {
+        "description": "RESTful API conventions",
+        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+        "status_codes": {
+          "success": [200, 201, 204],
+          "client_error": [400, 401, 403, 404, 409, 422],
+          "server_error": [500, 502, 503, 504]
+        },
+        "content_types": ["application/json", "application/xml", "multipart/form-data"]
+      },
+      "graphql": {
+        "extensions": [".graphql", ".gql", ".ts", ".js"],
+        "entry_patterns": ["schema.graphql", "resolvers/**/*.ts", "typeDefs/**/*.ts"],
+        "patterns": ["type Query", "type Mutation", "type Subscription", "@Resolver"],
+        "operations": ["query", "mutation", "subscription"]
+      },
+      "grpc": {
+        "extensions": [".proto", ".pb.go", ".pb.java", ".grpc.pb.ts"],
+        "entry_patterns": ["**/*.proto", "**/*_pb2*.py", "**/*.pb.go"],
+        "patterns": ["service.*{", "rpc.*(", "message.*{", "protoc"],
+        "types": ["Unary", "Server Streaming", "Client Streaming", "Bidirectional"]
+      }
+    }
+  },
+  "analysis_rules": {
+    "file_search_priority": [
+      "entry_points from modules.json",
+      "**/{module_name}/**/*.{extensions}",
+      "platform-specific patterns"
+    ],
+    "api_detection": {
+      "ui_modules": "trace fetch/axios/apiClient calls",
+      "api_modules": "parse decorators and method signatures"
+    },
+    "feature_extraction": {
+      "ui": "Each page/screen or major user interaction = one feature",
+      "api": "Each public API endpoint = one feature"
+    }
+  }
+}

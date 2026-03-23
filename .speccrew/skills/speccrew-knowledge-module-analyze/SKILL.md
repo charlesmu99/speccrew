@@ -72,6 +72,9 @@ Use `system_type` parameter to determine analysis approach:
 - Search: `**/{module_name}/**/*.{ts,js,java,go,py}`
 - Consider `tech_stack` to determine file extensions (e.g., Flutter → `.dart`, Python → `.py`)
 
+> **Configuration Reference for Step 1:**
+> - Tech stack mappings: `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Determine file extensions and entry patterns based on tech_stack
+
 ### Step 2: Extract Module Information
 
 Based on `system_type`, extract different information:
@@ -98,6 +101,10 @@ Based on `system_type`, extract different information:
 | Public APIs | Route decorators: `@Get`, `@Post`, `@Put`, `@Delete` |
 
 ### Step 3: Identify Features
+
+> **Configuration Reference for Step 3:**
+> - Feature granularity rules: `speccrew-workspace/docs/configs/feature-granularity-rules.json` - Determine how to split features based on complexity
+> - Validation rules: `speccrew-workspace/docs/configs/validation-rules.json` - Validate feature naming conventions
 
 #### 3.1 Feature Granularity Rules
 
@@ -196,7 +203,7 @@ These source file references will be used in the generated documents for traceab
 
 ### Step 4: Generate {feature-name}.md Files
 
-For each feature, use template `speccrew-knowledge-module-analyze/templates/FEATURE-DETAIL-TEMPLATE.md`:
+For each feature, use template `speccrew-workspace/docs/templates/FEATURE-DETAIL-TEMPLATE.md`:
 
 **Template placeholders:**
 - `{{FeatureName}}`: Feature name (e.g., "create-order")
@@ -238,7 +245,11 @@ Each generated document must include source code traceability information:
 
 ### Step 5: Generate {name}-overview.md (Initial)
 
-Use template `speccrew-knowledge-module-analyze/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:
+> **Configuration Reference for Step 5:**
+> - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
+> - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
+
+Use template `speccrew-workspace/docs/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:
 
 **Mermaid Diagram Requirements**
 

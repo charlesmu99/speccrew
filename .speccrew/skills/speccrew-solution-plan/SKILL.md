@@ -18,7 +18,7 @@ Read in order:
 1. Current iteration PRD: `projects/pXXX/01.prds/[feature-name]-prd.md`
 2. System architecture status: `speccrew-workspace/knowledge/architecture/system/system-arch.md`
 3. Business module list: `speccrew-workspace/knowledge/bizs/modules/modules.md`
-4. Solution template: `speccrew-solution-plan/templates/SOLUTION-TEMPLATE.md`
+4. Solution template: `speccrew-workspace/docs/templates/SOLUTION-TEMPLATE.md`
 
 ## Step 2: Solution Analysis
 
@@ -43,6 +43,10 @@ Based on PRD and architecture status, analyze the following:
 - What are the key fields and relationships?
 
 ## Step 3: Write Solution Document
+
+> **Configuration Reference for Step 3:**
+> - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and required sections
+> - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
 
 Fill in according to template structure, requirements:
 - **Solution Overview**: One paragraph explaining overall approach

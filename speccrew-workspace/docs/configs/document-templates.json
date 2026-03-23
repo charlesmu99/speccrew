@@ -1,0 +1,382 @@
+{
+  "version": "1.0.0",
+  "description": "Document templates metadata for knowledge generation across all skills",
+  "last_updated": "2026-03-23",
+  "templates": {
+    "module_overview": {
+      "name": "MODULE-OVERVIEW-TEMPLATE",
+      "file_name": "MODULE-OVERVIEW-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/MODULE-OVERVIEW-TEMPLATE.md",
+      "description": "Template for generating initial module overview with feature list",
+      "used_by": ["speccrew-knowledge-module-analyze"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "{module_name}-overview.md",
+      "sections": [
+        {
+          "name": "Module Basic Info",
+          "required": true,
+          "description": "Module name, purpose, and domain"
+        },
+        {
+          "name": "Feature List",
+          "required": true,
+          "description": "Table of features with API endpoints and status"
+        },
+        {
+          "name": "Architecture Overview",
+          "required": false,
+          "description": "Module structure diagram and dependencies"
+        },
+        {
+          "name": "Data Model",
+          "required": false,
+          "description": "Entity relationships and key entities"
+        },
+        {
+          "name": "API Summary",
+          "required": false,
+          "description": "Summary of all APIs (marked as TBD in initial version)"
+        },
+        {
+          "name": "Business Rules",
+          "required": false,
+          "description": "Key business rules (marked as TBD in initial version)"
+        }
+      ],
+      "placeholders": [
+        "{{ModuleName}}",
+        "{{ModulePurpose}}",
+        "{{PlatformName}}",
+        "{{TechStack}}",
+        "{{FeatureList}}",
+        "{{ArchitectureDiagram}}"
+      ]
+    },
+    "feature_detail": {
+      "name": "FEATURE-DETAIL-TEMPLATE",
+      "file_name": "FEATURE-DETAIL-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/FEATURE-DETAIL-TEMPLATE.md",
+      "description": "Template for generating detailed feature documentation",
+      "used_by": ["speccrew-knowledge-module-analyze"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "features/{feature-name}.md",
+      "sections": [
+        {
+          "name": "Feature Overview",
+          "required": true,
+          "description": "Feature name, description, and purpose"
+        },
+        {
+          "name": "API Specification",
+          "required": true,
+          "description": "HTTP method, path, request/response DTOs"
+        },
+        {
+          "name": "Validation Rules",
+          "required": false,
+          "description": "Input validation constraints"
+        },
+        {
+          "name": "Business Rules",
+          "required": false,
+          "description": "Business logic and constraints"
+        },
+        {
+          "name": "Sequence Diagram",
+          "required": false,
+          "description": "Interaction flow diagram"
+        },
+        {
+          "name": "Source Files",
+          "required": true,
+          "description": "Traceability to source code"
+        }
+      ],
+      "placeholders": [
+        "{{FeatureName}}",
+        "{{ModuleName}}",
+        "{{ApiMethod}}",
+        "{{ApiPath}}",
+        "{{RequestDto}}",
+        "{{ResponseDto}}",
+        "{{ValidationRules}}",
+        "{{BusinessRules}}",
+        "{{SourceFiles}}"
+      ]
+    },
+    "system_overview": {
+      "name": "SYSTEM-OVERVIEW-TEMPLATE",
+      "file_name": "SYSTEM-OVERVIEW-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SYSTEM-OVERVIEW-TEMPLATE.md",
+      "description": "Template for generating system-level summary document",
+      "used_by": ["speccrew-knowledge-system-summarize"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "system-summarize.md",
+      "sections": [
+        {
+          "name": "System Overview",
+          "required": true,
+          "description": "High-level system description and purpose"
+        },
+        {
+          "name": "Module Architecture",
+          "required": true,
+          "description": "Complete module dependency diagram"
+        },
+        {
+          "name": "Cross-Module Interactions",
+          "required": true,
+          "description": "Inter-module communication patterns"
+        },
+        {
+          "name": "Data Flow",
+          "required": true,
+          "description": "End-to-end data flow across modules"
+        },
+        {
+          "name": "Complete Feature Index",
+          "required": true,
+          "description": "Consolidated feature list from all modules"
+        },
+        {
+          "name": "Business Domain Summary",
+          "required": true,
+          "description": "Business domain overview and key entities"
+        }
+      ],
+      "placeholders": [
+        "{{SystemName}}",
+        "{{SystemPurpose}}",
+        "{{PlatformName}}",
+        "{{ModuleArchitecture}}",
+        "{{ModuleList}}",
+        "{{FeatureIndex}}",
+        "{{DataFlowDiagram}}"
+      ]
+    },
+    "index": {
+      "name": "INDEX-TEMPLATE",
+      "file_name": "INDEX-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/INDEX-TEMPLATE.md",
+      "description": "Template for generating knowledge base index",
+      "used_by": ["speccrew-knowledge-bizs-init", "speccrew-knowledge-techs-init"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "INDEX.md",
+      "sections": [
+        {
+          "name": "Platform Overview",
+          "required": true,
+          "description": "Platform name, type, and tech stack"
+        },
+        {
+          "name": "Module Index",
+          "required": true,
+          "description": "List of all modules with links"
+        },
+        {
+          "name": "Quick Navigation",
+          "required": true,
+          "description": "Links to system-summarize and other key docs"
+        }
+      ],
+      "placeholders": [
+        "{{PlatformName}}",
+        "{{PlatformType}}",
+        "{{TechStack}}",
+        "{{ModuleIndex}}",
+        "{{SystemSummarizeLink}}"
+      ]
+    },
+    "solution_plan": {
+      "name": "SOLUTION-TEMPLATE",
+      "file_name": "SOLUTION-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SOLUTION-TEMPLATE.md",
+      "description": "Template for solution manager to create solution documents",
+      "used_by": ["speccrew-solution-manager"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "{solution-name}.md",
+      "sections": [
+        {
+          "name": "Solution Overview",
+          "required": true,
+          "description": "Solution name, description, and scope"
+        },
+        {
+          "name": "Problem Statement",
+          "required": true,
+          "description": "Problem being solved"
+        },
+        {
+          "name": "Solution Design",
+          "required": true,
+          "description": "Detailed solution design"
+        },
+        {
+          "name": "Implementation Plan",
+          "required": true,
+          "description": "Steps to implement the solution"
+        },
+        {
+          "name": "Related Knowledge",
+          "required": false,
+          "description": "Links to relevant knowledge documents"
+        }
+      ],
+      "placeholders": [
+        "{{SolutionName}}",
+        "{{ProblemStatement}}",
+        "{{SolutionDesign}}",
+        "{{ImplementationPlan}}",
+        "{{RelatedKnowledge}}"
+      ]
+    },
+    "techs_index": {
+      "name": "TECHS-INDEX-TEMPLATE",
+      "file_name": "TECHS-INDEX-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/TECHS-INDEX-TEMPLATE.md",
+      "description": "Template for generating technology knowledge index for techs layer",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "INDEX.md",
+      "placeholders": [
+        "{{platform_name}}",
+        "{{platform_id}}",
+        "{{platform_type}}",
+        "{{framework}}",
+        "{{language}}",
+        "{{source_path}}"
+      ]
+    },
+    "tech_stack": {
+      "name": "TECH-STACK-TEMPLATE",
+      "file_name": "TECH-STACK-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/TECH-STACK-TEMPLATE.md",
+      "description": "Template for documenting technology stack details",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "tech-stack.md",
+      "placeholders": [
+        "{{platform_name}}",
+        "{{architecture_type}}",
+        "{{directory_structure}}",
+        "{{modules}}",
+        "{{module_relations}}"
+      ]
+    },
+    "architecture": {
+      "name": "ARCHITECTURE-TEMPLATE",
+      "file_name": "ARCHITECTURE-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/ARCHITECTURE-TEMPLATE.md",
+      "description": "Template for documenting architecture conventions and patterns",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "architecture.md",
+      "placeholders": [
+        "{{platform_name}}",
+        "{{directory_structure}}",
+        "{{structure_components}}",
+        "{{structure_relations}}"
+      ]
+    },
+    "conventions_design": {
+      "name": "CONVENTIONS-DESIGN-TEMPLATE",
+      "file_name": "CONVENTIONS-DESIGN-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-DESIGN-TEMPLATE.md",
+      "description": "Template for documenting design conventions",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "conventions-design.md"
+    },
+    "conventions_dev": {
+      "name": "CONVENTIONS-DEV-TEMPLATE",
+      "file_name": "CONVENTIONS-DEV-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-DEV-TEMPLATE.md",
+      "description": "Template for documenting development conventions",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "conventions-dev.md"
+    },
+    "conventions_test": {
+      "name": "CONVENTIONS-TEST-TEMPLATE",
+      "file_name": "CONVENTIONS-TEST-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-TEST-TEMPLATE.md",
+      "description": "Template for documenting testing conventions",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "conventions-test.md"
+    },
+    "conventions_data": {
+      "name": "CONVENTIONS-DATA-TEMPLATE",
+      "file_name": "CONVENTIONS-DATA-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-DATA-TEMPLATE.md",
+      "description": "Template for documenting data conventions",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "conventions-data.md"
+    }
+  },
+  "template_rules": {
+    "language_adaptation": {
+      "description": "All templates must support language parameter",
+      "valid_languages": ["zh", "en", "ja", "ko", "fr", "de", "es"],
+      "default": "zh"
+    },
+    "source_traceability": {
+      "description": "All generated documents must include source file references",
+      "required_blocks": [
+        "Referenced Files block at document start",
+        "Diagram Source after each Mermaid diagram",
+        "Section Source at end of major sections"
+      ]
+    },
+    "mermaid_compatibility": {
+      "description": "All diagrams must follow mermaid-rule.md guidelines",
+      "reference": "speccrew-workspace/docs/rules/mermaid-rule.md"
+    }
+  },
+  "versioning": {
+    "strategy": "semantic_versioning",
+    "format": "major.minor.patch",
+    "update_triggers": [
+      "Template structure changes",
+      "New placeholders added",
+      "Section requirements changed"
+    ]
+  }
+}

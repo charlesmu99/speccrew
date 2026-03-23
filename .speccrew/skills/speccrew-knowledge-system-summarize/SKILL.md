@@ -85,6 +85,9 @@ INVENTORY depends on: PRODUCT
 
 Generate Mermaid dependency diagram.
 
+> **Configuration Reference for Step 4:**
+> - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
+
 **Mermaid Diagram Requirements**
 
 When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
@@ -144,7 +147,10 @@ Create flow-module mapping matrix:
 
 ### Step 7: Generate system-overview.md
 
-Use template `speccrew-knowledge-system-summarize/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
+> **Configuration Reference for Step 7:**
+> - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
+
+Use template `speccrew-workspace/docs/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp

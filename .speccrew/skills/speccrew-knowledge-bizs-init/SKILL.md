@@ -50,6 +50,10 @@ Worker Agent (speccrew-task-worker)
 
 ### Step 1: Determine System Type
 
+> **Configuration Reference for Step 1:**
+> - Platform mappings: `speccrew-workspace/docs/configs/platform-mapping.json` - Map detected framework to standardized platform_id, platform_type, and platform_subtype
+> - Tech stack mappings: `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Identify platform indicators by file extensions and project files
+
 Analyze project to determine if it has a UI layer:
 
 **Check for UI Indicators:**
@@ -247,6 +251,9 @@ For each identified module, extract:
 For API-based modules (`system_type: "api"`), do **NOT** populate `backend_apis`; their endpoints are already covered by `entry_points` or API grouping in Step 2B.
 
 ### Step 4: Generate modules.json
+
+> **Configuration Reference for Step 4:**
+> - Validation rules: `speccrew-workspace/docs/configs/validation-rules.json` - Validate platform_id, module names, and file naming conventions
 
 Create JSON file for pipeline orchestration using the unified format:
 
