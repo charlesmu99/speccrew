@@ -497,25 +497,29 @@ Next Steps:
 
 **Wait for all Stage 1 Workers to complete**.
 
-### Step 3: Execute Pipeline Stages
+### Step 3: Execute Pipeline Stages (BOTH PIPELINES RUN IN PARALLEL)
 
-**For Bizs Pipeline** (if enabled):
+**CRITICAL**: When `knowledge_types = "both"`, Bizs Pipeline and Techs Pipeline MUST be launched simultaneously. Do NOT wait for one pipeline to complete before starting the other.
+
+**Launch BOTH pipelines at the same time** (when `knowledge_types = "both"`):
+
+**Bizs Pipeline** (if enabled) — runs concurrently with Techs Pipeline:
 - Read `modules.json`
-- Launch Stage 2 Workers in parallel (one per module)
-- Wait for completion
-- Launch Stage 3 Workers in parallel (one per module)
-- Wait for completion
-- Launch Stage 4 Worker (system summary)
+- Launch ALL Bizs Stage 2 Workers in parallel (one per module across all platforms)
+- Wait for all Bizs Stage 2 to complete
+- Launch ALL Bizs Stage 3 Workers in parallel (one per module across all platforms)
+- Wait for all Bizs Stage 3 to complete
+- Launch Bizs Stage 4 Worker (system summary)
 - Wait for completion
 
-**For Techs Pipeline** (if enabled):
+**Techs Pipeline** (if enabled) — runs concurrently with Bizs Pipeline:
 - Read `techs-manifest.json`
-- Launch Stage 2 Workers in parallel (one per platform)
-- Wait for completion
-- Launch Stage 3 Worker (root index)
+- Launch ALL Techs Stage 2 Workers in parallel (one per platform)
+- Wait for all Techs Stage 2 to complete
+- Launch Techs Stage 3 Worker (root index)
 - Wait for completion
 
-**Note**: Bizs and Techs pipelines run independently and can be in different stages simultaneously.
+**Note**: Both pipelines are fully independent. Launch them simultaneously using parallel Task invocations. Do NOT run them sequentially.
 
 ### Step 4: Generate Unified Final Report
 

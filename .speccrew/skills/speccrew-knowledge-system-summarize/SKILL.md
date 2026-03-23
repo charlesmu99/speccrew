@@ -144,7 +144,7 @@ Create flow-module mapping matrix:
 
 ### Step 7: Generate system-overview.md
 
-Use template `speccrew-knowledge-system-summarize/templates/system-overview-template.md`, fill all sections:
+Use template `speccrew-knowledge-system-summarize/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp
