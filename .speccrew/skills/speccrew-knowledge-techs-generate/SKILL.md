@@ -51,13 +51,55 @@ Generate the following documents in `{output_path}/`:
 
 ```
 {output_path}/
-├── INDEX.md                    # Platform technology index
-├── tech-stack.md              # Technology stack details
-├── architecture.md            # Architecture conventions
-├── conventions-design.md      # Design conventions
-├── conventions-dev.md         # Development conventions
-├── conventions-test.md        # Testing conventions
-└── conventions-data.md        # Data conventions (optional)
+├── INDEX.md                    # Platform technology index (必需)
+├── tech-stack.md              # Technology stack details (必需)
+├── architecture.md            # Architecture conventions (必需)
+├── conventions-design.md      # Design conventions (必需)
+├── conventions-dev.md         # Development conventions (必需)
+├── conventions-test.md        # Testing conventions (必需)
+└── conventions-data.md        # Data conventions (可选)
+```
+
+### Platform Type to Document Mapping
+
+| Platform Type | Required Documents | Optional Documents | Generate conventions-data.md? |
+|---------------|-------------------|-------------------|------------------------------|
+| `backend` | All 6 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
+| `web` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
+| `mobile` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `desktop` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `api` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
+
+### Decision Logic for conventions-data.md
+
+**Step 1: Check Platform Type**
+- If `backend` → **Generate** (always)
+- If `web`/`mobile`/`desktop`/`api` → Proceed to Step 2
+
+**Step 2: Detect Data Layer (for non-backend platforms)**
+
+Check configuration files for data layer indicators:
+
+| Indicator | Technology | Action |
+|-----------|------------|--------|
+| `prisma` in package.json dependencies | Prisma ORM | Generate conventions-data.md |
+| `typeorm` in package.json dependencies | TypeORM | Generate conventions-data.md |
+| `sequelize` in package.json dependencies | Sequelize | Generate conventions-data.md |
+| `mongoose` in package.json dependencies | Mongoose | Generate conventions-data.md |
+| `drizzle-orm` in package.json dependencies | Drizzle ORM | Generate conventions-data.md |
+| `firebase` / `@react-native-firebase` | Firebase | Generate conventions-data.md (lightweight) |
+| `sqlite` / `realm` / `@realm/react` | SQLite/Realm | Generate conventions-data.md (lightweight) |
+| `core-data` in iOS project | Core Data | Generate conventions-data.md |
+| `room` in Android project | Room Persistence | Generate conventions-data.md |
+| None detected | - | **Skip** conventions-data.md |
+
+**Step 3: Report Decision**
+```
+Platform: {platform_id}
+Type: {platform_type}
+Framework: {framework}
+Data Layer Detected: {yes/no/technology}
+Generate conventions-data.md: {yes/no}
 ```
 
 ## Workflow
@@ -394,20 +436,35 @@ Wherever possible, include concrete examples:
 
 ## Checklist
 
+### Pre-Generation
 - [ ] All configuration files read and parsed
 - [ ] Technology stack extracted accurately
 - [ ] Conventions analyzed from config files
+
+### Document Generation Decision
+- [ ] Platform type identified (web/mobile/backend/desktop/api)
+- [ ] Data layer detection completed for non-backend platforms
+- [ ] Decision made on whether to generate conventions-data.md
+  - [ ] Backend platform → Always generate
+  - [ ] Other platforms → Generate only if data layer detected
+
+### Required Documents (All Platforms)
 - [ ] INDEX.md generated with navigation
 - [ ] tech-stack.md generated with dependency tables
 - [ ] architecture.md generated with platform-specific patterns
 - [ ] conventions-design.md generated with design principles
 - [ ] conventions-dev.md generated with naming and style rules
 - [ ] conventions-test.md generated with testing requirements
-- [ ] conventions-data.md generated (if applicable)
+
+### Optional Document
+- [ ] conventions-data.md generated (only if applicable per platform type mapping)
+
+### Quality Checks
 - [ ] All files written to output_path
 - [ ] **Source traceability**: `<cite>` block added to each document
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
-- [ ] Results reported
+- [ ] **Document completeness**: Verify all required documents exist
+- [ ] Results reported with conventions-data.md generation status
 

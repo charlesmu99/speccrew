@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "description": "Platform naming mapping for consistent configuration across bizs and techs pipelines",
+  "last_updated": "2026-03-23",
+  "platform_categories": {
+    "web": {
+      "description": "Web frontend applications",
+      "subtypes": ["vue", "react", "angular", "nextjs", "nuxt", "svelte"]
+    },
+    "mobile": {
+      "description": "Mobile applications (all platforms)",
+      "subtypes": ["uniapp", "flutter", "react-native", "android", "ios", "miniprogram"]
+    },
+    "backend": {
+      "description": "Backend services and APIs",
+      "subtypes": ["spring", "nestjs", "express", "fastify", "django", "fastapi", "go", "rust"]
+    },
+    "desktop": {
+      "description": "Desktop applications",
+      "subtypes": ["electron", "tauri", "wpf", "winforms", "qt"]
+    },
+    "api": {
+      "description": "API-only systems (no UI)",
+      "subtypes": ["rest", "graphql", "grpc"]
+    }
+  },
+  "mappings": [
+    {
+      "platform_id": "web-react",
+      "platform_type": "web",
+      "framework": "react",
+      "platform_subtype": "react"
+    },
+    {
+      "platform_id": "web-vue",
+      "platform_type": "web",
+      "framework": "vue",
+      "platform_subtype": "vue"
+    },
+    {
+      "platform_id": "web-angular",
+      "platform_type": "web",
+      "framework": "angular",
+      "platform_subtype": "angular"
+    },
+    {
+      "platform_id": "web-nextjs",
+      "platform_type": "web",
+      "framework": "nextjs",
+      "platform_subtype": "nextjs"
+    },
+    {
+      "platform_id": "web-nuxt",
+      "platform_type": "web",
+      "framework": "nuxt",
+      "platform_subtype": "nuxt"
+    },
+    {
+      "platform_id": "web-svelte",
+      "platform_type": "web",
+      "framework": "svelte",
+      "platform_subtype": "svelte"
+    },
+    {
+      "platform_id": "mobile-uniapp",
+      "platform_type": "mobile",
+      "framework": "uniapp",
+      "platform_subtype": "uniapp"
+    },
+    {
+      "platform_id": "mobile-flutter",
+      "platform_type": "mobile",
+      "framework": "flutter",
+      "platform_subtype": "flutter"
+    },
+    {
+      "platform_id": "mobile-react-native",
+      "platform_type": "mobile",
+      "framework": "react-native",
+      "platform_subtype": "react-native"
+    },
+    {
+      "platform_id": "mobile-android",
+      "platform_type": "mobile",
+      "framework": "android",
+      "platform_subtype": "android"
+    },
+    {
+      "platform_id": "mobile-ios",
+      "platform_type": "mobile",
+      "framework": "ios",
+      "platform_subtype": "ios"
+    },
+    {
+      "platform_id": "mobile-miniprogram",
+      "platform_type": "mobile",
+      "framework": "miniprogram",
+      "platform_subtype": "miniprogram"
+    },
+    {
+      "platform_id": "backend-spring",
+      "platform_type": "backend",
+      "framework": "spring",
+      "platform_subtype": "spring"
+    },
+    {
+      "platform_id": "backend-nestjs",
+      "platform_type": "backend",
+      "framework": "nestjs",
+      "platform_subtype": "nestjs"
+    },
+    {
+      "platform_id": "backend-express",
+      "platform_type": "backend",
+      "framework": "express",
+      "platform_subtype": "express"
+    },
+    {
+      "platform_id": "backend-fastify",
+      "platform_type": "backend",
+      "framework": "fastify",
+      "platform_subtype": "fastify"
+    },
+    {
+      "platform_id": "backend-django",
+      "platform_type": "backend",
+      "framework": "django",
+      "platform_subtype": "django"
+    },
+    {
+      "platform_id": "backend-fastapi",
+      "platform_type": "backend",
+      "framework": "fastapi",
+      "platform_subtype": "fastapi"
+    },
+    {
+      "platform_id": "backend-go",
+      "platform_type": "backend",
+      "framework": "go",
+      "platform_subtype": "go"
+    },
+    {
+      "platform_id": "backend-rust",
+      "platform_type": "backend",
+      "framework": "rust",
+      "platform_subtype": "rust"
+    },
+    {
+      "platform_id": "desktop-electron",
+      "platform_type": "desktop",
+      "framework": "electron",
+      "platform_subtype": "electron"
+    },
+    {
+      "platform_id": "desktop-tauri",
+      "platform_type": "desktop",
+      "framework": "tauri",
+      "platform_subtype": "tauri"
+    },
+    {
+      "platform_id": "desktop-wpf",
+      "platform_type": "desktop",
+      "framework": "wpf",
+      "platform_subtype": "wpf"
+    },
+    {
+      "platform_id": "desktop-winforms",
+      "platform_type": "desktop",
+      "framework": "winforms",
+      "platform_subtype": "winforms"
+    },
+    {
+      "platform_id": "desktop-qt",
+      "platform_type": "desktop",
+      "framework": "qt",
+      "platform_subtype": "qt"
+    }
+  ],
+  "naming_conventions": {
+    "platform_id_format": "{platform_type}-{framework}",
+    "platform_type_values": ["web", "mobile", "backend", "desktop", "api"],
+    "field_mapping": {
+      "bizs_init": {
+        "platform_type": "platform_type",
+        "platform_subtype": "platform_subtype"
+      },
+      "techs_init": {
+        "platform_type": "platform_type",
+        "framework": "framework",
+        "platform_id": "platform_id"
+      }
+    }
+  }
+}

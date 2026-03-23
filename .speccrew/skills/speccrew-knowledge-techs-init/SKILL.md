@@ -225,6 +225,29 @@ Extract version information when available:
 - From pom.xml version tags
 - Include in report but not in manifest (manifest focuses on structure)
 
+### Platform Mapping to bizs-init
+
+Ensure consistency with modules.json by using standardized platform identifiers defined in:
+
+**Reference Configuration**: `speccrew-workspace/docs/configs/platform-mapping.json`
+
+The mapping file provides:
+- `platform_categories` - Valid platform types and their subtypes
+- `mappings` - Complete mapping table for all supported platforms
+- `naming_conventions` - Field mapping rules between bizs and techs
+
+**Key Rules:**
+- `platform_id` format: `{platform_type}-{framework}` (e.g., `mobile-uniapp`, `web-vue`)
+- `platform_type` must match between techs-manifest.json and modules.json
+- `framework` maps to `platform_subtype` in modules.json
+
+**Example Mapping:**
+| platform_id | platform_type | framework | platform_subtype (for bizs-init) |
+|-------------|---------------|-----------|----------------------------------|
+| web-vue | web | vue | vue |
+| mobile-uniapp | mobile | uniapp | uniapp |
+| backend-spring | backend | spring | spring |
+
 ## Checklist
 
 - [ ] All platform indicators checked

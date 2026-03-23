@@ -73,22 +73,57 @@ Read `techs-manifest.json` to get the list of all platforms:
 }
 ```
 
-### Step 2: Verify Platform Documents
+### Step 2: Verify Platform Documents (Dynamic Detection)
 
-For each platform in manifest, verify that platform documents exist:
+**CRITICAL**: Do NOT assume all platforms have the same document set. Must dynamically detect which documents actually exist.
+
+For each platform in manifest, scan the platform directory to detect actual document existence:
 
 ```
 speccrew-workspace/knowledges/techs/{platform_id}/
-├── INDEX.md
-├── tech-stack.md
-├── architecture.md
-├── conventions-design.md
-├── conventions-dev.md
-├── conventions-test.md
-└── conventions-data.md (optional)
+├── INDEX.md                    # Required - must exist
+├── tech-stack.md              # Required - must exist
+├── architecture.md            # Required - must exist
+├── conventions-design.md      # Required - must exist
+├── conventions-dev.md         # Required - must exist
+├── conventions-test.md        # Required - must exist
+└── conventions-data.md        # Optional - check existence dynamically
 ```
 
-If a platform's INDEX.md is missing, note it in the report but continue.
+**Dynamic Detection Logic:**
+
+1. **Scan Platform Directory**: List all `.md` files in `{techs_base_path}/{platform_id}/`
+2. **Build Document Availability Map**:
+   ```json
+   {
+     "platform_id": "mobile-uniapp",
+     "documents": {
+       "INDEX.md": true,
+       "tech-stack.md": true,
+       "architecture.md": true,
+       "conventions-design.md": true,
+       "conventions-dev.md": true,
+       "conventions-test.md": true,
+       "conventions-data.md": false  // Dynamically detected
+     }
+   }
+   ```
+3. **Validation**:
+   - If `INDEX.md` is missing → Note as error in report, skip this platform
+   - If any required document (except conventions-data.md) is missing → Note as warning
+   - Record actual document availability for dynamic link generation
+
+**Document Availability Rules:**
+
+| Document | Required | Action if Missing |
+|----------|----------|-------------------|
+| INDEX.md | ✅ Yes | Skip platform, report error |
+| tech-stack.md | ✅ Yes | Report warning |
+| architecture.md | ✅ Yes | Report warning |
+| conventions-design.md | ✅ Yes | Report warning |
+| conventions-dev.md | ✅ Yes | Report warning |
+| conventions-test.md | ✅ Yes | Report warning |
+| conventions-data.md | ❌ No | Omit from links, no warning |
 
 ### Step 3: Extract Platform Summaries
 
@@ -138,7 +173,7 @@ This technology knowledge index serves all platforms in the project, providing p
 
 #### Section 2: Platform Overview
 
-Summary table of all platforms:
+Summary table of all platforms with **dynamically generated document links**:
 
 ```markdown
 ## Platform Overview
@@ -146,8 +181,27 @@ Summary table of all platforms:
 | Platform | Type | Framework | Language | Documents |
 |----------|------|-----------|----------|-----------|
 | [Web Frontend](web-react/INDEX.md) | Web | React 18.2.0 | TypeScript | [Stack](web-react/tech-stack.md), [Arch](web-react/architecture.md), [Design](web-react/conventions-design.md), [Dev](web-react/conventions-dev.md), [Test](web-react/conventions-test.md) |
-| [Backend API](backend-nestjs/INDEX.md) | Backend | NestJS 10.0.0 | TypeScript | [Stack](backend-nestjs/tech-stack.md), [Arch](backend-nestjs/architecture.md), [Design](backend-nestjs/conventions-design.md), [Dev](backend-nestjs/conventions-dev.md), [Test](backend-nestjs/conventions-test.md) |
+| [Backend API](backend-nestjs/INDEX.md) | Backend | NestJS 10.0.0 | TypeScript | [Stack](backend-nestjs/tech-stack.md), [Arch](backend-nestjs/architecture.md), [Design](backend-nestjs/conventions-design.md), [Dev](backend-nestjs/conventions-dev.md), [Test](backend-nestjs/conventions-test.md), [Data](backend-nestjs/conventions-data.md) |
+| [Mobile App](mobile-uniapp/INDEX.md) | Mobile | UniApp | TypeScript | [Stack](mobile-uniapp/tech-stack.md), [Arch](mobile-uniapp/architecture.md), [Design](mobile-uniapp/conventions-design.md), [Dev](mobile-uniapp/conventions-dev.md), [Test](mobile-uniapp/conventions-test.md) |
 ```
+
+**Dynamic Link Generation Rules:**
+
+1. **Always include links to required documents** (if they exist):
+   - INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md
+
+2. **Conditionally include conventions-data.md**:
+   - Only add link if `conventions-data.md` exists in the platform directory
+   - For `backend` platforms, typically include
+   - For `mobile` platforms without data layer, omit
+
+3. **Link Format**: Use short abbreviations to save space:
+   - `[Stack]` → tech-stack.md
+   - `[Arch]` → architecture.md
+   - `[Design]` → conventions-design.md
+   - `[Dev]` → conventions-dev.md
+   - `[Test]` → conventions-test.md
+   - `[Data]` → conventions-data.md (only if exists)
 
 #### Section 3: Quick Reference
 
@@ -179,7 +233,7 @@ Quick links organized by document type:
 
 #### Section 4: Agent-to-Platform Mapping
 
-Critical section that defines how Agents map to platform documentation:
+Critical section that defines how Agents map to platform documentation. **Must dynamically adjust based on actual document availability**:
 
 ```markdown
 ## Agent-to-Platform Mapping
@@ -208,10 +262,37 @@ This section maps dynamically generated Agents to their respective platform docu
 | Tester | speccrew-test-backend-nestjs | [speccrew-workspace/knowledges/techs/backend-nestjs/](backend-nestjs/) |
 
 **Key Documents for Backend Agents:**
-- Designer: [architecture.md](backend-nestjs/architecture.md), [conventions-design.md](backend-nestjs/conventions-design.md)
-- Developer: [conventions-dev.md](backend-nestjs/conventions-dev.md)
+- Designer: [architecture.md](backend-nestjs/architecture.md), [conventions-design.md](backend-nestjs/conventions-design.md), [conventions-data.md](backend-nestjs/conventions-data.md)
+- Developer: [conventions-dev.md](backend-nestjs/conventions-dev.md), [conventions-data.md](backend-nestjs/conventions-data.md)
 - Tester: [conventions-test.md](backend-nestjs/conventions-test.md)
+
+### Mobile App (mobile-uniapp) - Example without conventions-data.md
+
+| Agent Role | Agent Name | Documentation Path |
+|------------|------------|-------------------|
+| Designer | speccrew-designer-mobile-uniapp | [speccrew-workspace/knowledges/techs/mobile-uniapp/](mobile-uniapp/) |
+| Developer | speccrew-dev-mobile-uniapp | [speccrew-workspace/knowledges/techs/mobile-uniapp/](mobile-uniapp/) |
+| Tester | speccrew-test-mobile-uniapp | [speccrew-workspace/knowledges/techs/mobile-uniapp/](mobile-uniapp/) |
+
+**Key Documents for Mobile Agents:**
+- Designer: [architecture.md](mobile-uniapp/architecture.md), [conventions-design.md](mobile-uniapp/conventions-design.md)
+- Developer: [conventions-dev.md](mobile-uniapp/conventions-dev.md)
+- Tester: [conventions-test.md](mobile-uniapp/conventions-test.md)
 ```
+
+**Dynamic Adjustment Rules:**
+
+1. **Designer Agent Documents**:
+   - Always: architecture.md, conventions-design.md
+   - Conditionally: conventions-data.md (only if platform has data layer)
+
+2. **Developer Agent Documents**:
+   - Always: conventions-dev.md
+   - Conditionally: conventions-data.md (only if platform has data layer)
+
+3. **Tester Agent Documents**:
+   - Always: conventions-test.md
+   - Rarely: conventions-data.md (only if testing data layer specifically)
 
 #### Section 5: Document Guide
 
@@ -295,15 +376,29 @@ Use template at `speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md`:
 
 ## Checklist
 
+### Pre-Generation
 - [ ] techs-manifest.json read successfully
-- [ ] All platform INDEX.md files discovered
-- [ ] Platform summaries extracted
+- [ ] Platform list extracted from manifest
+
+### Dynamic Document Detection
+- [ ] Each platform directory scanned for actual document existence
+- [ ] Document availability map created for each platform
+- [ ] Required documents verified (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md)
+- [ ] Optional conventions-data.md existence checked per platform
+
+### Content Generation
+- [ ] Platform summaries extracted from existing INDEX.md files
 - [ ] Root INDEX.md generated with all sections
-- [ ] Agent-to-Platform mapping documented
+- [ ] **Platform Overview table**: Links dynamically generated based on actual document existence
+- [ ] **Agent-to-Platform mapping**: Document recommendations adjusted per platform
 - [ ] Document guide included
 - [ ] Usage guide included
-- [ ] Output file written successfully
+
+### Quality & Validation
+- [ ] No broken links to non-existent documents
+- [ ] conventions-data.md links only included for platforms where it exists
 - [ ] **Source traceability**: `<cite>` block added to root INDEX.md
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
-- [ ] Results reported
+- [ ] Output file written successfully
+- [ ] Results reported with document availability summary
 

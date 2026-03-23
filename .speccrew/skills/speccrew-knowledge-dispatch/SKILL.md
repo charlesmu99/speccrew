@@ -47,6 +47,31 @@ Leader Agent (speccrew-team-leader)
 - `base_commit` (optional, incremental mode only): Git commit hash used as the comparison base
 - `head_commit` (optional, incremental mode only): Git commit hash for current HEAD. If omitted, assume `HEAD`.
 - `changed_files` (optional, incremental mode only): Pre-computed list of changed files between `base_commit` and `head_commit` (e.g., from `git diff --name-only`)
+
+## Platform Naming Convention
+
+To ensure consistency between bizs and techs pipelines, all platform identifiers must follow the standardized mapping defined in:
+
+**Reference Configuration**: `speccrew-workspace/docs/configs/platform-mapping.json`
+
+### Field Mapping
+
+| Concept | bizs-init (modules.json) | techs-init (techs-manifest.json) | Example (UniApp) |
+|---------|--------------------------|----------------------------------|------------------|
+| **Category** | `platform_type` | `platform_type` | `mobile` |
+| **Technology** | `platform_subtype` | `framework` | `uniapp` |
+| **Identifier** | `{platform_type}/{platform_subtype}` | `platform_id` | `mobile-uniapp` |
+
+### Standard Values
+
+Refer to `platform-mapping.json` for complete list:
+- `platform_categories` - Valid platform types and their subtypes
+- `mappings` - Complete mapping table for all supported platforms
+- `naming_conventions` - Field mapping rules between bizs and techs
+
+**Example for UniApp mobile platform:**
+- modules.json: `"platform_type": "mobile"`, `"platform_subtype": "uniapp"`
+- techs-manifest.json: `"platform_type": "mobile"`, `"platform_id": "mobile-uniapp"`, `"framework": "uniapp"`
 ## Output
 
 - Task status records in `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/` and/or `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`
@@ -370,14 +395,27 @@ prompt: |
 **Output per Platform**:
 ```
 speccrew-workspace/knowledges/techs/{platform_id}/
-├── INDEX.md
-├── tech-stack.md
-├── architecture.md
-├── conventions-design.md
-├── conventions-dev.md
-├── conventions-test.md
-└── conventions-data.md (optional)
+├── INDEX.md                    # 必需
+├── tech-stack.md              # 必需
+├── architecture.md            # 必需
+├── conventions-design.md      # 必需
+├── conventions-dev.md         # 必需
+├── conventions-test.md        # 必需
+└── conventions-data.md        # 可选 - 仅特定平台需要
 ```
+
+**关于可选文件 `conventions-data.md` 的处理**:
+
+| 平台类型 | 是否需要 conventions-data.md | 说明 |
+|----------|------------------------------|------|
+| `backend` | ✅ 必需 | 包含 ORM 规范、数据建模、缓存策略 |
+| `web` | ⚠️ 视情况而定 | 使用 ORM/数据层的 web 平台需要（如使用 Prisma、TypeORM 等） |
+| `mobile` | ❌ 可选 | 根据实际技术栈决定，默认不生成 |
+| `desktop` | ❌ 可选 | 根据实际技术栈决定，默认不生成 |
+
+**生成规则**:
+1. `speccrew-knowledge-techs-generate` 根据平台类型决定是否需要生成 `conventions-data.md`
+2. `speccrew-knowledge-techs-index` 必须检查各平台实际存在的文档，动态生成链接，不得假设所有平台都有相同的文档集合
 
 **Status Tracking**:
 - `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-status.json`
@@ -399,8 +437,22 @@ speccrew-workspace/knowledges/techs/{platform_id}/
   - `output_path`: Output path for root INDEX.md (e.g., `speccrew-workspace/knowledges/techs/`)
   - `language`: User's language (e.g., "zh", "en") - **REQUIRED**
 
+**Critical Requirements for Techs Index Generation**:
+
+1. **Dynamic Document Detection**: 
+   - Must scan each platform directory to detect which documents actually exist
+   - Do NOT assume all platforms have the same document set
+   - `conventions-data.md` may not exist for all platforms
+
+2. **Dynamic Link Generation**:
+   - Only include links to documents that actually exist
+   - For missing optional documents, either omit the link or mark as "N/A"
+
+3. **Platform-Specific Document Recommendations**:
+   - Adjust "Agent 重点文档" recommendations based on actual available documents
+
 **Output**:
-- `speccrew-workspace/knowledges/techs/INDEX.md` (complete with platform index and Agent mapping)
+- `speccrew-workspace/knowledges/techs/INDEX.md` (complete with platform index and Agent mapping, dynamically generated based on actual document existence)
 
 ---
 
@@ -603,6 +655,19 @@ Next Steps:
 - [ ] Techs Stage 2: All platforms processed in parallel
 - [ ] Techs Stage 3: Root INDEX.md generated with Agent mapping
 - [ ] Status files created in `knowledges/base/sync-state/knowledge-techs/`
+
+### Platform Naming Verification
+- [ ] `platform_type` values are consistent between modules.json and techs-manifest.json
+- [ ] `platform_subtype` in modules.json matches `framework` in techs-manifest.json
+- [ ] `platform_id` in techs-manifest.json follows `{platform_type}-{framework}` format
+- [ ] No deprecated platform types used (e.g., `mobile-react-native` as platform_type)
+
+### Document Completeness Verification
+- [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md
+- [ ] `conventions-data.md` exists only for appropriate platforms (backend required, others optional)
+- [ ] All documents include `<cite>` reference blocks
+- [ ] All documents include AI-TAG and AI-CONTEXT comments
+- [ ] techs/INDEX.md links only to existing documents
 
 ### Final
 - [ ] Unified final report generated with platform breakdown
