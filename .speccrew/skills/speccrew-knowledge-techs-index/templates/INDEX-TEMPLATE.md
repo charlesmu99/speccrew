@@ -7,28 +7,28 @@
 
 > **Target Audience**: devcrew-designer-*, devcrew-dev-*, devcrew-test-*
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本技术知识索引面向项目所有平台，提供平台概览、文档导航与 Agent 使用指南。
+This technology knowledge index serves all platforms in the project, providing platform overview, document navigation, and Agent usage guidelines.
 
 > Generated at: {{generated_at}}
 > Source: {{source_path}}
 > Platforms: {{platform_count}}
 
-## 项目结构
+## Project Structure
 
 ### Platform Overview
 
@@ -60,7 +60,7 @@ techs/
 **Section Source**
 - [techs-manifest.json](file://{{manifest_path}})
 
-## 核心组件
+## Core Components
 
 ### Technology Stacks
 
@@ -94,7 +94,7 @@ techs/
 
 [This section provides navigation, aggregated from platform documents]
 
-## 架构总览
+## Architecture Overview
 
 ### Platform Architecture Map
 
@@ -113,7 +113,7 @@ Root --> {{platform_id}}
 **Section Source**
 - [techs-manifest.json](file://{{manifest_path}})
 
-## 详细组件分析
+## Detailed Component Analysis
 
 ### Agent-to-Platform Mapping
 
@@ -138,7 +138,7 @@ This section maps dynamically generated Agents to their respective platform docu
 **Section Source**
 - [techs-manifest.json](file://{{manifest_path}})
 
-## 依赖分析
+## Dependency Analysis
 
 ### Cross-Platform Dependencies
 
@@ -160,7 +160,7 @@ graph LR
 **Section Source**
 - [techs-manifest.json](file://{{manifest_path}})
 
-## 性能考虑
+## Performance Considerations
 
 ### Platform Performance Characteristics
 
@@ -168,7 +168,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 ### Common Issues
 
@@ -192,13 +192,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Document Guide
 

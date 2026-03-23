@@ -213,17 +213,17 @@ All generated documents must follow this structure:
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
 ... content sections ...
 

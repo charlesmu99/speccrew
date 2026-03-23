@@ -9,24 +9,24 @@
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本数据规范文档面向 {{platform_name}} 平台，定义 ORM/数据库工具、数据建模规范、迁移模式、查询优化与缓存策略。
+This data conventions document defines ORM/database tools, data modeling conventions, migration patterns, query optimization, and caching strategies for the {{platform_name}} platform.
 
-## 项目结构
+## Project Structure
 
 ### Data Layer Structure
 
@@ -54,7 +54,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 核心组件
+## Core Components
 
 ### ORM/Database Tool
 
@@ -73,7 +73,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 架构总览
+## Architecture Overview
 
 ### Data Architecture
 
@@ -101,7 +101,7 @@ erDiagram
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 详细组件分析
+## Detailed Component Analysis
 
 ### Entity Design
 
@@ -136,7 +136,7 @@ TestMigration --> ApplyMigration["Apply to Production"]
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 依赖分析
+## Dependency Analysis
 
 ### Data Layer Dependencies
 
@@ -160,7 +160,7 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 性能考虑
+## Performance Considerations
 
 ### Database Performance
 
@@ -182,7 +182,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 ### Common Data Issues
 
@@ -206,13 +206,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Data Conventions Checklist
 

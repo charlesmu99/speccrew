@@ -9,24 +9,24 @@
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本测试规范文档面向 {{platform_name}} 平台，定义测试框架、测试文件组织、覆盖率要求、单元测试模式、集成测试模式、Mock 策略与测试数据管理。
+This testing conventions document defines testing frameworks, test file organization, coverage requirements, unit testing patterns, integration testing patterns, mocking strategies, and test data management for the {{platform_name}} platform.
 
-## 项目结构
+## Project Structure
 
 ### Test Directory Structure
 
@@ -54,7 +54,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 核心组件
+## Core Components
 
 ### Testing Framework
 
@@ -77,7 +77,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 架构总览
+## Architecture Overview
 
 ### Testing Architecture
 
@@ -110,7 +110,7 @@ Framework --> Fixtures
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 详细组件分析
+## Detailed Component Analysis
 
 ### Coverage Requirements
 
@@ -154,7 +154,7 @@ Arrange --> Act --> Assert
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 依赖分析
+## Dependency Analysis
 
 ### Test Dependencies
 
@@ -178,7 +178,7 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 性能考虑
+## Performance Considerations
 
 ### Test Performance Guidelines
 
@@ -200,7 +200,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 ### Common Test Issues
 
@@ -229,13 +229,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Testing Best Practices
 

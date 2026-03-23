@@ -9,24 +9,24 @@
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本文档为 {{platform_name}} 平台的技术知识索引，提供技术栈概览、文档导航与 Agent 使用指南。
+This document serves as the technology knowledge index for the {{platform_name}} platform, providing technology stack overview, document navigation, and Agent usage guidelines.
 
-## 项目结构
+## Project Structure
 
 ### Platform Overview
 
@@ -55,7 +55,7 @@
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 核心组件
+## Core Components
 
 ### Technology Stack Summary
 
@@ -74,7 +74,7 @@
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 架构总览
+## Architecture Overview
 
 ### Document Navigation
 
@@ -99,7 +99,7 @@ INDEX --> Data["conventions-data.md<br/>Data Conventions"]
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 详细组件分析
+## Detailed Component Analysis
 
 ### Quick Navigation
 
@@ -128,7 +128,7 @@ INDEX --> Data["conventions-data.md<br/>Data Conventions"]
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 依赖分析
+## Dependency Analysis
 
 ### Configuration Files
 
@@ -158,7 +158,7 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 性能考虑
+## Performance Considerations
 
 ### Platform Performance Characteristics
 
@@ -166,7 +166,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 ### Common Issues
 
@@ -182,13 +182,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Agent Usage Guide
 

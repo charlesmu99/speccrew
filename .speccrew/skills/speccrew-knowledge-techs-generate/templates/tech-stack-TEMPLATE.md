@@ -9,26 +9,26 @@
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本技术栈文档面向 {{platform_name}} 平台，系统梳理框架版本、依赖库、构建工具、配置文件等，帮助开发者理解技术选型与架构设计思路。
+This technology stack document provides a systematic overview of framework versions, dependencies, build tools, and configuration files for the {{platform_name}} platform, helping developers understand the technology choices and architecture design rationale.
 
-## 项目结构
+## Project Structure
 
-{{platform_name}} 采用 {{architecture_type}} 架构组织：
+{{platform_name}} is organized using the {{architecture_type}} architecture:
 
 ```
 {{directory_structure}}
@@ -54,7 +54,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 核心组件
+## Core Components
 
 | Component | Technology | Version | Purpose |
 |-----------|------------|---------|---------|
@@ -67,7 +67,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 架构总览
+## Architecture Overview
 
 {{architecture_overview}}
 
@@ -93,7 +93,7 @@ end
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 详细组件分析
+## Detailed Component Analysis
 
 {{#each component_analysis}}
 ### {{name}}
@@ -112,7 +112,7 @@ end
 
 {{/each}}
 
-## 依赖分析
+## Dependency Analysis
 
 ### Production Dependencies
 
@@ -154,7 +154,7 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 性能考虑
+## Performance Considerations
 
 {{#each performance_considerations}}
 ### {{category}}
@@ -170,7 +170,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 {{#each troubleshooting}}
 ### {{issue}}
@@ -192,13 +192,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Configuration Files
 

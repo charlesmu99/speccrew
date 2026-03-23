@@ -9,26 +9,26 @@
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
-## 目录 / Table of Contents
+## Table of Contents
 
-1. [引言 / Introduction](#引言)
-2. [项目结构 / Project Structure](#项目结构)
-3. [核心组件 / Core Components](#核心组件)
-4. [架构总览 / Architecture Overview](#架构总览)
-5. [详细组件分析 / Detailed Component Analysis](#详细组件分析)
-6. [依赖分析 / Dependency Analysis](#依赖分析)
-7. [性能考虑 / Performance Considerations](#性能考虑)
-8. [故障排查指南 / Troubleshooting Guide](#故障排查指南)
-9. [结论 / Conclusion](#结论)
-10. [附录 / Appendix](#附录)
+1. [Introduction](#introduction)
+2. [Project Structure](#project-structure)
+3. [Core Components](#core-components)
+4. [Architecture Overview](#architecture-overview)
+5. [Detailed Component Analysis](#detailed-component-analysis)
+6. [Dependency Analysis](#dependency-analysis)
+7. [Performance Considerations](#performance-considerations)
+8. [Troubleshooting Guide](#troubleshooting-guide)
+9. [Conclusion](#conclusion)
+10. [Appendix](#appendix)
 
-## 引言
+## Introduction
 
-本架构规范文档面向 {{platform_name}} 平台，定义分层架构设计、模块组织方式、组件交互模式、错误处理策略、安全考量与性能指导原则。
+This architecture conventions document defines the layered architecture design, module organization, component interaction patterns, error handling strategies, security considerations, and performance guidelines for the {{platform_name}} platform.
 
-## 项目结构
+## Project Structure
 
-{{platform_name}} 采用以下目录结构：
+{{platform_name}} uses the following directory structure:
 
 ```
 {{directory_structure}}
@@ -54,7 +54,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 核心组件
+## Core Components
 
 ### Layer Organization
 
@@ -73,7 +73,7 @@ graph TB
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 架构总览
+## Architecture Overview
 
 {{architecture_overview}}
 
@@ -103,7 +103,7 @@ end
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 详细组件分析
+## Detailed Component Analysis
 
 {{#each component_analysis}}
 ### {{name}}
@@ -129,7 +129,7 @@ end
 
 {{/each}}
 
-## 依赖分析
+## Dependency Analysis
 
 ### Module Dependencies
 
@@ -159,7 +159,7 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 性能考虑
+## Performance Considerations
 
 ### Performance Guidelines
 
@@ -181,7 +181,7 @@ graph LR
 
 [This section provides general guidance, no specific file reference required]
 
-## 故障排查指南
+## Troubleshooting Guide
 
 {{#each troubleshooting}}
 ### {{issue}}
@@ -208,13 +208,13 @@ graph LR
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
 
-## 结论
+## Conclusion
 
 {{conclusion}}
 
 [This section is a summary, no specific file reference required]
 
-## 附录
+## Appendix
 
 ### Best Practices
 
