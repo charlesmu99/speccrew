@@ -8,7 +8,7 @@
 > <!-- AI-CONTEXT: This document describes the UI, interaction, and data rules of a single feature in detail. AI should fill all placeholders when generating. -->
 
 <cite>
-**本文引用的文件**
+**Files Referenced in This Document**
 - [{Controller}.java](file://path/to/controller)
 - [{Service}.java](file://path/to/service)
 - [{Entity}.java](file://path/to/entity)
@@ -222,7 +222,7 @@ flowchart TD
     Success --> List[Return to List]
 ```
 
-**图表来源**
+**Diagram Source**
 - [{Controller}.java](file://path/to/controller#L45-L80)
 - [{Service}.java](file://path/to/service#L30-L60)
 
@@ -338,7 +338,7 @@ graph LR
     C --> D
 ```
 
-**图表来源**
+**Diagram Source**
 - [{Service}.java](file://path/to/service#L10-L50)
 
 ### 6.3 External Dependencies
@@ -468,7 +468,7 @@ feature:
 **Maintainer:** {Name}  
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
-**章节来源**
+**Section Source**
 - [{Controller}.java](file://path/to/controller#L1-L100)
 - [{Service}.java](file://path/to/service#L1-L80)
 - [{Entity}.java](file://path/to/entity#L1-L50)
