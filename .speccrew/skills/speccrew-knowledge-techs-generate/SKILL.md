@@ -51,13 +51,19 @@ Generate the following documents in `{output_path}/`:
 
 ```
 {output_path}/
-├── INDEX.md                    # Platform technology index (必需)
-├── tech-stack.md              # Technology stack details (必需)
-├── architecture.md            # Architecture conventions (必需)
-├── conventions-design.md      # Design conventions (必需)
-├── conventions-dev.md         # Development conventions (必需)
-├── conventions-test.md        # Testing conventions (必需)
-└── conventions-data.md        # Data conventions (可选)
+├── INDEX.md                    # Platform technology index (Required)
+├── tech-stack.md              # Technology stack details (Required)
+├── architecture.md            # Architecture conventions (Required)
+├── conventions-design.md      # Design conventions (Required)
+├── conventions-dev.md         # Development conventions (Required)
+├── conventions-test.md        # Testing conventions (Required)
+├── conventions-data.md        # Data conventions (Optional)
+└── ui-style/                  # UI style analysis (Optional, frontend platforms only)
+    ├── ui-style-guide.md      # Main UI style guide
+    ├── page-types/            # Page type analysis
+    ├── components/            # Component analysis
+    ├── layouts/               # Layout patterns
+    └── styles/                # Styling conventions
 ```
 
 ### Platform Type to Document Mapping
@@ -69,6 +75,37 @@ Generate the following documents in `{output_path}/`:
 | `mobile` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
 | `desktop` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
 | `api` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
+
+### UI Style Analysis Integration
+
+For frontend platforms (`web`, `mobile`, `desktop`), invoke `speccrew-ui-style-analyzer` to extract UI patterns from source code:
+
+**When to invoke:**
+- `platform_type` is `web`, `mobile`, or `desktop`
+- Source code contains UI components (Vue, React, etc.)
+
+**Input parameters mapping:**
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `source_path` | Same as this skill's `source_path` | UI source directory |
+| `platform_id` | Same as this skill's `platform_id` | Platform identifier |
+| `platform_type` | Same as this skill's `platform_type` | `web` / `mobile` / `desktop` |
+| `framework` | Same as this skill's `framework` | Frontend framework |
+| `output_path` | `{output_path}/ui-style/` | Output subdirectory |
+| `language` | Same as this skill's `language` | Target language |
+
+**After invocation, reference in conventions-design.md:**
+```markdown
+## UI Design Conventions
+
+This platform follows UI patterns documented in:
+- [UI Style Guide](ui-style/ui-style-guide.md)
+- [Page Type Summary](ui-style/page-types/page-type-summary.md)
+
+### Page Type Selection Guide
+
+See [page-type-summary.md](ui-style/page-types/page-type-summary.md) for available page types and usage recommendations.
+```
 
 ### Decision Logic for conventions-data.md
 
@@ -234,10 +271,26 @@ For generic guidance sections without specific file references:
 [This section provides general guidance, no specific file reference required]
 ```
 
-### Step 4: Generate Documents
+### Step 4: Invoke UI Style Analysis (Frontend Platforms Only)
+
+If `platform_type` is `web`, `mobile`, or `desktop`:
+
+1. **Invoke** `speccrew-ui-style-analyzer` with parameters:
+   - `source_path`: `{source_path}`
+   - `platform_id`: `{platform_id}`
+   - `platform_type`: `{platform_type}` (pass directly: `web`/`mobile`/`desktop`)
+   - `framework`: `{framework}`
+   - `output_path`: `{output_path}/ui-style/`
+   - `language`: `{language}`
+
+2. **Wait for completion** and verify output files exist
+
+3. **Reference UI style docs** in `conventions-design.md`
+
+### Step 5: Generate Documents
 
 Use unified templates located at:
-- `speccrew-knowledge-techs-generate/templates/`
+- `speccrew-workspace/docs/templates/`
 
 All templates follow a unified 10-section structure for consistency.
 
@@ -332,6 +385,9 @@ Design principles and patterns for detailed design.
 **Sections:**
 - Design Principles (SOLID, DRY, etc.)
 - Component/Module Design Patterns
+- **UI Design Conventions** (frontend platforms - reference ui-style analysis)
+  - Link to `ui-style/ui-style-guide.md`
+  - Link to `ui-style/page-types/page-type-summary.md`
 - Data Flow Design
 - Error Handling Patterns
 - Security Considerations
@@ -372,11 +428,11 @@ Data layer conventions (if applicable).
 - Query Optimization
 - Caching Strategies
 
-### Step 5: Write Output Files
+### Step 6: Write Output Files
 
 Create output directory if not exists, then write all generated documents.
 
-### Step 6: Report Results
+### Step 7: Report Results
 
 ```
 Platform Technology Documents Generated: {platform_id}
@@ -387,22 +443,23 @@ Platform Technology Documents Generated: {platform_id}
 - conventions-dev.md: ✓
 - conventions-test.md: ✓
 - conventions-data.md: ✓ (or skipped if not applicable)
+- ui-style-guide.md: ✓ (frontend platforms only)
 - Output Directory: {output_path}
 ```
 
 ## Template Usage
 
-All templates are unified and located in `templates/` directory:
+All templates are unified and located in `speccrew-workspace/docs/templates/` directory:
 
 | Template File | Purpose |
 |---------------|---------|
 | `INDEX-TEMPLATE.md` | Platform overview and navigation hub |
-| `tech-stack-TEMPLATE.md` | Technology stack details |
-| `architecture-TEMPLATE.md` | Architecture patterns and conventions |
-| `conventions-design-TEMPLATE.md` | Design principles and patterns |
-| `conventions-dev-TEMPLATE.md` | Development conventions |
-| `conventions-test-TEMPLATE.md` | Testing conventions |
-| `conventions-data-TEMPLATE.md` | Data layer conventions |
+| `TECH-STACK-TEMPLATE.md` | Technology stack details |
+| `ARCHITECTURE-TEMPLATE.md` | Architecture patterns and conventions |
+| `CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
+| `CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
+| `CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
+| `CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
 
 Platform-specific content is generated dynamically based on:
 - Platform type (web, mobile, backend, desktop)
@@ -459,6 +516,12 @@ Wherever possible, include concrete examples:
 ### Optional Document
 - [ ] conventions-data.md generated (only if applicable per platform type mapping)
 
+### UI Style Analysis (Frontend Platforms)
+- [ ] UI style analysis invoked for web/mobile/desktop platforms
+- [ ] ui-style-guide.md generated in `ui-style/` subdirectory
+- [ ] Page type documents generated dynamically
+- [ ] UI conventions referenced in conventions-design.md
+
 ### Quality Checks
 - [ ] All files written to output_path
 - [ ] **Source traceability**: `<cite>` block added to each document
@@ -466,5 +529,5 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
 - [ ] **Document completeness**: Verify all required documents exist
-- [ ] Results reported with conventions-data.md generation status
+- [ ] Results reported with conventions-data.md and ui-style-guide.md generation status
 

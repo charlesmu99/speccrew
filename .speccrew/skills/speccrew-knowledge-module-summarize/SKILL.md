@@ -92,7 +92,7 @@ Collect all business rules from feature details:
 
 ### Step 6: Generate Complete MODULE-OVERVIEW.md
 
-Use `templates/MODULE-OVERVIEW-TEMPLATE.md` (in this skill directory), fill all sections:
+Use `speccrew-workspace/docs/templates/MODULE-OVERVIEW-TEMPLATE.md` (in this skill directory), fill all sections:
 
 **Mermaid Diagram Requirements**
 
