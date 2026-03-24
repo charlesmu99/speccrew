@@ -203,7 +203,7 @@ These source file references will be used in the generated documents for traceab
 
 ### Step 4: Generate {feature-name}.md Files
 
-For each feature, use template `speccrew-workspace/docs/templates/FEATURE-DETAIL-TEMPLATE.md`:
+For each feature, use template `speccrew-knowledge-module-analyze/templates/FEATURE-DETAIL-TEMPLATE.md`:
 
 **Template placeholders:**
 - `{{FeatureName}}`: Feature name (e.g., "create-order")
@@ -249,7 +249,7 @@ Each generated document must include source code traceability information:
 > - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
 > - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
 
-Use template `speccrew-workspace/docs/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:
+Use template `speccrew-knowledge-module-analyze/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:
 
 **Mermaid Diagram Requirements**
 

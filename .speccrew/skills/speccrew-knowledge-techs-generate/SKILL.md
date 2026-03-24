@@ -290,7 +290,7 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
 ### Step 5: Generate Documents
 
 Use unified templates located at:
-- `speccrew-workspace/docs/templates/`
+- `speccrew-knowledge-techs-generate/templates/`
 
 All templates follow a unified 10-section structure for consistency.
 
@@ -449,17 +449,17 @@ Platform Technology Documents Generated: {platform_id}
 
 ## Template Usage
 
-All templates are unified and located in `speccrew-workspace/docs/templates/` directory:
+All templates are unified and located in `speccrew-knowledge-techs-generate/templates/` directory:
 
 | Template File | Purpose |
 |---------------|---------|
-| `INDEX-TEMPLATE.md` | Platform overview and navigation hub |
-| `TECH-STACK-TEMPLATE.md` | Technology stack details |
-| `ARCHITECTURE-TEMPLATE.md` | Architecture patterns and conventions |
-| `CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
-| `CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
-| `CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
-| `CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
+| `speccrew-knowledge-techs-generate/templates/INDEX-TEMPLATE.md` | Platform overview and navigation hub |
+| `speccrew-knowledge-techs-generate/templates/TECH-STACK-TEMPLATE.md` | Technology stack details |
+| `speccrew-knowledge-techs-generate/templates/ARCHITECTURE-TEMPLATE.md` | Architecture patterns and conventions |
+| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
+| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
+| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
+| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
 
 Platform-specific content is generated dynamically based on:
 - Platform type (web, mobile, backend, desktop)

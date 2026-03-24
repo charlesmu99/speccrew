@@ -18,7 +18,7 @@ Read in order:
 1. Current iteration PRD: `projects/pXXX/01.prds/[feature-name]-prd.md`
 2. System architecture status: `speccrew-workspace/knowledge/architecture/system/system-arch.md`
 3. Business module list: `speccrew-workspace/knowledge/bizs/modules/modules.md`
-4. Solution template: `speccrew-workspace/docs/templates/SOLUTION-TEMPLATE.md`
+4. Solution template: `speccrew-solution-plan/templates/SOLUTION-TEMPLATE.md`
 
 ## Step 2: Solution Analysis
 

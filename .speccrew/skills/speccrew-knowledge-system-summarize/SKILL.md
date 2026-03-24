@@ -150,7 +150,7 @@ Create flow-module mapping matrix:
 > **Configuration Reference for Step 7:**
 > - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
 
-Use template `speccrew-workspace/docs/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
+Use template `speccrew-knowledge-system-summarize/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp
