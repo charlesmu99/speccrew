@@ -291,6 +291,23 @@ function Install-SpecCrew($zipPath) {
                     }
                 }
             }
+            
+            # Copy configs subdirectory
+            $configsSource = Join-Path $docsSource "configs"
+            if (Test-Path $configsSource) {
+                $configsTarget = Join-Path $docsTarget "configs"
+                New-Item -ItemType Directory -Path $configsTarget -Force | Out-Null
+                Get-ChildItem -Path $configsSource -Filter "*.json" | ForEach-Object {
+                    $configTarget = Join-Path $configsTarget $_.Name
+                    $exists = Test-Path $configTarget
+                    Copy-Item -Path $_.FullName -Destination $configTarget -Force
+                    if ($exists) {
+                        Write-Info "Updated config: $($_.Name)"
+                    } else {
+                        Write-Info "Added new config: $($_.Name)"
+                    }
+                }
+            }
         }
         
         Write-Success "Updated speccrew-workspace/ directory."

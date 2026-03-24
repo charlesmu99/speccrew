@@ -295,6 +295,22 @@ install_SpecCrew() {
                     fi
                 done
             fi
+            
+            # Copy configs subdirectory
+            if [ -d "$extracted_dir/speccrew-workspace/docs/configs" ]; then
+                mkdir -p "$TARGET_DIR/speccrew-workspace/docs/configs"
+                for config in "$extracted_dir/speccrew-workspace/docs/configs"/*.json; do
+                    if [ -f "$config" ]; then
+                        config_name=$(basename "$config")
+                        if [ -f "$TARGET_DIR/speccrew-workspace/docs/configs/$config_name" ]; then
+                            print_info "Updated config: $config_name"
+                        else
+                            print_info "Added new config: $config_name"
+                        fi
+                        cp "$config" "$TARGET_DIR/speccrew-workspace/docs/configs/"
+                    fi
+                done
+            fi
         fi
         
         print_success "Updated speccrew-workspace/ directory."
