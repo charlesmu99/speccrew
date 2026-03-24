@@ -45,10 +45,12 @@ Worker Agent (speccrew-task-worker)
 
 ## Output
 
-Generate the following documents in `{output_path}/ui-style/`:
+Generate the following documents in `{output_path}/`:
+
+**Note**: The `output_path` parameter should already include the `ui-style/` suffix when passed from the caller (e.g., `speccrew-knowledge-techs-generate`).
 
 ```
-{output_path}/
+{output_path}/                    # e.g., .../techs/mobile-uniapp/ui-style/
 ├── ui-style-guide.md              # Main UI style guide (Required)
 ├── page-types/                    # Page type analysis
 │   ├── page-type-summary.md      # Page type overview (dynamically generated type list)
@@ -225,145 +227,89 @@ Analyze style files to extract:
 
 ### Step 6: Generate Documentation
 
-Create comprehensive style guide documents:
+Create comprehensive style guide documents using templates from `speccrew-ui-style-analyzer/templates/`.
 
-#### Document 1: ui-style-guide.md
+#### Template Usage
 
-Main style guide with:
-- Project overview
-- Platform summary
-- Quick navigation to all sections
+| Template File | Output Document | Purpose |
+|---------------|-----------------|---------|
+| `templates/UI-STYLE-GUIDE-TEMPLATE.md` | `ui-style-guide.md` | Main style guide with project overview and navigation |
+| `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` | `page-types/page-type-summary.md` | Page type classification overview |
+| `templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` | `page-types/[type]-pages.md` | Individual page type analysis (dynamically named) |
+| `templates/COMPONENT-LIBRARY-TEMPLATE.md` | `components/component-library.md` | Component inventory |
+| `templates/COMMON-COMPONENTS-TEMPLATE.md` | `components/common-components.md` | Common component usage |
+| `templates/BUSINESS-COMPONENTS-TEMPLATE.md` | `components/business-components.md` | Business component usage |
+| `templates/LAYOUT-PATTERNS-TEMPLATE.md` | `layouts/page-layouts.md` | Layout patterns documentation |
+| `templates/NAVIGATION-PATTERNS-TEMPLATE.md` | `layouts/navigation-patterns.md` | Navigation patterns documentation |
+| `templates/STYLE-SYSTEM-TEMPLATE.md` | `styles/color-system.md` | Color system documentation |
+| `templates/TYPOGRAPHY-TEMPLATE.md` | `styles/typography.md` | Typography system documentation |
+| `templates/SPACING-TEMPLATE.md` | `styles/spacing-system.md` | Spacing system documentation |
 
-#### Document 2: Page Type Summary
+#### Document Generation Order
 
-Create `page-type-summary.md` with:
-- Discovered page types overview table
-- Classification methodology
-- Naming pattern summary
-- Recommendations for new pages
+1. **Read template** from `templates/` directory
+2. **Extract data** from source code analysis (Steps 1-5)
+3. **Replace placeholders** in template with actual values
+4. **Write output** to `{output_path}/` (path already includes `ui-style/` suffix)
 
-#### Document 3: Individual Page Type Analysis
+#### Required Documents (All Platforms)
 
-For each discovered page type, create `[type-name]-pages.md`:
-- Page type definition and naming pattern
-- File list with paths
-- Layout structure (ASCII diagram)
-- Common components used
-- Code example (simplified)
-- Business scenarios and use cases
-- Best practices
+| Document | Template | Required |
+|----------|----------|----------|
+| `ui-style-guide.md` | UI-STYLE-GUIDE-TEMPLATE.md | ✅ Yes |
+| `page-types/page-type-summary.md` | PAGE-TYPE-SUMMARY-TEMPLATE.md | ✅ Yes |
+| `page-types/[type]-pages.md` | PAGE-TYPE-INDIVIDUAL-TEMPLATE.md | ✅ Yes (one per discovered type) |
+| `components/component-library.md` | COMPONENT-LIBRARY-TEMPLATE.md | ✅ Yes |
+| `components/common-components.md` | COMMON-COMPONENTS-TEMPLATE.md | ✅ Yes |
+| `components/business-components.md` | BUSINESS-COMPONENTS-TEMPLATE.md | ✅ Yes |
+| `layouts/page-layouts.md` | LAYOUT-PATTERNS-TEMPLATE.md | ✅ Yes |
+| `layouts/navigation-patterns.md` | NAVIGATION-PATTERNS-TEMPLATE.md | ✅ Yes |
+| `styles/color-system.md` | STYLE-SYSTEM-TEMPLATE.md | ✅ Yes |
+| `styles/typography.md` | TYPOGRAPHY-TEMPLATE.md | ✅ Yes |
+| `styles/spacing-system.md` | SPACING-TEMPLATE.md | ✅ Yes |
 
-#### Document 4: Component Library
+### Step 7: Verify Output Completeness
 
-- Component inventory
-- Usage examples
-- Props documentation
+**CRITICAL**: Verify all required files exist before reporting completion.
 
-#### Document 5: Layout Patterns
+**Required File Structure**:
+```
+{output_path}/                    # Caller should pass path ending with ui-style/
+├── ui-style-guide.md                           ✅ Required
+├── page-types/
+│   ├── page-type-summary.md                    ✅ Required
+│   └── [type-1]-pages.md                       ✅ Required (one per discovered type)
+│   └── [type-2]-pages.md                       ✅ Required (one per discovered type)
+│   └── ...                                     ✅ Additional types...
+├── components/
+│   ├── component-library.md                    ✅ Required
+│   ├── common-components.md                    ✅ Required
+│   └── business-components.md                  ✅ Required
+├── layouts/
+│   ├── page-layouts.md                         ✅ Required
+│   └── navigation-patterns.md                  ✅ Required
+└── styles/
+    ├── color-system.md                         ✅ Required
+    ├── typography.md                           ✅ Required
+    └── spacing-system.md                       ✅ Required
+```
 
-- Layout diagrams
-- Responsive behavior
-- Implementation guidelines
-
-#### Document 6: Style System
-
-- Color palette
-- Typography scale
-- Spacing system
+**Verification Rules**:
+1. Count discovered page types from Step 2
+2. Verify each page type has a corresponding `[type]-pages.md` file
+3. Verify all 11 required documents exist
+4. If any file is missing, regenerate before proceeding
 
 ## Analysis Output Format
 
-### Page Type Summary Template
+Templates for generated documents are located in `speccrew-ui-style-analyzer/templates/`:
 
-```markdown
-# Page Type Overview
+| Template | Description |
+|----------|-------------|
+| `PAGE-TYPE-SUMMARY-TEMPLATE.md` | Template for page type classification overview |
+| `PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` | Template for individual page type analysis |
 
-## Analysis Methodology
-
-Explain how page types were identified and classified.
-
-## Page Type Statistics
-
-| Page Type | Detection Pattern | File Count | Percentage | Typical Files |
-|-----------|-------------------|------------|------------|---------------|
-| List Pages | `*List.vue`, `*Index.vue` | 45 | 35% | `user/index.vue` |
-| Form Pages | `*Form.vue` | 32 | 25% | `user/UserForm.vue` |
-| [Other Types] | [Pattern] | N | N% | [Examples] |
-
-## Naming Conventions Summary
-
-| Page Type | Recommended Naming | Example |
-|-----------|-------------------|---------|
-| List Pages | `[module]/index.vue` | `system/user/index.vue` |
-| Form Pages | `[Module]Form.vue` | `UserForm.vue` |
-| [Other Types] | [Convention] | [Example] |
-
-## New Page Selection Guide
-
-| Business Scenario | Recommended Page Type | Reference |
-|-------------------|----------------------|-----------|
-| Data list display | List Pages | [list-pages.md](list-pages.md) |
-| Data editing | Form Pages | [form-pages.md](form-pages.md) |
-| [Other scenarios] | [Recommended type] | [Reference] |
-```
-
-### Individual Page Type Template
-
-```markdown
-# {Page Type Name} Pages
-
-## Overview
-
-- **Detection Pattern**: `*.vue` file matching pattern
-- **File Count**: N files
-- **Typical Functions**: Description of main functions for this page type
-
-## Applicable Scenarios
-
-- Scenario 1: Description
-- Scenario 2: Description
-- Scenario 3: Description
-
-## Page Inventory
-
-| File Path | Page Name | Function Description | Module |
-|-----------|-----------|---------------------|--------|
-| `src/views/...` | ... | ... | ... |
-
-## Layout Structure
-
-```
-[ASCII diagram showing typical layout]
-```
-
-## Common Components
-
-### UI Framework Components
-- `component-name` - Usage description
-
-### Project Common Components
-- `ComponentName` - Usage description
-
-## Code Example
-
-```vue
-<!-- Typical implementation example -->
-<template>
-  <!-- ... -->
-</template>
-```
-
-## Best Practices
-
-1. Practice 1
-2. Practice 2
-3. Practice 3
-
-## Related Files
-
-- [Component A](file://path/to/component)
-- [Page Example](file://path/to/example)
-```
+**Note**: See template files for detailed structure and placeholder variables.
 
 ## Integration with speccrew-knowledge-techs-generate
 
@@ -402,10 +348,13 @@ This platform follows established UI patterns documented in:
 ### Documentation Phase
 - [ ] ui-style-guide.md generated
 - [ ] page-type-summary.md generated
-- [ ] Individual page type documents generated (dynamically named)
-- [ ] Component library documented
-- [ ] Layout patterns documented
-- [ ] Style system documented
+- [ ] Individual page type documents generated (dynamically named - one per discovered type)
+- [ ] Component library documented (component-library.md)
+- [ ] Common components documented (common-components.md)
+- [ ] Business components documented (business-components.md)
+- [ ] Layout patterns documented (page-layouts.md)
+- [ ] Navigation patterns documented (navigation-patterns.md)
+- [ ] Style system documented (color-system.md, typography.md, spacing-system.md)
 
 ### Quality Checks
 - [ ] All content in specified language

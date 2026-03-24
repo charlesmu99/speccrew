@@ -275,7 +275,7 @@ For generic guidance sections without specific file references:
 
 If `platform_type` is `web`, `mobile`, or `desktop`:
 
-1. **Invoke** `speccrew-ui-style-analyzer` with parameters:
+1. **Invoke** `speccrew-ui-style-analyzer` using the Skill tool with parameters:
    - `source_path`: `{source_path}`
    - `platform_id`: `{platform_id}`
    - `platform_type`: `{platform_type}` (pass directly: `web`/`mobile`/`desktop`)
@@ -283,9 +283,40 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
    - `output_path`: `{output_path}/ui-style/`
    - `language`: `{language}`
 
-2. **Wait for completion** and verify output files exist
+2. **Wait for completion** and verify output files exist:
+   - `{output_path}/ui-style/ui-style-guide.md`
+   - `{output_path}/ui-style/page-types/page-type-summary.md`
+   - `{output_path}/ui-style/page-types/[type]-pages.md` (one per discovered type)
+   - `{output_path}/ui-style/components/component-library.md`
+   - `{output_path}/ui-style/components/common-components.md`
+   - `{output_path}/ui-style/components/business-components.md`
+   - `{output_path}/ui-style/layouts/page-layouts.md`
+   - `{output_path}/ui-style/layouts/navigation-patterns.md`
+   - `{output_path}/ui-style/styles/color-system.md`
+   - `{output_path}/ui-style/styles/typography.md`
+   - `{output_path}/ui-style/styles/spacing-system.md`
 
-3. **Reference UI style docs** in `conventions-design.md`
+3. **If UI style analysis fails or is skipped**, generate a minimal placeholder in `conventions-design.md`:
+   ```markdown
+   ## UI Design Conventions
+   
+   > Note: UI style analysis was not completed. Refer to source code in `{{source_path}}` for UI patterns.
+   ```
+
+4. **If UI style analysis succeeds**, reference the generated docs in `conventions-design.md`:
+   ```markdown
+   ## UI Design Conventions
+   
+   This platform follows UI patterns documented in:
+   - [UI Style Guide](ui-style/ui-style-guide.md)
+   - [Page Type Summary](ui-style/page-types/page-type-summary.md)
+   
+   ### Page Type Selection Guide
+   
+   | Scenario | Recommended Page Type | Reference |
+   |----------|----------------------|-----------|
+   | [Business scenario] | [Page type] | [Reference] |
+   ```
 
 ### Step 5: Generate Documents
 
@@ -516,11 +547,20 @@ Wherever possible, include concrete examples:
 ### Optional Document
 - [ ] conventions-data.md generated (only if applicable per platform type mapping)
 
-### UI Style Analysis (Frontend Platforms)
-- [ ] UI style analysis invoked for web/mobile/desktop platforms
-- [ ] ui-style-guide.md generated in `ui-style/` subdirectory
-- [ ] Page type documents generated dynamically
-- [ ] UI conventions referenced in conventions-design.md
+### UI Style Analysis (Frontend Platforms - web/mobile/desktop)
+- [ ] For web/mobile/desktop platforms: `speccrew-ui-style-analyzer` skill invoked with correct parameters
+- [ ] `ui-style/ui-style-guide.md` generated
+- [ ] `ui-style/page-types/page-type-summary.md` generated
+- [ ] `ui-style/page-types/[type]-pages.md` generated (one per discovered page type)
+- [ ] `ui-style/components/component-library.md` generated
+- [ ] `ui-style/components/common-components.md` generated
+- [ ] `ui-style/components/business-components.md` generated
+- [ ] `ui-style/layouts/page-layouts.md` generated
+- [ ] `ui-style/layouts/navigation-patterns.md` generated
+- [ ] `ui-style/styles/color-system.md` generated
+- [ ] `ui-style/styles/typography.md` generated
+- [ ] `ui-style/styles/spacing-system.md` generated
+- [ ] UI conventions properly referenced in `conventions-design.md`
 
 ### Quality Checks
 - [ ] All files written to output_path
