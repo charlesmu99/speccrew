@@ -126,65 +126,8 @@ Refer to `platform-mapping.json` for complete list:
 
 **Output**:
 - `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/modules.json`
-```json
-{
-  "generated_at": "2024-01-15T10:30:00Z",
-  "analysis_method": "ui-based",
-  "source_path": "/project",
-  "platform_count": 2,
-  "platforms": [
-    {
-      "platform_name": "Web Frontend",
-      "platform_type": "web",
-      "source_path": "/project/web",
-      "tech_stack": ["react", "typescript"],
-      "module_count": 4,
-      "modules": [
-        {
-          "name": "Order Management",
-          "code_name": "order",
-          "user_value": "Handle customer orders from creation to fulfillment",
-          "entry_points": [
-            "src/pages/orders/index.tsx",
-            "src/pages/orders/[id].tsx",
-            "src/pages/orders/create.tsx"
-          ],
-          "system_type": "ui"
-        },
-        {
-          "name": "Payment & Billing",
-          "code_name": "payment",
-          "user_value": "Process payments and manage invoices",
-          "entry_points": [
-            "src/pages/payments/index.tsx",
-            "src/pages/invoices/index.tsx"
-          ],
-          "system_type": "ui"
-        }
-      ]
-    },
-    {
-      "platform_name": "Mobile App",
-      "platform_type": "mobile-flutter",
-      "source_path": "/project/mobile",
-      "tech_stack": ["flutter", "dart"],
-      "module_count": 4,
-      "modules": [
-        {
-          "name": "Order Management",
-          "code_name": "order",
-          "user_value": "Handle customer orders from creation to fulfillment",
-          "entry_points": [
-            "lib/pages/orders/list.dart",
-            "lib/pages/orders/detail.dart"
-          ],
-          "system_type": "ui"
-        }
-      ]
-    }
-  ]
-}
-```
+
+See [templates/modules-EXAMPLE.json](templates/modules-EXAMPLE.json) for complete example.
 
 ### Bizs Stage 2: Module Analysis (Parallel)
 
@@ -312,33 +255,7 @@ Platform: Mobile App (mobile-flutter)
 **Output**:
 - `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
 
-```json
-{
-  "generated_at": "2024-01-15T10:30:00Z",
-  "source_path": "/project",
-  "language": "zh",
-  "platforms": [
-    {
-      "platform_id": "web-react",
-      "platform_type": "web",
-      "framework": "react",
-      "language": "typescript",
-      "source_path": "src/web",
-      "config_files": ["package.json", "tsconfig.json", "vite.config.ts"],
-      "convention_files": [".eslintrc.js", ".prettierrc"]
-    },
-    {
-      "platform_id": "backend-nestjs",
-      "platform_type": "backend",
-      "framework": "nestjs",
-      "language": "typescript",
-      "source_path": "src/server",
-      "config_files": ["package.json", "nest-cli.json", "tsconfig.json"],
-      "convention_files": [".eslintrc.js"]
-    }
-  ]
-}
-```
+See [templates/techs-manifest-EXAMPLE.json](templates/techs-manifest-EXAMPLE.json) for complete example.
 
 ---
 
@@ -559,8 +476,10 @@ Next Steps:
 - Read `modules.json`
 - Launch ALL Bizs Stage 2 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 2 to complete
+- **Generate `stage2-status.json`** (see Stage 2 Status File Format below)
 - Launch ALL Bizs Stage 3 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 3 to complete
+- **Generate `stage3-status.json`** (see Stage 3 Status File Format below)
 - Launch Bizs Stage 4 Worker (system summary)
 - Wait for completion
 
@@ -568,8 +487,10 @@ Next Steps:
 - Read `techs-manifest.json`
 - Launch ALL Techs Stage 2 Workers in parallel (one per platform)
 - Wait for all Techs Stage 2 to complete
+- **Generate `stage2-status.json`** for techs pipeline
 - Launch Techs Stage 3 Worker (root index)
 - Wait for completion
+- **Generate `stage3-status.json`** for techs pipeline
 
 **Note**: Both pipelines are fully independent. Launch them simultaneously using parallel Task invocations. Do NOT run them sequentially.
 
@@ -616,6 +537,40 @@ Next Steps:
 
 ---
 
+## Status File Formats
+
+Status files track pipeline execution progress and are generated after each stage completes.
+
+### File Locations
+
+| Pipeline | Stage | File Path |
+|----------|-------|-----------|
+| Bizs | Stage 2 | `knowledges/base/sync-state/knowledge-bizs/stage2-status.json` |
+| Bizs | Stage 3 | `knowledges/base/sync-state/knowledge-bizs/stage3-status.json` |
+| Techs | Stage 2 | `knowledges/base/sync-state/knowledge-techs/stage2-status.json` |
+| Techs | Stage 3 | `knowledges/base/sync-state/knowledge-techs/stage3-status.json` |
+
+### Quick Reference
+
+**Bizs Stage 2** tracks module analysis results:
+- `total_modules`, `completed`, `failed` counts
+- Per-module: `features_count`, `output_path`
+
+**Bizs Stage 3** tracks module summarization:
+- Per-module: `overview_file` path
+
+**Techs Stage 2** tracks platform document generation:
+- `total_platforms`, `completed`, `failed` counts
+- Per-platform: `documents_generated` list
+
+**Techs Stage 3** tracks root index generation:
+- `platforms_indexed` count
+- `index_file` path
+
+For complete format specifications and examples, see [STATUS-FORMATS.md](STATUS-FORMATS.md).
+
+---
+
 ## Error Handling
 
 ### Bizs Pipeline
@@ -646,15 +601,17 @@ Next Steps:
 ### For Bizs Pipeline
 - [ ] Bizs Stage 1: Platform list generated with modules.json
 - [ ] Bizs Stage 2: All modules across all platforms analyzed in parallel
+- [ ] Bizs Stage 2 Status: `stage2-status.json` generated with all module results
 - [ ] Bizs Stage 3: All modules across all platforms summarized in parallel
+- [ ] Bizs Stage 3 Status: `stage3-status.json` generated with all module summaries
 - [ ] Bizs Stage 4: System overview generated with platform hierarchy
-- [ ] Status files created in `knowledges/base/sync-state/knowledge-bizs/`
 
 ### For Techs Pipeline
 - [ ] Techs Stage 1: Platform manifest generated with techs-manifest.json
 - [ ] Techs Stage 2: All platforms processed in parallel
+- [ ] Techs Stage 2 Status: `stage2-status.json` generated with all platform results
 - [ ] Techs Stage 3: Root INDEX.md generated with Agent mapping
-- [ ] Status files created in `knowledges/base/sync-state/knowledge-techs/`
+- [ ] Techs Stage 3 Status: `stage3-status.json` generated with index info
 
 ### Platform Naming Verification
 - [ ] `platform_type` values are consistent between modules.json and techs-manifest.json

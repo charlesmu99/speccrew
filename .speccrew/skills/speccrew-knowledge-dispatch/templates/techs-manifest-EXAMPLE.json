@@ -1,0 +1,25 @@
+{
+  "generated_at": "2024-01-15T10:30:00Z",
+  "source_path": "/project",
+  "language": "zh",
+  "platforms": [
+    {
+      "platform_id": "web-react",
+      "platform_type": "web",
+      "framework": "react",
+      "language": "typescript",
+      "source_path": "src/web",
+      "config_files": ["package.json", "tsconfig.json", "vite.config.ts"],
+      "convention_files": [".eslintrc.js", ".prettierrc"]
+    },
+    {
+      "platform_id": "backend-nestjs",
+      "platform_type": "backend",
+      "framework": "nestjs",
+      "language": "typescript",
+      "source_path": "src/server",
+      "config_files": ["package.json", "nest-cli.json", "tsconfig.json"],
+      "convention_files": [".eslintrc.js"]
+    }
+  ]
+}

@@ -74,17 +74,17 @@ function Uninstall-SpecCrew {
     # Remove SpecCrew-prefixed agents from IDE config dir
     $agentsPath = Join-Path $TargetDir "$IDEConfigDir\agents"
     if (Test-Path $agentsPath) {
-        $SpecCrewAgents = Get-ChildItem -Path $agentsPath -Filter "SpecCrew-*.md" -ErrorAction SilentlyContinue
+        $SpecCrewAgents = Get-ChildItem -Path $agentsPath -Filter "speccrew-*.md" -ErrorAction SilentlyContinue
         foreach ($agent in $SpecCrewAgents) {
             Remove-Item -Path $agent.FullName -Force
             Write-Info "Removed agent: $($agent.Name)"
         }
     }
-    
+
     # Remove SpecCrew-prefixed skills from IDE config dir
     $skillsPath = Join-Path $TargetDir "$IDEConfigDir\skills"
     if (Test-Path $skillsPath) {
-        $SpecCrewSkills = Get-ChildItem -Path $skillsPath -Directory -Filter "SpecCrew-*" -ErrorAction SilentlyContinue
+        $SpecCrewSkills = Get-ChildItem -Path $skillsPath -Directory -Filter "speccrew-*" -ErrorAction SilentlyContinue
         foreach ($skill in $SpecCrewSkills) {
             Remove-Item -Recurse -Force $skill.FullName
             Write-Info "Removed skill: $($skill.Name)"
@@ -115,15 +115,15 @@ function Check-ExistingInstallation {
     
     # Check for SpecCrew-prefixed agents in IDE config
     if (Test-Path $agentsPath) {
-        $SpecCrewAgents = Get-ChildItem -Path $agentsPath -Filter "SpecCrew-*.md" -ErrorAction SilentlyContinue
+        $SpecCrewAgents = Get-ChildItem -Path $agentsPath -Filter "speccrew-*.md" -ErrorAction SilentlyContinue
         if ($SpecCrewAgents) {
             $SpecCrewInstalled = $true
         }
     }
-    
+
     # Check for SpecCrew-prefixed skills in IDE config
     if (Test-Path $skillsPath) {
-        $SpecCrewSkills = Get-ChildItem -Path $skillsPath -Directory -Filter "SpecCrew-*" -ErrorAction SilentlyContinue
+        $SpecCrewSkills = Get-ChildItem -Path $skillsPath -Directory -Filter "speccrew-*" -ErrorAction SilentlyContinue
         if ($SpecCrewSkills) {
             $SpecCrewInstalled = $true
         }

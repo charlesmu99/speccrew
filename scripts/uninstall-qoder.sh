@@ -55,13 +55,13 @@ uninstall_SpecCrew() {
     fi
     
     if [ -d "$TARGET_DIR/$IDEConfigDir/agents" ]; then
-        if ls "$TARGET_DIR/$IDEConfigDir/agents"/SpecCrew-*.md 1> /dev/null 2>&1; then
+        if ls "$TARGET_DIR/$IDEConfigDir/agents"/speccrew-*.md 1> /dev/null 2>&1; then
             SpecCrew_found=true
         fi
     fi
-    
+
     if [ -d "$TARGET_DIR/$IDEConfigDir/skills" ]; then
-        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/SpecCrew-*; do
+        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/speccrew-*; do
             if [ -d "$skill_dir" ]; then
                 SpecCrew_found=true
                 break
@@ -89,7 +89,7 @@ uninstall_SpecCrew() {
     
     # Remove SpecCrew-prefixed agents from IDE config
     if [ -d "$TARGET_DIR/$IDEConfigDir/agents" ]; then
-        for agent in "$TARGET_DIR/$IDEConfigDir/agents"/SpecCrew-*.md; do
+        for agent in "$TARGET_DIR/$IDEConfigDir/agents"/speccrew-*.md; do
             if [ -f "$agent" ]; then
                 agent_name=$(basename "$agent")
                 rm -f "$agent"
@@ -97,10 +97,10 @@ uninstall_SpecCrew() {
             fi
         done
     fi
-    
+
     # Remove SpecCrew-prefixed skills from IDE config
     if [ -d "$TARGET_DIR/$IDEConfigDir/skills" ]; then
-        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/SpecCrew-*; do
+        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/speccrew-*; do
             if [ -d "$skill_dir" ]; then
                 skill_name=$(basename "$skill_dir")
                 rm -rf "$skill_dir"

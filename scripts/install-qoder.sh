@@ -85,7 +85,7 @@ uninstall_SpecCrew() {
     
     # Remove SpecCrew-prefixed agents from IDE config dir
     if [ -d "$TARGET_DIR/$IDEConfigDir/agents" ]; then
-        for agent in "$TARGET_DIR/$IDEConfigDir/agents"/SpecCrew-*.md; do
+        for agent in "$TARGET_DIR/$IDEConfigDir/agents"/speccrew-*.md; do
             if [ -f "$agent" ]; then
                 agent_name=$(basename "$agent")
                 rm -f "$agent"
@@ -93,10 +93,10 @@ uninstall_SpecCrew() {
             fi
         done
     fi
-    
+
     # Remove SpecCrew-prefixed skills from IDE config dir
     if [ -d "$TARGET_DIR/$IDEConfigDir/skills" ]; then
-        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/SpecCrew-*; do
+        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/speccrew-*; do
             if [ -d "$skill_dir" ]; then
                 skill_name=$(basename "$skill_dir")
                 rm -rf "$skill_dir"
@@ -125,14 +125,14 @@ function check_existing_installation() {
     
     # Check for SpecCrew-prefixed agents in IDE config
     if [ -d "$TARGET_DIR/$IDEConfigDir/agents" ]; then
-        if ls "$TARGET_DIR/$IDEConfigDir/agents"/SpecCrew-*.md 1> /dev/null 2>&1; then
+        if ls "$TARGET_DIR/$IDEConfigDir/agents"/speccrew-*.md 1> /dev/null 2>&1; then
             SpecCrew_installed=true
         fi
     fi
-    
+
     # Check for SpecCrew-prefixed skills in IDE config
     if [ -d "$TARGET_DIR/$IDEConfigDir/skills" ]; then
-        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/SpecCrew-*; do
+        for skill_dir in "$TARGET_DIR/$IDEConfigDir/skills"/speccrew-*; do
             if [ -d "$skill_dir" ]; then
                 SpecCrew_installed=true
                 break
@@ -206,7 +206,7 @@ install_SpecCrew() {
                 agent_name=$(basename "$agent")
                 is_SpecCrew=false
                 case "$agent_name" in
-                    SpecCrew-*) is_SpecCrew=true ;;
+                    speccrew-*) is_SpecCrew=true ;;
                 esac
                 if [ "$is_SpecCrew" = true ] || [ ! -f "$ide_path/agents/$agent_name" ]; then
                     cp "$agent" "$ide_path/agents/"
@@ -228,7 +228,7 @@ install_SpecCrew() {
                 skill_name=$(basename "$skill_dir")
                 is_SpecCrew=false
                 case "$skill_name" in
-                    SpecCrew-*) is_SpecCrew=true ;;
+                    speccrew-*) is_SpecCrew=true ;;
                 esac
                 if [ "$is_SpecCrew" = true ] || [ ! -d "$ide_path/skills/$skill_name" ]; then
                     if [ -d "$ide_path/skills/$skill_name" ] && [ "$is_SpecCrew" = true ]; then
