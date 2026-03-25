@@ -72,7 +72,31 @@ Generate the following documents in `{output_path}/`:
 
 ## Workflow
 
+### Step 0: Read All Templates
+
+Before analysis, read all template files to understand document structures and required content:
+
+| Template File | Output Document | Purpose |
+|---------------|-----------------|---------|
+| `templates/UI-STYLE-GUIDE-TEMPLATE.md` | `ui-style-guide.md` | Main style guide structure |
+| `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` | `page-types/page-type-summary.md` | Page type classification structure |
+| `templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` | `page-types/[type]-pages.md` | Individual page type structure |
+| `templates/COMPONENT-LIBRARY-TEMPLATE.md` | `components/component-library.md` | Component inventory structure |
+| `templates/COMMON-COMPONENTS-TEMPLATE.md` | `components/common-components.md` | Common component usage structure |
+| `templates/BUSINESS-COMPONENTS-TEMPLATE.md` | `components/business-components.md` | Business component usage structure |
+| `templates/LAYOUT-PATTERNS-TEMPLATE.md` | `layouts/page-layouts.md` | Layout patterns structure |
+| `templates/NAVIGATION-PATTERNS-TEMPLATE.md` | `layouts/navigation-patterns.md` | Navigation patterns structure |
+| `templates/STYLE-SYSTEM-TEMPLATE.md` | `styles/color-system.md` | Color system structure |
+| `templates/TYPOGRAPHY-TEMPLATE.md` | `styles/typography.md` | Typography structure |
+| `templates/SPACING-TEMPLATE.md` | `styles/spacing-system.md` | Spacing system structure |
+
+**Key principle**: Extract information from source code according to each template's section requirements.
+
 ### Step 1: Discover Source Structure
+
+**Purpose**: Gather project metadata for `ui-style-guide.md` Section 1-2 (Project Overview, Platform Summary)
+
+**Template Reference**: `UI-STYLE-GUIDE-TEMPLATE.md` - Sections: Project Overview, Platform Summary
 
 Explore the source code directory to understand:
 - Project structure (views/pages directory)
@@ -86,7 +110,23 @@ Explore the source code directory to understand:
 - `src/layout/` or `src/layouts/` - Layout components
 - `src/styles/` or `src/assets/styles/` - Style files
 
+**Extract for ui-style-guide.md:**
+- Technology Stack (framework, UI library, build tool, language versions)
+- Directory Structure
+- Platform details (resolution range, target device)
+- Browser support list
+
 ### Step 2: Analyze Page Types
+
+**Purpose**: Generate `page-types/page-type-summary.md` and individual `[type]-pages.md` files
+
+**Templates to Read First**:
+- `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` - Sections: Analysis Methodology, Page Type Statistics, Naming Conventions Summary, New Page Selection Guide, Page Type Details
+- `templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` - Structure for each page type document
+
+**Output Documents**:
+1. `page-types/page-type-summary.md` - Classification overview
+2. `page-types/[type]-pages.md` - One per discovered page type (dynamically named)
 
 Scan page files to identify and classify page types dynamically based on actual source code.
 
@@ -131,7 +171,7 @@ Based on analysis, generate a classification table:
 
 #### Analysis Content for Each Discovered Page Type
 
-For each identified page type, extract:
+For each identified page type, extract according to `PAGE-TYPE-INDIVIDUAL-TEMPLATE.md`:
 
 1. **File List** - All files belonging to this type
 2. **Naming Pattern** - Common naming convention
@@ -141,7 +181,21 @@ For each identified page type, extract:
 6. **Interaction Patterns** - Common user interactions
 7. **Business Scenarios** - What business functions this page type serves
 
+**Generate**: `page-types/[type]-pages.md` for each discovered type
+
 ### Step 3: Extract Component Usage
+
+**Purpose**: Generate component documentation in `components/` directory
+
+**Templates to Read First**:
+- `templates/COMPONENT-LIBRARY-TEMPLATE.md` - Sections: UI Framework Components, Common Components, Business Components, Component Usage Statistics
+- `templates/COMMON-COMPONENTS-TEMPLATE.md` - Common component patterns and usage
+- `templates/BUSINESS-COMPONENTS-TEMPLATE.md` - Business component patterns
+
+**Output Documents**:
+1. `components/component-library.md` - Component inventory
+2. `components/common-components.md` - Common component usage conventions
+3. `components/business-components.md` - Business component usage conventions
 
 Analyze component imports and usage:
 
@@ -163,7 +217,33 @@ Analyze component imports and usage:
 3. Identify component props and usage patterns
 4. Document component APIs
 
+**Extract for component-library.md** (per COMPONENT-LIBRARY-TEMPLATE.md):
+- UI Framework Components: Basic, Form, Data Display, Navigation, Feedback components
+- Common Components: Layout, Utility, Functional components with props
+- Business Components: Domain-specific components
+- Component usage statistics and dependencies
+
+**Extract for common-components.md**:
+- Component purpose and usage scenarios
+- Props definition and examples
+- Usage patterns and best practices
+
+**Extract for business-components.md**:
+- Business component list by domain
+- Props and event definitions
+- Business logic integration patterns
+
 ### Step 4: Analyze Layout Patterns
+
+**Purpose**: Generate layout documentation in `layouts/` directory
+
+**Templates to Read First**:
+- `templates/LAYOUT-PATTERNS-TEMPLATE.md` - Layout pattern structure
+- `templates/NAVIGATION-PATTERNS-TEMPLATE.md` - Navigation pattern structure
+
+**Output Documents**:
+1. `layouts/page-layouts.md` - Page layout patterns
+2. `layouts/navigation-patterns.md` - Navigation patterns
 
 Identify common layout patterns:
 
@@ -197,7 +277,31 @@ Identify common layout patterns:
    Right: Content Table/Form
    ```
 
+**Extract for page-layouts.md** (per LAYOUT-PATTERNS-TEMPLATE.md):
+- Layout type definitions and visual diagrams
+- DOM structure patterns
+- Responsive behavior rules
+- Usage scenarios for each layout
+
+**Extract for navigation-patterns.md** (per NAVIGATION-PATTERNS-TEMPLATE.md):
+- Navigation structure (sidebar, topbar, breadcrumbs)
+- Menu organization patterns
+- Route configuration conventions
+- Navigation state management
+
 ### Step 5: Extract Style Conventions
+
+**Purpose**: Generate style system documentation in `styles/` directory
+
+**Templates to Read First**:
+- `templates/STYLE-SYSTEM-TEMPLATE.md` - Color system structure
+- `templates/TYPOGRAPHY-TEMPLATE.md` - Typography structure
+- `templates/SPACING-TEMPLATE.md` - Spacing system structure
+
+**Output Documents**:
+1. `styles/color-system.md` - Color system
+2. `styles/typography.md` - Typography conventions
+3. `styles/spacing-system.md` - Spacing system
 
 Analyze style files to extract:
 
@@ -208,43 +312,66 @@ Analyze style files to extract:
 - Background colors
 - Border colors
 
+**Extract for color-system.md** (per STYLE-SYSTEM-TEMPLATE.md):
+- Color palette with hex values
+- Semantic color usage (primary, success, warning, error, info)
+- Color application rules (text, background, border)
+- CSS variables or theme configuration
+
 #### Typography
 - Font families
 - Font sizes (heading, body, small)
 - Font weights
 - Line heights
 
+**Extract for typography.md** (per TYPOGRAPHY-TEMPLATE.md):
+- Font family definitions
+- Type scale (H1-H6, body, small sizes)
+- Font weights and line heights
+- Typography usage patterns
+
 #### Spacing System
 - Padding/Margin scales
 - Grid system
 - Container widths
 
+**Extract for spacing-system.md** (per SPACING-TEMPLATE.md):
+- Spacing tokens (xs, sm, md, lg, xl values)
+- Grid system configuration
+- Container and breakpoint definitions
+- Spacing application guidelines
+
 ### Step 6: Generate Documentation
 
-Create comprehensive style guide documents using templates from `speccrew-ui-style-analyzer/templates/`.
+**Purpose**: Create all documentation files using extracted data and templates
 
-#### Template Usage
+#### Document Generation Workflow
 
-| Template File | Output Document | Purpose |
-|---------------|-----------------|---------|
-| `templates/UI-STYLE-GUIDE-TEMPLATE.md` | `ui-style-guide.md` | Main style guide with project overview and navigation |
-| `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` | `page-types/page-type-summary.md` | Page type classification overview |
-| `templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` | `page-types/[type]-pages.md` | Individual page type analysis (dynamically named) |
-| `templates/COMPONENT-LIBRARY-TEMPLATE.md` | `components/component-library.md` | Component inventory |
-| `templates/COMMON-COMPONENTS-TEMPLATE.md` | `components/common-components.md` | Common component usage |
-| `templates/BUSINESS-COMPONENTS-TEMPLATE.md` | `components/business-components.md` | Business component usage |
-| `templates/LAYOUT-PATTERNS-TEMPLATE.md` | `layouts/page-layouts.md` | Layout patterns documentation |
-| `templates/NAVIGATION-PATTERNS-TEMPLATE.md` | `layouts/navigation-patterns.md` | Navigation patterns documentation |
-| `templates/STYLE-SYSTEM-TEMPLATE.md` | `styles/color-system.md` | Color system documentation |
-| `templates/TYPOGRAPHY-TEMPLATE.md` | `styles/typography.md` | Typography system documentation |
-| `templates/SPACING-TEMPLATE.md` | `styles/spacing-system.md` | Spacing system documentation |
+For each document, follow this process:
 
-#### Document Generation Order
+1. **Read the corresponding template** from `templates/` directory
+2. **Review extracted data** from Steps 1-5
+3. **Map data to template sections** - ensure all template placeholders are filled
+4. **Generate document** with actual values
+5. **Write output** to `{output_path}/`
 
-1. **Read template** from `templates/` directory
-2. **Extract data** from source code analysis (Steps 1-5)
-3. **Replace placeholders** in template with actual values
-4. **Write output** to `{output_path}/` (path already includes `ui-style/` suffix)
+#### Document Generation Order and Dependencies
+
+| Order | Document | Template | Data Source | Dependencies |
+|-------|----------|----------|-------------|--------------|
+| 1 | `ui-style-guide.md` | UI-STYLE-GUIDE-TEMPLATE.md | Step 1, 3, 4, 5 | None (main entry) |
+| 2 | `page-types/page-type-summary.md` | PAGE-TYPE-SUMMARY-TEMPLATE.md | Step 2 | None |
+| 3 | `page-types/[type]-pages.md` | PAGE-TYPE-INDIVIDUAL-TEMPLATE.md | Step 2 | page-type-summary.md |
+| 4 | `components/component-library.md` | COMPONENT-LIBRARY-TEMPLATE.md | Step 3 | None |
+| 5 | `components/common-components.md` | COMMON-COMPONENTS-TEMPLATE.md | Step 3 | component-library.md |
+| 6 | `components/business-components.md` | BUSINESS-COMPONENTS-TEMPLATE.md | Step 3 | component-library.md |
+| 7 | `layouts/page-layouts.md` | LAYOUT-PATTERNS-TEMPLATE.md | Step 4 | None |
+| 8 | `layouts/navigation-patterns.md` | NAVIGATION-PATTERNS-TEMPLATE.md | Step 4 | page-layouts.md |
+| 9 | `styles/color-system.md` | STYLE-SYSTEM-TEMPLATE.md | Step 5 | None |
+| 10 | `styles/typography.md` | TYPOGRAPHY-TEMPLATE.md | Step 5 | color-system.md |
+| 11 | `styles/spacing-system.md` | SPACING-TEMPLATE.md | Step 5 | color-system.md |
+
+**Note**: `ui-style-guide.md` should reference/link to all other generated documents.
 
 #### Required Documents (All Platforms)
 
@@ -296,27 +423,56 @@ Create comprehensive style guide documents using templates from `speccrew-ui-sty
 
 ## Checklist
 
-### Pre-Analysis
+### Pre-Analysis (Step 0)
+- [ ] All 11 templates read and understood
+- [ ] Template section requirements mapped to extraction tasks
 - [ ] Source path exists and accessible
 - [ ] Framework identified (Vue3, React, etc.)
 - [ ] Platform type determined
 
 ### Analysis Phase
-- [ ] Page files discovered and categorized
-- [ ] Components extracted and classified
-- [ ] Layout patterns identified
-- [ ] Style conventions extracted
+**Step 1: Source Structure**
+- [ ] Project structure explored
+- [ ] Technology stack extracted for ui-style-guide.md
+- [ ] Directory structure documented
 
-### Documentation Phase
-- [ ] ui-style-guide.md generated
+**Step 2: Page Types**
+- [ ] PAGE-TYPE-SUMMARY-TEMPLATE.md read
+- [ ] PAGE-TYPE-INDIVIDUAL-TEMPLATE.md read
+- [ ] Page files discovered and categorized
 - [ ] page-type-summary.md generated
-- [ ] Individual page type documents generated (dynamically named - one per discovered type)
-- [ ] Component library documented (component-library.md)
-- [ ] Common components documented (common-components.md)
-- [ ] Business components documented (business-components.md)
-- [ ] Layout patterns documented (page-layouts.md)
-- [ ] Navigation patterns documented (navigation-patterns.md)
-- [ ] Style system documented (color-system.md, typography.md, spacing-system.md)
+- [ ] Individual [type]-pages.md generated (one per discovered type)
+
+**Step 3: Component Usage**
+- [ ] COMPONENT-LIBRARY-TEMPLATE.md read
+- [ ] COMMON-COMPONENTS-TEMPLATE.md read
+- [ ] BUSINESS-COMPONENTS-TEMPLATE.md read
+- [ ] Components extracted and classified
+- [ ] component-library.md generated
+- [ ] common-components.md generated
+- [ ] business-components.md generated
+
+**Step 4: Layout Patterns**
+- [ ] LAYOUT-PATTERNS-TEMPLATE.md read
+- [ ] NAVIGATION-PATTERNS-TEMPLATE.md read
+- [ ] Layout patterns identified
+- [ ] page-layouts.md generated
+- [ ] navigation-patterns.md generated
+
+**Step 5: Style Conventions**
+- [ ] STYLE-SYSTEM-TEMPLATE.md read
+- [ ] TYPOGRAPHY-TEMPLATE.md read
+- [ ] SPACING-TEMPLATE.md read
+- [ ] Style conventions extracted
+- [ ] color-system.md generated
+- [ ] typography.md generated
+- [ ] spacing-system.md generated
+
+### Documentation Phase (Step 6)
+- [ ] UI-STYLE-GUIDE-TEMPLATE.md read
+- [ ] ui-style-guide.md generated with links to all other documents
+- [ ] All 11 required documents exist
+- [ ] Document cross-references are valid
 
 ### Quality Checks
 - [ ] All content in specified language
