@@ -127,7 +127,24 @@ Determine splitting strategy based on feature complexity:
 - Feature detail document: `{feature-name}.md` (Named by core feature)
 - Use target language for naming, maintain semantic clarity
 
-3. **Feature Extraction**:
+3. **Read Feature Detail Template**:
+
+   Before extracting features, read the template file to understand the required content structure:
+   - **Read**: `templates/FEATURE-DETAIL-TEMPLATE.md`
+   - **Purpose**: Understand the template chapters and example content requirements for feature detail documents
+   - **Key sections to follow**:
+     - Section 1: Content Overview (Basic Information, Feature Scope)
+     - Section 2: Core Interface Prototype (ASCII Wireframe, Interface Element Description, Form Field Description)
+     - Section 3: Interaction Flow Description (Core Operation Flow with Mermaid sequence diagram, Exception Branch Flow, Interaction Rules)
+     - Section 4: Data Field Definition (Core Field List, Data Source Description, API Data Contract)
+     - Section 5: Business Rule Constraints (Permission Rules, Business Logic Rules, Validation Rules)
+     - Section 6: Dependency Analysis (Module Dependencies, Service Dependencies, External Dependencies)
+     - Section 7: Performance Considerations (Performance Bottlenecks, Index Suggestions, Caching Strategy, Transaction Boundaries)
+     - Section 8: Troubleshooting Guide (Common Issues, Error Code Reference, Key Log Points)
+     - Section 9: Notes and Additional Information (Compatibility Adaptation, Pending Confirmations, Extension Notes)
+     - Section 10: Appendix (Best Practices, Configuration Examples, Related Documents)
+
+4. **Feature Extraction**:
 
 **For UI-based modules (system_type = "ui"):**
 

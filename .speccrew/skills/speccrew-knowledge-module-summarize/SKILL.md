@@ -42,6 +42,21 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+### Step 0: Read Module Overview Template
+
+Before processing, read the template file to understand the required content structure:
+- **Read**: `templates/MODULE-OVERVIEW-TEMPLATE.md`
+- **Purpose**: Understand the template chapters and example content requirements for module overview documents
+- **Key sections to follow**:
+  - Section 1: Module Basic Information (Module Positioning, Module Boundary with Mermaid diagram)
+  - Section 2: Feature List (Feature Tree with mindmap, Feature List Table with status)
+  - Section 3: Business Entities and Relationships (Core Entity List, Entity Relationship Diagram with ER diagram, Entity State Transition with state diagram)
+  - Section 4: External Dependencies and Interfaces (Module Dependency Relationships, External Interfaces Provided, Dependent Module Interfaces)
+  - Section 5: Core Business Processes (Core Process Within Module with flowchart, Exception Handling Rules)
+  - Section 6: Business Rules and Constraints (Business Rules, Data Constraints, Permission Rules)
+  - Section 7: Related Pages and Prototypes (Page List, Page Prototype reference)
+  - Section 8: Change History (version tracking table)
+
 ### Step 1: Read Initial Module Overview
 
 Read existing {{module_name}}-overview.md (initial version) to get:

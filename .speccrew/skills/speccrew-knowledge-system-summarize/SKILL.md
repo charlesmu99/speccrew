@@ -40,6 +40,20 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+### Step 0: Read System Overview Template
+
+Before processing, read the template file to understand the required content structure:
+- **Read**: `templates/SYSTEM-OVERVIEW-TEMPLATE.md`
+- **Purpose**: Understand the template chapters and example content requirements for system overview documents
+- **Key sections to follow**:
+  - Index and Overview (Statistics Overview, Module Quick Index)
+  - Section 1: System Overview (System Positioning, Business Domain Division with Mermaid diagram)
+  - Section 2: Functional Module Topology (Module Hierarchy, Module Dependency Diagram, Module List Index)
+  - Section 3: End-to-End Business Processes (Core Business Process List, Process-Module Mapping Matrix, Typical Business Process Diagram)
+  - Section 4: System Boundaries and Integration (External System Integration Diagram, Integration Interface List)
+  - Section 5: Requirement Assessment Guide
+  - Section 6: Change History
+
 ### Step 1: Discover All Modules
 
 Find all `{{modules_path}}/{{module_name}}/{{module_name}}-overview.md` files.

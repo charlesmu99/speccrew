@@ -103,6 +103,19 @@ Generate conventions-data.md: {yes/no}
 
 ## Workflow
 
+### Step 0: Read Document Templates
+
+Before processing, read all template files to understand the required content structure for each document type:
+- **Read**: `templates/INDEX-TEMPLATE.md` - Platform overview and navigation hub structure
+- **Read**: `templates/TECH-STACK-TEMPLATE.md` - Technology stack details structure
+- **Read**: `templates/ARCHITECTURE-TEMPLATE.md` - Architecture patterns and conventions structure
+- **Read**: `templates/CONVENTIONS-DESIGN-TEMPLATE.md` - Design principles and patterns structure
+- **Read**: `templates/CONVENTIONS-DEV-TEMPLATE.md` - Development conventions structure
+- **Read**: `templates/CONVENTIONS-TEST-TEMPLATE.md` - Testing conventions structure
+- **Read**: `templates/CONVENTIONS-DATA-TEMPLATE.md` - Data layer conventions structure (if applicable)
+- **Purpose**: Understand each template's chapters and example content requirements
+- **Key principle**: Extract information from source code according to template section requirements
+
 ### Step 1: Read Configuration Files
 
 Read and parse all configuration files for the platform:

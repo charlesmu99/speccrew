@@ -40,6 +40,23 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+### Step 0: Read Root Index Template
+
+Before processing, read the template file to understand the required content structure:
+- **Read**: `templates/INDEX-TEMPLATE.md`
+- **Purpose**: Understand the template chapters and example content requirements for root technology index documents
+- **Key sections to follow**:
+  - Introduction (generation info, platform count)
+  - Project Structure (Platform Overview table, Directory Structure)
+  - Core Components (Technology Stacks, Architecture Guidelines, Design Conventions, Development Conventions, Testing Conventions)
+  - Architecture Overview (Platform Architecture Map with Mermaid diagram)
+  - Detailed Component Analysis (Agent-to-Platform Mapping)
+  - Dependency Analysis (Cross-Platform Dependencies with Mermaid diagram)
+  - Performance Considerations
+  - Troubleshooting Guide
+  - Conclusion
+  - Appendix (Document Guide, Usage Guide)
+
 ### Step 1: Read Manifest
 
 Read `techs-manifest.json` to get the list of all platforms:
