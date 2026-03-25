@@ -1,12 +1,12 @@
 ---
 name: speccrew-knowledge-system-summarize
-description: Generate complete system-overview.md by reading all {name}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation. In incremental mode, this skill always regenerates the system overview from the latest module overviews.
+description: Generate complete system-overview.md by reading all {{module_name}}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation. In incremental mode, this skill always regenerates the system overview from the latest module overviews.
 tools: Read, Write, Glob
 ---
 
 # System Summarize - Complete System Overview
 
-Read all {name}-overview.md files, aggregate information to generate complete system-overview.md with module index, topology, and business flows.
+Read all {{module_name}}-overview.md files, aggregate information to generate complete system-overview.md with module index, topology, and business flows.
 
 ## Language Adaptation
 
@@ -30,19 +30,19 @@ Worker Agent (speccrew-task-worker)
 
 ## Input
 
-- `modules_path`: Path to modules directory (e.g., `speccrew-workspace/knowledges/bizs/`) containing all {platform_type}/{module_name}/{name}-overview.md files
+- `modules_path`: Path to modules directory (e.g., `speccrew-workspace/knowledges/bizs/`) containing all {{platform_type}}/{{module_name}}/{{module_name}}-overview.md files
 - `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 
-- `{output_path}/system-overview.md` - Complete system overview
+- `{{output_path}}/system-overview.md` - Complete system overview
 
 ## Workflow
 
 ### Step 1: Discover All Modules
 
-Find all `{modules_path}/{name}/{name}-overview.md` files.
+Find all `{{modules_path}}/{{module_name}}/{{module_name}}-overview.md` files.
 
 Extract module list:
 ```
@@ -56,7 +56,7 @@ inventory/
 
 ### Step 2: Read All Module Overviews
 
-Read each {name}-overview.md and extract:
+Read each {{module_name}}-overview.md and extract:
 - Module name and purpose
 - Business domain
 - Entity list
@@ -83,36 +83,7 @@ PAYMENT depends on: ORDER, THIRD-PAYMENT-API
 INVENTORY depends on: PRODUCT
 ```
 
-Generate Mermaid dependency diagram.
-
-> **Configuration Reference for Step 4:**
-> - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
-
-**Mermaid Diagram Requirements**
-
-When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
-
-Key requirements:
-- Use only basic node definitions: `A[text content]`
-- No HTML tags (e.g., `<br/>`)
-- No nested subgraphs
-- No `direction` keyword
-- No `style` definitions
-- Use standard `graph TB/LR` syntax only
-
-**Mermaid Diagram Types:**
-
-Select appropriate diagram type based on scenario:
-
-| Diagram Type | Use Case | Example |
-|---------|---------|------|
-| `graph TB/LR` | System structure, module dependencies | System architecture, module dependency graph |
-| `sequenceDiagram` | Cross-module interaction flow | User operation flow, service call chain |
-| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
-| `classDiagram` | Class structure, entity relationships | Data model, service interface |
-| `erDiagram` | Database table relationships | Entity relationship diagram |
-| `stateDiagram-v2` | State machine | Order status, approval status |
+Generate Mermaid dependency diagram (see [Mermaid Diagram Guide](#mermaid-diagram-guide)).
 
 ### Step 5: Identify Business Domains
 
@@ -147,13 +118,19 @@ Create flow-module mapping matrix:
 
 ### Step 7: Generate system-overview.md
 
-> **Configuration Reference for Step 7:**
-> - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
+   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
 
-Use template `speccrew-knowledge-system-summarize/templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections:
+2. **Get Timestamp**:
+   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
+   - Use as generation timestamp in document
+
+3. **Use template `templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections**:
+   - Follow [Mermaid Diagram Guide](#mermaid-diagram-guide) for diagram generation
 
 **Section: Index and Overview** (NEW)
-- Generation timestamp
+- Generation timestamp (from get-timestamp skill)
 - Technology stack (from project config)
 - Statistics: module count, entity count, API count, flow count
 - Module quick index table
@@ -213,18 +190,45 @@ Aggregate source file references from all module overview documents:
 
 ```
 System summarization completed:
-- Modules Processed: {N}
-- Entities Aggregated: {N}
-- APIs Counted: {N}
-- Dependencies Mapped: {N}
-- Business Flows Identified: {N}
+- Modules Processed: {{module_count}}
+- Entities Aggregated: {{entity_count}}
+- APIs Counted: {{api_count}}
+- Dependencies Mapped: {{dependency_count}}
+- Business Flows Identified: {{flow_count}}
 - Output: system-overview.md (complete)
 - Status: success
 ```
 
+## Reference Guides
+
+### Mermaid Diagram Guide
+
+When generating Mermaid diagrams, follow these compatibility guidelines:
+
+**Key Requirements:**
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
+**Diagram Types:**
+
+| Diagram Type | Use Case | Example |
+|---------|---------|------|
+| `graph TB/LR` | System structure, module dependencies | System architecture, module dependency graph |
+| `sequenceDiagram` | Cross-module interaction flow | User operation flow, service call chain |
+| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
+| `classDiagram` | Class structure, entity relationships | Data model, service interface |
+| `erDiagram` | Database table relationships | Entity relationship diagram |
+| `stateDiagram-v2` | State machine | Order status, approval status |
+
+---
+
 ## Checklist
 
-- [ ] All {name}-overview.md files discovered
+- [ ] All {{module_name}}-overview.md files discovered
 - [ ] Module information extracted
 - [ ] Source file references aggregated from module documents
 - [ ] Module index table created

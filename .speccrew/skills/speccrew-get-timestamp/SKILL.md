@@ -7,6 +7,22 @@ description: Get current timestamp in various formats for file naming and loggin
 
 Get current timestamp in specified format for consistent datetime handling across all skills.
 
+## User
+
+Any Agent or script requiring timestamp generation
+
+## Input
+
+- `format` (optional): Timestamp format, default is `YYYY-MM-DD-HHmm`
+  - `YYYY-MM-DD-HHmm`: Full datetime for filenames (e.g., `2026-03-17-1326`)
+  - `YYYY-MM-DD`: Date only (e.g., `2026-03-17`)
+  - `HHmm`: Time only 24h format (e.g., `1326`)
+  - `ISO`: ISO 8601 format (e.g., `2026-03-17T13:26:45+08:00`)
+
+## Output
+
+- Timestamp string in specified format (printed to stdout)
+
 ## Supported Formats
 
 | Format | Description | Example |
@@ -22,22 +38,22 @@ Get current timestamp in specified format for consistent datetime handling acros
 
 ```bash
 # Windows PowerShell
-powershell -ExecutionPolicy Bypass -File speccrew-get-timestamp/scripts/get-timestamp.ps1 -Format "YYYY-MM-DD-HHmm"
+powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1 -Format "YYYY-MM-DD-HHmm"
 
 # Linux/macOS/Git Bash
-bash speccrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
+bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
 
 # Python (cross-platform)
-python speccrew-get-timestamp/scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
+python scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
 ```
 
 ### Method 2: Default Format (YYYY-MM-DD-HHmm)
 
 ```bash
 # Without format parameter, returns YYYY-MM-DD-HHmm
-powershell -ExecutionPolicy Bypass -File speccrew-get-timestamp/scripts/get-timestamp.ps1
-bash speccrew-get-timestamp/scripts/get-timestamp.sh
-python speccrew-get-timestamp/scripts/get-timestamp.py
+powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1
+bash scripts/get-timestamp.sh
+python scripts/get-timestamp.py
 ```
 
 ## Integration Examples
@@ -45,7 +61,7 @@ python speccrew-get-timestamp/scripts/get-timestamp.py
 ### For Report Filenames
 
 ```bash
-TIMESTAMP=$(bash speccrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD-HHmm")
+TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmm")
 FILENAME="diagnosis-report-${TIMESTAMP}.md"
 # Result: diagnosis-report-2026-03-17-1326.md
 ```
@@ -53,22 +69,22 @@ FILENAME="diagnosis-report-${TIMESTAMP}.md"
 ### For Archive Naming
 
 ```bash
-TIMESTAMP=$(bash speccrew-get-timestamp/scripts/get-timestamp.sh "YYYY-MM-DD")
+TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD")
 ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
 # Result: tech-debt-archived-2026-03-17.md
 ```
 
 ### For Template Variables
 
-When filling `{{GeneratedAt}}` in templates:
+When filling `{{generated_at}}` in templates:
 ```bash
-GeneratedAt=$(bash speccrew-get-timestamp/scripts/get-timestamp.sh "ISO")
+generated_at=$(bash scripts/get-timestamp.sh "ISO")
 # Result: 2026-03-17T13:26:45+08:00
 ```
 
 ## Script Locations
 
-- **PowerShell**: `speccrew-get-timestamp/scripts/get-timestamp.ps1`
-- **Bash**: `speccrew-get-timestamp/scripts/get-timestamp.sh`
-- **Python**: `speccrew-get-timestamp/scripts/get-timestamp.py`
+- **PowerShell**: `scripts/get-timestamp.ps1`
+- **Bash**: `scripts/get-timestamp.sh`
+- **Python**: `scripts/get-timestamp.py`
 

@@ -6,7 +6,7 @@ tools: Read, Write, Glob
 
 # Module Summarize - Complete Module Overview
 
-Read all {feature-name}.md files of a specific module, extract and summarize information to complete {name}-overview.md (full version with entities, dependencies, flows, and rules).
+Read all {{feature_name}}.md files of a specific module, extract and summarize information to complete {{module_name}}-overview.md (full version with entities, dependencies, flows, and rules).
 
 ## Language Adaptation
 
@@ -31,26 +31,26 @@ Worker Agent (speccrew-task-worker)
 ## Input
 
 - `module_name`: Module name to summarize
-- `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`) containing:
-  - {name}-overview.md (initial version)
-  - features/{feature-name}.md files
+- `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{{platform_type}}/{{module_name}}/`) containing:
+  - {{module_name}}-overview.md (initial version)
+  - features/{{feature_name}}.md files
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 
-- `{module_path}/{name}-overview.md` - Complete module overview (overwritten)
+- `{{module_path}}/{{module_name}}-overview.md` - Complete module overview (overwritten)
 
 ## Workflow
 
 ### Step 1: Read Initial Module Overview
 
-Read existing {name}-overview.md (initial version) to get:
+Read existing {{module_name}}-overview.md (initial version) to get:
 - Module basic info (name, purpose, domain)
 - Feature list with links to detail docs
 
 ### Step 2: Read All Feature Details
 
-Find and read all `{module_path}/features/{feature-name}.md` files.
+Find and read all `{{module_path}}/features/{{feature_name}}.md` files.
 
 For each feature, extract:
 - API endpoint information
@@ -92,40 +92,18 @@ Collect all business rules from feature details:
 
 ### Step 6: Generate Complete MODULE-OVERVIEW.md
 
-Use `speccrew-knowledge-module-summarize/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill all sections:
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
 
-**Mermaid Diagram Requirements**
-
-When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
-
-Key requirements:
-- Use only basic node definitions: `A[text content]`
-- No HTML tags (e.g., `<br/>`)
-- No nested subgraphs
-- No `direction` keyword
-- No `style` definitions
-- Use standard `graph TB/LR` syntax only
-
-**Mermaid Diagram Types:**
-
-Select appropriate diagram type based on scenario:
-
-| Diagram Type | Use Case | Example |
-|---------|---------|------|
-| `graph TB/LR` | Module structure, dependencies | Project structure diagram, dependency graph |
-| `sequenceDiagram` | Interaction flow, API calls | User operation flow, service call chain |
-| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
-| `classDiagram` | Class structure, entity relationships | Data model, service interface |
-| `erDiagram` | Database table relationships | Entity relationship diagram |
-| `stateDiagram-v2` | State machine | Order status, approval status |
+2. **Use template `templates/MODULE-OVERVIEW-TEMPLATE.md`, fill all sections**:
+   - Follow [Mermaid Diagram Guide](#mermaid-diagram-guide) for diagram generation
 
 **Section 1: Module Basic Info** (from initial version)
 - Keep existing information
 
 **Section 2: Feature List** (from initial version)
 - Keep feature list table
-- Ensure all links to {feature-name}.md are correct
+- Ensure all links to {{feature_name}}.md are correct
 
 **Section 3: Business Entities** (NEW)
 
@@ -187,24 +165,51 @@ Aggregate source file references from all feature documents:
 
 ```
 Module summarization completed:
-- Module: {module_name}
-- Features Processed: {N}
-- Entities Extracted: {N}
-- Dependencies Identified: {N}
-- Business Rules Summarized: {N}
-- Output: {name}-overview.md (complete)
+- Module: {{module_name}}
+- Features Processed: {{feature_count}}
+- Entities Extracted: {{entity_count}}
+- Dependencies Identified: {{dependency_count}}
+- Business Rules Summarized: {{rule_count}}
+- Output: {{module_name}}-overview.md (complete)
 - Status: success
 ```
 
+## Reference Guides
+
+### Mermaid Diagram Guide
+
+When generating Mermaid diagrams, follow these compatibility guidelines:
+
+**Key Requirements:**
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
+**Diagram Types:**
+
+| Diagram Type | Use Case | Example |
+|---------|---------|------|
+| `graph TB/LR` | Module structure, dependencies | Project structure diagram, dependency graph |
+| `sequenceDiagram` | Interaction flow, API calls | User operation flow, service call chain |
+| `flowchart TD` | Business logic, conditional branches | State transition, exception handling |
+| `classDiagram` | Class structure, entity relationships | Data model, service interface |
+| `erDiagram` | Database table relationships | Entity relationship diagram |
+| `stateDiagram-v2` | State machine | Order status, approval status |
+
+---
+
 ## Checklist
 
-- [ ] Initial {name}-overview.md read
-- [ ] All {feature-name}.md files read
+- [ ] Initial {{module_name}}-overview.md read
+- [ ] All {{feature_name}}.md files read
 - [ ] Source file references extracted from feature documents
 - [ ] Entities extracted and aggregated
 - [ ] Dependencies identified
 - [ ] Business rules collected
-- [ ] Section 3-6 completed in {name}-overview.md
+- [ ] Section 3-6 completed in {{module_name}}-overview.md
 - [ ] Source traceability information included
 - [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported

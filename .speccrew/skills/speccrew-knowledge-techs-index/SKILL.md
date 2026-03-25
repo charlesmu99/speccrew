@@ -8,13 +8,6 @@ tools: Read, Write
 
 Aggregate all platform technology documentation into a single root INDEX.md that serves as the master navigation hub for technology knowledge.
 
-## Target Audience
-
-Generated documents serve:
-- **devcrew-designer-{platform_id}**: Architecture patterns, design conventions
-- **devcrew-dev-{platform_id}**: Development conventions, coding standards
-- **devcrew-test-{platform_id}**: Testing conventions, quality requirements
-
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -43,7 +36,7 @@ Worker Agent (speccrew-task-worker)
 
 ## Output
 
-- `{output_path}/INDEX.md` - Root technology knowledge index
+- `{{output_path}}/INDEX.md` - Root technology knowledge index
 
 ## Workflow
 
@@ -80,7 +73,7 @@ Read `techs-manifest.json` to get the list of all platforms:
 For each platform in manifest, scan the platform directory to detect actual document existence:
 
 ```
-speccrew-workspace/knowledges/techs/{platform_id}/
+speccrew-workspace/knowledges/techs/{{platform_id}}/
 ├── INDEX.md                    # Required - must exist
 ├── tech-stack.md              # Required - must exist
 ├── architecture.md            # Required - must exist
@@ -92,7 +85,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 
 **Dynamic Detection Logic:**
 
-1. **Scan Platform Directory**: List all `.md` files in `{techs_base_path}/{platform_id}/`
+1. **Scan Platform Directory**: List all `.md` files in `{{techs_base_path}}/{{platform_id}}/`
 2. **Build Document Availability Map**:
    ```json
    {
@@ -135,7 +128,11 @@ Read each platform's INDEX.md to extract:
 
 ### Step 4: Generate Root INDEX.md
 
-Create the master index document with the following sections:
+1. **Get Timestamp**:
+   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
+   - Store as `{{generated_at}}` template variable
+
+2. **Create the master index document** with the following sections:
 
 #### Section 1: Header
 
@@ -166,9 +163,9 @@ Create the master index document with the following sections:
 
 This technology knowledge index serves all platforms in the project, providing platform overview, document navigation, and Agent usage guidelines.
 
-> Generated at: {generated_at}
-> Source: {source_path}
-> Platforms: {platform_count}
+> Generated at: {{generated_at}}
+> Source: {{source_path}}
+> Platforms: {{platform_count}}
 ```
 
 #### Section 2: Platform Overview
@@ -347,22 +344,22 @@ How to use the technology knowledge:
 
 ### Step 5: Write Output
 
-Write the generated INDEX.md to `{output_path}/INDEX.md`.
+Write the generated INDEX.md to `{{output_path}}/INDEX.md`.
 
 ### Step 6: Report Results
 
 ```
 Stage 3 completed: Root Technology Index Generated
-- Platforms Indexed: {N}
+- Platforms Indexed: {{platform_count}}
   - web-react: ✓
   - backend-nestjs: ✓
-- Root Index: {output_path}/INDEX.md
+- Root Index: {{output_path}}/INDEX.md
 - Agent Mappings: Documented for all platforms
 ```
 
 ## Template
 
-Use template at `speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md`:
+Use template at `templates/INDEX-TEMPLATE.md`:
 
 **Template Variables:**
 - `{{generated_at}}`: ISO timestamp

@@ -8,12 +8,6 @@ tools: Read, Write, Glob, Grep
 
 Analyze existing frontend UI codebase to extract and summarize page styles, layout patterns, and component usage for each platform.
 
-## Target Audience
-
-Generated style guides serve:
-- **devcrew-designer-{platform_id}**: Understanding existing design patterns for new page design
-- **devcrew-dev-{platform_id}**: Implementing pages consistent with existing codebase
-
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -299,38 +293,6 @@ Create comprehensive style guide documents using templates from `speccrew-ui-sty
 2. Verify each page type has a corresponding `[type]-pages.md` file
 3. Verify all 11 required documents exist
 4. If any file is missing, regenerate before proceeding
-
-## Analysis Output Format
-
-Templates for generated documents are located in `speccrew-ui-style-analyzer/templates/`:
-
-| Template | Description |
-|----------|-------------|
-| `PAGE-TYPE-SUMMARY-TEMPLATE.md` | Template for page type classification overview |
-| `PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` | Template for individual page type analysis |
-
-**Note**: See template files for detailed structure and placeholder variables.
-
-## Integration with speccrew-knowledge-techs-generate
-
-When generating `conventions-design.md` for a platform:
-
-1. Check if UI style analysis exists
-2. If yes, reference the generated style guide:
-
-```markdown
-## UI Design Conventions
-
-This platform follows established UI patterns documented in:
-- [UI Style Guide](ui-style-guide.md)
-- [Page Type Summary](page-types/page-type-summary.md)
-
-### Page Type Selection Guide
-
-| Scenario | Recommended Page Type | Reference |
-|----------|----------------------|-----------|
-| [Business scenario] | [Auto-discovered page type] | [[type]-pages.md](page-types/[type]-pages.md) |
-```
 
 ## Checklist
 

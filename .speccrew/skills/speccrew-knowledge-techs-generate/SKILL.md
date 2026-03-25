@@ -8,13 +8,6 @@ tools: Read, Write, Glob, Grep
 
 Generate comprehensive technology documentation for a specific platform by analyzing its configuration files and source code structure.
 
-## Target Audience
-
-Generated documents serve:
-- **devcrew-designer-{platform_id}**: Architecture patterns, design conventions
-- **devcrew-dev-{platform_id}**: Development conventions, coding standards
-- **devcrew-test-{platform_id}**: Testing conventions, quality requirements
-
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -75,37 +68,6 @@ Generate the following documents in `{output_path}/`:
 | `mobile` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
 | `desktop` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
 | `api` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
-
-### UI Style Analysis Integration
-
-For frontend platforms (`web`, `mobile`, `desktop`), invoke `speccrew-ui-style-analyzer` to extract UI patterns from source code:
-
-**When to invoke:**
-- `platform_type` is `web`, `mobile`, or `desktop`
-- Source code contains UI components (Vue, React, etc.)
-
-**Input parameters mapping:**
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| `source_path` | Same as this skill's `source_path` | UI source directory |
-| `platform_id` | Same as this skill's `platform_id` | Platform identifier |
-| `platform_type` | Same as this skill's `platform_type` | `web` / `mobile` / `desktop` |
-| `framework` | Same as this skill's `framework` | Frontend framework |
-| `output_path` | `{output_path}/ui-style/` | Output subdirectory |
-| `language` | Same as this skill's `language` | Target language |
-
-**After invocation, reference in conventions-design.md:**
-```markdown
-## UI Design Conventions
-
-This platform follows UI patterns documented in:
-- [UI Style Guide](ui-style/ui-style-guide.md)
-- [Page Type Summary](ui-style/page-types/page-type-summary.md)
-
-### Page Type Selection Guide
-
-See [page-type-summary.md](ui-style/page-types/page-type-summary.md) for available page types and usage recommendations.
-```
 
 ### Decision Logic for conventions-data.md
 
@@ -191,7 +153,10 @@ Parse configuration files to extract:
 
 ### Step 3: Analyze Conventions
 
-Extract conventions from configuration files:
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
+
+2. **Extract conventions from configuration files:**
 
 **From ESLint Config:**
 - Enabled rules
@@ -207,69 +172,9 @@ Extract conventions from configuration files:
 - File naming patterns
 - Module organization
 
-**Mermaid Diagram Requirements**
-
-When generating Mermaid diagrams, you **MUST** follow the compatibility guidelines defined in:
-- **Reference**: `speccrew-workspace/docs/rules/mermaid-rule.md`
-
-Key requirements:
-- Use only basic node definitions: `A[text content]`
-- No HTML tags (e.g., `<br/>`)
-- No nested subgraphs
-- No `direction` keyword
-- No `style` definitions
-- Use standard `graph TB/LR` syntax only
-
-### Mermaid Diagram Types Guide
-
-| Diagram Type | Use Case | Example Scenario |
-|--------------|----------|------------------|
-| `graph TB/LR` | Structure & Dependency | Module relationships, component hierarchy |
-| `flowchart TD` | Business Logic Flow | Request processing, decision trees |
-| `sequenceDiagram` | Interaction Flow | API calls, service communication |
-| `classDiagram` | Class Structure | Entity relationships, inheritance |
-| `erDiagram` | Database Schema | Table relationships, data model |
-| `stateDiagram-v2` | State Machine | Order status, workflow states |
-
-### Source Traceability Requirements
-
-**CRITICAL**: All generated documents must include source traceability.
-
-#### 1. File Reference Block (`<cite>`)
-
-Place at the beginning of each document:
-
-```markdown
-<cite>
-**Files Referenced in This Document**
-- [package.json](file://path/to/package.json)
-- [tsconfig.json](file://path/to/tsconfig.json)
-</cite>
-```
-
-#### 2. Diagram Source Annotation
-
-After each Mermaid diagram:
-
-```markdown
-**Diagram Source**
-- [file-name.ext](file://path/to/file.ext#L10-L50)
-```
-
-#### 3. Section Source Annotation
-
-At the end of each major section:
-
-```markdown
-**Section Source**
-- [file-name.ext](file://path/to/file.ext#L10-L50)
-```
-
-For generic guidance sections without specific file references:
-
-```markdown
-[This section provides general guidance, no specific file reference required]
-```
+3. **Apply Mermaid Rules**:
+   - Follow compatibility guidelines from `mermaid-rule.md`
+   - See: [Mermaid Diagram Guide](#mermaid-diagram-guide)
 
 ### Step 4: Invoke UI Style Analysis (Frontend Platforms Only)
 
@@ -320,10 +225,100 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
 
 ### Step 5: Generate Documents
 
-Use unified templates located at:
-- `speccrew-knowledge-techs-generate/templates/`
+1. **Load Templates**:
+   - Use templates from `templates/` directory
+   - See: [Template Reference](#template-reference)
 
-All templates follow a unified 10-section structure for consistency.
+2. **Generate Each Document**:
+   - Follow [Document Structure Standard](#document-structure-standard)
+   - Apply [Source Traceability Requirements](#source-traceability-requirements)
+   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-*.md
+
+### Step 6: Write Output Files
+
+Create output directory if not exists, then write all generated documents.
+
+### Step 7: Report Results
+
+```
+Platform Technology Documents Generated: {{platform_id}}
+- INDEX.md: ✓
+- tech-stack.md: ✓
+- architecture.md: ✓
+- conventions-design.md: ✓
+- conventions-dev.md: ✓
+- conventions-test.md: ✓
+- conventions-data.md: ✓ (or skipped if not applicable)
+- ui-style-guide.md: ✓ (frontend platforms only)
+- Output Directory: {{output_path}}
+```
+
+---
+
+## Reference Guides
+
+### Mermaid Diagram Guide
+
+When generating Mermaid diagrams, follow these compatibility guidelines:
+
+**Key Requirements:**
+- Use only basic node definitions: `A[text content]`
+- No HTML tags (e.g., `<br/>`)
+- No nested subgraphs
+- No `direction` keyword
+- No `style` definitions
+- Use standard `graph TB/LR` syntax only
+
+**Diagram Types:**
+
+| Diagram Type | Use Case | Example Scenario |
+|--------------|----------|------------------|
+| `graph TB/LR` | Structure & Dependency | Module relationships, component hierarchy |
+| `flowchart TD` | Business Logic Flow | Request processing, decision trees |
+| `sequenceDiagram` | Interaction Flow | API calls, service communication |
+| `classDiagram` | Class Structure | Entity relationships, inheritance |
+| `erDiagram` | Database Schema | Table relationships, data model |
+| `stateDiagram-v2` | State Machine | Order status, workflow states |
+
+### Source Traceability Requirements
+
+**CRITICAL**: All generated documents must include source traceability.
+
+**1. File Reference Block (`<cite>`)**
+
+Place at the beginning of each document:
+
+```markdown
+<cite>
+**Files Referenced in This Document**
+- [package.json](file://path/to/package.json)
+- [tsconfig.json](file://path/to/tsconfig.json)
+</cite>
+```
+
+**2. Diagram Source Annotation**
+
+After each Mermaid diagram:
+
+```markdown
+**Diagram Source**
+- [file-name.ext](file://path/to/file.ext#L10-L50)
+```
+
+**3. Section Source Annotation**
+
+At the end of each major section:
+
+```markdown
+**Section Source**
+- [file-name.ext](file://path/to/file.ext#L10-L50)
+```
+
+For generic guidance sections without specific file references:
+
+```markdown
+[This section provides general guidance, no specific file reference required]
+```
 
 ### Document Structure Standard
 
@@ -357,7 +352,9 @@ All generated documents must follow this structure:
 - [file.ext](file://path#Lstart-Lend)
 ```
 
-#### Document 1: INDEX.md
+### Document Content Specifications
+
+#### INDEX.md
 
 Platform overview and navigation hub.
 
@@ -367,7 +364,7 @@ Platform overview and navigation hub.
 - Quick links to all convention documents
 - Agent usage guide
 
-#### Document 2: tech-stack.md
+#### tech-stack.md
 
 Detailed technology stack information.
 
@@ -383,7 +380,7 @@ Detailed technology stack information.
 - Development Tools
 - Configuration Files (list with paths)
 
-#### Document 3: architecture.md
+#### architecture.md
 
 Architecture patterns and conventions.
 
@@ -409,7 +406,7 @@ Architecture patterns and conventions.
 - Navigation Patterns
 - Platform-Specific Considerations
 
-#### Document 4: conventions-design.md
+#### conventions-design.md
 
 Design principles and patterns for detailed design.
 
@@ -424,7 +421,7 @@ Design principles and patterns for detailed design.
 - Security Considerations
 - Performance Guidelines
 
-#### Document 5: conventions-dev.md
+#### conventions-dev.md
 
 Development conventions for coding.
 
@@ -436,7 +433,7 @@ Development conventions for coding.
 - Git Commit Conventions
 - Code Review Checklist
 
-#### Document 6: conventions-test.md
+#### conventions-test.md
 
 Testing conventions and requirements.
 
@@ -448,7 +445,7 @@ Testing conventions and requirements.
 - Integration Testing Patterns
 - Mocking Strategies
 
-#### Document 7: conventions-data.md (Optional)
+#### conventions-data.md (Optional)
 
 Data layer conventions (if applicable).
 
@@ -459,38 +456,23 @@ Data layer conventions (if applicable).
 - Query Optimization
 - Caching Strategies
 
-### Step 6: Write Output Files
-
-Create output directory if not exists, then write all generated documents.
-
-### Step 7: Report Results
-
-```
-Platform Technology Documents Generated: {platform_id}
-- INDEX.md: ✓
-- tech-stack.md: ✓
-- architecture.md: ✓
-- conventions-design.md: ✓
-- conventions-dev.md: ✓
-- conventions-test.md: ✓
-- conventions-data.md: ✓ (or skipped if not applicable)
-- ui-style-guide.md: ✓ (frontend platforms only)
-- Output Directory: {output_path}
-```
+---
 
 ## Template Usage
 
-All templates are unified and located in `speccrew-knowledge-techs-generate/templates/` directory:
+### Template Reference
+
+All templates are unified and located in `templates/` directory:
 
 | Template File | Purpose |
 |---------------|---------|
-| `speccrew-knowledge-techs-generate/templates/INDEX-TEMPLATE.md` | Platform overview and navigation hub |
-| `speccrew-knowledge-techs-generate/templates/TECH-STACK-TEMPLATE.md` | Technology stack details |
-| `speccrew-knowledge-techs-generate/templates/ARCHITECTURE-TEMPLATE.md` | Architecture patterns and conventions |
-| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
-| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
-| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
-| `speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
+| `templates/INDEX-TEMPLATE.md` | Platform overview and navigation hub |
+| `templates/TECH-STACK-TEMPLATE.md` | Technology stack details |
+| `templates/ARCHITECTURE-TEMPLATE.md` | Architecture patterns and conventions |
+| `templates/CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
+| `templates/CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
+| `templates/CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
+| `templates/CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
 
 Platform-specific content is generated dynamically based on:
 - Platform type (web, mobile, backend, desktop)

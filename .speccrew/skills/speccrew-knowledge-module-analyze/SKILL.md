@@ -6,7 +6,7 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 # Module Analysis - Single Module
 
-Analyze one specific module from source code, extract all features, generate {name}-overview.md (initial version with feature list) and all {feature-name}.md files.
+Analyze one specific module from source code, extract all features, generate {{module_name}}-overview.md (initial version with feature list) and all {{feature_name}}.md files.
 
 ## Language Adaptation
 
@@ -41,39 +41,43 @@ Worker Agent (speccrew-task-worker)
 - `output_path`: Output directory for the module (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
+## Output Variables
+
+- `feature_count`: Number of features extracted from the module
+- `feature_name`: Name of each extracted feature (used for individual feature files)
+
 ## Output
 
-- `{output_path}/{name}-overview.md` - Initial module overview with feature list
-- `{output_path}/features/{feature-name}.md` - Feature detail documents (one per feature)
+- `{output_path}/{module_name}-overview.md` - Initial module overview with feature list
+- `{output_path}/features/{feature_name}.md` - Feature detail documents (one per feature)
 
 ## Workflow
 
 ### Step 1: Locate Module Source
 
-Use `entry_points` from input to locate module source files directly:
+1. **Read Configuration** (if fallback needed):
+   - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Determine file extensions and entry patterns based on `tech_stack`
 
-**System Type Determination:**
+2. **Use `entry_points` from input to locate module source files directly:**
 
-Use `system_type` parameter to determine analysis approach:
-- `system_type: "ui"` → Follow UI-based analysis
-- `system_type: "api"` → Follow API-based analysis
+   **System Type Determination:**
+   - Use `system_type` parameter to determine analysis approach:
+     - `system_type: "ui"` → Follow UI-based analysis
+     - `system_type: "api"` → Follow API-based analysis
 
-**For UI-based modules (system_type = "ui"):**
-- Entry points are page/component files (e.g., `src/pages/orders/index.tsx`)
-- Analyze page structure, components, props, state management
-- Extract user interactions and navigation flows
+   **For UI-based modules (system_type = "ui"):**
+   - Entry points are page/component files (e.g., `src/pages/orders/index.tsx`)
+   - Analyze page structure, components, props, state management
+   - Extract user interactions and navigation flows
 
-**For API-based modules (system_type = "api"):**
-- Entry points are controller/handler files (e.g., `src/controllers/order.controller.ts`)
-- Parse decorators and method signatures to extract features
-- Extract request/response DTOs and validation rules
+   **For API-based modules (system_type = "api"):**
+   - Entry points are controller/handler files (e.g., `src/controllers/order.controller.ts`)
+   - Parse decorators and method signatures to extract features
+   - Extract request/response DTOs and validation rules
 
-**Fallback (if entry_points analysis insufficient):**
-- Search: `**/{module_name}/**/*.{ts,js,java,go,py}`
-- Consider `tech_stack` to determine file extensions (e.g., Flutter → `.dart`, Python → `.py`)
-
-> **Configuration Reference for Step 1:**
-> - Tech stack mappings: `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Determine file extensions and entry patterns based on tech_stack
+3. **Fallback (if entry_points analysis insufficient):**
+   - Search: `**/{module_name}/**/*.{ts,js,java,go,py}`
+   - Query `tech-stack-mappings.json` using `tech_stack` to determine file extensions (e.g., Flutter → `.dart`, Python → `.py`)
 
 ### Step 2: Extract Module Information
 
@@ -89,6 +93,7 @@ Based on `system_type`, extract different information:
 | State Management | Store files, hooks (e.g., `useStore`, `redux`, `pinia`) |
 | User Interactions | Event handlers, form submissions |
 | Navigation | Router configurations, navigation links |
+| **Method Call Chain** | Trace from event handler → API service method → HTTP request |
 
 **For API-based modules (system_type = "api"):**
 
@@ -99,14 +104,15 @@ Based on `system_type`, extract different information:
 | Services | Files matching `*service.*`, `*provider.*` |
 | Entities/Models | Files matching `*entity.*`, `*model.*`, `*dto.*` |
 | Public APIs | Route decorators: `@Get`, `@Post`, `@Put`, `@Delete` |
+| **Backend Call Chain** | Controller methods → Service methods → Repository/DAO methods |
 
 ### Step 3: Identify Features
 
-> **Configuration Reference for Step 3:**
-> - Feature granularity rules: `speccrew-workspace/docs/configs/feature-granularity-rules.json` - Determine how to split features based on complexity
-> - Validation rules: `speccrew-workspace/docs/configs/validation-rules.json` - Validate feature naming conventions
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/feature-granularity-rules.json` - Determine how to split features based on complexity
+   - Read `speccrew-workspace/docs/configs/validation-rules.json` - Validate feature naming conventions
 
-#### 3.1 Feature Granularity Rules
+2. **Apply Feature Granularity Rules**:
 
 Determine splitting strategy based on feature complexity:
 
@@ -121,7 +127,7 @@ Determine splitting strategy based on feature complexity:
 - Feature detail document: `{feature-name}.md` (Named by core feature)
 - Use target language for naming, maintain semantic clarity
 
-#### 3.2 Feature Extraction
+3. **Feature Extraction**:
 
 **For UI-based modules (system_type = "ui"):**
 
@@ -153,6 +159,7 @@ For each feature, extract:
   - User interactions (clicks, form submissions)
   - State management (local state, store)
   - Navigation paths
+  - **Method Call Chain**: Trace from event handler → API client method → HTTP request
   
 - **Backend API Layer:**
   - API calls made by the feature (trace `fetch`, `axios`, `apiClient` calls)
@@ -160,12 +167,18 @@ For each feature, extract:
   - Request parameters and payload structure
   - Response data structure
   - Error handling patterns
+  - **Backend Call Chain**: Controller → Service → Repository/DAO → Database
   
 - **Data Storage Layer:**
   - Database entities/models referenced by the API
   - Data relationships (foreign keys, associations)
   - Key data fields and their purposes
   - Data flow: UI → API →Database → API →UI
+
+- **Full Call Chain Visualization**:
+  - Generate Mermaid sequence diagram showing complete flow
+  - Include: User Action → Frontend Handler → API Client → Backend Controller → Service → Database
+  - Mark each step with source file reference
 
 **For API-based modules (system_type = "api"):**
 
@@ -190,7 +203,7 @@ For each feature, extract:
 - Validation rules
 - Business rules from code comments
 
-#### 3.3 Source File Tracking
+4. **Source File Tracking**:
 
 **CRITICAL**: For each extracted feature, track the source files:
 
@@ -203,18 +216,19 @@ These source file references will be used in the generated documents for traceab
 
 ### Step 4: Generate {feature-name}.md Files
 
-For each feature, use template `speccrew-knowledge-module-analyze/templates/FEATURE-DETAIL-TEMPLATE.md`:
+For each feature, use template `templates/FEATURE-DETAIL-TEMPLATE.md`:
 
 **Template placeholders:**
-- `{{FeatureName}}`: Feature name (e.g., "create-order")
-- `{{ModuleName}}`: Parent module name
-- `{{ApiMethod}}`: HTTP method (GET/POST/PUT/DELETE)
-- `{{ApiPath}}`: Endpoint path
-- `{{RequestDto}}`: Request DTO fields
-- `{{ResponseDto}}`: Response DTO fields
-- `{{ValidationRules}}`: Validation decorators
-- `{{BusinessRules}}`: Extracted from code comments
-- `{{SourceFiles}}`: Source file references for traceability
+- `{{feature_name}}`: Feature name (e.g., "create-order")
+- `{{module_name}}`: Parent module name
+- `{{api_method}}`: HTTP method (GET/POST/PUT/DELETE)
+- `{{api_path}}`: Endpoint path
+- `{{request_dto}}`: Request DTO fields
+- `{{response_dto}}`: Response DTO fields
+- `{{validation_rules}}`: Validation decorators
+- `{{business_rules}}`: Extracted from code comments
+- `{{source_files}}`: Source file references for traceability
+- `{{call_flow_diagram}}`: Mermaid sequence diagram showing call chain
 
 **Output:** `{output_path}/features/{feature-name}.md`
 
@@ -243,13 +257,17 @@ Each generated document must include source code traceability information:
 - [OrderService.java](file://path/to/service#L30-L50)
 ```
 
-### Step 5: Generate {name}-overview.md (Initial)
+4. **Generate Call Flow Diagram**:
+   - Generate Mermaid sequence diagram showing complete call chain (see [Reference: Call Flow Diagram](#call-flow-diagram-reference))
+   - Include call chain details table with step-by-step mapping
 
-> **Configuration Reference for Step 5:**
-> - Document templates metadata: `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
-> - Mermaid compatibility rules: `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
+### Step 5: Generate {{module_name}}-overview.md (Initial)
 
-Use template `speccrew-knowledge-module-analyze/templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
+   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Ensure diagrams follow compatibility guidelines
+
+2. **Use template `templates/MODULE-OVERVIEW-TEMPLATE.md`, fill sections:**
 
 **Mermaid Diagram Requirements**
 
@@ -307,15 +325,15 @@ Module overview document must also include source code traceability information:
 
 ```
 Module analysis completed:
-- Platform: {platform_name} ({platform_type})
-- Module: {module_name}
-- Source Path: {source_path}
-- Tech Stack: {tech_stack}
-- Entry Points Analyzed: {entry_points.length}
-- Features Found: {N}
+- Platform: {{platform_name}} ({{platform_type}})
+- Module: {{module_name}}
+- Source Path: {{source_path}}
+- Tech Stack: {{tech_stack}}
+- Entry Points Analyzed: {{entry_points.length}}
+- Features Found: {{feature_count}}
 - Generated
-  - {name}-overview.md (initial)
-  - features/{feature-name}.md ({N} files)
+  - {{module_name}}-overview.md (initial)
+  - features/{{feature_name}}.md ({{feature_count}} files)
 - Status: success/partial-failed
 - Issues: [if any]
 ```
@@ -331,8 +349,77 @@ Module analysis completed:
 - [ ] Source files tracked for each feature (Controller, Service, Entity/DTO)
 - [ ] Request/Response DTOs analyzed (API) or Props/State analyzed (UI)
 - [ ] Validation rules documented
+- [ ] **Method call chain traced** (Frontend: handler → API client)
+- [ ] **Backend call chain traced** (Controller → Service → Repository → Database)
+- [ ] **Mermaid sequence diagram generated** for each feature showing complete call flow
+- [ ] **Call chain details table created** with step-by-step component/method mapping
 - [ ] {feature-name}.md generated with source traceability for each feature
 - [ ] {name}-overview.md (initial) generated with feature list and source traceability
 - [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported with platform context
+
+---
+
+## Reference Guides
+
+### Call Flow Diagram Reference
+
+This section provides detailed guidelines for generating Mermaid sequence diagrams showing the complete call chain.
+
+**Standard Diagram Structure:**
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant P as Page/Component
+    participant H as Event Handler
+    participant C as API Client
+    participant CT as Controller
+    participant S as Service
+    participant R as Repository
+    participant D as Database
+    
+    U->>P: User Action (click/submit)
+    P->>H: Trigger handler
+    H->>C: Call API method
+    C->>CT: HTTP Request
+    CT->>S: Call service method
+    S->>R: Call repository
+    R->>D: Query/Update
+    D-->>R: Return data
+    R-->>S: Return entity
+    S-->>CT: Return DTO
+    CT-->>C: HTTP Response
+    C-->>H: Return response data
+    H-->>P: Update state/UI
+    P-->>U: Display result
+```
+
+**Diagram Requirements:**
+
+1. **For UI modules (system_type = "ui"):**
+   - Include: User → Page → Handler → API Client
+   - Show the actual method names from source code
+   - Include source file references as comments in diagram
+
+2. **For API modules (system_type = "api"):**
+   - Include: Controller → Service → Repository → Database
+   - Show method signatures with parameters
+   - Include validation and error handling flows
+
+3. **Source Traceability in Diagrams:**
+   - Add comments showing file:line references
+   - Example: `%% Source: OrderController.java#L45`
+
+**Call Chain Details Table:**
+
+After the diagram, include a table mapping each step:
+
+| Step | Layer | Component | Method | Source File |
+|------|-------|-----------|--------|-------------|
+| 1 | Frontend | OrderListPage | handleSubmit | OrderListPage.tsx#L45 |
+| 2 | Frontend | orderApi | createOrder | api/order.ts#L23 |
+| 3 | Backend | OrderController | create | OrderController.java#L45 |
+| 4 | Backend | OrderService | save | OrderService.java#L30 |
+| 5 | Backend | OrderRepository | insert | OrderRepository.java#L15 |
 

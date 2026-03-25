@@ -8,12 +8,6 @@ tools: Read, Write, Glob, Grep, SearchCodebase
 
 Scan project source code to identify all technology platforms, extract configuration metadata, and generate techs-manifest.json for downstream document generation.
 
-## Target Audience
-
-Generated manifest enables:
-- **speccrew-knowledge-techs-generate**: Platform-specific document generation
-- **speccrew-knowledge-techs-index**: Root index aggregation
-
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
@@ -43,13 +37,17 @@ Worker Agent (speccrew-task-worker)
 
 ## Output
 
-- `{output_path}/techs-manifest.json` - Technology platform manifest for pipeline orchestration
+- `{{output_path}}/techs-manifest.json` - Technology platform manifest for pipeline orchestration
 
 ## Workflow
 
 ### Step 1: Scan for Platform Indicators
 
-Analyze project structure to detect technology platforms. Check for platform-specific files and configurations.
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/platform-mapping.json` - Get standardized platform identifiers and mapping rules
+
+2. **Analyze project structure to detect technology platforms**:
+   - Check for platform-specific files and configurations (see [Platform Detection Reference](#platform-detection-reference))
 
 #### Web Platform Detection
 
@@ -137,7 +135,7 @@ For each detected platform, extract:
 
 | Field | Source | Example |
 |-------|--------|---------|
-| platform_id | `{type}-{framework}` | web-react, backend-nestjs |
+| platform_id | `{{platform_type}}-{{framework}}` | web-react, backend-nestjs |
 | platform_type | Platform category | web, mobile, backend, desktop |
 | framework | Primary framework | react, nestjs, flutter |
 | language | Primary language | typescript, kotlin, dart |
@@ -147,11 +145,15 @@ For each detected platform, extract:
 
 ### Step 3: Generate techs-manifest.json
 
-Create JSON file with detected platforms:
+1. **Get Timestamp**:
+   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
+   - Store as `generated_at` value
+
+2. **Create JSON file** with detected platforms:
 
 ```json
 {
-  "generated_at": "2024-01-15T10:30:00Z",
+  "generated_at": "{{timestamp_from_get_timestamp}}",
   "source_path": "/project",
   "language": "zh",
   "platforms": [
@@ -194,50 +196,45 @@ Create JSON file with detected platforms:
 
 ```
 Stage 1 completed: Technology Platform Detection
-- Platforms Detected: [N]
+- Platforms Detected: {{platform_count}}
   - web-react: React 18.2.0, TypeScript 5.3.0
   - backend-nestjs: NestJS 10.0.0, TypeScript 5.3.0
-- Configuration Files Found: [N]
-- Output: {output_path}/techs-manifest.json
+- Configuration Files Found: {{config_file_count}}
+- Output: {{output_path}}/techs-manifest.json
 - Next: Dispatch parallel tasks for Stage 2 (Tech Document Generation)
 ```
 
-## Platform Detection Guidelines
+## Reference Guides
 
-### Multiple Platforms in Same Project
+### Platform Detection Reference
+
+#### Multiple Platforms in Same Project
 
 If a project contains multiple platforms (e.g., web + backend + mobile):
 - Detect each platform separately
 - Assign unique platform_id for each
 - Include all platforms in manifest
 
-### Monorepo Structure
+#### Monorepo Structure
 
 For monorepos with multiple packages:
 - Detect platforms in each package directory
 - Use relative paths for source_path
 - Example: `packages/web-app` → web-react platform
 
-### Framework Version Detection
+#### Framework Version Detection
 
 Extract version information when available:
 - From package.json dependencies
 - From pom.xml version tags
 - Include in report but not in manifest (manifest focuses on structure)
 
-### Platform Mapping to bizs-init
+#### Platform Mapping to bizs-init
 
-Ensure consistency with modules.json by using standardized platform identifiers defined in:
-
-**Reference Configuration**: `speccrew-workspace/docs/configs/platform-mapping.json`
-
-The mapping file provides:
-- `platform_categories` - Valid platform types and their subtypes
-- `mappings` - Complete mapping table for all supported platforms
-- `naming_conventions` - Field mapping rules between bizs and techs
+Ensure consistency with modules.json by using standardized platform identifiers from `platform-mapping.json`:
 
 **Key Rules:**
-- `platform_id` format: `{platform_type}-{framework}` (e.g., `mobile-uniapp`, `web-vue`)
+- `platform_id` format: `{{platform_type}}-{{framework}}` (e.g., `mobile-uniapp`, `web-vue`)
 - `platform_type` must match between techs-manifest.json and modules.json
 - `framework` maps to `platform_subtype` in modules.json
 
@@ -247,6 +244,8 @@ The mapping file provides:
 | web-vue | web | vue | vue |
 | mobile-uniapp | mobile | uniapp | uniapp |
 | backend-spring | backend | spring | spring |
+
+---
 
 ## Checklist
 

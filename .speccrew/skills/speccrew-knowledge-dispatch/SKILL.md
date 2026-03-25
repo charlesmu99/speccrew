@@ -50,11 +50,12 @@ Leader Agent (speccrew-team-leader)
 
 ## Platform Naming Convention
 
-To ensure consistency between bizs and techs pipelines, all platform identifiers must follow the standardized mapping defined in:
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/platform-mapping.json` - Get standardized platform mapping rules
 
-**Reference Configuration**: `speccrew-workspace/docs/configs/platform-mapping.json`
+2. **Apply Platform Naming Rules**:
 
-### Field Mapping
+To ensure consistency between bizs and techs pipelines, all platform identifiers must follow the standardized mapping.
 
 | Concept | bizs-init (modules.json) | techs-init (techs-manifest.json) | Example (UniApp) |
 |---------|--------------------------|----------------------------------|------------------|
@@ -175,8 +176,8 @@ Platform: Mobile App (mobile-flutter)
 ```
 
 **Output per Module**:
-- `{name}-overview.md` (initial version with feature list)
-- `features/{feature-name}.md` (one per feature)
+- `{{module_name}}-overview.md` (initial version with feature list)
+- `features/{{feature_name}}.md` (one per feature)
 
 **Status Tracking**:
 - `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage2-status.json`
@@ -212,7 +213,7 @@ Platform: Mobile App (mobile-flutter)
 ```
 
 **Output per Module**:
-- `{name}-overview.md` (complete version)
+- `{{module_name}}-overview.md` (complete version)
 
 **Status Tracking**:
 - `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/stage3-status.json`
@@ -233,8 +234,6 @@ Platform: Mobile App (mobile-flutter)
 
 **Output**:
 - `speccrew-workspace/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)
-
-### Bizs Stage 5: Generate Final Report
 
 ---
 
@@ -401,7 +400,7 @@ Techs Pipeline:   [Stage 1] →[Stage 2 Parallel] →[Stage 3] →[Report]
 
 ---
 
-## Master Execution Flow
+## Execution Summary
 
 **Action**:
 - Read all status files
@@ -476,10 +475,12 @@ Next Steps:
 - Read `modules.json`
 - Launch ALL Bizs Stage 2 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 2 to complete
-- **Generate `stage2-status.json`** (see Stage 2 Status File Format below)
+- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Generate `stage2-status.json`** with timestamp (see Stage 2 Status File Format below)
 - Launch ALL Bizs Stage 3 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 3 to complete
-- **Generate `stage3-status.json`** (see Stage 3 Status File Format below)
+- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Generate `stage3-status.json`** with timestamp (see Stage 3 Status File Format below)
 - Launch Bizs Stage 4 Worker (system summary)
 - Wait for completion
 
@@ -487,10 +488,12 @@ Next Steps:
 - Read `techs-manifest.json`
 - Launch ALL Techs Stage 2 Workers in parallel (one per platform)
 - Wait for all Techs Stage 2 to complete
-- **Generate `stage2-status.json`** for techs pipeline
+- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Generate `stage2-status.json`** with timestamp for techs pipeline
 - Launch Techs Stage 3 Worker (root index)
 - Wait for completion
-- **Generate `stage3-status.json`** for techs pipeline
+- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Generate `stage3-status.json`** with timestamp for techs pipeline
 
 **Note**: Both pipelines are fully independent. Launch them simultaneously using parallel Task invocations. Do NOT run them sequentially.
 
@@ -537,11 +540,13 @@ Next Steps:
 
 ---
 
-## Status File Formats
+## Reference Guides
+
+### Status File Formats
 
 Status files track pipeline execution progress and are generated after each stage completes.
 
-### File Locations
+#### File Locations
 
 | Pipeline | Stage | File Path |
 |----------|-------|-----------|
@@ -550,7 +555,7 @@ Status files track pipeline execution progress and are generated after each stag
 | Techs | Stage 2 | `knowledges/base/sync-state/knowledge-techs/stage2-status.json` |
 | Techs | Stage 3 | `knowledges/base/sync-state/knowledge-techs/stage3-status.json` |
 
-### Quick Reference
+#### Quick Reference
 
 **Bizs Stage 2** tracks module analysis results:
 - `total_modules`, `completed`, `failed` counts

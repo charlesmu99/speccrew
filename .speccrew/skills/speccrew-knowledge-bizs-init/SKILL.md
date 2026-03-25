@@ -50,11 +50,11 @@ Worker Agent (speccrew-task-worker)
 
 ### Step 1: Determine System Type
 
-> **Configuration Reference for Step 1:**
-> - Platform mappings: `speccrew-workspace/docs/configs/platform-mapping.json` - Map detected framework to standardized platform_id, platform_type, and platform_subtype
-> - Tech stack mappings: `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Identify platform indicators by file extensions and project files
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/platform-mapping.json` - Map detected framework to standardized platform_id, platform_type, and platform_subtype
+   - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Identify platform indicators by file extensions and project files
 
-Analyze project to determine if it has a UI layer:
+2. **Analyze project to determine if it has a UI layer**:
 
 **Check for UI Indicators:**
 
@@ -252,14 +252,18 @@ For API-based modules (`system_type: "api"`), do **NOT** populate `backend_apis`
 
 ### Step 4: Generate modules.json
 
-> **Configuration Reference for Step 4:**
-> - Validation rules: `speccrew-workspace/docs/configs/validation-rules.json` - Validate platform_id, module names, and file naming conventions
+1. **Read Configuration**:
+   - Read `speccrew-workspace/docs/configs/validation-rules.json` - Validate platform_id, module names, and file naming conventions
 
-Create JSON file for pipeline orchestration using the unified format:
+2. **Get Timestamp**:
+   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
+   - Store as `generated_at` value
+
+3. **Create JSON file for pipeline orchestration using the unified format**:
 
 ```json
 {
-  "generated_at": "2024-01-15T10:30:00Z",
+  "generated_at": "{{timestamp_from_get_timestamp}}",
   "analysis_method": "ui-based",
   "source_path": "/project",
   "language": "en",
@@ -380,9 +384,11 @@ Stage 1 completed: Business Module List Generated
 - Next: Dispatch parallel tasks for Stage 2 (Module Feature Analysis)
 ```
 
-## Analysis Guidelines
+## Reference Guides
 
-### For UI-Based Systems
+### Analysis Guidelines
+
+#### For UI-Based Systems
 
 1. **Focus on user journeys**: Group pages by user workflow
 2. **Use business terminology**: "Order Management" not "OrderController"
@@ -390,7 +396,7 @@ Stage 1 completed: Business Module List Generated
 4. **Look for CRUD patterns**: List → Detail → Edit → Create flows
 5. **Identify platform boundaries**: Separate Web, Mobile, Desktop into different platforms
 
-### For API-Based Systems
+#### For API-Based Systems
 
 1. **Group by resource/domain**: APIs handling related entities
 2. **Analyze URL patterns**: Common prefixes indicate modules
@@ -398,12 +404,14 @@ Stage 1 completed: Business Module List Generated
 4. **Look for controller boundaries**: One controller often equals one module
 5. **Detect multi-language backends**: Identify if APIs are implemented across different languages
 
-### For Multi-Platform Projects
+#### For Multi-Platform Projects
 
 1. **Create separate platform entries**: Each UI platform (Web, iOS, Android, Mini Program) gets its own platform object
 2. **Use consistent module naming**: Same business concept should have same `code_name` across platforms
 3. **Record platform-specific paths**: `entry_points` should reflect each platform's file structure
 4. **Document tech stack**: Include languages and frameworks in `tech_stack` array
+
+---
 
 ## Checklist
 
