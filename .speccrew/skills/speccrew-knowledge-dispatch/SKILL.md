@@ -317,7 +317,13 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 ├── conventions-design.md      # 必需
 ├── conventions-dev.md         # 必需
 ├── conventions-test.md        # 必需
-└── conventions-data.md        # 可选 - 仅特定平台需要
+├── conventions-data.md        # 可选 - 仅特定平台需要
+└── ui-style/                  # 可选 - 仅前端平台(web/mobile/desktop)
+    ├── ui-style-guide.md      # UI 风格指南
+    ├── page-types/            # 页面类型分析
+    ├── components/            # 组件分析
+    ├── layouts/               # 布局模式
+    └── styles/                # 样式规范
 ```
 
 **关于可选文件 `conventions-data.md` 的处理**:
