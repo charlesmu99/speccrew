@@ -93,7 +93,7 @@ Based on `system_type`, extract different information:
 | State Management | Store files, hooks (e.g., `useStore`, `redux`, `pinia`) |
 | User Interactions | Event handlers, form submissions |
 | Navigation | Router configurations, navigation links |
-| **Method Call Chain** | Trace from event handler → API service method → HTTP request |
+| **Frontend Business Flow** | Page initialization logic, data loading sequence, user interaction handling |
 
 **For API-based modules (system_type = "api"):**
 
@@ -104,7 +104,7 @@ Based on `system_type`, extract different information:
 | Services | Files matching `*service.*`, `*provider.*` |
 | Entities/Models | Files matching `*entity.*`, `*model.*`, `*dto.*` |
 | Public APIs | Route decorators: `@Get`, `@Post`, `@Put`, `@Delete` |
-| **Backend Call Chain** | Controller methods → Service methods → Repository/DAO methods |
+| **Backend Business Flow** | Business logic execution sequence: validation → data retrieval → processing → persistence → response |
 
 ### Step 3: Identify Features
 
@@ -153,32 +153,43 @@ export default function OrderListPage() {
 ```
 
 For each feature, extract:
-- **Frontend Layer:**
+- **Feature Identification:**
   - Feature name (from page name or user action)
+  - Trigger point (page initialization, button click, form submission)
   - Page/Component file path
-  - User interactions (clicks, form submissions)
-  - State management (local state, store)
-  - Navigation paths
-  - **Method Call Chain**: Trace from event handler → API client method → HTTP request
+
+- **Per-Request Business Flow Analysis:**
   
-- **Backend API Layer:**
-  - API calls made by the feature (trace `fetch`, `axios`, `apiClient` calls)
-  - API endpoint (method + path)
-  - Request parameters and payload structure
-  - Response data structure
-  - Error handling patterns
-  - **Backend Call Chain**: Controller → Service → Repository/DAO → Database
+  **Each API call made by the feature should have its own business flow diagram:**
+  
+  | Request Type | Example | Business Flow Focus |
+  |-------------|---------|---------------------|
+  | Page Init | `useEffect(() => fetchOrders(), [])` | 页面加载 → 参数获取 → 权限检查 → 数据查询 → 渲染 |
+  | User Action | `onClick={() => createOrder(data)}` | 点击触发 → 数据校验 → 业务检查 → 数据处理 → 结果反馈 |
+  | Navigation | `router.push('/orders/' + id)` | 跳转触发 → 参数传递 → 目标页加载 → 数据获取 → 渲染 |
+
+- **Frontend Business Flow** (per request):
+  - User action that triggers the request
+  - Input data preparation and validation
+  - API request construction
+  - Response handling and UI updates
+  
+- **Backend Business Flow** (per request):
+  - Request validation → permission check → business rule validation
+  - Data query/processing steps
+  - Data persistence operations
+  - Response assembly
   
 - **Data Storage Layer:**
   - Database entities/models referenced by the API
   - Data relationships (foreign keys, associations)
   - Key data fields and their purposes
-  - Data flow: UI → API →Database → API →UI
 
-- **Full Call Chain Visualization**:
-  - Generate Mermaid sequence diagram showing complete flow
-  - Include: User Action → Frontend Handler → API Client → Backend Controller → Service → Database
+- **Full Business Flow Visualization** (per request):
+  - Generate Mermaid flowchart for **each API endpoint** called by the feature
+  - Show complete flow: User Action → Business Validation → Data Processing → Persistence → Response
   - Mark each step with source file reference
+  - Example: If a page calls 3 different APIs, generate 3 separate business flow diagrams
 
 **For API-based modules (system_type = "api"):**
 
@@ -228,7 +239,7 @@ For each feature, use template `templates/FEATURE-DETAIL-TEMPLATE.md`:
 - `{{validation_rules}}`: Validation decorators
 - `{{business_rules}}`: Extracted from code comments
 - `{{source_files}}`: Source file references for traceability
-- `{{call_flow_diagram}}`: Mermaid sequence diagram showing call chain
+- `{{business_flow_diagram}}`: Mermaid flowchart showing business logic flow
 
 **Output:** `{output_path}/features/{feature-name}.md`
 
@@ -257,9 +268,9 @@ Each generated document must include source code traceability information:
 - [OrderService.java](file://path/to/service#L30-L50)
 ```
 
-4. **Generate Call Flow Diagram**:
-   - Generate Mermaid sequence diagram showing complete call chain (see [Reference: Call Flow Diagram](#call-flow-diagram-reference))
-   - Include call chain details table with step-by-step mapping
+4. **Generate Business Flow Diagram**:
+   - Generate Mermaid flowchart showing complete business logic flow (see [Reference: Business Flow Diagram](#business-flow-diagram-reference))
+   - Include business flow details table with step-by-step operation mapping
 
 ### Step 5: Generate {{module_name}}-overview.md (Initial)
 
@@ -349,10 +360,10 @@ Module analysis completed:
 - [ ] Source files tracked for each feature (Controller, Service, Entity/DTO)
 - [ ] Request/Response DTOs analyzed (API) or Props/State analyzed (UI)
 - [ ] Validation rules documented
-- [ ] **Method call chain traced** (Frontend: handler → API client)
-- [ ] **Backend call chain traced** (Controller → Service → Repository → Database)
-- [ ] **Mermaid sequence diagram generated** for each feature showing complete call flow
-- [ ] **Call chain details table created** with step-by-step component/method mapping
+- [ ] **Frontend business flow traced** for each API request (User action → data preparation → API request)
+- [ ] **Backend business flow traced** for each API request (Validation → permission check → business processing → persistence)
+- [ ] **Business logic flow diagram generated** for each API endpoint (one diagram per request)
+- [ ] **Business flow details table created** for each diagram with step-by-step operation/data mapping
 - [ ] {feature-name}.md generated with source traceability for each feature
 - [ ] {name}-overview.md (initial) generated with feature list and source traceability
 - [ ] Mermaid diagrams follow compatibility guidelines
@@ -362,64 +373,115 @@ Module analysis completed:
 
 ## Reference Guides
 
-### Call Flow Diagram Reference
+### Business Flow Diagram Reference
 
-This section provides detailed guidelines for generating Mermaid sequence diagrams showing the complete call chain.
+This section provides guidelines for generating business logic flow diagrams from source code analysis. These diagrams are designed for product managers and solution architects to understand the complete business process flow.
 
-**Standard Diagram Structure:**
+**Business Flow vs Technical Call Chain:**
+
+| Aspect | Business Flow (Target) | Technical Call Chain (Avoid) |
+|--------|----------------------|---------------------------|
+| Focus | What business operations happen | What technical components are involved |
+| Audience | Product managers, solution architects | Developers, system architects |
+| Content | Business rules, data transformations, decisions | Method names, class names, API endpoints |
+| Example | "Validate inventory → Check permissions → Create order" | "OrderController.create() → OrderService.save()" |
+
+**Standard Business Flow Diagram Structure:**
+
+**Principle: One Diagram Per API Request**
+
+Each API call triggered by the frontend should have its own business flow diagram. If a single page makes multiple API calls, generate separate diagrams for each.
+
+**Example: Order List Page with Multiple Requests**
+
+A page may have multiple independent business flows:
+1. **Initial Load**: `GET /api/orders` - Load order list
+2. **Search**: `GET /api/orders?keyword=xxx` - Search orders
+3. **Delete**: `DELETE /api/orders/:id` - Delete an order
+4. **Export**: `POST /api/orders/export` - Export order list
+
+Each of these should have its own business flow diagram.
+
+For **Page Initialization** scenarios:
 
 ```mermaid
-sequenceDiagram
-    participant U as User
-    participant P as Page/Component
-    participant H as Event Handler
-    participant C as API Client
-    participant CT as Controller
-    participant S as Service
-    participant R as Repository
-    participant D as Database
-    
-    U->>P: User Action (click/submit)
-    P->>H: Trigger handler
-    H->>C: Call API method
-    C->>CT: HTTP Request
-    CT->>S: Call service method
-    S->>R: Call repository
-    R->>D: Query/Update
-    D-->>R: Return data
-    R-->>S: Return entity
-    S-->>CT: Return DTO
-    CT-->>C: HTTP Response
-    C-->>H: Return response data
-    H-->>P: Update state/UI
-    P-->>U: Display result
+flowchart TD
+    Start([页面初始化]) --> LoadParams[加载页面参数<br/>获取URL参数/路由参数]
+    LoadParams --> CheckAuth{检查用户权限}
+    CheckAuth -->|无权限| ShowError[显示无权限提示]
+    CheckAuth -->|有权限| LoadData[加载初始数据]
+    LoadData --> FetchList[获取列表数据<br/>调用: GET /api/orders]
+    FetchList --> ProcessData[数据处理<br/>格式化/筛选/排序]
+    ProcessData --> RenderUI[渲染页面组件]
+    RenderUI --> End([页面加载完成])
+    ShowError --> End
+```
+
+For **User Action** scenarios (e.g., "入库" operation):
+
+```mermaid
+flowchart TD
+    Start([用户点击入库]) --> ValidateInput{校验输入数据}
+    ValidateInput -->|校验失败| ShowError[显示错误提示]
+    ValidateInput -->|校验通过| CheckPermission{检查操作权限}
+    CheckPermission -->|无权限| ShowAuthError[显示权限不足]
+    CheckPermission -->|有权限| CheckInventory[查询库存状态]
+    CheckInventory --> CheckStock{库存是否充足}
+    CheckStock -->|不足| ShowStockError[显示库存不足]
+    CheckStock -->|充足| LockStock[锁定库存数量]
+    LockStock --> CreateOrder[创建入库单]
+    CreateOrder --> SaveRecord[保存入库记录]
+    SaveRecord --> UpdateInventory[更新库存数量]
+    UpdateInventory --> GenerateLog[生成操作日志]
+    GenerateLog --> NotifyUser[通知用户成功]
+    NotifyUser --> RefreshUI[刷新页面数据]
+    RefreshUI --> End([操作完成])
+    ShowError --> End
+    ShowAuthError --> End
+    ShowStockError --> End
 ```
 
 **Diagram Requirements:**
 
 1. **For UI modules (system_type = "ui"):**
-   - Include: User → Page → Handler → API Client
-   - Show the actual method names from source code
-   - Include source file references as comments in diagram
+   - Show user actions and page responses
+   - Include data loading sequences
+   - Display validation and error handling from user perspective
+   - Example: "用户输入 → 前端校验 → 提交数据 → 显示结果"
 
 2. **For API modules (system_type = "api"):**
-   - Include: Controller → Service → Repository → Database
-   - Show method signatures with parameters
-   - Include validation and error handling flows
+   - Show business rule validation sequence
+   - Include data query and transformation steps
+   - Display business decision points (conditions)
+   - Example: "权限检查 → 数据校验 → 业务处理 → 数据持久化"
 
 3. **Source Traceability in Diagrams:**
-   - Add comments showing file:line references
-   - Example: `%% Source: OrderController.java#L45`
+   - Add comments showing which code implements each business step
+   - Example: `%% Implemented in: OrderService.validateInventory()`
 
-**Call Chain Details Table:**
+**Business Flow Details Table:**
 
-After the diagram, include a table mapping each step:
+After the diagram, include a table explaining each business step:
 
-| Step | Layer | Component | Method | Source File |
-|------|-------|-----------|--------|-------------|
-| 1 | Frontend | OrderListPage | handleSubmit | OrderListPage.tsx#L45 |
-| 2 | Frontend | orderApi | createOrder | api/order.ts#L23 |
-| 3 | Backend | OrderController | create | OrderController.java#L45 |
-| 4 | Backend | OrderService | save | OrderService.java#L30 |
-| 5 | Backend | OrderRepository | insert | OrderRepository.java#L15 |
+| Step | Business Operation | Description | Input Data | Output Data | Source Reference |
+|------|-------------------|-------------|------------|-------------|-----------------|
+| 1 | 加载页面参数 | 从URL或路由获取页面所需参数 | URL参数 | 参数对象 | OrderListPage.tsx#L25 |
+| 2 | 检查用户权限 | 验证当前用户是否有查看权限 | 用户Token | 权限结果 | AuthGuard.tsx#L40 |
+| 3 | 获取列表数据 | 调用后端API获取订单列表 | 查询条件 | 订单列表 | orderApi.ts#L30 |
+| 4 | 数据处理 | 格式化日期、计算状态显示 | 原始数据 | 展示数据 | OrderListPage.tsx#L55 |
+| 5 | 渲染页面 | 将处理后的数据渲染到UI | 展示数据 | UI组件 | OrderListPage.tsx#L80 |
+
+**Common Business Flow Patterns:**
+
+1. **CRUD Operations:**
+   - Create: 数据校验 → 权限检查 → 重复检查 → 数据创建 → 关联更新 → 日志记录
+   - Read: 参数解析 → 权限检查 → 数据查询 → 数据组装 → 返回结果
+   - Update: 数据校验 → 权限检查 → 存在性检查 → 数据更新 → 关联更新 → 日志记录
+   - Delete: 权限检查 → 存在性检查 → 依赖检查 → 数据删除 → 日志记录
+
+2. **Approval Workflows:**
+   - 提交申请 → 校验数据 → 检查流程配置 → 创建审批实例 → 通知审批人 → 记录日志
+
+3. **Import/Export Operations:**
+   - 文件上传 → 格式校验 → 数据解析 → 业务校验 → 批量处理 → 结果汇总 → 错误反馈
 

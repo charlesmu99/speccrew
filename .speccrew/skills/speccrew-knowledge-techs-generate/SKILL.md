@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-techs-generate
 description: Stage 2 of technology knowledge initialization - Generate technology documentation for a specific platform. Extracts tech stack, architecture, and conventions from configuration files and source code. Creates INDEX.md, tech-stack.md, architecture.md, and conventions-*.md files. Used by Worker Agent in parallel for each detected platform.
-tools: Read, Write, Glob, Grep
+tools: Read, Write, Glob, Grep, Skill
 ---
 
 # Stage 2: Generate Platform Technology Documents
@@ -180,13 +180,11 @@ Parse configuration files to extract:
 
 If `platform_type` is `web`, `mobile`, or `desktop`:
 
-1. **Invoke** `speccrew-ui-style-analyzer` using the Skill tool with parameters:
-   - `source_path`: `{source_path}`
-   - `platform_id`: `{platform_id}`
-   - `platform_type`: `{platform_type}` (pass directly: `web`/`mobile`/`desktop`)
-   - `framework`: `{framework}`
-   - `output_path`: `{output_path}/ui-style/`
-   - `language`: `{language}`
+1. **CRITICAL**: Use the Skill tool to invoke `speccrew-ui-style-analyzer` with these exact parameters:
+   ```
+   skill: "speccrew-ui-style-analyzer"
+   args: "source_path={source_path};platform_id={platform_id};platform_type={platform_type};framework={framework};output_path={output_path}/ui-style/;language={language}"
+   ```
 
 2. **Wait for completion** and verify output files exist:
    - `{output_path}/ui-style/ui-style-guide.md`

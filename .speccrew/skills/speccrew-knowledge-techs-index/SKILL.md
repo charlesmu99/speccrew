@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-techs-index
 description: Stage 3 of technology knowledge initialization - Generate root INDEX.md by aggregating all platform technology documents. Creates the master index that maps platforms to their documentation and provides Agent-to-Platform mapping guide. Used by Worker Agent after all platform documents are generated.
-tools: Read, Write
+tools: Read, Write, Skill
 ---
 
 # Stage 3: Generate Root Technology Index
@@ -129,8 +129,8 @@ Read each platform's INDEX.md to extract:
 ### Step 4: Generate Root INDEX.md
 
 1. **Get Timestamp**:
-   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
-   - Store as `{{generated_at}}` template variable
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - Store the returned timestamp as `{{generated_at}}` template variable
 
 2. **Create the master index document** with the following sections:
 

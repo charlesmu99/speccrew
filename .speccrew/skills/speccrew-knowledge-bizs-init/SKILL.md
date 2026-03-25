@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-bizs-init
 description: Stage 1 of knowledge base initialization - Analyze system from product manager perspective to identify business functional modules. Distinguish system types and use appropriate analysis entry points (UI for frontend systems, API for backend-only systems). Used by Worker Agent to kick off the 4-stage pipeline.
-tools: Read, Write, Glob, Grep, SearchCodebase
+tools: Read, Write, Glob, Grep, SearchCodebase, Skill
 ---
 
 # Stage 1: Generate Business Module List
@@ -256,8 +256,8 @@ For API-based modules (`system_type: "api"`), do **NOT** populate `backend_apis`
    - Read `speccrew-workspace/docs/configs/validation-rules.json` - Validate platform_id, module names, and file naming conventions
 
 2. **Get Timestamp**:
-   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
-   - Store as `generated_at` value
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - Store the returned timestamp as `generated_at` value
 
 3. **Create JSON file for pipeline orchestration using the unified format**:
 

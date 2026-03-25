@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-techs-init
 description: Stage 1 of technology knowledge initialization - Scan source code to detect technology platforms and generate techs-manifest.json. Identifies web, mobile, backend, and desktop platforms by analyzing configuration files and project structure. Used by Worker Agent to kick off the techs pipeline.
-tools: Read, Write, Glob, Grep, SearchCodebase
+tools: Read, Write, Glob, Grep, SearchCodebase, Skill
 ---
 
 # Stage 1: Detect Technology Platforms
@@ -146,8 +146,8 @@ For each detected platform, extract:
 ### Step 3: Generate techs-manifest.json
 
 1. **Get Timestamp**:
-   - Invoke `speccrew-get-timestamp` skill with `format: "ISO"` to get current timestamp
-   - Store as `generated_at` value
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - Store the returned timestamp as `generated_at` value
 
 2. **Create JSON file** with detected platforms:
 
