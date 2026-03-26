@@ -100,8 +100,8 @@ Write-Host "TechStack: $TechStack"
 Write-Host "Extensions: $FileExtensions"
 
 # Parse JSON parameters
-$techStackArray = @($TechStack | ConvertFrom-Json)
-$extensionsArray = @($FileExtensions | ConvertFrom-Json)
+$techStackArray = @($TechStack | ConvertFrom-Json | ForEach-Object { $_ })
+$extensionsArray = @($FileExtensions | ConvertFrom-Json | ForEach-Object { $_ })
 
 # Convert extensions to wildcard patterns (e.g., ".vue" -> "*.vue")
 $wildcardPatterns = $extensionsArray | ForEach-Object { "*$_" }
@@ -109,7 +109,7 @@ $wildcardPatterns = $extensionsArray | ForEach-Object { "*$_" }
 Write-Host "Scanning for files: $($wildcardPatterns -join ', ')"
 
 # Parse ExcludeDirs parameter
-$excludeDirsArray = $ExcludeDirs | ConvertFrom-Json
+$excludeDirsArray = @($ExcludeDirs | ConvertFrom-Json | ForEach-Object { $_ })
 
 # Helper function to get module path (stops at excluded subdirectories)
 function Get-ModulePath {
