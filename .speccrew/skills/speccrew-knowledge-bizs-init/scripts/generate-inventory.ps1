@@ -24,7 +24,7 @@
 .EXAMPLE
     .\generate-inventory.ps1 `
         -SourcePath "src/views" `
-        -OutputPath "modules.json" `
+        -OutputFileName "modules.json" `
         -PlatformName "Web Frontend" `
         -PlatformType "web" `
         -PlatformSubtype "vue" `
@@ -61,6 +61,12 @@ param(
     [string]$ExcludeDirs = '["components","composables","hooks","utils"]'
 )
 
+# Helper function to normalize path separators (defined early for use during path resolution)
+function Normalize-Path {
+    param([string]$path)
+    return $path.Replace('\', '/')
+}
+
 # Resolve paths
 $resolvedSourcePath = Resolve-Path $SourcePath
 $sourcePathValue = Normalize-Path $resolvedSourcePath.Path
@@ -94,19 +100,13 @@ Write-Host "TechStack: $TechStack"
 Write-Host "Extensions: $FileExtensions"
 
 # Parse JSON parameters
-$techStackArray = $TechStack | ConvertFrom-Json
-$extensionsArray = $FileExtensions | ConvertFrom-Json
+$techStackArray = @($TechStack | ConvertFrom-Json)
+$extensionsArray = @($FileExtensions | ConvertFrom-Json)
 
 # Convert extensions to wildcard patterns (e.g., ".vue" -> "*.vue")
 $wildcardPatterns = $extensionsArray | ForEach-Object { "*$_" }
 
 Write-Host "Scanning for files: $($wildcardPatterns -join ', ')"
-
-# Helper function to normalize path separators
-function Normalize-Path {
-    param([string]$path)
-    return $path.Replace('\', '/')
-}
 
 # Parse ExcludeDirs parameter
 $excludeDirsArray = $ExcludeDirs | ConvertFrom-Json

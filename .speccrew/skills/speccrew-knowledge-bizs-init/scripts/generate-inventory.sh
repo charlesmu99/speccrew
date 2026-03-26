@@ -71,12 +71,11 @@ fi
 
 # Build file pattern from extensions
 # Convert [".vue",".ts"] to -name '*.vue' -o -name '*.ts'
-FILE_PATTERN=$(echo "$FILE_EXTENSIONS" | jq -r '.[]' | awk '{printf "-name '\''*%s'\'' ", $0}' | sed 's/ $//' | sed 's/ -o $//' | sed 's/ -name/ -o -name/g')
+FILE_PATTERN=$(echo "$FILE_EXTENSIONS" | jq -r '.[]' | awk '{printf "-name '\''*%s'\'' ", $0}' | sed 's/ $//' | sed 's/ -name/ -o -name/g' | sed 's/^-o -name/-name/')
 
 # Change to source directory for relative paths
 cd "$SOURCE_PATH"
 
-# Helper function to get module path (stops at 'components' or 'composables' subdirectories)
 # Helper function to check if a directory is in the exclude list
 is_excluded_dir() {
     local dir="$1"
