@@ -218,30 +218,140 @@ For each identified module, extract:
 | name | Business term from UI/API | "Order Management" | Always |
 | code_name | Technical identifier | "order" | Always |
 | user_value | What users accomplish | "Handle customer orders from creation to fulfillment" | Always |
-| entry_points | Relative file paths to entry points | ["src/pages/orders/index.tsx", "src/pages/orders/[id].tsx"] | Always |
+| entry_points | Entry point objects with event functions | See format below | Always |
 | system_type | UI or API-based | "ui" or "api" | Always |
-| backend_apis | Associated backend API endpoints | ["GET /api/orders", "POST /api/orders", "GET /api/orders/:id"] | Only when `system_type: "ui"` |
 
-**How to determine `backend_apis` for UI-based modules:**
+**Entry Points Format by System Type:**
 
-1. From frontend API client calls:
-   - Search in entry_point files and their imports for HTTP calls (e.g., `fetch`, `axios`, `apiClient`, `request`)
-   - Extract method and URL pattern, normalize as `METHOD /path` (e.g., `GET /api/orders`)
+**For UI-Based Modules (`system_type: "ui"`):**
 
-2. From shared API client definitions (if exists):
-   - Look for central API client modules (e.g., `src/api/orders.ts`, `src/services/orderService.ts`)
-   - Map functions like `getOrders`, `createOrder` to endpoints (if clearly documented or named)
+Entry points are structured objects capturing pages, sub-pages, dialogs, and their event handlers:
 
-3. Heuristic fallback (optional, only when explicit mapping is missing):
-   - Infer RESTful endpoints from module `code_name` and common patterns:
-     - List: `GET /api/{code_name}s`
-     - Detail: `GET /api/{code_name}s/:id`
-     - Create: `POST /api/{code_name}s`
-     - Update: `PUT /api/{code_name}s/:id`
-     - Delete: `DELETE /api/{code_name}s/:id`
-   - Mark inferred endpoints as *heuristic* in internal reasoning, but keep JSON clean
+```json
+{
+  "entry_points": [
+    {
+      "path": "src/pages/orders/index.tsx",
+      "event_functions": [
+        "OrderListPage_onInit",
+        "OrderListPage_onLoad",
+        "OrderListPage_onSearch",
+        "OrderListPage_onFilter",
+        "OrderListPage_onSort",
+        "OrderListPage_onRefresh",
+        "OrderListPage_onExport",
+        "OrderListPage_onCreate",
+        "OrderListPage_onEdit",
+        "OrderListPage_onDelete",
+        "OrderListPage_onRowClick",
+        "OrderListPage_onPageChange"
+      ]
+    },
+    {
+      "path": "src/pages/orders/[id].tsx",
+      "event_functions": [
+        "OrderDetailPage_onInit",
+        "OrderDetailPage_onLoad",
+        "OrderDetailPage_onUpdateStatus",
+        "OrderDetailPage_onCancel",
+        "OrderDetailPage_onPrint",
+        "OrderDetailPage_onEdit",
+        "OrderDetailPage_onBack",
+        "OrderDetailPage_onRefresh"
+      ]
+    },
+    {
+      "path": "src/pages/orders/create.tsx",
+      "event_functions": [
+        "OrderCreatePage_onInit",
+        "OrderCreatePage_onLoad",
+        "OrderCreatePage_onSubmit",
+        "OrderCreatePage_onValidate",
+        "OrderCreatePage_onSaveDraft",
+        "OrderCreatePage_onCancel",
+        "OrderCreatePage_onSuccess",
+        "OrderCreatePage_onError"
+      ]
+    },
+    {
+      "path": "src/components/orders/OrderDetailModal.tsx",
+      "event_functions": [
+        "OrderDetailModal_onOpen",
+        "OrderDetailModal_onClose",
+        "OrderDetailModal_onConfirm",
+        "OrderDetailModal_onCancel",
+        "OrderDetailModal_onDelete"
+      ]
+    }
+  ]
+}
+```
 
-For API-based modules (`system_type: "api"`), do **NOT** populate `backend_apis`; their endpoints are already covered by `entry_points` or API grouping in Step 2B.
+**UI Entry Point Analysis Guide:**
+
+1. **Identify Page Components:**
+   - Main list pages (e.g., `index.tsx`, `list.tsx`)
+   - Detail pages (e.g., `[id].tsx`, `detail.tsx`)
+   - Create/Edit pages (e.g., `create.tsx`, `edit.tsx`)
+
+2. **Identify Sub-Pages and Dialogs:**
+   - Modal components (e.g., `*Modal.tsx`, `*Dialog.tsx`)
+   - Drawer components (e.g., `*Drawer.tsx`)
+   - Popover/Popup components
+
+3. **Extract and Name Event Functions:**
+   - **Naming Convention**: `{ComponentName}_{EventAction}`
+   - Format: PascalCase component name + underscore + camelCase action
+   - Examples:
+     - `OrderListPage_onSearch`
+     - `OrderDetailModal_onConfirm`
+     - `PaymentForm_onSubmit`
+
+   - **Comprehensive Event Coverage** (include ALL non-empty event handlers):
+     - **Lifecycle Events**: `onInit`, `onMount`, `onUnmount`, `onLoad`
+     - **User Interactions**: `onClick`, `onSubmit`, `onChange`, `onSelect`
+     - **Data Operations**: `onSearch`, `onFilter`, `onSort`, `onRefresh`
+     - **CRUD Actions**: `onCreate`, `onEdit`, `onDelete`, `onSave`
+     - **Navigation**: `onNavigate`, `onBack`, `onClose`
+     - **Async Callbacks**: `onSuccess`, `onError`, `onCancel`
+
+   - **Extraction Process:**
+     ```typescript
+     // From OrderListPage component
+     useEffect(() => { ... }, [])           → "OrderListPage_onInit"
+     const handleSearch = () => { ... }     → "OrderListPage_onSearch"
+     const onCreateClick = () => { ... }    → "OrderListPage_onCreate"
+     <Button onClick={onDelete}>           → "OrderListPage_onDelete"
+     
+     // From OrderDetailModal component
+     const handleOpen = () => { ... }       → "OrderDetailModal_onOpen"
+     const handleClose = () => { ... }      → "OrderDetailModal_onClose"
+     <Button onClick={onConfirm}>          → "OrderDetailModal_onConfirm"
+     ```
+
+   - **Why Component Prefix?**
+     - Prevents naming conflicts across different pages/components
+     - Enables precise traceability in business flow analysis
+     - Supports same event name in different contexts (e.g., `onSearch` in both OrderListPage and PaymentListPage)
+
+4. **Map Event to Business Logic:**
+   - Each event function will be traced to:
+     - Frontend: API client calls, state updates, navigation
+     - Backend: Corresponding API endpoints, service methods
+   - This mapping enables end-to-end business flow analysis
+
+**For API-Based Modules (`system_type: "api"`):**
+
+Entry points are simple file paths to controller/service files:
+
+```json
+{
+  "entry_points": [
+    "src/modules/order/order.controller.ts",
+    "src/modules/order/order.service.ts"
+  ]
+}
+```
 
 ### Step 4: Generate modules.json
 
@@ -270,11 +380,29 @@ Business Module List Generated
 
 ## Checklist
 
+### Platform Detection
 - [ ] Platforms identified (Web, Mobile, Desktop, or API)
 - [ ] Each platform has `platform_name`, `platform_type`, `source_path`, `tech_stack`
 - [ ] Modules grouped by platform
-- [ ] `entry_points` are relative file paths (not URL routes)
 - [ ] Business modules mapped from user/product perspective
+
+### UI-Based Module Entry Points
+- [ ] **Pages identified**: Main pages, detail pages, create/edit pages
+- [ ] **Sub-components identified**: Modals, dialogs, drawers, popovers
+- [ ] **Lifecycle events extracted**: `onInit`, `onLoad`, `onMount`, `onUnmount`
+- [ ] **User interaction events extracted**: All `onClick`, `onSubmit`, `onChange`, `handle*` handlers
+- [ ] **Navigation events extracted**: `onNavigate`, `onBack`, `onClose`, `onOpen`
+- [ ] **Async callback events extracted**: `onSuccess`, `onError`, `onCancel`
+- [ ] **Entry points format**: Array of objects with `path` and `event_functions`
+- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `OrderListPage_onSearch`, `OrderDetailModal_onConfirm`)
+- [ ] **Complete coverage**: ALL non-empty event handlers are included
+
+### API-Based Module Entry Points
+- [ ] **Controllers identified**: `@Controller` decorated classes or route files
+- [ ] **Services identified**: Business logic service files
+- [ ] **Entry points format**: Array of file path strings
+
+### Output Generation
 - [ ] Module metadata extracted (name, code_name, user_value, entry_points, system_type)
 - [ ] modules.json generated with unified platform-based structure
 - [ ] Output path verified

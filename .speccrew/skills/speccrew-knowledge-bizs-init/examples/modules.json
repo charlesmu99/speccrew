@@ -15,55 +15,109 @@
         {
           "name": "Order Management",
           "code_name": "order",
+          "system_type": "ui",
           "user_value": "Handle customer orders from creation to fulfillment",
           "entry_points": [
-            "src/pages/orders/index.tsx",
-            "src/pages/orders/[id].tsx",
-            "src/pages/orders/create.tsx"
-          ],
-          "system_type": "ui",
-          "backend_apis": [
-            "GET /api/orders",
-            "POST /api/orders",
-            "GET /api/orders/:id",
-            "PUT /api/orders/:id",
-            "DELETE /api/orders/:id"
+            {
+              "path": "src/pages/orders/index.tsx",
+              "event_functions": [
+                "OrderListPage_onInit",
+                "OrderListPage_onLoad",
+                "OrderListPage_onSearch",
+                "OrderListPage_onFilter",
+                "OrderListPage_onSort",
+                "OrderListPage_onRefresh",
+                "OrderListPage_onExport",
+                "OrderListPage_onCreate",
+                "OrderListPage_onEdit",
+                "OrderListPage_onDelete",
+                "OrderListPage_onRowClick",
+                "OrderListPage_onPageChange"
+              ]
+            },
+            {
+              "path": "src/pages/orders/[id].tsx",
+              "event_functions": [
+                "OrderDetailPage_onInit",
+                "OrderDetailPage_onLoad",
+                "OrderDetailPage_onUpdateStatus",
+                "OrderDetailPage_onCancel",
+                "OrderDetailPage_onPrint",
+                "OrderDetailPage_onEdit",
+                "OrderDetailPage_onBack",
+                "OrderDetailPage_onRefresh"
+              ]
+            },
+            {
+              "path": "src/pages/orders/create.tsx",
+              "event_functions": [
+                "OrderCreatePage_onInit",
+                "OrderCreatePage_onLoad",
+                "OrderCreatePage_onSubmit",
+                "OrderCreatePage_onValidate",
+                "OrderCreatePage_onSaveDraft",
+                "OrderCreatePage_onCancel",
+                "OrderCreatePage_onSuccess",
+                "OrderCreatePage_onError"
+              ]
+            },
+            {
+              "path": "src/components/orders/OrderDetailModal.tsx",
+              "event_functions": [
+                "OrderDetailModal_onOpen",
+                "OrderDetailModal_onClose",
+                "OrderDetailModal_onConfirm",
+                "OrderDetailModal_onCancel",
+                "OrderDetailModal_onDelete"
+              ]
+            }
           ]
         },
         {
           "name": "Payment & Billing",
           "code_name": "payment",
+          "system_type": "ui",
           "user_value": "Process payments and manage invoices",
           "entry_points": [
-            "src/pages/payments/index.tsx",
-            "src/pages/invoices/index.tsx"
-          ],
-          "system_type": "ui",
-          "backend_apis": [
-            "GET /api/payments",
-            "POST /api/payments",
-            "GET /api/invoices"
+            {
+              "path": "src/pages/payments/index.tsx",
+              "event_functions": ["PaymentListPage_onSearch", "PaymentListPage_onFilter", "PaymentListPage_onRefund"]
+            },
+            {
+              "path": "src/pages/invoices/index.tsx",
+              "event_functions": ["InvoiceListPage_onGenerate", "InvoiceListPage_onDownload", "InvoiceListPage_onSendEmail"]
+            }
           ]
         }
       ]
     },
     {
-      "platform_name": "Mobile App",
-      "platform_type": "mobile",
-      "platform_subtype": "flutter",
-      "source_path": "/project/mobile",
-      "tech_stack": ["flutter", "dart"],
-      "module_count": 1,
+      "platform_name": "Backend API",
+      "platform_type": "backend",
+      "platform_subtype": "nestjs",
+      "source_path": "/project/server",
+      "tech_stack": ["nestjs", "typescript"],
+      "module_count": 2,
       "modules": [
         {
           "name": "Order Management",
           "code_name": "order",
-          "user_value": "Handle customer orders from creation to fulfillment",
+          "system_type": "api",
+          "user_value": "Process and track customer orders",
           "entry_points": [
-            "lib/pages/orders/list.dart",
-            "lib/pages/orders/detail.dart"
-          ],
-          "system_type": "ui"
+            "src/modules/order/order.controller.ts",
+            "src/modules/order/order.service.ts"
+          ]
+        },
+        {
+          "name": "Payment Processing",
+          "code_name": "payment",
+          "system_type": "api",
+          "user_value": "Handle payments and refunds",
+          "entry_points": [
+            "src/modules/payment/payment.controller.ts",
+            "src/modules/payment/payment.service.ts"
+          ]
         }
       ]
     }
