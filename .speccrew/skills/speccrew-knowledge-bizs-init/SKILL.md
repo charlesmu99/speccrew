@@ -20,6 +20,19 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step1[Step 1: Determine System Type]
+    Step1 --> Decision{UI Platform Detected?}
+    Decision -->|Yes| Step2A[Step 2A: UI-Based Analysis]
+    Decision -->|No| Step2B[Step 2B: API-Based Analysis]
+    Step2A --> Step3[Step 3: Extract Business Module Metadata]
+    Step2B --> Step3
+    Step3 --> Step4[Step 4: Generate modules.json]
+    Step4 --> Step5[Step 5: Report Results]
+    Step5 --> End([End])
+```
+
 ### Step 1: Determine System Type
 
 1. **Read Configuration**:

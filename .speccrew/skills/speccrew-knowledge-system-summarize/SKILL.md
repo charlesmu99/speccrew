@@ -40,6 +40,20 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step0[Step 0: Read System Overview Template]
+    Step0 --> Step1[Step 1: Discover All Modules]
+    Step1 --> Step2[Step 2: Read All Module Overviews]
+    Step2 --> Step3[Step 3: Build Module Index]
+    Step3 --> Step4[Step 4: Build Dependency Graph]
+    Step4 --> Step5[Step 5: Identify Business Domains]
+    Step5 --> Step6[Step 6: Identify End-to-End Flows]
+    Step6 --> Step7[Step 7: Generate system-overview.md]
+    Step7 --> Step8[Step 8: Report Results]
+    Step8 --> End([End])
+```
+
 ### Step 0: Read System Overview Template
 
 Before processing, read the template file to understand the required content structure:

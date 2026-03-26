@@ -40,6 +40,18 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step0[Step 0: Read Root Index Template]
+    Step0 --> Step1[Step 1: Read Manifest]
+    Step1 --> Step2[Step 2: Verify Platform Documents]
+    Step2 --> Step3[Step 3: Extract Platform Summaries]
+    Step3 --> Step4[Step 4: Generate Root INDEX.md]
+    Step4 --> Step5[Step 5: Write Output]
+    Step5 --> Step6[Step 6: Report Results]
+    Step6 --> End([End])
+```
+
 ### Step 0: Read Root Index Template
 
 Before processing, read the template file to understand the required content structure:

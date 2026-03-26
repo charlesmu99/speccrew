@@ -41,6 +41,15 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step1[Step 1: Scan for Platform Indicators]
+    Step1 --> Step2[Step 2: Extract Platform Metadata]
+    Step2 --> Step3[Step 3: Generate techs-manifest.json]
+    Step3 --> Step4[Step 4: Report Results]
+    Step4 --> End([End])
+```
+
 ### Step 1: Scan for Platform Indicators
 
 1. **Read Configuration**:

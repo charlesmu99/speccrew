@@ -103,6 +103,19 @@ Generate conventions-data.md: {yes/no}
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step0[Step 0: Read Document Templates]
+    Step0 --> Step1[Step 1: Read Configuration Files]
+    Step1 --> Step2[Step 2: Extract Technology Stack]
+    Step2 --> Step3[Step 3: Analyze Conventions]
+    Step3 --> Step4[Step 4: Invoke UI Style Analysis]
+    Step4 --> Step5[Step 5: Generate Documents]
+    Step5 --> Step6[Step 6: Write Output Files]
+    Step6 --> Step7[Step 7: Report Results]
+    Step7 --> End([End])
+```
+
 ### Step 0: Read Document Templates
 
 Before processing, read all template files to understand the required content structure for each document type:

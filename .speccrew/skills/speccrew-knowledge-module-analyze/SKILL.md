@@ -53,6 +53,17 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    Start([Start]) --> Step1[Step 1: Locate Module Source]
+    Step1 --> Step2[Step 2: Extract Module Information]
+    Step2 --> Step3[Step 3: Identify Features]
+    Step3 --> Step4[Step 4: Generate Feature Detail Files]
+    Step4 --> Step5[Step 5: Generate Module Overview]
+    Step5 --> Step6[Step 6: Report Results]
+    Step6 --> End([End])
+```
+
 ### Step 1: Locate Module Source
 
 1. **Read Configuration** (if fallback needed):

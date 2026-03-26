@@ -80,34 +80,39 @@ Refer to `platform-mapping.json` for complete list:
 
 ## Workflow Overview
 
+```mermaid
+flowchart TB
+    subgraph KnowledgeBaseDispatch["Knowledge Base Dispatch"]
+        direction TB
+
+        subgraph BizsPipeline["Bizs Pipeline (4 Stages)"]
+            direction TB
+            B1[Stage 1: Scan Modules]
+            B2[Stage 2: Analyze Modules]
+            B3[Stage 3: Summarize Modules]
+            B4[Stage 4: System Summary]
+            B1 --> B2 --> B3 --> B4
+        end
+
+        subgraph TechsPipeline["Techs Pipeline (3 Stages)"]
+            direction TB
+            T1[Stage 1: Detect Platforms]
+            T2[Stage 2: Generate Tech Docs]
+            T3[Stage 3: Generate Index]
+            T1 --> T2 --> T3
+        end
+    end
+
+    Start([Start]) --> KnowledgeBaseDispatch
+
+    style BizsPipeline fill:#e1f5fe
+    style TechsPipeline fill:#f3e5f5
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   Knowledge Base Dispatch                               │
-├─────────────────────────────────────────────────────────────────────────│
-│ IF knowledge_types = "bizs"    │ IF knowledge_types = "techs"           │
-│ OR knowledge_types = "both"    │ OR knowledge_types = "both"            │
-├─────────────────────────────────────────────────────────────────────────│
-║                                                                ║        │
-│ ┌─────────────────────┐       ┌─────────────────────┐       │        │
-│ │  Bizs Pipeline      │       │  Techs Pipeline     │       │        │
-│ │  (4 Stages)         │       │  (3 Stages)         │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 1: Scan        │       │Stage 1: Detect      │       │        │
-│ │         Modules     │       │         Platforms   │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 2: Analyze     │       │Stage 2: Generate    │       │        │
-│ │         Modules     │       │         Tech Docs   │       │        │
-║ ├─────────────────────║       ├─────────────────────║       ║        │
-│ │Stage 3: Summarize   │       │Stage 3: Generate    │       │        │
-│ │         Modules     │       │         Index       │       │        │
-│ ├─────────────────────┤       └─────────────────────┘       │        │
-│ │Stage 4: System       │                                      │        │
-│ │         Summary      │                                      │        │
-│ └─────────────────────┘                                      │        │
-║                                                                ║        │
-│ Both pipelines run in PARALLEL when knowledge_types = "both"  │        │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+
+**Pipeline Execution Rules:**
+- When `knowledge_types = "bizs"`: Execute Bizs Pipeline only
+- When `knowledge_types = "techs"`: Execute Techs Pipeline only  
+- When `knowledge_types = "both"`: Both pipelines run in **PARALLEL**
 
 ---
 
