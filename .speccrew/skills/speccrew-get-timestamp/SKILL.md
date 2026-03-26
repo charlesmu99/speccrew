@@ -13,8 +13,8 @@ Any Agent or script requiring timestamp generation
 
 ## Input
 
-- `format` (optional): Timestamp format, default is `YYYY-MM-DD-HHmm`
-  - `YYYY-MM-DD-HHmm`: Full datetime for filenames (e.g., `2026-03-17-1326`)
+- `format` (optional): Timestamp format, default is `YYYY-MM-DD-HHmmss`
+  - `YYYY-MM-DD-HHmmss`: Full datetime for filenames (e.g., `2026-03-17-132645`)
   - `YYYY-MM-DD`: Date only (e.g., `2026-03-17`)
   - `HHmm`: Time only 24h format (e.g., `1326`)
   - `ISO`: ISO 8601 format (e.g., `2026-03-17T13:26:45+08:00`)
@@ -27,7 +27,7 @@ Any Agent or script requiring timestamp generation
 
 | Format | Description | Example |
 |--------|-------------|---------|
-| `YYYY-MM-DD-HHmm` | Full datetime for filenames | `2026-03-17-1326` |
+| `YYYY-MM-DD-HHmmss` | Full datetime for filenames | `2026-03-17-132645` |
 | `YYYY-MM-DD` | Date only | `2026-03-17` |
 | `HHmm` | Time only (24h) | `1326` |
 | `ISO` | ISO 8601 format | `2026-03-17T13:26:45+08:00` |
@@ -47,10 +47,10 @@ bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
 python scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
 ```
 
-### Method 2: Default Format (YYYY-MM-DD-HHmm)
+### Method 2: Default Format (YYYY-MM-DD-HHmmss)
 
 ```bash
-# Without format parameter, returns YYYY-MM-DD-HHmm
+# Without format parameter, returns YYYY-MM-DD-HHmmss
 powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1
 bash scripts/get-timestamp.sh
 python scripts/get-timestamp.py
@@ -61,9 +61,9 @@ python scripts/get-timestamp.py
 ### For Report Filenames
 
 ```bash
-TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmm")
+TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmmss")
 FILENAME="diagnosis-report-${TIMESTAMP}.md"
-# Result: diagnosis-report-2026-03-17-1326.md
+# Result: diagnosis-report-2026-03-17-132645.md
 ```
 
 ### For Archive Naming

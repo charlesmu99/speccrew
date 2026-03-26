@@ -1,11 +1,11 @@
 #!/bin/bash
 # Get current timestamp in specified format
 
-FORMAT="${1:-YYYY-MM-DD-HHmm}"
+FORMAT="${1:-YYYY-MM-DD-HHmmss}"
 
 case "$FORMAT" in
-    "YYYY-MM-DD-HHmm")
-        date +"%Y-%m-%d-%H%M"
+    "YYYY-MM-DD-HHmmss")
+        date +"%Y-%m-%d-%H%M%S"
         ;;
     "YYYY-MM-DD")
         date +"%Y-%m-%d"
@@ -17,6 +17,6 @@ case "$FORMAT" in
         date -Iseconds
         ;;
     *)
-        date +"%Y-%m-%d-%H%M"
+        date +"%Y-%m-%d-%H%M%S"
         ;;
 esac

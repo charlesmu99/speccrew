@@ -155,7 +155,7 @@ For each detected platform, extract:
 ### Step 3: Generate techs-manifest.json
 
 1. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
    - Store the returned timestamp as `generated_at` value
 
 2. **Create JSON file** with detected platforms:

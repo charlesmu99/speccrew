@@ -1,164 +1,79 @@
 {
-  "generated_at": "2024-01-15T10:30:00Z",
-  "analysis_method": "ui-based",
-  "source_path": "/project",
-  "language": "en",
-  "platform_count": 2,
+  "generatedAt": "2024-01-15-103000",
+  "analysisMethod": "ui-based",
+  "platformCount": 2,
   "platforms": [
     {
-      "platform_name": "Web Frontend",
-      "platform_type": "web",
-      "source_path": "/project/web",
-      "tech_stack": ["react", "typescript"],
-      "module_count": 2,
+      "platformName": "Web Frontend",
+      "platformType": "web",
+      "sourcePath": "src/views",
+      "techStack": ["vue", "typescript"],
+      "totalFiles": 25,
+      "analyzedCount": 0,
+      "pendingCount": 25,
       "modules": [
         {
-          "name": "Order Management",
-          "code_name": "order",
-          "system_type": "ui",
-          "user_value": "Handle customer orders from creation to fulfillment",
-          "sub_modules": [
+          "modulePath": "src/views/system/user",
+          "relativePath": "system/user",
+          "entryPoints": [
             {
-              "name": "Order List",
-              "code_name": "order-list",
-              "path": "src/pages/orders",
-              "entry_points": [
-                {
-                  "path": "src/pages/orders/index.tsx",
-                  "event_functions": [
-                    "OrderListPage_onInit",
-                    "OrderListPage_onLoad",
-                    "OrderListPage_onSearch",
-                    "OrderListPage_onFilter",
-                    "OrderListPage_onSort",
-                    "OrderListPage_onRefresh",
-                    "OrderListPage_onExport",
-                    "OrderListPage_onCreate",
-                    "OrderListPage_onEdit",
-                    "OrderListPage_onDelete",
-                    "OrderListPage_onRowClick",
-                    "OrderListPage_onPageChange"
-                  ]
-                }
-              ]
+              "fileName": "index",
+              "fullPath": "src/views/system/user/index.vue",
+              "relativePath": "system/user/index.vue",
+              "extension": ".vue",
+              "analyzed": false,
+              "startedAt": null,
+              "completedAt": null,
+              "analysisNotes": null
             },
             {
-              "name": "Order Detail",
-              "code_name": "order-detail",
-              "path": "src/pages/orders",
-              "entry_points": [
-                {
-                  "path": "src/pages/orders/[id].tsx",
-                  "event_functions": [
-                    "OrderDetailPage_onInit",
-                    "OrderDetailPage_onLoad",
-                    "OrderDetailPage_onUpdateStatus",
-                    "OrderDetailPage_onCancel",
-                    "OrderDetailPage_onPrint",
-                    "OrderDetailPage_onEdit",
-                    "OrderDetailPage_onBack",
-                    "OrderDetailPage_onRefresh"
-                  ]
-                }
-              ]
-            },
-            {
-              "name": "Order Create",
-              "code_name": "order-create",
-              "path": "src/pages/orders",
-              "entry_points": [
-                {
-                  "path": "src/pages/orders/create.tsx",
-                  "event_functions": [
-                    "OrderCreatePage_onInit",
-                    "OrderCreatePage_onLoad",
-                    "OrderCreatePage_onSubmit",
-                    "OrderCreatePage_onValidate",
-                    "OrderCreatePage_onSaveDraft",
-                    "OrderCreatePage_onCancel",
-                    "OrderCreatePage_onSuccess",
-                    "OrderCreatePage_onError"
-                  ]
-                }
-              ]
-            },
-            {
-              "name": "Order Modal",
-              "code_name": "order-modal",
-              "path": "src/components/orders",
-              "entry_points": [
-                {
-                  "path": "src/components/orders/OrderDetailModal.tsx",
-                  "event_functions": [
-                    "OrderDetailModal_onOpen",
-                    "OrderDetailModal_onClose",
-                    "OrderDetailModal_onConfirm",
-                    "OrderDetailModal_onCancel",
-                    "OrderDetailModal_onDelete"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "Payment & Billing",
-          "code_name": "payment",
-          "system_type": "ui",
-          "user_value": "Process payments and manage invoices",
-          "sub_modules": [
-            {
-              "name": "Payment List",
-              "code_name": "payment-list",
-              "path": "src/pages/payments",
-              "entry_points": [
-                {
-                  "path": "src/pages/payments/index.tsx",
-                  "event_functions": ["PaymentListPage_onSearch", "PaymentListPage_onFilter", "PaymentListPage_onRefund"]
-                }
-              ]
-            },
-            {
-              "name": "Invoice List",
-              "code_name": "invoice-list",
-              "path": "src/pages/invoices",
-              "entry_points": [
-                {
-                  "path": "src/pages/invoices/index.tsx",
-                  "event_functions": ["InvoiceListPage_onGenerate", "InvoiceListPage_onDownload", "InvoiceListPage_onSendEmail"]
-                }
-              ]
+              "fileName": "UserForm",
+              "fullPath": "src/views/system/user/UserForm.vue",
+              "relativePath": "system/user/UserForm.vue",
+              "extension": ".vue",
+              "analyzed": false,
+              "startedAt": null,
+              "completedAt": null,
+              "analysisNotes": null
             }
           ]
         }
       ]
     },
     {
-      "platform_name": "Backend API",
-      "platform_type": "backend",
-      "platform_subtype": "nestjs",
-      "source_path": "/project/server",
-      "tech_stack": ["nestjs", "typescript"],
-      "module_count": 2,
+      "platformName": "Mobile App",
+      "platformType": "mobile",
+      "platformSubtype": "flutter",
+      "sourcePath": "lib/views",
+      "techStack": ["flutter", "dart"],
+      "totalFiles": 20,
+      "analyzedCount": 0,
+      "pendingCount": 20,
       "modules": [
         {
-          "name": "Order Management",
-          "code_name": "order",
-          "system_type": "api",
-          "user_value": "Process and track customer orders",
-          "entry_points": [
-            "src/modules/order/order.controller.ts",
-            "src/modules/order/order.service.ts"
-          ]
-        },
-        {
-          "name": "Payment Processing",
-          "code_name": "payment",
-          "system_type": "api",
-          "user_value": "Handle payments and refunds",
-          "entry_points": [
-            "src/modules/payment/payment.controller.ts",
-            "src/modules/payment/payment.service.ts"
+          "modulePath": "lib/views/user",
+          "relativePath": "user",
+          "entryPoints": [
+            {
+              "fileName": "user_list_page",
+              "fullPath": "lib/views/user/user_list_page.dart",
+              "relativePath": "user/user_list_page.dart",
+              "extension": ".dart",
+              "analyzed": false,
+              "startedAt": null,
+              "completedAt": null,
+              "analysisNotes": null
+            },
+            {
+              "fileName": "user_detail_page",
+              "fullPath": "lib/views/user/user_detail_page.dart",
+              "relativePath": "user/user_detail_page.dart",
+              "extension": ".dart",
+              "analyzed": false,
+              "startedAt": null,
+              "completedAt": null,
+              "analysisNotes": null
+            }
           ]
         }
       ]

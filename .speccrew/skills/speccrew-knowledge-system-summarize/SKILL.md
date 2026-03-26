@@ -151,7 +151,7 @@ Create flow-module mapping matrix:
    - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
 
 2. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
    - Use the returned timestamp as generation timestamp in document
 
 3. **Use template `templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections**:

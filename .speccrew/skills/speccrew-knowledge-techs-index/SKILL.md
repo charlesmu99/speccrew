@@ -158,7 +158,7 @@ Read each platform's INDEX.md to extract:
 ### Step 4: Generate Root INDEX.md
 
 1. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` with parameter: `format=ISO`
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
    - Store the returned timestamp as `{{generated_at}}` template variable
 
 2. **Create the master index document** with the following sections:

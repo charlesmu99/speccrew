@@ -486,11 +486,11 @@ Next Steps:
 - Read `modules.json`
 - Launch ALL Bizs Stage 2 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 2 to complete
-- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Get timestamp** using `speccrew-get-timestamp` skill (no format parameter needed, uses default)
 - **Generate `stage2-status.json`** with timestamp (see Stage 2 Status File Format below)
 - Launch ALL Bizs Stage 3 Workers in parallel (one per module across all platforms)
 - Wait for all Bizs Stage 3 to complete
-- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Get timestamp** using `speccrew-get-timestamp` skill (no format parameter needed, uses default)
 - **Generate `stage3-status.json`** with timestamp (see Stage 3 Status File Format below)
 - Launch Bizs Stage 4 Worker (system summary)
 - Wait for completion
@@ -499,11 +499,11 @@ Next Steps:
 - Read `techs-manifest.json`
 - Launch ALL Techs Stage 2 Workers in parallel (one per platform)
 - Wait for all Techs Stage 2 to complete
-- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Get timestamp** using `speccrew-get-timestamp` skill (no format parameter needed, uses default)
 - **Generate `stage2-status.json`** with timestamp for techs pipeline
 - Launch Techs Stage 3 Worker (root index)
 - Wait for completion
-- **Get timestamp** using `speccrew-get-timestamp` skill with `format: "ISO"`
+- **Get timestamp** using `speccrew-get-timestamp` skill (no format parameter needed, uses default)
 - **Generate `stage3-status.json`** with timestamp for techs pipeline
 
 **Note**: Both pipelines are fully independent. Launch them simultaneously using parallel Task invocations. Do NOT run them sequentially.
