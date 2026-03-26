@@ -88,46 +88,206 @@ flowchart TD
 
 For systems with UI, analyze from user-facing perspective:
 
-#### Step 2A.1: Execute Scan Script (MANDATORY)
+#### Step 2A.1: Identify Frontend Page Directories
 
-**CRITICAL**: Use the provided Node.js script to scan source code and identify ALL modules and files. This ensures 100% file coverage.
+**CRITICAL**: First, identify where frontend pages are located in the project structure.
 
-**Prerequisites:**
-```bash
-cd {skill_path}/scripts
-npm install  # Install glob dependency
+**Common Page Directory Patterns:**
+- Vue projects: `src/views/`, `src/pages/`, `src/components/`
+- React projects: `src/pages/`, `src/app/`, `src/routes/`
+- Next.js: `app/`, `pages/`
+- Multi-platform: Check each platform's source directory
+
+**Detection Method:**
+1. Use `Glob` to find directories containing `.vue`, `.tsx`, `.jsx` files
+2. Identify the deepest common parent as module root
+3. Map directory hierarchy to module/sub-module structure
+
+**Example Directory Structures:**
+
+*Single-level modules (flat):*
+```
+src/views/
+├── user/
+│   ├── index.vue
+│   ├── UserForm.vue
+│   └── UserModal.vue
+├── order/
+│   ├── index.vue
+│   └── OrderForm.vue
+```
+→ Modules: `user`, `order` (each folder is a module)
+
+*Multi-level modules (nested):*
+```
+src/views/
+├── system/
+│   ├── user/
+│   │   ├── index.vue
+│   │   ├── UserForm.vue
+│   │   └── UserImport.vue
+│   ├── role/
+│   │   ├── index.vue
+│   │   └── RoleForm.vue
+│   └── dept/
+│       ├── index.vue
+│       └── DeptTree.vue
+├── business/
+│   ├── order/
+│   │   ├── index.vue
+│   │   ├── OrderDetail.vue
+│   │   └── OrderModal.vue
+│   └── payment/
+│       └── ...
+```
+→ Modules: `system`, `business`
+→ Sub-modules: `system/user`, `system/role`, `system/dept`, `business/order`, `business/payment`
+
+#### Step 2A.2: Generate Dynamic Scan Script
+
+**Based on detected directory structure, generate a platform-appropriate scan script:**
+
+**For Windows (PowerShell):**
+```powershell
+# scan-pages.ps1 - Generated dynamically based on project structure
+param(
+    [string]$SourcePath = "{source_path}",
+    [string]$OutputPath = "{output_path}/scan-result.json"
+)
+
+$extensions = @('*.vue', '*.tsx', '*.jsx')
+$results = @{
+    generatedAt = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+    platform = "{platform_type}"
+    modules = @{}
+}
+
+# Find all directories containing page files
+$pageDirs = Get-ChildItem -Path $SourcePath -Recurse -Include $extensions | 
+    Select-Object -ExpandProperty DirectoryName -Unique | 
+    Sort-Object
+
+foreach ($dir in $pageDirs) {
+    $relativePath = $dir.Replace($SourcePath, '').TrimStart('\', '/')
+    $parts = $relativePath -split '[\\/]' | Where-Object { $_ }
+    
+    # Determine module and sub-module based on depth
+    if ($parts.Count -ge 2) {
+        $moduleName = $parts[0]
+        $subModulePath = $parts[1..($parts.Count-1)] -join '/'
+        
+        if (-not $results.modules[$moduleName]) {
+            $results.modules[$moduleName] = @{
+                name = $moduleName
+                path = Join-Path $SourcePath $moduleName
+                subModules = @()
+            }
+        }
+        
+        # Get all files in this directory
+        $files = Get-ChildItem -Path $dir -File -Include $extensions | ForEach-Object {
+            @{
+                name = $_.BaseName
+                path = $_.FullName
+                relativePath = $_.FullName.Replace($SourcePath, '').TrimStart('\', '/')
+                extension = $_.Extension
+            }
+        }
+        
+        $subModule = @{
+            name = if ($subModulePath) { $subModulePath } else { $moduleName }
+            path = $relativePath
+            fullPath = $dir
+            files = $files
+        }
+        
+        $results.modules[$moduleName].subModules += $subModule
+    }
+}
+
+$results | ConvertTo-Json -Depth 10 | Out-File -FilePath $OutputPath -Encoding UTF8
+Write-Host "Scan complete. Found $($results.modules.Count) modules."
+Write-Host "Output: $OutputPath"
 ```
 
-**Execute Scan:**
+**For Linux/Mac (Bash):**
 ```bash
-node {skill_path}/scripts/scan-ui-modules.js \
-  --source {source_path} \
-  --output {output_path}/scan-result.json \
-  --platform {platform_type} \
-  --extensions .vue,.tsx,.jsx
+#!/bin/bash
+# scan-pages.sh - Generated dynamically based on project structure
+
+SOURCE_PATH="{source_path}"
+OUTPUT_PATH="{output_path}/scan-result.json"
+
+declare -A MODULES
+
+# Find all directories containing page files
+find "$SOURCE_PATH" -type f \( -name "*.vue" -o -name "*.tsx" -o -name "*.jsx" \) -print0 | 
+while IFS= read -r -d '' file; do
+    dir=$(dirname "$file")
+    relPath="${dir#$SOURCE_PATH/}"
+    relPath="${relPath#$SOURCE_PATH}"
+    
+    # Parse path components
+    IFS='/' read -ra PARTS <<< "$relPath"
+    
+    if [ ${#PARTS[@]} -ge 1 ]; then
+        moduleName="${PARTS[0]}"
+        subModulePath=""
+        if [ ${#PARTS[@]} -gt 1 ]; then
+            subModulePath="$(IFS=/; echo "${PARTS[*]:1}")"
+        fi
+        
+        # Add to module tracking
+        if [ -z "${MODULES[$moduleName]}" ]; then
+            MODULES[$moduleName]="$dir"
+        fi
+    fi
+done
+
+# Generate JSON output
+echo "Scan complete. Modules found: ${!MODULES[@]}"
 ```
 
-**Parameters:**
-- `--source`: Source code directory path (from Input)
-- `--output`: Temporary scan result file path
-- `--platform`: Platform type (web, mobile, desktop)
-- `--extensions`: File extensions to scan (comma-separated)
+**Execute Generated Script:**
+```powershell
+# Windows
+powershell -ExecutionPolicy Bypass -File "{output_path}/scan-pages.ps1"
+
+# Linux/Mac
+bash "{output_path}/scan-pages.sh"
+```
 
 **Script Output Structure:**
 ```json
 {
   "generatedAt": "2024-01-15T10:30:00Z",
-  "scanConfig": { "sourcePath": "...", "platform": "web", ... },
-  "summary": {
-    "totalFiles": 25,
-    "totalModules": 3,
-    "fileTypes": { "list": 5, "form": 8, "modal": 6, ... }
-  },
+  "platform": "web",
+  "sourcePath": "...",
   "modules": {
     "system": {
       "name": "system",
-      "codeName": "system",
       "path": "src/views/system",
+      "subModules": [
+        {
+          "name": "user",
+          "path": "system/user",
+          "fullPath": "src/views/system/user",
+          "files": [
+            { "name": "index", "path": "...", "relativePath": "system/user/index.vue" },
+            { "name": "UserForm", "path": "...", "relativePath": "system/user/UserForm.vue" }
+          ]
+        },
+        {
+          "name": "role", 
+          "path": "system/role",
+          "fullPath": "src/views/system/role",
+          "files": [...]
+        }
+      ]
+    }
+  }
+}
+```
       "subModules": {
         "user-list": {
           "name": "user-list",
@@ -144,25 +304,44 @@ node {skill_path}/scripts/scan-ui-modules.js \
 }
 ```
 
-#### Step 2A.2: Verify Scan Results
+#### Step 2A.3: Process Scan Results with AI
 
-**Read the scan-result.json file and verify:**
+**Read the generated `scan-result.json` and for each module/sub-module:**
 
-1. **File Count Check**:
-   - Compare `summary.totalFiles` with actual file count in source
-   - If mismatch, check scan logs for errors
+1. **Generate Module Metadata** (AI-powered):
+   - `name`: Business-friendly module name (e.g., "System Management")
+   - `code_name`: Technical identifier (e.g., "system")
+   - `user_value`: What users accomplish with this module
+   - `system_type`: "ui"
 
-2. **Module Coverage Check**:
-   - Review each module in `modules` section
-   - Ensure all business modules are identified
-   - Check that sub-modules are logically grouped
+2. **Generate Sub-Module Metadata**:
+   - `name`: Business-friendly sub-module name (e.g., "User Management")
+   - `code_name`: Technical identifier (e.g., "user")
+   - `path`: Directory path from scan result
 
-3. **File Classification Review**:
-   - Verify `file.type` classification is correct
-   - Common types: `list`, `detail`, `form`, `modal`, `component`
-   - Reclassify if needed during metadata extraction
+3. **Analyze Each File** (AI-powered):
+   For each file in `subModule.files`:
+   - Read file content
+   - Extract ALL event functions (onInit, onSearch, onSubmit, etc.)
+   - Format: `{ComponentName}_{EventAction}`
+   - Add to `event_functions` array
 
-#### Step 2A.3: Analyze Frontend Routes (Supplementary)
+**Example Processing:**
+```
+Scan Result Input:
+  Module: system
+  Sub-module: user
+  Files: [index.vue, UserForm.vue, UserImport.vue]
+
+AI Analysis Output:
+  Module name: "System Management"
+  Sub-module name: "User Management"  
+  index.vue events: [UserList_onInit, UserList_onSearch, UserList_onAdd, ...]
+  UserForm.vue events: [UserForm_onSubmit, UserForm_onValidate, ...]
+  UserImport.vue events: [UserImport_onImport, UserImport_onDownload, ...]
+```
+
+#### Step 2A.4: Analyze Frontend Routes (Supplementary)
 
    **React Router Example:**
    ```typescript
@@ -284,13 +463,13 @@ For systems without UI, analyze from API perspective:
 
 ---
 
-### Step 3: Extract Business Module Metadata (Using Scan Results)
+### Step 3: Generate modules.json from Scan Results
 
-**Base on scan-result.json from Step 2A.1**, extract metadata for each module:
+**Use the processed data from Step 2A.3 to generate the final modules.json:**
 
-**Input:** `{output_path}/scan-result.json`
+**Input:** AI-processed module/sub-module metadata + scan-result.json file list
 
-**Process for Each Module:**
+**Output Structure:**
 
 | Field | Source | Example | Condition |
 |-------|--------|---------|-----------|
@@ -433,35 +612,40 @@ Entry points are simple file paths to controller/service files:
 ```
 Business Module List Generated
 - Analysis Method: [UI-Based / API-Based]
-- Scan Script Used: [Yes / No]
+- Dynamic Script Used: [Yes - PowerShell/Bash]
 - Platforms Found: [N]
   - Platform 1: [platform_name] ([platform_type]) - [module_count] modules
   - Platform 2: [platform_name] ([platform_type]) - [module_count] modules
 - Total Business Modules: [N]
 
-Scan Script Results (if UI-Based):
-- Scan Result File: {output_path}/scan-result.json
-- Total Files Scanned: [N]
-- Total Modules Identified: [N]
-- File Type Distribution:
-  - list: [N]
-  - form: [N]
-  - modal: [N]
-  - detail: [N]
-  - component: [N]
+Dynamic Scan Results (UI-Based):
+- Script Type: [PowerShell / Bash]
+- Script Path: {output_path}/scan-pages.{ps1/sh}
+- Scan Result: {output_path}/scan-result.json
+- Directory Structure Detected: [flat / nested]
+- Total Directories Scanned: [N]
+- Total Files Found: [N]
 
-Per-Module Verification:
+Module Hierarchy:
 - Module: [module_name]
-  - Directory: [path]
-  - Files from Scan: [N]
-  - Files in modules.json: [N]
-  - Coverage: [100% / Mismatch: list differences]
+  - Path: [path]
   - Sub-Modules: [N]
+    - [sub_module_1]: [file_count] files
+    - [sub_module_2]: [file_count] files
+  - AI-Generated Metadata:
+    - Business Name: [name]
+    - User Value: [value]
+  - Total Event Functions: [N]
+
+Verification:
+- Files from Scan: [N]
+- Files in modules.json: [N]
+- Coverage: [100% / MISMATCH - review required]
 
 - Output: {output_path}/{output_name}
 ```
 
-**CRITICAL: If scan result file count != modules.json file count, STOP and reconcile before proceeding.**
+**CRITICAL: Coverage must be 100%. Any mismatch indicates files were missed during AI processing.**
 
 ## Checklist
 
@@ -471,16 +655,16 @@ Per-Module Verification:
 - [ ] Modules grouped by platform
 - [ ] Business modules mapped from user/product perspective
 
-### UI-Based Module Entry Points (Script-Assisted)
-- [ ] **Scan script executed**: `scan-ui-modules.js` ran successfully with correct parameters
-- [ ] **Scan result generated**: `{output_path}/scan-result.json` exists and is valid JSON
-- [ ] **File count verified**: `summary.totalFiles` matches actual source file count
-- [ ] **All modules identified**: Every business module from scan result is processed
-- [ ] **Sub-modules mapped**: Script output sub-modules are logically grouped
-- [ ] **Event functions extracted**: For each file in scan result, extracted all event handlers
-- [ ] **Entry points format**: Each entry point has `path` and `event_functions` array
-- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `UserList_onSearch`, `UserForm_onSubmit`)
-- [ ] **Complete coverage**: ALL files from scan result are included in final modules.json
+### UI-Based Module Entry Points (Dynamic Script)
+- [ ] **Page directories identified**: Located `src/views/`, `src/pages/`, or similar directories
+- [ ] **Scan script generated**: PowerShell/Bash script created based on directory structure
+- [ ] **Scan script executed**: Script ran successfully, generated `scan-result.json`
+- [ ] **All directories scanned**: Every sub-directory with page files is captured
+- [ ] **Module hierarchy correct**: Module/sub-module nesting matches folder structure
+- [ ] **AI metadata generated**: Business names, user_value extracted for each module
+- [ ] **Event functions extracted**: For each file, all event handlers identified
+- [ ] **Entry points complete**: Each file from scan has corresponding entry point with events
+- [ ] **No files missed**: File count in scan-result == File count in modules.json
 
 ### API-Based Module Entry Points
 - [ ] **Controllers identified**: `@Controller` decorated classes or route files
