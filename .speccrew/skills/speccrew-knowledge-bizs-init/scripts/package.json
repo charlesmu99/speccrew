@@ -1,0 +1,15 @@
+{
+  "name": "speccrew-knowledge-bizs-init-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for scanning UI modules and generating modules.json",
+  "main": "scan-ui-modules.js",
+  "scripts": {
+    "scan": "node scan-ui-modules.js"
+  },
+  "dependencies": {
+    "glob": "^10.3.10"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

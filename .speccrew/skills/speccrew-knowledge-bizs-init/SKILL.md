@@ -14,10 +14,12 @@ Worker Agent (speccrew-task-worker)
 - `output_path`: Output directory for modules.json (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
 - `output_name`: Output file name (default: `modules.json`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
+- `skill_path`: Path to skill directory containing scripts (default: `.speccrew/skills/speccrew-knowledge-bizs-init`)
 
 ## Output
 
 - `{output_path}/{output_name}` - Business module list for pipeline orchestration
+- `{output_path}/scan-result.json` - Intermediate scan result (UI-Based only)
 
 ## Workflow
 
@@ -86,64 +88,81 @@ flowchart TD
 
 For systems with UI, analyze from user-facing perspective:
 
-1. **Analyze Frontend Routes and Collect ALL Pages**
+#### Step 2A.1: Execute Scan Script (MANDATORY)
 
-   **CRITICAL**: Must identify and collect ALL pages and components in each module directory, not just the main index page.
+**CRITICAL**: Use the provided Node.js script to scan source code and identify ALL modules and files. This ensures 100% file coverage.
 
-   **Complete Page Inventory Checklist:**
-   - [ ] Main list pages: `index.vue`, `list.vue`, `index.tsx`
-   - [ ] Detail pages: `[id].vue`, `detail.vue`, `DetailPage.tsx`
-   - [ ] Create/Edit pages: `create.vue`, `edit.vue`, `CreatePage.tsx`, `EditPage.tsx`
-   - [ ] Form components: `*Form.vue`, `*Form.tsx` (e.g., `UserForm.vue`, `OrderForm.vue`)
-   - [ ] Modal/Dialog components: `*Modal.vue`, `*Dialog.vue`, `*Modal.tsx`
-   - [ ] Import/Export components: `*Import.vue`, `*Export.vue`
-   - [ ] Other functional components in the same directory
+**Prerequisites:**
+```bash
+cd {skill_path}/scripts
+npm install  # Install glob dependency
+```
 
-   **Example - User Management Module:**
-   ```
-   src/views/system/user/
-   ├── index.vue              → User List Page (main)
-   ├── UserForm.vue           → User Create/Edit Form
-   ├── UserImportForm.vue     → User Import Dialog
-   ├── UserAssignRoleForm.vue → Role Assignment Dialog
-   └── DeptTree.vue           → Department Tree Selector
-   ```
+**Execute Scan:**
+```bash
+node {skill_path}/scripts/scan-ui-modules.js \
+  --source {source_path} \
+  --output {output_path}/scan-result.json \
+  --platform {platform_type} \
+  --extensions .vue,.tsx,.jsx
+```
 
-   **Each file must be captured as a separate entry point in the corresponding sub_module.**
+**Parameters:**
+- `--source`: Source code directory path (from Input)
+- `--output`: Temporary scan result file path
+- `--platform`: Platform type (web, mobile, desktop)
+- `--extensions`: File extensions to scan (comma-separated)
 
-2. **Verify Complete Page Coverage (MANDATORY)**
+**Script Output Structure:**
+```json
+{
+  "generatedAt": "2024-01-15T10:30:00Z",
+  "scanConfig": { "sourcePath": "...", "platform": "web", ... },
+  "summary": {
+    "totalFiles": 25,
+    "totalModules": 3,
+    "fileTypes": { "list": 5, "form": 8, "modal": 6, ... }
+  },
+  "modules": {
+    "system": {
+      "name": "system",
+      "codeName": "system",
+      "path": "src/views/system",
+      "subModules": {
+        "user-list": {
+          "name": "user-list",
+          "path": "src/views/system/user",
+          "files": [
+            { "path": "...", "componentName": "UserList", "type": "list" },
+            { "path": "...", "componentName": "UserForm", "type": "form" },
+            ...
+          ]
+        }
+      }
+    }
+  }
+}
+```
 
-   Before proceeding, you MUST verify that ALL files in the module directory have been identified:
+#### Step 2A.2: Verify Scan Results
 
-   **Verification Command:**
-   ```
-   List all .vue/.tsx/.jsx files in the module directory
-   Compare with collected entry_points
-   Ensure: Collected count == Total file count
-   ```
+**Read the scan-result.json file and verify:**
 
-   **If files are missing:**
-   - STOP and re-analyze the directory
-   - Add missing files to entry_points
-   - Document why each file was included
+1. **File Count Check**:
+   - Compare `summary.totalFiles` with actual file count in source
+   - If mismatch, check scan logs for errors
 
-   **Coverage Checklist (must be checked):**
-   - [ ] All `.vue` files in directory are listed in entry_points
-   - [ ] All `.tsx` files in directory are listed in entry_points
-   - [ ] No file was skipped without explicit reason
-   - [ ] Component names match file names (e.g., `UserForm.vue` → `UserForm_onSubmit`)
+2. **Module Coverage Check**:
+   - Review each module in `modules` section
+   - Ensure all business modules are identified
+   - Check that sub-modules are logically grouped
 
-3. **Map Files to Sub-Modules**
+3. **File Classification Review**:
+   - Verify `file.type` classification is correct
+   - Common types: `list`, `detail`, `form`, `modal`, `component`
+   - Reclassify if needed during metadata extraction
 
-   Group the verified files into logical sub-modules:
-
-   | Sub-Module | Files | Rationale |
-   |------------|-------|-----------|
-   | user-list | index.vue | Main list page |
-   | user-form | UserForm.vue | Create/Edit operations |
-   | user-import | UserImportForm.vue | Import functionality |
-
-4. **Analyze Frontend Routes**
+#### Step 2A.3: Analyze Frontend Routes (Supplementary)
 
    **React Router Example:**
    ```typescript
@@ -265,9 +284,13 @@ For systems without UI, analyze from API perspective:
 
 ---
 
-### Step 3: Extract Business Module Metadata
+### Step 3: Extract Business Module Metadata (Using Scan Results)
 
-For each identified module, extract:
+**Base on scan-result.json from Step 2A.1**, extract metadata for each module:
+
+**Input:** `{output_path}/scan-result.json`
+
+**Process for Each Module:**
 
 | Field | Source | Example | Condition |
 |-------|--------|---------|-----------|
@@ -410,25 +433,35 @@ Entry points are simple file paths to controller/service files:
 ```
 Business Module List Generated
 - Analysis Method: [UI-Based / API-Based]
+- Scan Script Used: [Yes / No]
 - Platforms Found: [N]
   - Platform 1: [platform_name] ([platform_type]) - [module_count] modules
   - Platform 2: [platform_name] ([platform_type]) - [module_count] modules
 - Total Business Modules: [N]
 
-Per-Module File Coverage Report:
+Scan Script Results (if UI-Based):
+- Scan Result File: {output_path}/scan-result.json
+- Total Files Scanned: [N]
+- Total Modules Identified: [N]
+- File Type Distribution:
+  - list: [N]
+  - form: [N]
+  - modal: [N]
+  - detail: [N]
+  - component: [N]
+
+Per-Module Verification:
 - Module: [module_name]
   - Directory: [path]
-  - Files Found: [N] (.vue/.tsx files in directory)
-  - Files Captured: [N] (entry_points count)
-  - Coverage: [100% / Missing: list files]
+  - Files from Scan: [N]
+  - Files in modules.json: [N]
+  - Coverage: [100% / Mismatch: list differences]
   - Sub-Modules: [N]
-    - [sub_module_1]: [file1, file2, ...]
-    - [sub_module_2]: [file1, file2, ...]
 
 - Output: {output_path}/{output_name}
 ```
 
-**CRITICAL: Coverage must be 100%. If any files are missing, return to Step 2 and complete the analysis.**
+**CRITICAL: If scan result file count != modules.json file count, STOP and reconcile before proceeding.**
 
 ## Checklist
 
@@ -438,20 +471,16 @@ Per-Module File Coverage Report:
 - [ ] Modules grouped by platform
 - [ ] Business modules mapped from user/product perspective
 
-### UI-Based Module Entry Points
-- [ ] **Directory scanned**: ALL files in module directory listed (use `Glob` tool if needed)
-- [ ] **File count verified**: Number of `.vue`/`.tsx` files == Number of entry_points
-- [ ] **Sub-modules identified**: Group pages/components by feature/directory
-- [ ] **Sub-module structure**: Each sub-module has `name`, `code_name`, `path`, `entry_points`
-- [ ] **Pages identified**: Main pages, detail pages, create/edit pages
-- [ ] **Sub-components identified**: Modals, dialogs, drawers, popovers
-- [ ] **Lifecycle events extracted**: `onInit`, `onLoad`, `onMount`, `onUnmount`
-- [ ] **User interaction events extracted**: All `onClick`, `onSubmit`, `onChange`, `handle*` handlers
-- [ ] **Navigation events extracted**: `onNavigate`, `onBack`, `onClose`, `onOpen`
-- [ ] **Async callback events extracted**: `onSuccess`, `onError`, `onCancel`
-- [ ] **Entry points format**: Array of objects with `path` and `event_functions`
-- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `OrderListPage_onSearch`, `UserForm_onSubmit`)
-- [ ] **Complete coverage**: ALL non-empty event handlers are included
+### UI-Based Module Entry Points (Script-Assisted)
+- [ ] **Scan script executed**: `scan-ui-modules.js` ran successfully with correct parameters
+- [ ] **Scan result generated**: `{output_path}/scan-result.json` exists and is valid JSON
+- [ ] **File count verified**: `summary.totalFiles` matches actual source file count
+- [ ] **All modules identified**: Every business module from scan result is processed
+- [ ] **Sub-modules mapped**: Script output sub-modules are logically grouped
+- [ ] **Event functions extracted**: For each file in scan result, extracted all event handlers
+- [ ] **Entry points format**: Each entry point has `path` and `event_functions` array
+- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `UserList_onSearch`, `UserForm_onSubmit`)
+- [ ] **Complete coverage**: ALL files from scan result are included in final modules.json
 
 ### API-Based Module Entry Points
 - [ ] **Controllers identified**: `@Controller` decorated classes or route files
