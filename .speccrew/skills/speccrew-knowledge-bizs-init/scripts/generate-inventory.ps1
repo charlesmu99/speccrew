@@ -55,22 +55,39 @@ param(
     [string]$FileExtensions,
     
     [Parameter(Mandatory=$false)]
-    [string]$AnalysisMethod = "ui-based"
+    [string]$AnalysisMethod = "ui-based",
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ExcludeDirs = '["components","composables","hooks","utils"]'
 )
 
 # Resolve paths
-$sourcePath = Resolve-Path $SourcePath
+$resolvedSourcePath = Resolve-Path $SourcePath
+$sourcePathValue = Normalize-Path $resolvedSourcePath.Path
 
-# Determine sync-state directory (relative to project root)
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$skillDir = Split-Path -Parent $scriptDir
-$projectRoot = Split-Path -Parent $skillDir
-$syncStateDir = Join-Path $projectRoot "speccrew-workspace/knowledges/base/sync-state"
+# Determine sync-state directory
+# Search upward from source path to find project root (contains speccrew-workspace)
+$currentDir = $resolvedSourcePath.Path
+$syncStateDir = $null
+
+while ($currentDir -ne $null -and $currentDir -ne "" -and $currentDir -ne (Split-Path $currentDir -Parent)) {
+    $potentialSyncState = Join-Path $currentDir "speccrew-workspace/knowledges/base/sync-state"
+    if (Test-Path (Join-Path $currentDir "speccrew-workspace")) {
+        $syncStateDir = $potentialSyncState
+        break
+    }
+    $currentDir = Split-Path $currentDir -Parent
+}
+
+# Fallback: use source path's drive root if not found
+if (-not $syncStateDir) {
+    $syncStateDir = Join-Path (Split-Path $resolvedSourcePath.Path -Qualifier) "speccrew-workspace/knowledges/base/sync-state"
+}
 
 # Build full output path
 $outputPath = Join-Path $syncStateDir $OutputFileName
 
-Write-Host "Scanning: $sourcePath"
+Write-Host "Scanning: $sourcePathValue"
 Write-Host "Output: $outputPath"
 Write-Host "Platform: $PlatformName ($PlatformType)"
 Write-Host "TechStack: $TechStack"
@@ -85,30 +102,54 @@ $wildcardPatterns = $extensionsArray | ForEach-Object { "*$_" }
 
 Write-Host "Scanning for files: $($wildcardPatterns -join ', ')"
 
+# Helper function to normalize path separators
+function Normalize-Path {
+    param([string]$path)
+    return $path.Replace('\', '/')
+}
+
+# Parse ExcludeDirs parameter
+$excludeDirsArray = $ExcludeDirs | ConvertFrom-Json
+
+# Helper function to get module path (stops at excluded subdirectories)
+function Get-ModulePath {
+    param([string]$relativeDir)
+    $parts = $relativeDir -split '[\\/]' | Where-Object { $_ }
+    $moduleParts = @()
+    foreach ($part in $parts) {
+        # Stop at excluded directories - these belong to parent module
+        if ($excludeDirsArray -contains $part) {
+            break
+        }
+        $moduleParts += $part
+    }
+    return $moduleParts -join '/'
+}
+
 # Find all files recursively matching the extensions
-$files = Get-ChildItem -Path $sourcePath -Recurse -Include $wildcardPatterns | 
+$files = Get-ChildItem -Path $resolvedSourcePath -Recurse -Include $wildcardPatterns | 
     Select-Object FullName, 
-                  @{N='RelativePath';E={$_.FullName.Replace($sourcePath, '').TrimStart('\', '/')}},
+                  @{N='RelativePath';E={Normalize-Path ($_.FullName.Replace($resolvedSourcePath.Path, '').TrimStart('\', '/'))}},
                   @{N='FileName';E={$_.BaseName}},
                   @{N='Extension';E={$_.Extension}},
-                  @{N='Directory';E={$_.DirectoryName.Replace($sourcePath, '').TrimStart('\', '/')}}
+                  @{N='Directory';E={Normalize-Path ($_.DirectoryName.Replace($resolvedSourcePath.Path, '').TrimStart('\', '/'))}}
 
 Write-Host "Found $($files.Count) page files"
 
 # Build hierarchical structure with multi-platform support
 $modules = @()
 
-# Group by directory (module/sub-module)
-$grouped = $files | Group-Object Directory
+# Group files by their module path (not by direct directory)
+$grouped = $files | Group-Object { Get-ModulePath $_.Directory }
 
 foreach ($group in $grouped) {
-    $dirParts = $group.Name -split '[\\/]' | Where-Object { $_ }
+    $modulePath = $group.Name
     
     $entryPoints = @()
     foreach ($file in $group.Group) {
         $entryPoint = @{
             fileName = $file.FileName
-            fullPath = $file.FullName
+            fullPath = Normalize-Path $file.FullName
             relativePath = $file.RelativePath
             extension = $file.Extension
             analyzed = $false
@@ -120,38 +161,31 @@ foreach ($group in $grouped) {
     }
     
     $moduleObj = @{
-        modulePath = $group.Name
-        relativePath = $group.Name.Replace($sourcePath, '').TrimStart('\', '/')
+        modulePath = $modulePath
+        relativePath = $modulePath
         entryPoints = $entryPoints
     }
     
     $modules += $moduleObj
 }
 
-$platform = @{
+$inventory = @{
     platformName = $PlatformName
     platformType = $PlatformType
-    sourcePath = $sourcePath.Path
+    sourcePath = $sourcePathValue
     techStack = $techStackArray
     totalFiles = $files.Count
     analyzedCount = 0
     pendingCount = $files.Count
+    generatedAt = (Get-Date -Format "yyyy-MM-dd-HHmmss")
+    analysisMethod = $AnalysisMethod
     modules = $modules
 }
 
 # Add platformSubtype if provided
 if (-not [string]::IsNullOrWhiteSpace($PlatformSubtype)) {
-    $platform.platformSubtype = $PlatformSubtype
+    $inventory.platformSubtype = $PlatformSubtype
 }
-
-$inventory = @{
-    generatedAt = (Get-Date -Format "yyyy-MM-dd-HHmmss")
-    analysisMethod = $AnalysisMethod
-    platformCount = 1
-    platforms = @($platform)
-}
-
-
 
 # Ensure sync-state directory exists
 if (-not (Test-Path $syncStateDir)) {

@@ -121,6 +121,24 @@ Use `Glob` to find directories with `.vue`, `.tsx`, `.jsx` files, then identify 
 | TechStack | Technology stack as JSON array | `["vue","typescript"]` |
 | FileExtensions | File extensions as JSON array | `[".vue",".ts"]` |
 | AnalysisMethod | Analysis method (default: ui-based) | `ui-based`, `api-based` |
+| ExcludeDirs | Directories to exclude from module path (JSON array) | `["components","hooks"]` |
+
+**Determine ExcludeDirs:**
+
+Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` and extract `exclude_dirs` for the detected platform subtype:
+
+| Platform Subtype | ExcludeDirs |
+|------------------|-------------|
+| vue | `["components","composables","hooks","utils","mixins","directives"]` |
+| react | `["components","hooks","lib","utils","contexts","hocs"]` |
+| angular | `["components","directives","pipes","guards","interceptors","services"]` |
+| nextjs | `["components","hooks","lib","utils","contexts","api"]` |
+| nuxt | `["components","composables","utils","plugins","middleware"]` |
+| svelte | `["components","lib","utils","stores","actions"]` |
+| flutter | `["widgets","components","utils","helpers","models","services"]` |
+| react-native | `["components","hooks","utils","contexts","navigations"]` |
+| uniapp | `["components","composables","utils","mixins","directives"]` |
+| miniprogram | `["components","utils","behaviors","mixins"]` |
 
 **Windows (PowerShell) - Example for Web Platform:**
 ```powershell
@@ -132,7 +150,8 @@ Use `Glob` to find directories with `.vue`, `.tsx`, `.jsx` files, then identify 
   -PlatformSubtype "vue" `
   -TechStack '["vue","typescript"]' `
   -FileExtensions '[".vue",".ts"]' `
-  -AnalysisMethod "ui-based"
+  -AnalysisMethod "ui-based" `
+  -ExcludeDirs '["components","composables","hooks","utils","mixins","directives"]'
 ```
 
 **Linux/Mac (Bash) - Example for Web Platform:**
@@ -145,7 +164,8 @@ bash "{skill_path}/scripts/generate-inventory.sh" \
   "vue" \
   '["vue","typescript"]' \
   '[".vue",".ts"]' \
-  "ui-based"
+  "ui-based" \
+  '["components","composables","hooks","utils","mixins","directives"]'
 ```
 
 **Multi-Platform Projects:**
@@ -153,16 +173,18 @@ bash "{skill_path}/scripts/generate-inventory.sh" \
 For projects with multiple platforms (e.g., Web + Mobile), execute the script once per platform:
 
 ```powershell
-# Web Platform
+# Web Platform (Vue)
 & "{skill_path}/scripts/generate-inventory.ps1" `
   -SourcePath "src/views" `
   -OutputFileName "modules-web.json" `
   -PlatformName "Web Frontend" `
   -PlatformType "web" `
+  -PlatformSubtype "vue" `
   -TechStack '["vue","typescript"]' `
-  -FileExtensions '[".vue",".ts"]'
+  -FileExtensions '[".vue",".ts"]' `
+  -ExcludeDirs '["components","composables","hooks","utils","mixins","directives"]'
 
-# Mobile Platform
+# Mobile Platform (Flutter)
 & "{skill_path}/scripts/generate-inventory.ps1" `
   -SourcePath "lib/views" `
   -OutputFileName "modules-mobile.json" `
@@ -170,7 +192,8 @@ For projects with multiple platforms (e.g., Web + Mobile), execute the script on
   -PlatformType "mobile" `
   -PlatformSubtype "flutter" `
   -TechStack '["flutter","dart"]' `
-  -FileExtensions '[".dart"]'
+  -FileExtensions '[".dart"]' `
+  -ExcludeDirs '["widgets","components","utils","helpers","models","services"]'
 ```
 
 **Script Locations:**
@@ -180,34 +203,29 @@ For projects with multiple platforms (e.g., Web + Mobile), execute the script on
 **Output: `modules-{platform}.json` Structure:**
 ```json
 {
+  "platformName": "Web Frontend",
+  "platformType": "web",
+  "sourcePath": "src/views",
+  "techStack": ["vue", "typescript"],
+  "totalFiles": 25,
+  "analyzedCount": 0,
+  "pendingCount": 25,
   "generatedAt": "2024-01-15-103000",
   "analysisMethod": "ui-based",
-  "platformCount": 1,
-  "platforms": [
+  "modules": [
     {
-      "platformName": "Web Frontend",
-      "platformType": "web",
-      "sourcePath": "src/views",
-      "techStack": ["vue", "typescript"],
-      "totalFiles": 25,
-      "analyzedCount": 0,
-      "pendingCount": 25,
-      "modules": [
+      "modulePath": "src/views/system/user",
+      "relativePath": "system/user",
+      "entryPoints": [
         {
-          "modulePath": "src/views/system/user",
-          "relativePath": "system/user",
-          "entryPoints": [
-            {
-              "fileName": "index",
-              "fullPath": "src/views/system/user/index.vue",
-              "relativePath": "system/user/index.vue",
-              "extension": ".vue",
-              "analyzed": false,
-              "startedAt": null,
-              "completedAt": null,
-              "analysisNotes": null
-            }
-          ]
+          "fileName": "index",
+          "fullPath": "src/views/system/user/index.vue",
+          "relativePath": "system/user/index.vue",
+          "extension": ".vue",
+          "analyzed": false,
+          "startedAt": null,
+          "completedAt": null,
+          "analysisNotes": null
         }
       ]
     }
@@ -259,7 +277,8 @@ Use `Glob` to find directories with controller files (`.controller.ts`, `Control
   -PlatformSubtype "nestjs" `
   -TechStack '["nestjs","typescript"]' `
   -FileExtensions '[".controller.ts",".service.ts"]' `
-  -AnalysisMethod "api-based"
+  -AnalysisMethod "api-based" `
+  -ExcludeDirs '["services","repositories","entities","dtos","guards","interceptors","middleware"]'
 ```
 
 **Linux/Mac (Bash) - Example for Backend API:**
@@ -272,7 +291,8 @@ bash "{skill_path}/scripts/generate-inventory.sh" \
   "nestjs" \
   '["nestjs","typescript"]' \
   '[".controller.ts",".service.ts"]' \
-  "api-based"
+  "api-based" \
+  '["services","repositories","entities","dtos","guards","interceptors","middleware"]'
 ```
 
 #### Step 2B.3: Verify Inventory Files
