@@ -12,11 +12,12 @@ Worker Agent (speccrew-task-worker)
 
 - `source_path`: Source code directory path (default: project root)
 - `output_path`: Output directory for modules.json (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/`)
+- `output_name`: Output file name (default: `modules.json`)
 - `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
 
 ## Output
 
-- `{output_path}/modules.json` - Business module list for pipeline orchestration
+- `{output_path}/{output_name}` - Business module list for pipeline orchestration
 
 ## Workflow
 
@@ -85,7 +86,30 @@ flowchart TD
 
 For systems with UI, analyze from user-facing perspective:
 
-1. **Analyze Frontend Routes**
+1. **Analyze Frontend Routes and Collect ALL Pages**
+
+   **CRITICAL**: Must identify and collect ALL pages and components in each module directory, not just the main index page.
+
+   **Complete Page Inventory Checklist:**
+   - [ ] Main list pages: `index.vue`, `list.vue`, `index.tsx`
+   - [ ] Detail pages: `[id].vue`, `detail.vue`, `DetailPage.tsx`
+   - [ ] Create/Edit pages: `create.vue`, `edit.vue`, `CreatePage.tsx`, `EditPage.tsx`
+   - [ ] Form components: `*Form.vue`, `*Form.tsx` (e.g., `UserForm.vue`, `OrderForm.vue`)
+   - [ ] Modal/Dialog components: `*Modal.vue`, `*Dialog.vue`, `*Modal.tsx`
+   - [ ] Import/Export components: `*Import.vue`, `*Export.vue`
+   - [ ] Other functional components in the same directory
+
+   **Example - User Management Module:**
+   ```
+   src/views/system/user/
+   ├── index.vue              → User List Page (main)
+   ├── UserForm.vue           → User Create/Edit Form
+   ├── UserImportForm.vue     → User Import Dialog
+   ├── UserAssignRoleForm.vue → Role Assignment Dialog
+   └── DeptTree.vue           → Department Tree Selector
+   ```
+
+   **Each file must be captured as a separate entry point in the corresponding sub_module.**
 
    Find and parse route configurations:
 
