@@ -218,74 +218,57 @@ For each identified module, extract:
 | name | Business term from UI/API | "Order Management" | Always |
 | code_name | Technical identifier | "order" | Always |
 | user_value | What users accomplish | "Handle customer orders from creation to fulfillment" | Always |
-| entry_points | Entry point objects with event functions | See format below | Always |
+| sub_modules | Array of sub-module objects | See format below | Only for `system_type: "ui"` |
+| entry_points | Array of file paths | See format below | Only for `system_type: "api"` |
 | system_type | UI or API-based | "ui" or "api" | Always |
 
-**Entry Points Format by System Type:**
+**Module Structure by System Type:**
 
 **For UI-Based Modules (`system_type: "ui"`):**
 
-Entry points are structured objects capturing pages, sub-pages, dialogs, and their event handlers:
+UI modules use `sub_modules` to organize related pages and components hierarchically:
 
 ```json
 {
-  "entry_points": [
+  "sub_modules": [
     {
-      "path": "src/pages/orders/index.tsx",
-      "event_functions": [
-        "OrderListPage_onInit",
-        "OrderListPage_onLoad",
-        "OrderListPage_onSearch",
-        "OrderListPage_onFilter",
-        "OrderListPage_onSort",
-        "OrderListPage_onRefresh",
-        "OrderListPage_onExport",
-        "OrderListPage_onCreate",
-        "OrderListPage_onEdit",
-        "OrderListPage_onDelete",
-        "OrderListPage_onRowClick",
-        "OrderListPage_onPageChange"
-      ]
-    },
-    {
-      "path": "src/pages/orders/[id].tsx",
-      "event_functions": [
-        "OrderDetailPage_onInit",
-        "OrderDetailPage_onLoad",
-        "OrderDetailPage_onUpdateStatus",
-        "OrderDetailPage_onCancel",
-        "OrderDetailPage_onPrint",
-        "OrderDetailPage_onEdit",
-        "OrderDetailPage_onBack",
-        "OrderDetailPage_onRefresh"
-      ]
-    },
-    {
-      "path": "src/pages/orders/create.tsx",
-      "event_functions": [
-        "OrderCreatePage_onInit",
-        "OrderCreatePage_onLoad",
-        "OrderCreatePage_onSubmit",
-        "OrderCreatePage_onValidate",
-        "OrderCreatePage_onSaveDraft",
-        "OrderCreatePage_onCancel",
-        "OrderCreatePage_onSuccess",
-        "OrderCreatePage_onError"
-      ]
-    },
-    {
-      "path": "src/components/orders/OrderDetailModal.tsx",
-      "event_functions": [
-        "OrderDetailModal_onOpen",
-        "OrderDetailModal_onClose",
-        "OrderDetailModal_onConfirm",
-        "OrderDetailModal_onCancel",
-        "OrderDetailModal_onDelete"
+      "name": "User List",
+      "code_name": "user-list",
+      "path": "src/views/system/user",
+      "entry_points": [
+        {
+          "path": "src/views/system/user/index.vue",
+          "event_functions": ["UserList_onInit", "UserList_onSearch", "UserList_onAdd"]
+        },
+        {
+          "path": "src/views/system/user/UserForm.vue",
+          "event_functions": ["UserForm_onSubmit", "UserForm_onValidate"]
+        },
+        {
+          "path": "src/views/system/user/UserImportForm.vue",
+          "event_functions": ["UserImportForm_onImport", "UserImportForm_onDownloadTemplate"]
+        }
       ]
     }
   ]
 }
 ```
+
+**Sub-Module Organization Rules:**
+
+1. **Group by Feature/Directory**: Each sub-module represents a cohesive feature area
+   - Example: `user-list`, `user-detail`, `user-import` under `user` module
+   - Example: `order-list`, `order-create`, `order-modal` under `order` module
+
+2. **Sub-Module Fields:**
+   - `name`: Human-readable sub-module name
+   - `code_name`: Technical identifier (kebab-case)
+   - `path`: Directory path containing the sub-module files
+   - `entry_points`: Array of page/component files with event functions
+
+3. **Entry Point Structure:**
+   - `path`: Relative file path to the component/page
+   - `event_functions`: Array of `{ComponentName}_{EventAction}` strings
 
 **UI Entry Point Analysis Guide:**
 
@@ -387,6 +370,8 @@ Business Module List Generated
 - [ ] Business modules mapped from user/product perspective
 
 ### UI-Based Module Entry Points
+- [ ] **Sub-modules identified**: Group pages/components by feature/directory
+- [ ] **Sub-module structure**: Each sub-module has `name`, `code_name`, `path`, `entry_points`
 - [ ] **Pages identified**: Main pages, detail pages, create/edit pages
 - [ ] **Sub-components identified**: Modals, dialogs, drawers, popovers
 - [ ] **Lifecycle events extracted**: `onInit`, `onLoad`, `onMount`, `onUnmount`
@@ -394,7 +379,7 @@ Business Module List Generated
 - [ ] **Navigation events extracted**: `onNavigate`, `onBack`, `onClose`, `onOpen`
 - [ ] **Async callback events extracted**: `onSuccess`, `onError`, `onCancel`
 - [ ] **Entry points format**: Array of objects with `path` and `event_functions`
-- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `OrderListPage_onSearch`, `OrderDetailModal_onConfirm`)
+- [ ] **Event naming**: `{ComponentName}_{EventAction}` format (e.g., `OrderListPage_onSearch`, `UserForm_onSubmit`)
 - [ ] **Complete coverage**: ALL non-empty event handlers are included
 
 ### API-Based Module Entry Points
