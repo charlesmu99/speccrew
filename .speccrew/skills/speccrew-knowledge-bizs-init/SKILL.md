@@ -111,7 +111,39 @@ For systems with UI, analyze from user-facing perspective:
 
    **Each file must be captured as a separate entry point in the corresponding sub_module.**
 
-   Find and parse route configurations:
+2. **Verify Complete Page Coverage (MANDATORY)**
+
+   Before proceeding, you MUST verify that ALL files in the module directory have been identified:
+
+   **Verification Command:**
+   ```
+   List all .vue/.tsx/.jsx files in the module directory
+   Compare with collected entry_points
+   Ensure: Collected count == Total file count
+   ```
+
+   **If files are missing:**
+   - STOP and re-analyze the directory
+   - Add missing files to entry_points
+   - Document why each file was included
+
+   **Coverage Checklist (must be checked):**
+   - [ ] All `.vue` files in directory are listed in entry_points
+   - [ ] All `.tsx` files in directory are listed in entry_points
+   - [ ] No file was skipped without explicit reason
+   - [ ] Component names match file names (e.g., `UserForm.vue` → `UserForm_onSubmit`)
+
+3. **Map Files to Sub-Modules**
+
+   Group the verified files into logical sub-modules:
+
+   | Sub-Module | Files | Rationale |
+   |------------|-------|-----------|
+   | user-list | index.vue | Main list page |
+   | user-form | UserForm.vue | Create/Edit operations |
+   | user-import | UserImportForm.vue | Import functionality |
+
+4. **Analyze Frontend Routes**
 
    **React Router Example:**
    ```typescript
@@ -382,8 +414,21 @@ Business Module List Generated
   - Platform 1: [platform_name] ([platform_type]) - [module_count] modules
   - Platform 2: [platform_name] ([platform_type]) - [module_count] modules
 - Total Business Modules: [N]
-- Output: {output_path}/modules.json
+
+Per-Module File Coverage Report:
+- Module: [module_name]
+  - Directory: [path]
+  - Files Found: [N] (.vue/.tsx files in directory)
+  - Files Captured: [N] (entry_points count)
+  - Coverage: [100% / Missing: list files]
+  - Sub-Modules: [N]
+    - [sub_module_1]: [file1, file2, ...]
+    - [sub_module_2]: [file1, file2, ...]
+
+- Output: {output_path}/{output_name}
 ```
+
+**CRITICAL: Coverage must be 100%. If any files are missing, return to Step 2 and complete the analysis.**
 
 ## Checklist
 
@@ -394,6 +439,8 @@ Business Module List Generated
 - [ ] Business modules mapped from user/product perspective
 
 ### UI-Based Module Entry Points
+- [ ] **Directory scanned**: ALL files in module directory listed (use `Glob` tool if needed)
+- [ ] **File count verified**: Number of `.vue`/`.tsx` files == Number of entry_points
 - [ ] **Sub-modules identified**: Group pages/components by feature/directory
 - [ ] **Sub-module structure**: Each sub-module has `name`, `code_name`, `path`, `entry_points`
 - [ ] **Pages identified**: Main pages, detail pages, create/edit pages
