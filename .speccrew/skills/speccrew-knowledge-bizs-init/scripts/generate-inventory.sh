@@ -83,6 +83,19 @@ is_excluded_dir() {
     echo "$EXCLUDE_DIRS" | jq -e "contains([\"$dir\"])" > /dev/null 2>&1
 }
 
+# Helper function to check if path contains any excluded directory
+is_excluded_path() {
+    local path="$1"
+    local IFS='/'
+    read -ra parts <<< "$path"
+    for part in "${parts[@]}"; do
+        if is_excluded_dir "$part"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Helper function to get module path (stops at excluded subdirectories)
 get_module_path() {
     local dir="$1"
@@ -108,6 +121,12 @@ eval "find . -type f \( $FILE_PATTERN \)" | sort | \
 while IFS= read -r file; do
     # Remove leading ./
     file="${file#./}"
+    
+    # Skip files in excluded directories
+    if is_excluded_path "$file"; then
+        continue
+    fi
+    
     dir=$(dirname "$file")
     filename=$(basename "$file" | sed 's/\.[^.]*$//')
     ext=".${file##*.}"

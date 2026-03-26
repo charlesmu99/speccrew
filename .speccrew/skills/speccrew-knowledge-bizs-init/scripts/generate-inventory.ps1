@@ -111,6 +111,18 @@ Write-Host "Scanning for files: $($wildcardPatterns -join ', ')"
 # Parse ExcludeDirs parameter
 $excludeDirsArray = @($ExcludeDirs | ConvertFrom-Json | ForEach-Object { $_ })
 
+# Helper function to check if path contains excluded directory
+function Test-ExcludedPath {
+    param([string]$relativePath)
+    $parts = $relativePath -split '[\\/]' | Where-Object { $_ }
+    foreach ($part in $parts) {
+        if ($script:excludeDirsArray -contains $part) {
+            return $true
+        }
+    }
+    return $false
+}
+
 # Helper function to get module path (stops at excluded subdirectories)
 function Get-ModulePath {
     param([string]$relativeDir)
@@ -118,7 +130,7 @@ function Get-ModulePath {
     $moduleParts = @()
     foreach ($part in $parts) {
         # Stop at excluded directories - these belong to parent module
-        if ($excludeDirsArray -contains $part) {
+        if ($script:excludeDirsArray -contains $part) {
             break
         }
         $moduleParts += $part
@@ -127,14 +139,17 @@ function Get-ModulePath {
 }
 
 # Find all files recursively matching the extensions
-$files = Get-ChildItem -Path $resolvedSourcePath -Recurse -Include $wildcardPatterns | 
+$allFiles = Get-ChildItem -Path $resolvedSourcePath -Recurse -Include $wildcardPatterns | 
     Select-Object FullName, 
                   @{N='RelativePath';E={Normalize-Path ($_.FullName.Replace($resolvedSourcePath.Path, '').TrimStart('\', '/'))}},
                   @{N='FileName';E={$_.BaseName}},
                   @{N='Extension';E={$_.Extension}},
                   @{N='Directory';E={Normalize-Path ($_.DirectoryName.Replace($resolvedSourcePath.Path, '').TrimStart('\', '/'))}}
 
-Write-Host "Found $($files.Count) page files"
+# Filter out files in excluded directories
+$files = $allFiles | Where-Object { -not (Test-ExcludedPath $_.RelativePath) }
+
+Write-Host "Found $($allFiles.Count) total files, $($files.Count) after excluding components directories"
 
 # Build hierarchical structure with multi-platform support
 $modules = @()
