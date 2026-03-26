@@ -50,7 +50,7 @@ Worker Agent (speccrew-task-worker)
 | | | | Tauri | `tauri.conf.json`, `src-tauri/` directory |
 | | | | Qt | `.pro`, `.qml`, `CMakeLists.txt` with Qt references |
 
-> **Reference**: For complete platform type and subtype values, see `speccrew-workspace/docs/configs/platform-mapping.json`
+> **Reference**: For complete platform type and subtype values, see `speccrew-workspace/docs/configs/platform-mapping.json` 
 
 **Decision - Branch to Appropriate Analysis Flow:**
 
