@@ -409,7 +409,7 @@ Platform: Mobile App (mobile-flutter)
 
 **Platform Filter**: Only execute for frontend platforms (platformType = web, mobile, desktop). Backend platforms skip this stage.
 
-**Skip Condition**: If `speccrew-workspace/knowledges/techs/{platform_id}/` directory does not exist (techs knowledge base not initialized), skip that platform and log a warning.
+**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`knowledges/techs/{platform_id}/ui-style/`) if it does not exist. No pre-check required.
 
 **Action**:
 - Read all `features-{platform}.json` files
@@ -514,7 +514,7 @@ Expected Worker Return: `{ "status": "success|failed", "output_file": "system-ov
 | Stage 2 | Single Worker fails | Mark feature as `failed`, continue other Workers | No auto-retry |
 | Stage 2 | Failure rate > 50% | Abort pipeline, report all failures | — |
 | Stage 3 | Single Worker fails | Skip that module, continue others | Retry once |
-| Stage 3.5 | Continue pipeline even if pattern extraction fails; report warning. Techs directory not found → skip with warning | — | — |
+| Stage 3.5 | Continue pipeline even if pattern extraction fails; report warning | — | — |
 | Stage 4 | Worker fails | Abort, preserve all generated content | Retry once |
 
 **Failure rate calculation** (Stage 2): `failed_count / total_features`. Evaluated after all Workers complete.

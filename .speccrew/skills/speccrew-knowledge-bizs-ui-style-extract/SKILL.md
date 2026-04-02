@@ -36,7 +36,7 @@ Worker Agent (speccrew-task-worker)
 | `platform_type` | Platform type (web, mobile, desktop), only execute for frontend platforms | Yes |
 | `feature_docs_path` | Completed feature documents base path, e.g., `speccrew-workspace/knowledges/bizs/{platform-type}/{module}/features/` | Yes |
 | `features_manifest_path` | Path to features-{platform}.json, used to get completed feature list | Yes |
-| `module_overviews_path` | Base path where module-overview.md files are located | Yes |
+| `module_overviews_path` | **Parent directory** containing all module overview subdirectories. Example: `knowledges/bizs/web-vue/` (this directory contains `system/system-overview.md`, `user/user-overview.md`, etc.). **NOT** a specific module directory like `knowledges/bizs/web-vue/system/`. | Yes |
 | `output_path` | Output directory, e.g., `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/` | Yes |
 | `language` | User language code | Yes |
 
@@ -148,9 +148,11 @@ graph TB
 | Layout Patterns | sidebar-content, topbar-sidebar-content, full-screen |
 
 **Pattern Recognition Criteria**:
-- **Frequency**: Pattern appears in 2+ features across different modules
+- **Frequency**: Pattern appears in 2+ features (stronger signal if across different modules)
 - **Similarity**: Structural similarity in ASCII wireframes
 - **Semantic alignment**: Similar business purpose and interaction flow
+
+> **Note**: Cross-module occurrence is a strong signal but not required. Patterns appearing in multiple features within a single module are also valid for extraction.
 
 ---
 
@@ -200,7 +202,7 @@ graph TB
 1. **Pattern Quality**:
    - Each pattern must have clear applicable scenarios
    - Generalized ASCII wireframe (not feature-specific)
-   - At least 2 instance references from different modules
+   - At least 2 instance references (from same or different modules)
 
 2. **Template Compliance**:
    - All sections from template must be filled

@@ -107,7 +107,7 @@ function main() {
             commandArgs = [graphWriteScript, '--action', action, '--module', module, '--file', tempFile, '--graphRoot', graphRootPath];
         }
 
-        execFileSync(command, commandArgs, { stdio: ['pipe', 'pipe', 'inherit'] });
+        execFileSync(command, commandArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
     }
 
     // Helper: Update feature status using update-feature-status.js
@@ -130,7 +130,7 @@ function main() {
             commandArgs.push('--analysisNotes', analysisNotes);
         }
 
-        execFileSync('node', commandArgs, { stdio: ['pipe', 'pipe', 'inherit'] });
+        execFileSync('node', commandArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
     }
 
     // ── Step 1: Process .done files and update status ────────────────────────────
@@ -371,7 +371,7 @@ function main() {
                 commandArgs = [graphWriteScript, '--action', 'update-meta', '--graphRoot', graphRoot];
             }
 
-            execFileSync(command, commandArgs, { stdio: ['pipe', 'pipe', 'inherit'] });
+            execFileSync(command, commandArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
         } catch (error) {
             const errorMsg = `Failed to update metadata: ${error.message}`;
             console.warn(errorMsg);
