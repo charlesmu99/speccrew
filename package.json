@@ -1,0 +1,19 @@
+{
+  "name": "speccrew",
+  "version": "0.1.0",
+  "description": "Spec-Driven Development toolkit for AI-powered IDEs",
+  "bin": {
+    "speccrew": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    ".speccrew/",
+    "workspace-template/"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["ai", "ide", "agent", "skill", "sdd"],
+  "license": "Apache-2.0"
+}

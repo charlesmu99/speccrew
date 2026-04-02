@@ -40,6 +40,21 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+### Prerequisites
+
+Before starting, verify:
+
+- **Module overviews completed**: `modules_path` contains subdirectories for each platform_type, with module directories containing completed `*-overview.md` files (from Stage 3: module-summarize)
+- **Output location**: `system-overview.md` will be created at `output_path/system-overview.md`
+- **If no modules found**: Proceed with skeleton generation (see Edge Cases)
+
+### Edge Cases
+
+- **Empty modules directory**: If no `*-overview.md` files found, generate a skeleton system-overview.md with empty statistics and return `status: "warning"`.
+- **Incomplete module overviews**: If a module-overview.md only has Section 1-2 (initial version), use available data and note gaps with `<!-- DATA INCOMPLETE -->`.
+- **Same module name from different platforms**: Treat as separate modules. Use `{module_name} ({platform_type})` for display and `{module_name}_{platform_type}` as internal ID.
+- **Missing timestamp service**: If `speccrew-get-timestamp` is unavailable, use system current time as fallback.
+
 ```mermaid
 flowchart TD
     Start([Start]) --> Step0[Step 0: Read System Overview Template]
@@ -70,27 +85,62 @@ Before processing, read the template file to understand the required content str
 
 ### Step 1: Discover All Modules
 
-Find all `{{modules_path}}/{{module_name}}/{{module_name}}-overview.md` files.
+Find all `*-overview.md` files recursively under `modules_path`, including nested platform_type directories:
 
-Extract module list:
 ```
-order/
-  └── order-overview.md
-payment/
-  └── payment-overview.md
-inventory/
-  └── inventory-overview.md
+modules_path/
+├── platform_type_1/
+│   ├── module_1/
+│   │   └── module_1-overview.md
+│   └── module_2/
+│       └── module_2-overview.md
+└── platform_type_2/
+    └── module_3/
+        └── module_3-overview.md
 ```
+
+**Example** (bizs knowledge):
+```
+knowledges/bizs/
+├── web-vue/
+│   ├── order/order-overview.md
+│   └── payment/payment-overview.md
+└── backend-java/
+    ├── order/order-overview.md
+    └── user/user-overview.md
+```
+
+Use recursive glob: `**/*-overview.md`
+Extract `platform_type` from the path structure for each discovered module.
 
 ### Step 2: Read All Module Overviews
 
-Read each {{module_name}}-overview.md and extract:
+For each discovered `*-overview.md`, extract:
 - Module name and purpose
 - Business domain
-- Entity list
-- Dependencies (internal and external)
-- Feature count
-- API count
+- Platform type (from path: web-vue, backend-java, etc.)
+- Entity list (backend: DB entities; frontend: State/Props)
+- Dependencies (internal modules and external systems)
+- Feature count and API/Interface count
+
+**Multi-Tech Stack Aggregation Rules:**
+
+1. **Same-name modules from different platforms**: Treat as SEPARATE entries
+   - Display as: `order (web-vue)`, `order (backend-java)` in Module Quick Index
+   - Keep separate in all aggregations
+
+2. **Cross-platform dependencies**:
+   - web-vue/order may consume backend-java/order API
+   - backend-java/order may depend on backend-java/payment
+   - Show cross-platform dependencies clearly in Section 4
+
+3. **Entity aggregation**:
+   - Backend entities (DB tables, DTOs) and Frontend entities (Store State, Component Props) listed separately with platform annotation
+
+4. **Statistics**:
+   - Total modules = COUNT of all *-overview.md files
+   - Total entities = SUM across all modules
+   - Total APIs = SUM of backend APIs + frontend interfaces
 
 ### Step 3: Build Module Index
 
@@ -103,25 +153,35 @@ Create module index table:
 
 ### Step 4: Build Dependency Graph
 
-Aggregate dependencies from all modules:
+**Extraction Rules:**
+1. Read Section 4 (Dependencies) from each module-overview.md
+2. Classify dependencies:
+   - **Internal**: Module-to-module dependencies within the system
+   - **External**: Third-party systems/services (Payment Gateway, ERP, etc.)
 
-```
-ORDER depends on: USER, INVENTORY, PAYMENT
-PAYMENT depends on: ORDER, THIRD-PAYMENT-API
-INVENTORY depends on: PRODUCT
-```
+3. **Internal dependencies** → Build directed graph:
+   - Node: module name (with platform_type annotation if multiple platforms)
+   - Edge: A → B means A depends on B
+   - Include cross-platform dependencies (e.g., web-vue/order → backend-java/order)
 
-Generate Mermaid dependency diagram (see [Mermaid Diagram Guide](#mermaid-diagram-guide)).
+4. **External dependencies** → Collect separately for Section 4: System Boundaries
+
+**Generate Mermaid dependency diagram:**
+- Show internal module dependencies only
+- Use `graph LR` for layout
+- Annotate platform_type if multiple platforms involved
 
 ### Step 5: Identify Business Domains
 
-Group modules by business domain:
+1. Read "Business Domain" field from each module-overview.md
+2. Collect unique domain names
+3. Group modules by domain (with platform_type):
+   
+   Example:
+   - Sales domain: web-vue/order, backend-java/order, backend-java/promotion
+   - User Management: web-vue/user, backend-java/user
 
-| Domain | Modules | Description |
-|--------|---------|-------------|
-| Sales | ORDER, PROMOTION | Sales-related modules |
-| Finance | PAYMENT, INVOICE | Financial modules |
-| Logistics | INVENTORY, SHIPPING | Logistics modules |
+4. Generate domain-based Mermaid diagram with domains as subgraphs
 
 ### Step 6: Identify End-to-End Flows
 
@@ -147,11 +207,16 @@ Create flow-module mapping matrix:
 ### Step 7: Generate system-overview.md
 
 1. **Read Configuration**:
-   - Read `speccrew-workspace/docs/configs/document-templates.json` - Get template structure and placeholder requirements
-   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
+   - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` → system tech stacks and display names
+   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` → Mermaid diagram guidelines
 
-2. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
+2. **Determine Technology Stack**:
+   - Extract platform types from discovered module paths
+   - Map platform_type to display name via tech-stack-mappings.json
+   - Example: `web-vue` → `Vue 3 + TypeScript`; `backend-java` → `Java 17 + Spring Boot`
+
+3. **Get Timestamp**:
+   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no parameters needed, uses default format `YYYY-MM-DD-HHmmss`, returns timestamp string e.g. `2026-03-17-132645`)
    - Use the returned timestamp as generation timestamp in document
 
 3. **Use template `templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections**:
@@ -188,31 +253,7 @@ Create flow-module mapping matrix:
 - Reference to `speccrew-pm-requirement-assess` skill
 - Quick location guide (which section to reference)
 
-**Source Traceability:**
-
-Aggregate source file references from all module overview documents:
-
-1. **File Reference Block** (at document start):
-```markdown
-<cite>
-**Referenced Files**
-- Aggregated from all module overview documents
-- [OrderController.java](file://path/to/controller)
-- [PaymentController.java](file://path/to/controller)
-</cite>
-```
-
-2. **Diagram Source** (after each Mermaid diagram):
-```markdown
-**Diagram Source**
-- Aggregated from: order-overview.md, payment-overview.md
-```
-
-3. **Section Source** (at end of document):
-```markdown
-**Section Source**
-- Aggregated from all module overview documents
-```
+Apply source traceability rules (see [Reference Guides > Source Traceability Guide](#source-traceability-guide))
 
 ### Step 8: Report Results
 
@@ -251,6 +292,46 @@ When generating Mermaid diagrams, follow these compatibility guidelines:
 | `classDiagram` | Class structure, entity relationships | Data model, service interface |
 | `erDiagram` | Database table relationships | Entity relationship diagram |
 | `stateDiagram-v2` | State machine | Order status, approval status |
+
+### Source Traceability Guide
+
+Aggregate source file references from all module overview documents:
+
+> **Note**: Use relative paths from the generated document to the source file. Do NOT use `file://` protocol.
+
+1. **File Reference Block** (at document start):
+```markdown
+<cite>
+**Referenced Files**
+- Aggregated from all module overview documents
+- [OrderController.java](path/to/source/OrderController.java)
+- [PaymentController.java](path/to/source/PaymentController.java)
+</cite>
+```
+
+2. **Diagram Source** (after each Mermaid diagram):
+```markdown
+**Diagram Source**
+- Aggregated from: order-overview.md, payment-overview.md
+```
+
+3. **Section Source** (at end of document):
+```markdown
+**Section Source**
+- Aggregated from all module overview documents
+```
+
+## Return
+
+**Return Value (JSON format):**
+
+```json
+{
+  "status": "success|failed",
+  "output_file": "system-overview.md",
+  "message": "System summarization completed with N modules processed"
+}
+```
 
 ---
 

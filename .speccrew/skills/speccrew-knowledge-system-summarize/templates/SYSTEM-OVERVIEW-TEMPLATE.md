@@ -10,7 +10,8 @@
 <cite>
 **Referenced Files**
 - Aggregated from all module overview documents
-- [{Module}Controller.java](file://path/to/controller)
+- [{Module} Entry Point](../../{sourcePath}/{moduleEntryFile})
+  <!-- Examples: Java Backend: OrderController.java, Vue Frontend: OrderView.vue, React Frontend: OrderPage.tsx -->
 </cite>
 
 ---
@@ -30,12 +31,15 @@
 | API Interfaces | {{ApiCount}} |
 | Business Processes | {{FlowCount}} |
 
+> **Note**: Data Entities include Backend Entities/Models and Frontend Types/Interfaces; API Interfaces include Backend REST APIs and Frontend Component Props/Events
+
 ### Module Quick Index
 
-| Module Name | Business Domain | Module Responsibility | Entity Count | API Count | Detailed Document |
-|-------------|-----------------|----------------------|--------------|-----------|-------------------|
+| Module Name | Platform | Business Domain | Module Responsibility | Entity Count | API/Interface Count | Detailed Document |
+|---|---|---|---|---|---|---|
+| *{module_name}* | *{platform_type}* | *{domain}* | *{description}* | *{count}* | *{count}* | [{module_name}-overview.md]({platform_type}/{module_name}/{module_name}-overview.md) |
 {{#each modules}}
-| {{name}} | {{domain}} | {{description}} | {{entityCount}} | {{apiCount}} | [View]({{name}}/{{name}}-overview.md) |
+| {{name}} | {{platform}} | {{domain}} | {{description}} | {{entityCount}} | {{apiCount}} | [{{name}}-overview.md]({{platform}}/{{name}}/{{name}}-overview.md) |
 {{/each}}
 
 ---
@@ -161,11 +165,12 @@ graph LR
 
 ### 2.3 Module List Index
 
-| Module Name | Business Domain | Module Responsibility | Detailed Document | Status |
-|-------------|-----------------|----------------------|-------------------|--------|
-| {Module A1} | {Domain A} | {One sentence responsibility} | [Link](module-A1.md) | ✅ Released |
-| {Module A2} | {Domain A} | {One sentence responsibility} | [Link](module-A2.md) | 🚧 In Development |
-| {Module B1} | {Domain B} | {One sentence responsibility} | [Link](module-B1.md) | ✅ Released |
+| Module Name | Platform | Business Domain | Module Responsibility | Detailed Document | Status |
+|---|---|---|---|---|---|
+| *{Module A1}* | *{backend/frontend}* | *{Domain A}* | *{One sentence responsibility}* | *[Link]({platform}/module-A1/module-A1-overview.md)* | ✅ Released |
+| {Module A1} | Java/Spring | {Domain A} | {One sentence responsibility} | [Link](backend/module-A1/module-A1-overview.md) | ✅ Released |
+| {Module A2} | Vue/React | {Domain A} | {One sentence responsibility} | [Link](frontend/module-A2/module-A2-overview.md) | 🚧 In Development |
+| {Module B1} | Java/Spring | {Domain B} | {One sentence responsibility} | [Link](backend/module-B1/module-B1-overview.md) | ✅ Released |
 
 ---
 

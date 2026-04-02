@@ -38,7 +38,8 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 | `speccrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create speccrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
 | `speccrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
 | `speccrew-workflow-diagnose` | "workflow stuck", "diagnose problem", "AI engineering workflow issue" | Analyze issues in AI engineering workflow and provide solutions |
-| `speccrew-knowledge-dispatch` | "initialize knowledge base", "onboard project", "sync knowledge base", "dispatch knowledge tasks" | Dispatch **both bizs and techs** knowledge base tasks to Worker Agents for parallel execution |
+| `speccrew-knowledge-bizs-dispatch` | "initialize bizs knowledge base", "generate business knowledge", "dispatch bizs knowledge tasks" | Dispatch **bizs** knowledge base generation with 4-stage pipeline (Feature Inventory → Feature Analysis → Module Summarize → System Summary) |
+| `speccrew-knowledge-techs-dispatch` | "initialize techs knowledge base", "generate tech knowledge", "dispatch techs knowledge tasks" | Dispatch **techs** knowledge base generation with 3-stage pipeline (Platform Detection → Tech Doc Generation → Root Index) |
 
 # Workflow
 
@@ -51,7 +52,8 @@ Match user input to corresponding Skill:
 - **Workspace structure creation related** → Invoke `speccrew-create-workspace`
 - **Skill development related** → Invoke `speccrew-skill-develop`
 - **Workflow diagnosis related** → Invoke `speccrew-workflow-diagnose`
-- **Knowledge base initialization/sync related** → Invoke `speccrew-knowledge-dispatch`
+- **Bizs knowledge base related** → Invoke `speccrew-knowledge-bizs-dispatch`
+- **Techs knowledge base related** → Invoke `speccrew-knowledge-techs-dispatch`
 
 ## 2. Invoke Corresponding Skill
 

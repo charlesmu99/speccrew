@@ -1,6 +1,6 @@
 # Module Overview Document - [Module Name]
 
-> **Applicable Scenario**: Describes a single business module's responsibility boundaries, feature list, entity relationships, and external dependencies, for AI Agent to understand module details
+> **Applicable Scenario**: Describes a single business module's responsibility boundaries, feature list, entity relationships, and external dependencies, for AI Agent to understand module details. This is a **generic template** applicable to all tech stacks (Java/Spring Boot, FastAPI, .NET, etc.). Use tech-stack-specific terminology when filling.
 > **Target Audience**: devcrew-product-manager, devcrew-solution-manager, devcrew-developer
 > **Related Document**: [System Overview Document](../system-overview.md)
 > 
@@ -9,9 +9,9 @@
 
 <cite>
 **Referenced Files**
-- [{EntryPoint}](../../{sourcePath}/{entryPointFile})    <!-- Backend: Controller/View/Router; Frontend: Page/View component -->
-- [{BusinessLogic}](../../{sourcePath}/{businessLogicFile})  <!-- Backend: Service; Frontend: Store/Composable/Hook -->
-- [{DataModel}](../../{sourcePath}/{dataModelFile})      <!-- Backend: Entity/Model; Frontend: Type/Interface definition -->
+- **API Handler**: [{Handler}.{ext}](../../{handlerSourcePath}) - *e.g., Controller (Java/.NET) or Router (FastAPI)*
+- **Service Layer**: [{Service}.{ext}](../../{serviceSourcePath}) - *Business logic layer*
+- **Data Model**: [{Model}.{ext}](../../{modelSourcePath}) - *e.g., Entity (Java/.NET) or Model (FastAPI)*
 </cite>
 
 ---
@@ -66,7 +66,7 @@ graph TB
 ```
 
 **Diagram Source**
-- [{Module} Entry Point](../../{sourcePath}/{moduleEntryFile})
+- [{Module}Handler.{ext}](../../{handlerSourcePath}) - *Controller (Java/.NET) or Router (FastAPI)*
 
 **Boundary Description:**
 | Type | Content | Description |
@@ -118,14 +118,11 @@ mindmap
 
 ### 3.1 Core Entity List
 
-| Entity Name | Type | Description | Key Attributes | Business Rules |
-|---|---|---|---|---|
-| *{Entity1}* | *Data Entity / State Object* | *{description}* | *{key fields}* | *{constraints}* |
-
-<!-- 
-Backend examples: Order (DB Entity), OrderDTO (Data Transfer Object)
-Frontend examples: OrderState (Store State), OrderFormProps (Component Interface)
--->
+| Entity Name | Entity Description | Key Attributes | Business Rules |
+|-------------|-------------------|----------------|----------------|
+| {Entity A} | {e.g., Order Master Table} | {Order No, Amount, Status} | {Uniqueness, status flow rules} |
+| {Entity B} | {e.g., Order Detail} | {Product, Quantity, Unit Price} | {Associated with order, cascade delete} |
+| {Entity C} | {e.g., Order Log} | {Operator, Time, Content} | {Append-only, retention period} |
 
 ### 3.2 Entity Relationship Diagram
 
@@ -172,28 +169,6 @@ erDiagram
     ENTITY_A ||--o{ ENTITY_C : "1:N"
     ENTITY_A ||--o{ ENTITY_D : "1:N"
 ```
-
-<!-- For frontend modules, replace ER diagram with State Relationship diagram:
-```mermaid
-classDiagram
-    class OrderState {
-        +Order[] orders
-        +Order selectedOrder
-        +boolean loading
-        +string error
-        +fetchOrders()
-        +selectOrder(id)
-    }
-    class OrderFormState {
-        +Order formData
-        +boolean isDirty
-        +Object errors
-        +validate()
-        +submit()
-    }
-    OrderState --> OrderFormState : provides selectedOrder
-```
--->
 
 ### 3.3 Entity State Transition
 
@@ -251,14 +226,10 @@ stateDiagram-v2
 
 ### 4.2 External Interfaces Provided
 
-| Interface Name | Type | Caller/Consumer | Description |
-|---|---|---|---|
-| *{Interface1}* | *API / Component / Hook / Event* | *{caller}* | *{description}* |
-
-<!-- 
-Backend examples: GET /api/orders (REST API), OrderCreatedEvent (Message)
-Frontend examples: <OrderDetail :order="order" /> (Component Props), useOrder(id) (Hook/Composable), emit('save', order) (Event)
--->
+| Interface Name | Interface Type | Caller | Function Description | Key Input | Key Output |
+|----------------|----------------|--------|---------------------|-----------|------------|
+| {Query Order} | {API} | {Payment Module} | {Query order by ID} | {Order ID} | {Order details} |
+| {Order Status Change} | {Message} | {Logistics Module} | {Status change notification} | {Order ID, New Status} | {Processing result} |
 
 ### 4.3 Dependent Module Interfaces
 
@@ -279,7 +250,7 @@ Frontend examples: <OrderDetail :order="order" /> (Component Props), useOrder(id
 **Process: {Create Order Process}**
 
 ```mermaid
-flowchart TD
+graph TB
     Start([Start]) --> Validate[Validate Parameters]
     
     Validate -->|Passed| Calculate[Calculate Amount]
@@ -300,7 +271,7 @@ flowchart TD
 ```
 
 **Diagram Source**
-- [{Module} Business Logic](../../{sourcePath}/{moduleLogicFile})
+- [{Module}Service.{ext}](../../{serviceSourcePath})
 
 **Process Step Description:**
 
@@ -310,12 +281,6 @@ flowchart TD
 | 2 | {Amount Calculation} | {Calculate product amount, discount, shipping} | {Product info} | {Order amount} | {Calculation exception} |
 | 3 | {Save Order} | {Write to order master and detail tables} | {Order data} | {Order ID} | {Database exception} |
 | 4 | {Notify Downstream} | {Send order creation message} | {Order ID} | {Send result} | {Log only, no retry} |
-
-<!-- For frontend modules, core processes typically include:
-1. Data Loading Flow: Component mount → Fetch data → Loading state → Render
-2. User Interaction Flow: User action → Validate → API call → Update state → Feedback
-3. Navigation Flow: Route change → Guard check → Load page data → Render
--->
 
 ### 5.2 Exception Handling Rules
 
@@ -349,16 +314,16 @@ flowchart TD
 
 ### 6.3 Permission Rules
 
-| Operation / Component | Required Permission | No Permission Handling |
-|---|---|---|
-| *{operation or component}* | *{permission}* | *{handling}* |
+| Operation | Permission Requirement | No Permission Handling |
+|-----------|----------------------|----------------------|
+| {Create Order} | {Have order creation permission} | {Hide create button / Return 403} |
+| {Review Order} | {Have order review permission} | {Hide review button / Return 403} |
+| {View All Orders} | {Have data permission: all} | {Can only view self-created} |
 
-<!-- 
-Backend: Create Order → order:create → Return 403
-Frontend: /orders/create route → order:create → Redirect to 403 page
-Frontend: <CreateButton /> → order:create → Hide component
-Frontend: Price field in OrderForm → order:edit_price → Readonly
--->
+> **Note**: Permission implementation varies by tech stack:
+> - **Java**: `@PreAuthorize`, `@Secured` annotations
+> - **FastAPI**: `Depends(get_current_user)`, role checking in dependencies
+> - **.NET**: `[Authorize(Roles = "...")]` attributes
 
 ---
 
@@ -374,7 +339,10 @@ Frontend: Price field in OrderForm → order:edit_price → Readonly
 
 ### 7.2 Page Prototype
 
-> For detailed page prototypes, please refer to [Feature Detail Design Template](./FEATURE-DETAIL-TEMPLATE.md)
+> For detailed API endpoint documentation, select the appropriate template based on tech stack:
+> - **Java/Spring Boot**: [FEATURE-DETAIL-TEMPLATE.md](./FEATURE-DETAIL-TEMPLATE.md) or [FEATURE-DETAIL-TEMPLATE-JAVA.md](./FEATURE-DETAIL-TEMPLATE-JAVA.md)
+> - **FastAPI**: [FEATURE-DETAIL-TEMPLATE-FASTAPI.md](./FEATURE-DETAIL-TEMPLATE-FASTAPI.md)
+> - **.NET**: [FEATURE-DETAIL-TEMPLATE-NET.md](./FEATURE-DETAIL-TEMPLATE-NET.md)
 
 ---
 
@@ -394,6 +362,6 @@ Frontend: Price field in OrderForm → order:edit_price → Readonly
 **Related System Document:** [System Overview Document](../system-overview.md)
 
 **Section Source**
-- [{Module} Entry](../../{sourcePath}/{moduleEntryFile})
-- [{Module} Logic](../../{sourcePath}/{moduleLogicFile})
-- [{Module} Model](../../{sourcePath}/{moduleModelFile})
+- **API Handler**: [{Module}Handler.{ext}](../../{handlerSourcePath}) - *Controller or Router*
+- **Service Layer**: [{Module}Service.{ext}](../../{serviceSourcePath})
+- **Data Model**: [{Module}Model.{ext}](../../{modelSourcePath}) - *Entity or Model*

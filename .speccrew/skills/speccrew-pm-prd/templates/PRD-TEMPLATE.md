@@ -28,16 +28,16 @@
 ### 3.1 Use Case Diagram
 
 ```mermaid
-graph TB
-    %% Actor definitions
-    U[User Role]
-    A[Admin Role]
+flowchart TB
+    %% Actor definitions (stadium shape represents actors)
+    U([🧑 User])
+    A([🧑 Admin])
     
     %% Use case nodes
-    UC1[Core Feature 1]
-    UC2[Core Feature 2]
-    UC3[Core Feature 3]
-    UC4[Management Feature]
+    UC1(Core Feature 1)
+    UC2(Core Feature 2)
+    UC3(Core Feature 3)
+    UC4(Management Feature)
     
     %% Relationships
     U --> UC1

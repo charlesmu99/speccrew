@@ -1,0 +1,34 @@
+{
+  "platformName": "Web Frontend",
+  "platformType": "web",
+  "platformSubtype": "vue",
+  "sourcePath": "frontend-web/src/views",
+  "techStack": ["vue", "typescript"],
+  "modules": ["system"],
+  "totalFiles": 25,
+  "analyzedCount": 0,
+  "pendingCount": 25,
+  "generatedAt": "2024-01-15-103000",
+  "features": [
+    {
+      "fileName": "index",
+      "sourcePath": "frontend-web/src/views/system/user/index.vue",
+      "documentPath": "speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md",
+      "module": "system",
+      "analyzed": false,
+      "startedAt": null,
+      "completedAt": null,
+      "analysisNotes": null
+    },
+    {
+      "fileName": "UserForm",
+      "sourcePath": "frontend-web/src/views/system/user/UserForm.vue",
+      "documentPath": "speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/UserForm.md",
+      "module": "system",
+      "analyzed": false,
+      "startedAt": null,
+      "completedAt": null,
+      "analysisNotes": null
+    }
+  ]
+}
