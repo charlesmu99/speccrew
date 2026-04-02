@@ -421,7 +421,7 @@ Platform: Mobile App (mobile-flutter)
   - `platform_type`: Platform type
   - `feature_docs_path`: Feature document base path for that platform
   - `features_manifest_path`: Path to the corresponding `features-{platform}.json`
-  - `module_overviews_path`: Module overview file path for that platform
+  - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
   - `output_path`: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/`
   - `language`: User's language
 
