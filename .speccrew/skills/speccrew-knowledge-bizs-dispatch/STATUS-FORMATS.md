@@ -23,7 +23,8 @@ Feature analysis status is tracked directly in `features-{platform}.json` files 
   "status": "pending | in_progress | completed | failed",
   "startedAt": "ISO timestamp (optional)",
   "completedAt": "ISO timestamp (optional)",
-  "error": "string (optional, when status=failed)"
+  "error": "string (optional, when status=failed)",
+  "analysisNotes": "string (optional, notes from analysis; may contain [WARN: document missing] if document was not generated)"
 }
 ```
 
@@ -70,3 +71,4 @@ Module summarization status is determined by aggregating feature statuses from `
 | `features[].startedAt` | string | ISO timestamp when analysis started |
 | `features[].completedAt` | string | ISO timestamp when analysis completed |
 | `features[].error` | string | Error message when status is `failed` |
+| `features[].analysisNotes` | string | Analysis notes from Worker; contains `[WARN: document missing at {path}]` if document was expected but not found |

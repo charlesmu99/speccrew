@@ -236,7 +236,30 @@ function main() {
       }
     }
 
-    const featureId = `${moduleName}-${file.fileName}`;
+    // 使用目录路径构建唯一 ID，避免同名文件碰撞
+    // 例: mail/account/index.vue → mail-account-index
+    // 例: mail/template/index.vue → mail-template-index
+    // 例: dict/index.vue → dict-index (无嵌套时保持兼容)
+    let dirSegments = file.directory
+      ? file.directory.replace(/[\/\\]/g, '-').replace(/^-+|-+$/g, '').replace(/-+/g, '-')
+      : '';
+
+    // 顶层文件（directory = "."）不应引入 "."
+    if (dirSegments === '.' || dirSegments === './') {
+      dirSegments = '';
+    }
+
+    // 如果 dirSegments 已包含 moduleName 前缀，去除避免重复
+    // 例: directory='mail/account', moduleName='mail' → dirSegments='account'
+    if (moduleName && dirSegments.startsWith(moduleName + '-')) {
+      dirSegments = dirSegments.slice(moduleName.length + 1);
+    } else if (moduleName && dirSegments === moduleName) {
+      dirSegments = '';
+    }
+
+    const featureId = dirSegments
+      ? `${moduleName}-${dirSegments}-${file.fileName}`
+      : `${moduleName}-${file.fileName}`;
     const feature = {
       id: featureId,
       fileName: file.fileName,

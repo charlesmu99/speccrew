@@ -11,13 +11,171 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
+// Helper: Validate and normalize .done file content
+function validateAndNormalizeDoneContent(content, doneFile) {
+    // Strip file extensions from fileName if present
+    if (content.fileName && /\.\w+$/.test(content.fileName)) {
+        const original = content.fileName;
+        content.fileName = content.fileName.replace(/\.\w+$/, '');
+        console.warn(`[WARN] .done file ${doneFile}: stripped extension from fileName "${original}" → "${content.fileName}"`);
+    }
+
+    // Validate required fields
+    if (!content.fileName) {
+        throw new Error(`Missing required field "fileName" in ${doneFile}`);
+    }
+    if (!content.sourceFile) {
+        throw new Error(`Missing required field "sourceFile" in ${doneFile}`);
+    }
+
+    // Validate sourcePath format if present
+    if (content.sourcePath && typeof content.sourcePath !== 'string') {
+        console.warn(`[WARN] .done file ${doneFile}: invalid sourcePath type, converting to string`);
+        content.sourcePath = String(content.sourcePath);
+    }
+
+    return content;
+}
+
+// Helper: Get project root directory (traverse upward to find speccrew-workspace or .git)
+function getProjectRoot(startPath) {
+    let currentDir = path.resolve(startPath);
+    while (currentDir !== path.dirname(currentDir)) {
+        // Check for common project root markers
+        if (fs.existsSync(path.join(currentDir, 'speccrew-workspace')) ||
+            fs.existsSync(path.join(currentDir, '.git'))) {
+            return currentDir;
+        }
+        currentDir = path.dirname(currentDir);
+    }
+    // Fallback: return the parent of syncStatePath
+    return path.dirname(path.resolve(startPath));
+}
+
+// Helper: Find feature document path from features-{platform}.json
+function findFeatureDocumentPath(syncStatePath, sourceFile, fileName, featureSourcePath) {
+    try {
+        // Read the source features JSON file
+        const sourceFilePath = path.join(syncStatePath, sourceFile);
+        if (!fs.existsSync(sourceFilePath)) {
+            return null;
+        }
+
+        const content = JSON.parse(fs.readFileSync(sourceFilePath, 'utf8'));
+        if (!content.features || !Array.isArray(content.features)) {
+            return null;
+        }
+
+        // Find matching feature by fileName and sourcePath
+        const feature = content.features.find(f => {
+            const nameMatch = f.fileName === fileName;
+            const pathMatch = featureSourcePath ? f.sourcePath === featureSourcePath : true;
+            return nameMatch && pathMatch;
+        });
+
+        return feature ? feature.documentPath : null;
+    } catch (error) {
+        console.warn(`[WARN] Failed to find document path for ${fileName}: ${error.message}`);
+        return null;
+    }
+}
+
+// Helper: Check if document exists for a feature
+function checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourcePath) {
+    const documentPath = findFeatureDocumentPath(syncStatePath, sourceFile, fileName, featureSourcePath);
+    if (!documentPath) {
+        return { exists: false, path: null };
+    }
+
+    const projectRoot = getProjectRoot(syncStatePath);
+    // Extract platform from sourceFile (features-{platform}.json)
+    const platform = sourceFile.replace('features-', '').replace('.json', '');
+    // Build correct base path: speccrew-workspace/knowledges/bizs/{platform}/
+    const bizsBasePath = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'bizs', platform);
+    const fullPath = path.join(bizsBasePath, documentPath);
+    return { exists: fs.existsSync(fullPath), path: documentPath };
+}
+
+// Validate document existence for all analyzed features
+function validateDocumentExistence(syncStatePath) {
+    console.log('=== Document Existence Validation ===');
+
+    const syncStateDir = path.resolve(syncStatePath);
+    if (!fs.existsSync(syncStateDir)) {
+        console.error(`SyncStatePath not found: ${syncStatePath}`);
+        process.exit(1);
+    }
+
+    // Find all features-{platform}.json files
+    const files = fs.readdirSync(syncStateDir).filter(f => f.startsWith('features-') && f.endsWith('.json'));
+
+    let totalAnalyzed = 0;
+    let missingDocs = 0;
+    const missingList = [];
+
+    for (const file of files) {
+        const filePath = path.join(syncStateDir, file);
+        try {
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            if (!content.features || !Array.isArray(content.features)) {
+                continue;
+            }
+
+            // Extract platform from filename (features-{platform}.json)
+            const platform = file.replace('features-', '').replace('.json', '');
+            const projectRoot = getProjectRoot(syncStatePath);
+            // Build correct base path: speccrew-workspace/knowledges/bizs/{platform}/
+            const bizsBasePath = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'bizs', platform);
+
+            for (const feature of content.features) {
+                if (feature.analyzed === true || feature.analyzed === 'true') {
+                    totalAnalyzed++;
+
+                    const docPath = feature.documentPath;
+                    // Join with correct bizs base path instead of project root
+                    const fullPath = docPath ? path.join(bizsBasePath, docPath) : null;
+
+                    if (!docPath || !fs.existsSync(fullPath)) {
+                        missingDocs++;
+                        const missingInfo = {
+                            platform: platform,
+                            feature: feature.fileName || feature.id,
+                            documentPath: docPath || 'N/A'
+                        };
+                        missingList.push(missingInfo);
+                        console.warn(`[MISSING] ${missingInfo.platform}/${missingInfo.feature}: ${missingInfo.documentPath}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(`[WARN] Failed to process ${file}: ${error.message}`);
+        }
+    }
+
+    console.log('\n=== Validation Summary ===');
+    console.log(`Total analyzed features: ${totalAnalyzed}`);
+    console.log(`Missing documents: ${missingDocs}`);
+
+    if (missingList.length > 0) {
+        console.log('\nMissing documents list:');
+        for (const item of missingList) {
+            console.log(`  - ${item.platform}/${item.feature}: ${item.documentPath}`);
+        }
+        process.exit(1);
+    } else {
+        console.log('All analyzed features have corresponding documents.');
+        process.exit(0);
+    }
+}
+
 // Parse command line arguments
 function parseArgs() {
     const args = process.argv.slice(2);
     const result = {
         syncStatePath: null,
         graphRoot: null,
-        graphWriteScript: null
+        graphWriteScript: null,
+        validateDocs: false
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -35,6 +193,9 @@ function parseArgs() {
             case '-GraphWriteScript':
                 result.graphWriteScript = args[++i];
                 break;
+            case '--validateDocs':
+                result.validateDocs = true;
+                break;
         }
     }
 
@@ -43,6 +204,16 @@ function parseArgs() {
 
 function main() {
     const args = parseArgs();
+
+    // Handle --validateDocs mode: validate document existence and exit
+    if (args.validateDocs) {
+        if (!args.syncStatePath) {
+            console.error('Error: --syncStatePath is required for --validateDocs mode');
+            process.exit(1);
+        }
+        validateDocumentExistence(args.syncStatePath);
+        return;
+    }
 
     if (!args.syncStatePath || !args.graphRoot || !args.graphWriteScript) {
         console.error('Error: --syncStatePath, --graphRoot, and --graphWriteScript are required');
@@ -168,19 +339,30 @@ function main() {
                     console.warn(`Empty .done file detected: ${doneFile} - Worker may have failed to write content`);
                     continue;
                 }
-                const content = JSON.parse(rawContent);
+                let content = JSON.parse(rawContent);
+
+                // Validate and normalize content
+                content = validateAndNormalizeDoneContent(content, doneFile);
 
                 const fileName = content.fileName;
                 const featureSourcePath = content.sourcePath;
                 const sourceFile = content.sourceFile;
                 const module = content.module;
-                const analysisNotes = content.analysisNotes;
+                let analysisNotes = content.analysisNotes;
 
                 if (!fileName || !sourceFile) {
                     console.warn(`Invalid .done file format: ${doneFile}`);
                     console.warn(`  Expected fields: fileName (got: '${fileName}'), sourceFile (got: '${sourceFile}')`);
                     console.warn(`  File content preview: ${rawContent.substring(0, Math.min(200, rawContent.length))}`);
                     continue;
+                }
+
+                // Check if document exists before marking as analyzed
+                const docCheck = checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourcePath);
+                if (!docCheck.exists) {
+                    const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
+                    console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
+                    analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
                 }
 
                 // Build source file path (relative to SyncStatePath)
@@ -200,22 +382,34 @@ function main() {
                 // Try fallback parsing for non-JSON format
                 const fallbackContent = parseFallbackDone(rawContent, doneFile);
                 if (fallbackContent) {
-                    const fileName = fallbackContent.fileName;
-                    const featureSourcePath = fallbackContent.sourcePath;
-                    const sourceFile = fallbackContent.sourceFile;
-                    const analysisNotes = fallbackContent.analysisNotes;
+                    try {
+                        // Validate and normalize fallback content
+                        validateAndNormalizeDoneContent(fallbackContent, doneFile);
 
-                    if (fileName && sourceFile) {
-                        const sourceFilePath = path.join(syncStatePath, sourceFile);
-                        try {
+                        const fileName = fallbackContent.fileName;
+                        const featureSourcePath = fallbackContent.sourcePath;
+                        const sourceFile = fallbackContent.sourceFile;
+                        let analysisNotes = fallbackContent.analysisNotes;
+
+                        if (fileName && sourceFile) {
+                            const sourceFilePath = path.join(syncStatePath, sourceFile);
+
+                            // Check if document exists before marking as analyzed (fallback path)
+                            const docCheck = checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourcePath);
+                            if (!docCheck.exists) {
+                                const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
+                                console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
+                                analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
+                            }
+
                             updateFeatureStatus(sourceFilePath, fileName, featureSourcePath, 'true', true, analysisNotes);
                             processedCount++;
                             successfulDoneFiles.add(doneFile);
                             continue;
-                        } catch (fallbackError) {
-                            writeErrorContinue(`Failed to process .done file ${doneFile} (fallback): ${fallbackError.message}`);
-                            continue;
                         }
+                    } catch (fallbackError) {
+                        writeErrorContinue(`Failed to process .done file ${doneFile} (fallback): ${fallbackError.message}`);
+                        continue;
                     }
                 }
                 writeErrorContinue(`Failed to process .done file ${doneFile}: ${error.message}`);
