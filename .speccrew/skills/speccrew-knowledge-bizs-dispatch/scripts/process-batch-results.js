@@ -73,6 +73,15 @@ function findFeatureDocumentPath(syncStatePath, sourceFile, fileName, featureSou
             return nameMatch && pathMatch;
         });
 
+        // Fallback: match by fileName only if sourcePath mismatch (Worker may use different path format)
+        if (!feature && featureSourcePath) {
+            const fallbackFeature = content.features.find(f => f.fileName === fileName);
+            if (fallbackFeature) {
+                console.warn(`[WARN] sourcePath mismatch for ${fileName}: .done has "${featureSourcePath}", features JSON has "${fallbackFeature.sourcePath}". Using fileName-only match.`);
+                return fallbackFeature.documentPath || null;
+            }
+        }
+
         return feature ? feature.documentPath : null;
     } catch (error) {
         console.warn(`[WARN] Failed to find document path for ${fileName}: ${error.message}`);
@@ -88,11 +97,8 @@ function checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourceP
     }
 
     const projectRoot = getProjectRoot(syncStatePath);
-    // Extract platform from sourceFile (features-{platform}.json)
-    const platform = sourceFile.replace('features-', '').replace('.json', '');
-    // Build correct base path: speccrew-workspace/knowledges/bizs/{platform}/
-    const bizsBasePath = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'bizs', platform);
-    const fullPath = path.join(bizsBasePath, documentPath);
+    // documentPath is already a full relative path from project root (e.g. speccrew-workspace/knowledges/bizs/backend-ai/chat/Foo.md)
+    const fullPath = path.join(projectRoot, documentPath);
     return { exists: fs.existsSync(fullPath), path: documentPath };
 }
 
@@ -124,16 +130,14 @@ function validateDocumentExistence(syncStatePath) {
             // Extract platform from filename (features-{platform}.json)
             const platform = file.replace('features-', '').replace('.json', '');
             const projectRoot = getProjectRoot(syncStatePath);
-            // Build correct base path: speccrew-workspace/knowledges/bizs/{platform}/
-            const bizsBasePath = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'bizs', platform);
 
             for (const feature of content.features) {
                 if (feature.analyzed === true || feature.analyzed === 'true') {
                     totalAnalyzed++;
 
                     const docPath = feature.documentPath;
-                    // Join with correct bizs base path instead of project root
-                    const fullPath = docPath ? path.join(bizsBasePath, docPath) : null;
+                    // documentPath is already a full relative path from project root
+                    const fullPath = docPath ? path.join(projectRoot, docPath) : null;
 
                     if (!docPath || !fs.existsSync(fullPath)) {
                         missingDocs++;
