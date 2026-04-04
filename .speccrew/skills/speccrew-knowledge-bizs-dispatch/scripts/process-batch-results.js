@@ -175,6 +175,7 @@ function parseArgs() {
         syncStatePath: null,
         graphRoot: null,
         graphWriteScript: null,
+        platformId: null,
         validateDocs: false
     };
 
@@ -192,6 +193,10 @@ function parseArgs() {
             case '--graphWriteScript':
             case '-GraphWriteScript':
                 result.graphWriteScript = args[++i];
+                break;
+            case '--platformId':
+            case '-PlatformId':
+                result.platformId = args[++i];
                 break;
             case '--validateDocs':
                 result.validateDocs = true;
@@ -219,6 +224,13 @@ function main() {
         console.error('Error: --syncStatePath, --graphRoot, and --graphWriteScript are required');
         process.exit(1);
     }
+
+    if (!args.platformId) {
+        console.error('Error: --platformId is required');
+        process.exit(1);
+    }
+
+    const platformId = args.platformId;
 
     // Ensure paths are absolute
     const syncStatePath = path.resolve(args.syncStatePath);
@@ -266,16 +278,16 @@ function main() {
     }
 
     // Helper: Call external script (graph-write)
-    function callGraphWriteScript(action, module, tempFile, graphRootPath) {
+    function callGraphWriteScript(action, module, tempFile, graphRootPath, platformId) {
         const ext = path.extname(graphWriteScript).toLowerCase();
         let command, commandArgs;
 
         if (ext === '.ps1') {
             command = 'powershell';
-            commandArgs = ['-File', graphWriteScript, '-Action', action, '-Module', module, '-File', tempFile, '-GraphRoot', graphRootPath];
+            commandArgs = ['-File', graphWriteScript, '-Action', action, '-Module', module, '-File', tempFile, '-GraphRoot', graphRootPath, '-PlatformId', platformId];
         } else {
             command = 'node';
-            commandArgs = [graphWriteScript, '--action', action, '--module', module, '--file', tempFile, '--graphRoot', graphRootPath];
+            commandArgs = [graphWriteScript, '--action', action, '--module', module, '--file', tempFile, '--graphRoot', graphRootPath, '--platformId', platformId];
         }
 
         execFileSync(command, commandArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -502,12 +514,12 @@ function main() {
                 // Call graph-write script for nodes
                 if (group.nodes.length > 0) {
                     try {
-                        callGraphWriteScript('add-nodes', module, tempFile, graphRoot);
+                        callGraphWriteScript('add-nodes', module, tempFile, graphRoot, platformId);
                     } catch (error) {
                         nodesOk = false;
                         const errorMsg = `Failed to add nodes for module '${module}': ${error.message}`;
                         console.warn(errorMsg);
-                        console.warn(`  Parameters: Action=add-nodes, Module=${module}, File=${tempFile}, GraphRoot=${graphRoot}`);
+                        console.warn(`  Parameters: Action=add-nodes, Module=${module}, File=${tempFile}, GraphRoot=${graphRoot}, PlatformId=${platformId}`);
                         addFailedOperation(module, 'add-nodes', error.message);
                     }
                 }
@@ -515,12 +527,12 @@ function main() {
                 // Call graph-write script for edges
                 if (group.edges.length > 0) {
                     try {
-                        callGraphWriteScript('add-edges', module, tempFile, graphRoot);
+                        callGraphWriteScript('add-edges', module, tempFile, graphRoot, platformId);
                     } catch (error) {
                         edgesOk = false;
                         const errorMsg = `Failed to add edges for module '${module}': ${error.message}`;
                         console.warn(errorMsg);
-                        console.warn(`  Parameters: Action=add-edges, Module=${module}, File=${tempFile}, GraphRoot=${graphRoot}`);
+                        console.warn(`  Parameters: Action=add-edges, Module=${module}, File=${tempFile}, GraphRoot=${graphRoot}, PlatformId=${platformId}`);
                         addFailedOperation(module, 'add-edges', error.message);
                     }
                 }

@@ -25,6 +25,7 @@ Dispatch Agent (speccrew-knowledge-dispatch)
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
 | `{{action}}` | string | Write action to perform | `"batch-write"`, `"init-module"`, `"update-node"`, `"remove-node"` |
+| `{{platformId}}` | string | Platform identifier for directory segregation | `"backend-system"`, `"backend-ai"`, `"web-vue"`, `"mobile-uniapp"` |
 | `{{module}}` | string | Target business module | `"system"`, `"trade"`, `"infra"` |
 | `{{graphData}}` | object | Graph data from skill output (for batch-write) | `{ "nodes": [...], "edges": [...] }` |
 | `{{nodeId}}` | string | Node ID (for update-node / remove-node) | `"api-system-user-list"` |
@@ -90,12 +91,12 @@ graph TB
 
 2. **Add nodes:**
    ```
-   node "{skill_path}/scripts/graph-write.js" --action "add-nodes" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
+   node "{skill_path}/scripts/graph-write.js" --action "add-nodes" --platformId "{{platformId}}" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
    ```
 
 3. **Add edges:**
    ```
-   node "{skill_path}/scripts/graph-write.js" --action "add-edges" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
+   node "{skill_path}/scripts/graph-write.js" --action "add-edges" --platformId "{{platformId}}" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
    ```
 
 4. **Update index and metadata** (automatic, handled by script)
@@ -111,14 +112,14 @@ graph TB
 Initialize empty graph structure for a module. Used before Stage 2 analysis begins.
 
 ```
-node "{skill_path}/scripts/graph-write.js" --action "init-module" --module "{{module}}" --graphRoot "{{graphRoot}}"
+node "{skill_path}/scripts/graph-write.js" --action "init-module" --platformId "{{platformId}}" --module "{{module}}" --graphRoot "{{graphRoot}}"
 ```
 
 **Creates:**
-- `{{graphRoot}}/nodes/{{module}}.json` — empty nodes array
-- `{{graphRoot}}/edges/{{module}}.json` — empty edges array
-- Updates `{{graphRoot}}/graph-meta.json` — adds module to modules list
-- Creates `{{graphRoot}}/edges/cross-module.json` if not exists
+- `{{graphRoot}}/nodes/{{platformId}}/{{module}}.json` — empty nodes array
+- `{{graphRoot}}/edges/{{platformId}}/{{module}}.json` — empty edges array
+- Updates `{{graphRoot}}/graph-meta.json` — adds `{{platformId}}/{{module}}` to modules list
+- Creates `{{graphRoot}}/edges/{{platformId}}/cross-module.json` if not exists
 - Creates `{{graphRoot}}/indices/index.json` if not exists
 
 ### Action: update-node
@@ -126,7 +127,7 @@ node "{skill_path}/scripts/graph-write.js" --action "init-module" --module "{{mo
 Update an existing node's data fields.
 
 ```
-node "{skill_path}/scripts/graph-write.js" --action "update-node" --id "{{nodeId}}" --data '{{nodeDataJson}}' --graphRoot "{{graphRoot}}"
+node "{skill_path}/scripts/graph-write.js" --action "update-node" --platformId "{{platformId}}" --id "{{nodeId}}" --data '{{nodeDataJson}}' --graphRoot "{{graphRoot}}"
 ```
 
 ### Action: remove-node
@@ -134,7 +135,7 @@ node "{skill_path}/scripts/graph-write.js" --action "update-node" --id "{{nodeId
 Remove a node and all its connected edges.
 
 ```
-node "{skill_path}/scripts/graph-write.js" --action "remove-node" --id "{{nodeId}}" --graphRoot "{{graphRoot}}"
+node "{skill_path}/scripts/graph-write.js" --action "remove-node" --platformId "{{platformId}}" --id "{{nodeId}}" --graphRoot "{{graphRoot}}"
 ```
 
 ---
@@ -145,12 +146,12 @@ Scripts location: `scripts/graph-write.js` (relative to this skill directory)
 
 | Action | Parameters | Description |
 |--------|-----------|-------------|
-| `batch-write` | `--module <m> --file <path> --graphRoot <root>` | Batch write nodes and edges from temp file |
-| `add-nodes` | `--module <m> --file <path> --graphRoot <root>` | Batch add/replace nodes from temp file |
-| `add-edges` | `--module <m> --file <path> --graphRoot <root>` | Batch add/replace edges from temp file |
-| `update-node` | `--id <id> --data <json> --graphRoot <root>` | Update existing node fields |
-| `remove-node` | `--id <id> --graphRoot <root>` | Remove node and connected edges |
-| `init-module` | `--module <m> --graphRoot <root>` | Initialize empty module files |
+| `batch-write` | `--platformId <p> --module <m> --file <path> --graphRoot <root>` | Batch write nodes and edges from temp file |
+| `add-nodes` | `--platformId <p> --module <m> --file <path> --graphRoot <root>` | Batch add/replace nodes from temp file |
+| `add-edges` | `--platformId <p> --module <m> --file <path> --graphRoot <root>` | Batch add/replace edges from temp file |
+| `update-node` | `--platformId <p> --id <id> --data <json> --graphRoot <root>` | Update existing node fields |
+| `remove-node` | `--platformId <p> --id <id> --graphRoot <root>` | Remove node and connected edges |
+| `init-module` | `--platformId <p> --module <m> --graphRoot <root>` | Initialize empty module files |
 | `rebuild-index` | `--graphRoot <root>` | Rebuild global index from all module files |
 | `update-meta` | `--graphRoot <root>` | Recalculate and update graph-meta.json stats |
 
@@ -160,7 +161,7 @@ Scripts location: `scripts/graph-write.js` (relative to this skill directory)
 
 When edges have `source` and `target` nodes belonging to different modules:
 - The script automatically detects cross-module edges
-- Cross-module edges are stored in `{{graphRoot}}/edges/cross-module.json`
+- Cross-module edges are stored in `{{graphRoot}}/edges/{{platformId}}/cross-module.json`
 - Module membership is determined by the node ID prefix (e.g., `api-system-*` → module `system`)
 
 ---
@@ -168,12 +169,13 @@ When edges have `source` and `target` nodes belonging to different modules:
 ## Checklist
 
 - [ ] `{{action}}` is one of: `batch-write`, `init-module`, `update-node`, `remove-node`
+- [ ] `{{platformId}}` is provided (required for all write actions)
 - [ ] `{{graphRoot}}` path is correct (`speccrew-workspace/knowledges/bizs/graph`)
 - [ ] For `batch-write`: `{{graphData}}` contains valid `nodes` and `edges` arrays
 - [ ] For `batch-write`: temp file created and cleaned up after write
-- [ ] For `init-module`: module directory files created successfully
+- [ ] For `init-module`: module directory files created successfully under `nodes/{{platformId}}/` and `edges/{{platformId}}/`
 - [ ] For `update-node` / `remove-node`: `{{nodeId}}` follows `{type}-{module}-{name}` format
 - [ ] Script executed with Node.js (`graph-write.js`)
 - [ ] Index and metadata updated after write operations
-- [ ] Cross-module edges correctly routed to `cross-module.json`
+- [ ] Cross-module edges correctly routed to `edges/{{platformId}}/cross-module.json`
 - [ ] Return JSON with `{{status}}`, `{{nodesWritten}}`, `{{edgesWritten}}`, `{{message}}`

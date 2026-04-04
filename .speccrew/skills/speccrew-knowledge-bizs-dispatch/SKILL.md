@@ -40,6 +40,16 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 | **Technology** | `platformSubtype` | `uniapp` |
 | **Identifier** | `{platformType}/{platformSubtype}` | `mobile-uniapp` |
 
+**Multi-Module Backend Convention**: For projects with multiple backend modules (e.g., ruoyi-vue-pro), each source module uses its own `platformSubtype` (the module name, not the framework name):
+
+| Module Source | platformSubtype | techIdentifier | Output Directory |
+|---------------|----------------|----------------|------------------|
+| yudao-module-system | `system` | `spring` | `backend-system/` |
+| yudao-module-bpm | `bpm` | `spring` | `backend-bpm/` |
+| yudao-module-ai | `ai` | `spring` | `backend-ai/` |
+
+The `techIdentifier` parameter (passed to `generate-inventory.js`) is used for tech-stack-mappings.json config lookup, while `platformSubtype` determines the output directory structure.
+
 ## Input
 
 | Variable | Description | Default |
@@ -69,6 +79,17 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 
 If any validation fails, abort pipeline immediately with a descriptive error message.
 
+### Error Handling Policy
+
+**CRITICAL — No Workaround Scripts Allowed**:
+- If any script execution fails (non-zero exit code, parameter parsing error, etc.), the dispatch agent MUST:
+  1. **STOP** the pipeline immediately
+  2. **Report** the exact error message and the full command that failed
+  3. **DO NOT** create temporary batch files, shell scripts, or any workaround scripts
+  4. **DO NOT** attempt to rewrite or modify existing scripts
+  5. **DO NOT** retry with alternative command syntax more than once
+- The root cause must be fixed in the skill definition or source scripts, not patched by the executing agent at runtime.
+
 ## Output
 
 - Feature inventory: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-{platform}.json`
@@ -91,8 +112,9 @@ This skill uses a **mixed execution model** due to platform constraints:
 
 | Stage | Executor | What |
 |-------|----------|------|
+| Stage 0 | Dispatch (direct) | Platform detection — scan project directory to discover ALL platforms |
 | Stage 1a | Dispatch (direct) | Execute `generate-inventory` scripts |
-| Stage 1b | Worker Agent | Module reclassification (LLM reasoning) |
+| Stage 1b | Dispatch (direct) | Execute `reindex-modules.js` — deterministic script, no Worker needed |
 | Stage 2 Steps 1,3 | Dispatch (direct) | Script calls: batch-orchestrator.js (get-batch, process-results) |
 | Stage 2 Step 2 | Worker Agent | Feature analysis (code understanding + doc generation; writes `.done` + `.graph.json` marker files) |
 | Stage 3 | Worker Agent | Module summarization (doc aggregation) |
@@ -104,7 +126,6 @@ This skill uses a **mixed execution model** due to platform constraints:
 | Skill | Purpose | Invoked In |
 |-------|---------|------------|
 | [`speccrew-knowledge-bizs-init-features`](../speccrew-knowledge-bizs-init-features/SKILL.md) | Generate per-platform feature inventory | Stage 1a |
-| [`speccrew-knowledge-bizs-module-classify`](../speccrew-knowledge-bizs-module-classify/SKILL.md) | Reclassify features into business modules | Stage 1b |
 | [`speccrew-knowledge-bizs-ui-analyze`](../speccrew-knowledge-bizs-ui-analyze/SKILL.md) | Analyze UI features (web/mobile/desktop) | Stage 2 |
 | [`speccrew-knowledge-bizs-api-analyze`](../speccrew-knowledge-bizs-api-analyze/SKILL.md) | Analyze API controllers (backend) | Stage 2 |
 | [`speccrew-knowledge-graph-write`](../speccrew-knowledge-graph-write/SKILL.md) | Write graph data (nodes, edges) — Called by `process-batch-results` via dispatch | Stage 2 (via process-batch-results) |
@@ -125,7 +146,8 @@ This skill uses a **mixed execution model** due to platform constraints:
 
 ```mermaid
 flowchart TB
-    S0[Pre-processing: Platform Root Detection] --> S1a[Stage 1a: Feature Inventory]
+    S0[Pre-processing: Platform Root Detection] --> S0a[Stage 0: Platform Detection]
+    S0a --> S1a[Stage 1a: Feature Inventory]
     S1a --> S1b[Stage 1b: Module Classify]
     S1b --> S2[Stage 2: Feature Analysis + Graph Write]
     S2 --> S3[Stage 3: Module Summarize]
@@ -216,6 +238,47 @@ Result: Platform root = /project/frontend/, platform = web-vue
 
 ---
 
+## Stage 0: Platform Detection
+
+**Objective**: Automatically discover ALL platforms in the project. Do NOT hardcode platform lists.
+
+**Detection steps**:
+
+1. **Scan for backend modules**:
+   ```
+   # Look for all backend module directories
+   Get-ChildItem -Path "{project_root}" -Filter "yudao-module-*" -Directory
+   # Or for other project structures:
+   Get-ChildItem -Path "{project_root}" -Directory | Where-Object { $_.Name -match "^(module-|service-|api-)" }
+   ```
+   Each discovered module becomes a `backend-{module_name}` platform (e.g., `yudao-module-system` → `backend-system`).
+
+2. **Scan for frontend projects**:
+   ```
+   # Look for UI/frontend directories
+   Get-ChildItem -Path "{project_root}" -Directory | Where-Object { $_.Name -match "ui|frontend|web|app" }
+   # Then check each for actual source code (package.json, src/ directory)
+   ```
+   Classify by tech stack: Vue → `web-vue`, UniApp → `mobile-uniapp`, React → `web-react`, etc.
+
+3. **Validate each platform**:
+   - Has actual source code files (not empty placeholder directories)
+   - Has a recognizable project structure (package.json for frontend, pom.xml/build.gradle for backend)
+
+4. **Present platform list to user for confirmation** before proceeding to Stage 1a.
+
+**Output**: A confirmed list of platforms with:
+
+| Platform ID | Source Path | Platform Type | Tech Stack |
+|---|---|---|---|
+| `web-vue` | `yudao-ui/yudao-ui-admin-vue3` | web | vue, vite, element-plus |
+| `backend-system` | `yudao-module-system/src/main/java/.../system` | backend | spring-boot, mybatis-plus |
+| ... | ... | ... | ... |
+
+> **CRITICAL**: NEVER hardcode a fixed number of platforms. Always scan the project directory to discover ALL modules. Missing a platform means incomplete knowledge base generation.
+
+---
+
 ## Stage 1a: Generate Feature Inventory (Direct Execution)
 
 **Goal**: Scan source code, identify all platforms, and generate per-platform feature inventory files.
@@ -225,13 +288,17 @@ Result: Platform root = /project/frontend/, platform = web-vue
 
 **Action** (dispatch executes directly via `run_in_terminal`):
 
+> **Backend sourcePath convention**: For Java/Kotlin backend modules, `source_path` should point to the Java package root directory (e.g., `yudao-module-system/src/main/java/cn/iocoder/yudao/module/system`), not the module root directory. This ensures correct business module extraction. The platform detection pre-processing should resolve the package root by looking for the deepest directory containing business code (controller/, service/, api/ subdirectories).
+
+> **Frontend sourcePath convention**: For web/mobile frontend projects, `source_path` should point to the main source directory (e.g., `yudao-ui/yudao-ui-admin-vue3/src` for Vue projects, `yudao-ui/yudao-ui-admin-uniapp/src` for UniApp). Do NOT point to the project root directory — this would include build configs, test files, and other non-business code as features. Files outside `src/` (like build configs) are generally not relevant for business knowledge base generation.
+
 1. **Detect platforms**: 
    - If Pre-processing already detected a specific platform type → use the pre-detected result, skip manual configuration
    - Otherwise → Read `speccrew-workspace/docs/configs/platform-mapping.json`, analyze `source_path` directory structure to identify all platforms
 2. **Configure parameters**: For each detected platform, determine: `SourcePath`, `OutputFileName`, `PlatformName`, `PlatformType`, `PlatformSubtype`, `TechStack`, `FileExtensions`, `ExcludeDirs`
 3. **Execute inventory script** for each platform:
    ```
-   node "{init_features_skill_path}/scripts/generate-inventory.js" --sourcePath "<source_path>" --outputFileName "features-<platform>.json" --platformName "<platform_name>" --platformType "<platform_type>" --platformSubtype "<platform_subtype>" --techStack '["..."]' --fileExtensions '["..."]' --excludeDirs '["..."]'
+   node "{init_features_skill_path}/scripts/generate-inventory.js" --sourcePath "<source_path>" --outputFileName "features-<platform>.json" --platformName "<platform_name>" --platformType "<platform_type>" --platformSubtype "<platform_subtype>" --techIdentifier "<tech_identifier>" --techStack "<tech1,tech2,...>" --fileExtensions "<.ext1,.ext2,...>" --excludeDirs "<dir1,dir2,...>"
    ```
 
 > For complete parameter definitions and script usage, refer to `speccrew-knowledge-bizs-init-features/SKILL.md`
@@ -242,28 +309,48 @@ Result: Platform root = /project/frontend/, platform = web-vue
 
 ---
 
-## Stage 1b: Reclassify Feature Modules (Worker Agent)
+## Stage 1b: Module Reindex (Dispatch Direct Execution)
 
-**Goal**: Reclassify features from directory-based modules into semantically meaningful business modules.
+**Objective**: Reindex feature modules using updated `exclude_dirs` from tech-stack-mappings.json. This is a deterministic script execution — no Worker Agent needed.
 
-**Prerequisite**: Stage 1a completed with `features-{platform}.json` files generated.
+**Prerequisite**: Stage 1a completed. `features-{platform}.json` files exist in `{sync_state_path}/knowledge-bizs/`.
 
-**File Discovery**: Scan `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/` directory for all `features-*.json` files. Each file corresponds to one platform detected in Stage 1a.
+**Skip Condition**:
+Run `extract-module-summary.js` first to check module quality:
+```bash
+node "{module_classify_skill_path}/scripts/extract-module-summary.js" --featuresFile "{features_file_path}"
+```
 
-**Action**:
-- For each `features-{platform}.json` file generated in Stage 1a:
-  - Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-bizs-module-classify/SKILL.md`
-  - Parameters to pass to skill:
-    - `features_file`: Full path to the `features-{platform}.json` file
-    - `source_path`: Source code directory path (same as Stage 1a)
-    - `language`: User's language — **REQUIRED**
-- Multiple platform files can be reclassified in parallel (subject to `max_concurrent_workers` limit)
+Evaluate the output:
+- If the LARGEST module has < 50 features AND module names are business-meaningful (`auth`, `dept`, `bpm`, `system`, `infra`) → **SKIP Stage 1b**
+- If any single module has > 100 features OR module names are generic containers (`src`, `lib`, `app`, `main`) → **RUN Stage 1b**
 
-Expected Worker Return: `{ "status": "success|failed", "message": "...", "modules_reclassified": N }`
+**Execution** (for each platform that needs reindexing):
+```bash
+node "{module_classify_skill_path}/scripts/reindex-modules.js" --featuresFile "{features_file_path}" --projectRoot "{project_root}"
+```
 
-**Output**:
-- Updated `features-{platform}.json` files with reclassified `module` fields
-- Module names now reflect business domains instead of directory names
+Optional parameters (auto-detected from features JSON if omitted):
+- `--platformType "web"` — platform type for exclude_dirs lookup
+- `--techIdentifier "vue"` — tech identifier for exclude_dirs lookup  
+- `--excludeDirs "src,views,pages,components"` — manual override
+
+**Expected output**:
+```json
+{
+  "status": "success",
+  "modules_before": ["src", "build", "e2e"],
+  "modules_after": ["ai", "system", "infra", "bpm", "mall", "pay", "_root"],
+  "reclassified_count": 695,
+  "total_features": 714
+}
+```
+
+**Post-check**: After reindex, verify `modules_after` contains business-meaningful names. If modules are still coarse-grained (e.g., all features mapped to a single Java package segment), check:
+1. Is `tech-stack-mappings.json` in the project's `speccrew-workspace/docs/configs/` up-to-date with the latest `exclude_dirs`?
+2. For Java projects: does `sourcePath` in features JSON point to the Java package root (e.g., `.../cn/iocoder/yudao/module/system`)?
+
+**Error handling**: If the script exits with non-zero code, STOP and report the error. Do NOT create workaround scripts.
 
 ---
 
@@ -322,6 +409,7 @@ For each feature in the `batch` array, launch a Worker Agent as a Task:
   - `platformType` is `"web"`, `"mobile"`, or `"desktop"` → use `speccrew-knowledge-bizs-ui-analyze`
   - `platformType` is `"backend"` → use `speccrew-knowledge-bizs-api-analyze`
 - **Worker parameters**: Pass all feature fields plus `language`, `completed_dir`, `sourceFile`
+- **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 - Launch ALL Workers for the current batch, then **wait for ALL to complete** before proceeding to Step 3
 - Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
 
@@ -385,8 +473,9 @@ When dealing with modules containing more than **20 features**, consider the fol
 - For each module, invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-module-summarize/SKILL.md`
 - Parameters to pass to skill:
   - `module_name`: Module code_name
-  - `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_type}/{module_name}/`)
+  - `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_id}/{module_name}/`)
   - `language`: User's language — **REQUIRED**
+  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
 Expected Worker Return: `{ "status": "success|failed", "module_name": "...", "output_file": "...-overview.md", "message": "..." }`
 
@@ -423,7 +512,7 @@ Platform: Mobile App (mobile-flutter)
 **Action**:
 - Read all `features-{platform}.json` files
 - Filter platforms where platformType is web/mobile/desktop
-- Determine platform_id (format: `{platformType}-{platformSubtype}`, e.g., `web-vue`, `mobile-uniapp`)
+- Determine platform_id (format: `{platformType}-{platformSubtype}`, e.g., `web-vue`, `mobile-uniapp`, `backend-system`)
 - For each qualifying platform, launch 1 Worker Agent (`speccrew-task-worker`) with skill `speccrew-knowledge-bizs-ui-style-extract/SKILL.md`
 - Parameters to pass:
   - `platform_id`: Platform identifier
@@ -433,6 +522,7 @@ Platform: Mobile App (mobile-flutter)
   - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
   - `output_path`: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/`
   - `language`: User's language
+  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
 **Cross-Pipeline Output**:
 - This stage writes to techs knowledge base, not bizs knowledge base
@@ -468,6 +558,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/ui-style/
   - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `speccrew-workspace/knowledges/bizs/`)
   - `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
   - `language`: User's language — **REQUIRED**
+  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
 Expected Worker Return: `{ "status": "success|failed", "output_file": "system-overview.md", "message": "..." }`
 
@@ -487,9 +578,10 @@ Expected Worker Return: `{ "status": "success|failed", "output_file": "system-ov
    └─ Use pre-detected platform info if available, otherwise detect platforms
    └─ Wait for completion
 
-2. Run Stage 1b (Module Classify)
-   ├─ For each features-{platform}.json, dispatch 1 Worker for module reclassification
-   └─ Wait for ALL module-classify Workers to complete
+2. Run Stage 1b (Module Reindex)
+   ├─ Run extract-module-summary.js to check skip condition
+   ├─ If needed, run reindex-modules.js for each platform
+   └─ Verify output contains business-meaningful module names
 
 3. Run Stage 2 (Feature Analysis + Graph Write)
    ├─ LOOP: get-batch → launch Workers → wait all → process-results
@@ -519,7 +611,7 @@ Expected Worker Return: `{ "status": "success|failed", "output_file": "system-ov
 | Stage | Failure Scenario | Handling | Retry |
 |-------|-----------------|----------|-------|
 | Stage 1a | Script execution fails | Abort pipeline, report error | No retry |
-| Stage 1b | Worker fails for a platform | Abort that platform, continue others | Retry once |
+| Stage 1b | Script execution fails | Abort pipeline, report error | No retry |
 | Stage 2 | Single Worker fails | Mark feature as `failed`, continue other Workers | No auto-retry |
 | Stage 2 | Failure rate > 50% | Abort pipeline, report all failures | — |
 | Stage 3 | Single Worker fails | Skip that module, continue others | Retry once |

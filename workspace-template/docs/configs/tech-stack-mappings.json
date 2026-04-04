@@ -2,11 +2,21 @@
   "version": "1.0.0",
   "description": "Technology stack mappings for file extensions, API patterns, and analysis rules",
   "last_updated": "2026-03-23",
+  "global_exclude_dirs": [
+    "node_modules", ".git", ".svn",
+    "dist", "build", "out", "output", "target",
+    "e2e", "test", "tests", "__tests__",
+    "coverage", ".nyc_output",
+    ".idea", ".vscode", ".qoder", ".speccrew",
+    "playwright-report", "test-results",
+    ".next", ".nuxt", ".output",
+    "docs", "scripts", "public", "assets", "mock", "fixtures"
+  ],
   "tech_stacks": {
     "web": {
       "react": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "hocs"],
+        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "hocs", "src", "views", "pages"],
         "entry_patterns": ["src/pages/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "apiClient.", "useQuery", "useMutation"],
         "state_management": ["useState", "useReducer", "Redux", "Zustand", "MobX"],
@@ -15,7 +25,7 @@
       },
       "vue": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "hooks", "utils", "mixins", "directives"],
+        "exclude_dirs": ["components", "composables", "hooks", "utils", "mixins", "directives", "src", "views", "pages"],
         "entry_patterns": ["src/views/**/*.vue", "src/components/**/*.vue", "pages/**/*.vue"],
         "api_call_patterns": ["axios.", "fetch(", "$http", "useFetch"],
         "state_management": ["Pinia", "Vuex", "ref", "reactive", "computed"],
@@ -24,7 +34,7 @@
       },
       "angular": {
         "extensions": [".ts", ".html", ".scss", ".css"],
-        "exclude_dirs": ["components", "directives", "pipes", "guards", "interceptors", "services"],
+        "exclude_dirs": ["components", "directives", "pipes", "guards", "interceptors", "services", "src", "views", "pages"],
         "entry_patterns": ["src/app/components/**/*.ts", "src/app/pages/**/*.ts"],
         "api_call_patterns": ["HttpClient", "http.get", "http.post"],
         "state_management": ["RxJS", "NgRx", "BehaviorSubject", "Observable"],
@@ -33,7 +43,7 @@
       },
       "nextjs": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "api"],
+        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "api", "src", "views", "pages"],
         "entry_patterns": ["app/**/*.{tsx,jsx}", "pages/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "useSWR", "React Query"],
         "state_management": ["useState", "Zustand", "Redux", "Context API"],
@@ -42,7 +52,7 @@
       },
       "nuxt": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "utils", "plugins", "middleware"],
+        "exclude_dirs": ["components", "composables", "utils", "plugins", "middleware", "src", "views", "pages"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
         "api_call_patterns": ["$fetch", "useFetch", "axios."],
         "state_management": ["Pinia", "useState", "composables"],
@@ -51,7 +61,7 @@
       },
       "svelte": {
         "extensions": [".svelte", ".ts", ".js"],
-        "exclude_dirs": ["components", "lib", "utils", "stores", "actions"],
+        "exclude_dirs": ["components", "lib", "utils", "stores", "actions", "src", "views", "pages"],
         "entry_patterns": ["src/**/*.svelte", "routes/**/*.svelte"],
         "api_call_patterns": ["fetch(", "axios."],
         "state_management": ["writable", "readable", "derived", "Svelte Store"],
@@ -71,7 +81,7 @@
       },
       "react-native": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "utils", "contexts", "navigations"],
+        "exclude_dirs": ["components", "hooks", "utils", "contexts", "navigations", "src", "views", "pages"],
         "entry_patterns": ["src/screens/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "apiClient."],
         "state_management": ["useState", "Redux", "MobX", "Zustand", "Recoil"],
@@ -80,7 +90,7 @@
       },
       "uniapp": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "utils", "mixins", "directives"],
+        "exclude_dirs": ["components", "composables", "utils", "mixins", "directives", "src", "views", "pages"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
         "api_call_patterns": ["uni.request", "uni.uploadFile", "uni.downloadFile"],
         "state_management": ["Vuex", "Pinia", "globalData"],
@@ -105,7 +115,7 @@
       },
       "miniprogram": {
         "extensions": [".js", ".ts", ".wxml", ".wxss", ".json"],
-        "exclude_dirs": ["components", "utils", "behaviors", "mixins"],
+        "exclude_dirs": ["components", "utils", "behaviors", "mixins", "src", "views", "pages"],
         "entry_patterns": ["pages/**/*.js", "pages/**/*.ts", "components/**/*.js"],
         "api_call_patterns": ["wx.request", "wx.uploadFile", "wx.downloadFile"],
         "state_management": ["Page data", "globalData", "MobX", "Westore"],
@@ -116,7 +126,7 @@
     "backend": {
       "spring": {
         "extensions": [".java", ".kt"],
-        "exclude_dirs": ["service", "services", "repository", "repositories", "dao", "entity", "entities", "model", "models", "dto", "dtos", "vo", "vos", "mapper", "mappers", "config", "configs", "util", "utils", "common", "exception", "exceptions"],
+        "exclude_dirs": ["controller", "controllers", "admin", "app", "api", "service", "services", "repository", "repositories", "dao", "dal", "mysql", "redis", "dataobject", "entity", "entities", "model", "models", "dto", "dtos", "vo", "vos", "mapper", "mappers", "convert", "converter", "converters", "config", "configs", "util", "utils", "common", "exception", "exceptions", "enums", "framework", "job", "mq", "listener", "listeners", "producer", "consumer"],
         "entry_patterns": ["**/*Controller.java", "**/*Controller.kt", "**/*Service.java"],
         "api_patterns": {
           "controller": ["@Controller", "@RestController", "@RequestMapping"],

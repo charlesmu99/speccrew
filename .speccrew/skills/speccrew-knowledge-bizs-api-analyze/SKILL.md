@@ -6,6 +6,8 @@ tools: Read, Write, Glob, Grep, SearchCodebase, Bash
 
 # API Feature Analysis - Single Controller
 
+> **CRITICAL CONSTRAINT**: DO NOT create temporary scripts, batch files, or workaround code files (`.py`, `.bat`, `.sh`, `.ps1`, etc.) under any circumstances. If execution encounters errors, STOP and report the exact error. Fixes must be applied to the Skill definition or source scripts — not patched at runtime.
+
 Analyze one specific API controller from source code, extract all business features (API endpoints), and generate feature documentation. This skill operates at controller granularity - one worker per controller file.
 
 ## Trigger Scenarios
@@ -101,8 +103,8 @@ Before executing the workflow, verify the following inputs:
 
 ```mermaid
 graph TB
-    Start([Start]) --> Step1[Step 1 Read Controller File]
-    Step1 --> Step2[Step 2 Analyze API Structure]
+    Start([Start]) --> Step1[Step 1 Read Analysis Template]
+    Step1 --> Step2[Step 2 Read Controller and Analyze API Structure]
     Step2 --> Step3[Step 3 Extract API Features]
     Step3 --> Step4[Step 4 Find API Consumers]
     Step4 --> Step5[Step 5 Generate Feature Document]
@@ -113,7 +115,7 @@ graph TB
 
 ---
 
-### Step 1: Read Controller File
+### Step 1: Read Analysis Template
 
 **Step 1 Status: 🔄 IN PROGRESS**
 
@@ -121,35 +123,18 @@ graph TB
    - If `{{analyzed}}` is `true`, output "Step 1 Status: ⏭️ SKIPPED (already analyzed)" and skip to Step 6 with status="skipped"
    - If `{{analyzed}}` is `false`, proceed
 
-2. **Locate and Read the controller file:**
-   - Use `{{sourcePath}}` as the relative file path from project root
-   - Read the controller file content
-   - Output: "Step 1 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines)"
-
-### Step 2: Analyze API Structure
-
-**Step 2 Status: 🔄 IN PROGRESS**
-
-**Prerequisites:**
-- Controller file is a Java/Kotlin controller file (e.g., `UserController.java`)
-
-**Actions:**
-1. **Read the appropriate template based on tech stack:**
+2. **Read the appropriate template based on tech stack:**
    - Java/Spring Boot: Read `templates/FEATURE-DETAIL-TEMPLATE.md`
    - FastAPI: Read `templates/FEATURE-DETAIL-TEMPLATE-FASTAPI.md`
    - .NET: Read `templates/FEATURE-DETAIL-TEMPLATE-NET.md`
    - **Other/Unknown**: Default to `templates/FEATURE-DETAIL-TEMPLATE.md` (generic template)
-   
-2. Analyze API handler structure:
-   - **Java**: Parse `@RestController`, `@RequestMapping`, `@GetMapping`, etc.
-   - **FastAPI**: Parse `@router.get()`, `@router.post()`, Pydantic models
-   - **.NET**: Parse `[ApiController]`, `[Route]`, `[HttpGet]`, etc.
-   - **Other**: Parse based on common patterns (class/method definitions, decorators, attributes)
-   
-3. Identify all public API endpoint methods
-4. Extract method signatures, HTTP methods, and paths
 
-**Analysis Scope:**
+3. **Understand template structure and required information dimensions:**
+   - Review all sections in the template
+   - Identify what information needs to be extracted from source code
+   - Note the expected format for each section
+
+**Template Analysis Scope:**
 
 | Template Section | Information to Extract | Source |
 |------------------|------------------------|--------|
@@ -160,7 +145,32 @@ graph TB
 | 5. References | Services, Mappers, other controllers this controller uses | Field injections, imports |
 | 6. Business Rules | Permission rules, validation rules, business logic rules | Code logic, annotations, comments |
 
-**Output:** "Step 2 Status: ✅ COMPLETED - Analyzed {{endpointCount}} endpoints, {{serviceCount}} services"
+**Output:** "Step 1 Status: ✅ COMPLETED - Template loaded, {{sectionCount}} sections identified for analysis"
+
+### Step 2: Read Controller and Analyze API Structure
+
+**Step 2 Status: 🔄 IN PROGRESS**
+
+**Prerequisites:**
+- Template has been loaded and understood from Step 1
+- Controller file is a Java/Kotlin controller file (e.g., `UserController.java`)
+
+**Actions:**
+1. **Locate and Read the controller file:**
+   - Use `{{sourcePath}}` as the relative file path from project root
+   - Read the controller file content
+
+2. **Analyze API handler structure based on template guidance:**
+   - **Java**: Parse `@RestController`, `@RequestMapping`, `@GetMapping`, etc.
+   - **FastAPI**: Parse `@router.get()`, `@router.post()`, Pydantic models
+   - **.NET**: Parse `[ApiController]`, `[Route]`, `[HttpGet]`, etc.
+   - **Other**: Parse based on common patterns (class/method definitions, decorators, attributes)
+
+3. **Identify all public API endpoint methods**
+
+4. **Extract method signatures, HTTP methods, and paths**
+
+**Output:** "Step 2 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines), Analyzed {{endpointCount}} endpoints, {{serviceCount}} services"
 
 ### Step 3: Extract API Features
 

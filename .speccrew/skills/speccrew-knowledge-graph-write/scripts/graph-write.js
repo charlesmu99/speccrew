@@ -66,16 +66,16 @@ function getMetaPath(graphRoot) {
     return path.join(graphRoot, 'graph-meta.json');
 }
 
-function getNodesPath(graphRoot, module) {
-    return path.join(graphRoot, 'nodes', `${module}.json`);
+function getNodesPath(graphRoot, platformId, module) {
+    return path.join(graphRoot, 'nodes', platformId, `${module}.json`);
 }
 
-function getEdgesPath(graphRoot, module) {
-    return path.join(graphRoot, 'edges', `${module}.json`);
+function getEdgesPath(graphRoot, platformId, module) {
+    return path.join(graphRoot, 'edges', platformId, `${module}.json`);
 }
 
-function getCrossEdgesPath(graphRoot) {
-    return path.join(graphRoot, 'edges', 'cross-module.json');
+function getCrossEdgesPath(graphRoot, platformId) {
+    return path.join(graphRoot, 'edges', platformId, 'cross-module.json');
 }
 
 function getCurrentTimestamp() {
@@ -84,27 +84,27 @@ function getCurrentTimestamp() {
 
 // ── Actions ─────────────────────────────────────────────────────────────────
 
-function invokeInitModule(graphRoot, module) {
-    ensureDir(path.join(graphRoot, 'nodes'));
-    ensureDir(path.join(graphRoot, 'edges'));
+function invokeInitModule(graphRoot, platformId, module) {
+    ensureDir(path.join(graphRoot, 'nodes', platformId));
+    ensureDir(path.join(graphRoot, 'edges', platformId));
     ensureDir(path.join(graphRoot, 'indices'));
 
-    // nodes/{module}.json
-    const nodesPath = getNodesPath(graphRoot, module);
+    // nodes/{platformId}/{module}.json
+    const nodesPath = getNodesPath(graphRoot, platformId, module);
     if (!fs.existsSync(nodesPath)) {
         const nodesObj = { module, nodes: [] };
         writeJsonFile(nodesPath, nodesObj);
     }
 
-    // edges/{module}.json
-    const edgesPath = getEdgesPath(graphRoot, module);
+    // edges/{platformId}/{module}.json
+    const edgesPath = getEdgesPath(graphRoot, platformId, module);
     if (!fs.existsSync(edgesPath)) {
         const edgesObj = { module, edges: [] };
         writeJsonFile(edgesPath, edgesObj);
     }
 
-    // edges/cross-module.json
-    const crossPath = getCrossEdgesPath(graphRoot);
+    // edges/{platformId}/cross-module.json
+    const crossPath = getCrossEdgesPath(graphRoot, platformId);
     if (!fs.existsSync(crossPath)) {
         const crossObj = { edges: [] };
         writeJsonFile(crossPath, crossObj);
@@ -121,8 +121,9 @@ function invokeInitModule(graphRoot, module) {
     if (fs.existsSync(metaPath)) {
         const meta = readJsonFile(metaPath);
         const modules = meta.modules || [];
-        if (!modules.includes(module)) {
-            modules.push(module);
+        const moduleKey = `${platformId}/${module}`;
+        if (!modules.includes(moduleKey)) {
+            modules.push(moduleKey);
             meta.modules = modules;
             meta.updatedAt = getCurrentTimestamp();
             writeJsonFile(metaPath, meta);
@@ -131,7 +132,7 @@ function invokeInitModule(graphRoot, module) {
         const meta = {
             version: '1.0.0',
             updatedAt: getCurrentTimestamp(),
-            modules: [module],
+            modules: [`${platformId}/${module}`],
             stats: {
                 totalNodes: 0,
                 totalEdges: 0,
@@ -146,12 +147,13 @@ function invokeInitModule(graphRoot, module) {
     return {
         status: 'success',
         action: 'init-module',
+        platformId,
         module,
-        message: `Module '${module}' initialized`
+        message: `Module '${module}' initialized for platform '${platformId}'`
     };
 }
 
-function invokeAddNodes(graphRoot, module, filePath) {
+function invokeAddNodes(graphRoot, platformId, module, filePath) {
     const batchData = readJsonFile(filePath);
     const newNodes = batchData.nodes || [];
     
@@ -159,16 +161,17 @@ function invokeAddNodes(graphRoot, module, filePath) {
         return {
             status: 'success',
             action: 'add-nodes',
+            platformId,
             module,
             nodesWritten: 0,
             message: 'No nodes to add'
         };
     }
 
-    const nodesPath = getNodesPath(graphRoot, module);
+    const nodesPath = getNodesPath(graphRoot, platformId, module);
     let existing = readJsonFile(nodesPath);
     if (!existing) {
-        invokeInitModule(graphRoot, module);
+        invokeInitModule(graphRoot, platformId, module);
         existing = readJsonFile(nodesPath);
     }
 
@@ -192,7 +195,7 @@ function invokeAddNodes(graphRoot, module, filePath) {
     if (!index) index = {};
 
     for (const n of newNodes) {
-        index[n.id] = { module, type: n.type };
+        index[n.id] = { platformId, module, type: n.type };
     }
     writeJsonFile(indexPath, index);
 
@@ -202,13 +205,14 @@ function invokeAddNodes(graphRoot, module, filePath) {
     return {
         status: 'success',
         action: 'add-nodes',
+        platformId,
         module,
         nodesWritten: newNodes.length,
-        message: `Added ${newNodes.length} nodes to ${module}`
+        message: `Added ${newNodes.length} nodes to ${platformId}/${module}`
     };
 }
 
-function invokeAddEdges(graphRoot, module, filePath) {
+function invokeAddEdges(graphRoot, platformId, module, filePath) {
     const batchData = readJsonFile(filePath);
     const newEdges = batchData.edges || [];
     
@@ -216,6 +220,7 @@ function invokeAddEdges(graphRoot, module, filePath) {
         return {
             status: 'success',
             action: 'add-edges',
+            platformId,
             module,
             edgesWritten: 0,
             message: 'No edges to add'
@@ -246,10 +251,10 @@ function invokeAddEdges(graphRoot, module, filePath) {
 
     // Write internal edges
     if (internalEdges.length > 0) {
-        const edgesPath = getEdgesPath(graphRoot, module);
+        const edgesPath = getEdgesPath(graphRoot, platformId, module);
         let existing = readJsonFile(edgesPath);
         if (!existing) {
-            invokeInitModule(graphRoot, module);
+            invokeInitModule(graphRoot, platformId, module);
             existing = readJsonFile(edgesPath);
         }
 
@@ -270,9 +275,11 @@ function invokeAddEdges(graphRoot, module, filePath) {
 
     // Write cross-module edges
     if (crossEdges.length > 0) {
-        const crossPath = getCrossEdgesPath(graphRoot);
+        const crossPath = getCrossEdgesPath(graphRoot, platformId);
         let crossFile = readJsonFile(crossPath);
         if (!crossFile) {
+            // Ensure directory exists before creating cross-module.json
+            ensureDir(path.dirname(crossPath));
             crossFile = { edges: [] };
         }
 
@@ -298,6 +305,7 @@ function invokeAddEdges(graphRoot, module, filePath) {
     return {
         status: 'success',
         action: 'add-edges',
+        platformId,
         module,
         edgesWritten: total,
         internalEdges: internalEdges.length,
@@ -306,15 +314,15 @@ function invokeAddEdges(graphRoot, module, filePath) {
     };
 }
 
-function invokeUpdateNode(graphRoot, nodeId, dataJson) {
+function invokeUpdateNode(graphRoot, platformId, nodeId, dataJson) {
     const module = getModuleFromId(nodeId);
-    const nodesPath = getNodesPath(graphRoot, module);
+    const nodesPath = getNodesPath(graphRoot, platformId, module);
     const existing = readJsonFile(nodesPath);
     
     if (!existing) {
         return {
             status: 'failed',
-            message: `Module '${module}' not found`
+            message: `Module '${module}' not found for platform '${platformId}'`
         };
     }
 
@@ -333,7 +341,7 @@ function invokeUpdateNode(graphRoot, nodeId, dataJson) {
     if (!found) {
         return {
             status: 'failed',
-            message: `Node '${nodeId}' not found in module '${module}'`
+            message: `Node '${nodeId}' not found in module '${module}' (platform: ${platformId})`
         };
     }
 
@@ -341,20 +349,21 @@ function invokeUpdateNode(graphRoot, nodeId, dataJson) {
     return {
         status: 'success',
         action: 'update-node',
+        platformId,
         nodeId,
         message: `Node '${nodeId}' updated`
     };
 }
 
-function invokeRemoveNode(graphRoot, nodeId) {
+function invokeRemoveNode(graphRoot, platformId, nodeId) {
     const module = getModuleFromId(nodeId);
-    const nodesPath = getNodesPath(graphRoot, module);
+    const nodesPath = getNodesPath(graphRoot, platformId, module);
     const existing = readJsonFile(nodesPath);
     
     if (!existing) {
         return {
             status: 'failed',
-            message: `Module '${module}' not found`
+            message: `Module '${module}' not found for platform '${platformId}'`
         };
     }
 
@@ -363,7 +372,7 @@ function invokeRemoveNode(graphRoot, nodeId) {
     writeJsonFile(nodesPath, existing);
 
     // Remove edges referencing this node (internal)
-    const edgesPath = getEdgesPath(graphRoot, module);
+    const edgesPath = getEdgesPath(graphRoot, platformId, module);
     const edgesFile = readJsonFile(edgesPath);
     if (edgesFile) {
         edgesFile.edges = edgesFile.edges.filter(e => e.source !== nodeId && e.target !== nodeId);
@@ -371,7 +380,7 @@ function invokeRemoveNode(graphRoot, nodeId) {
     }
 
     // Remove edges referencing this node (cross-module)
-    const crossPath = getCrossEdgesPath(graphRoot);
+    const crossPath = getCrossEdgesPath(graphRoot, platformId);
     const crossFile = readJsonFile(crossPath);
     if (crossFile) {
         crossFile.edges = crossFile.edges.filter(e => e.source !== nodeId && e.target !== nodeId);
@@ -389,6 +398,7 @@ function invokeRemoveNode(graphRoot, nodeId) {
     return {
         status: 'success',
         action: 'remove-node',
+        platformId,
         nodeId,
         message: `Node '${nodeId}' and related edges removed`
     };
@@ -400,13 +410,21 @@ function invokeRebuildIndex(graphRoot) {
     const index = {};
 
     if (fs.existsSync(nodesDir)) {
-        const files = fs.readdirSync(nodesDir).filter(f => f.endsWith('.json'));
-        for (const file of files) {
-            const filePath = path.join(nodesDir, file);
-            const data = readJsonFile(filePath);
-            if (data && data.nodes) {
-                for (const n of data.nodes) {
-                    index[n.id] = { module: data.module, type: n.type };
+        // Scan platform subdirectories
+        const platformDirs = fs.readdirSync(nodesDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => d.name);
+
+        for (const platformId of platformDirs) {
+            const platformDir = path.join(nodesDir, platformId);
+            const files = fs.readdirSync(platformDir).filter(f => f.endsWith('.json'));
+            for (const file of files) {
+                const filePath = path.join(platformDir, file);
+                const data = readJsonFile(filePath);
+                if (data && data.nodes) {
+                    for (const n of data.nodes) {
+                        index[n.id] = { platformId, module: data.module, type: n.type };
+                    }
                 }
             }
         }
@@ -433,16 +451,24 @@ function invokeUpdateMeta(graphRoot) {
     const modules = [];
 
     if (fs.existsSync(nodesDir)) {
-        const files = fs.readdirSync(nodesDir).filter(f => f.endsWith('.json'));
-        for (const file of files) {
-            const filePath = path.join(nodesDir, file);
-            const data = readJsonFile(filePath);
-            if (data && data.nodes) {
-                modules.push(data.module);
-                for (const n of data.nodes) {
-                    totalNodes++;
-                    if (nodesByType.hasOwnProperty(n.type)) {
-                        nodesByType[n.type]++;
+        // Scan platform subdirectories
+        const platformDirs = fs.readdirSync(nodesDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => d.name);
+
+        for (const platformId of platformDirs) {
+            const platformDir = path.join(nodesDir, platformId);
+            const files = fs.readdirSync(platformDir).filter(f => f.endsWith('.json'));
+            for (const file of files) {
+                const filePath = path.join(platformDir, file);
+                const data = readJsonFile(filePath);
+                if (data && data.nodes) {
+                    modules.push(`${platformId}/${data.module}`);
+                    for (const n of data.nodes) {
+                        totalNodes++;
+                        if (nodesByType.hasOwnProperty(n.type)) {
+                            nodesByType[n.type]++;
+                        }
                     }
                 }
             }
@@ -450,12 +476,20 @@ function invokeUpdateMeta(graphRoot) {
     }
 
     if (fs.existsSync(edgesDir)) {
-        const files = fs.readdirSync(edgesDir).filter(f => f.endsWith('.json'));
-        for (const file of files) {
-            const filePath = path.join(edgesDir, file);
-            const data = readJsonFile(filePath);
-            if (data && data.edges) {
-                totalEdges += data.edges.length;
+        // Scan platform subdirectories
+        const platformDirs = fs.readdirSync(edgesDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => d.name);
+
+        for (const platformId of platformDirs) {
+            const platformDir = path.join(edgesDir, platformId);
+            const files = fs.readdirSync(platformDir).filter(f => f.endsWith('.json'));
+            for (const file of files) {
+                const filePath = path.join(platformDir, file);
+                const data = readJsonFile(filePath);
+                if (data && data.edges) {
+                    totalEdges += data.edges.length;
+                }
             }
         }
     }
@@ -481,7 +515,7 @@ function invokeUpdateMeta(graphRoot) {
     };
 }
 
-function invokeBatchWrite(graphRoot, module, filePath) {
+function invokeBatchWrite(graphRoot, platformId, module, filePath) {
     // Batch write combines add-nodes and add-edges
     const batchData = readJsonFile(filePath);
     
@@ -492,13 +526,13 @@ function invokeBatchWrite(graphRoot, module, filePath) {
 
     // Add nodes if present
     if (batchData.nodes && batchData.nodes.length > 0) {
-        const nodesResult = invokeAddNodes(graphRoot, module, filePath);
+        const nodesResult = invokeAddNodes(graphRoot, platformId, module, filePath);
         nodesWritten = nodesResult.nodesWritten || 0;
     }
 
     // Add edges if present
     if (batchData.edges && batchData.edges.length > 0) {
-        const edgesResult = invokeAddEdges(graphRoot, module, filePath);
+        const edgesResult = invokeAddEdges(graphRoot, platformId, module, filePath);
         edgesWritten = edgesResult.edgesWritten || 0;
         internalEdges = edgesResult.internalEdges || 0;
         crossModuleEdges = edgesResult.crossModuleEdges || 0;
@@ -511,12 +545,13 @@ function invokeBatchWrite(graphRoot, module, filePath) {
     return {
         status: 'success',
         action: 'batch-write',
+        platformId,
         module,
         nodesWritten,
         edgesWritten,
         internalEdges,
         crossModuleEdges,
-        message: `Successfully wrote ${nodesWritten} nodes and ${edgesWritten} edges to ${module} module`
+        message: `Successfully wrote ${nodesWritten} nodes and ${edgesWritten} edges to ${platformId}/${module} module`
     };
 }
 
@@ -525,6 +560,7 @@ function invokeBatchWrite(graphRoot, module, filePath) {
 function main() {
     const action = args.action;
     const graphRoot = args.graphRoot;
+    const platformId = args.platformId;
 
     if (!action) {
         console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameter: --action' }));
@@ -542,6 +578,13 @@ function main() {
         process.exit(1);
     }
 
+    // Actions that require platformId
+    const platformRequiredActions = ['batch-write', 'init-module', 'add-nodes', 'add-edges', 'update-node', 'remove-node'];
+    if (platformRequiredActions.includes(action) && !platformId) {
+        console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameter: --platformId' }));
+        process.exit(1);
+    }
+
     let result;
 
     switch (action) {
@@ -550,7 +593,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameter: --module' }));
                 process.exit(1);
             }
-            result = invokeInitModule(graphRoot, args.module);
+            result = invokeInitModule(graphRoot, platformId, args.module);
             break;
         
         case 'add-nodes':
@@ -558,7 +601,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameters: --module and --file' }));
                 process.exit(1);
             }
-            result = invokeAddNodes(graphRoot, args.module, args.file);
+            result = invokeAddNodes(graphRoot, platformId, args.module, args.file);
             break;
         
         case 'add-edges':
@@ -566,7 +609,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameters: --module and --file' }));
                 process.exit(1);
             }
-            result = invokeAddEdges(graphRoot, args.module, args.file);
+            result = invokeAddEdges(graphRoot, platformId, args.module, args.file);
             break;
         
         case 'update-node':
@@ -574,7 +617,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameters: --id and --data' }));
                 process.exit(1);
             }
-            result = invokeUpdateNode(graphRoot, args.id, args.data);
+            result = invokeUpdateNode(graphRoot, platformId, args.id, args.data);
             break;
         
         case 'remove-node':
@@ -582,7 +625,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameter: --id' }));
                 process.exit(1);
             }
-            result = invokeRemoveNode(graphRoot, args.id);
+            result = invokeRemoveNode(graphRoot, platformId, args.id);
             break;
         
         case 'rebuild-index':
@@ -598,7 +641,7 @@ function main() {
                 console.error(JSON.stringify({ status: 'failed', message: 'Missing required parameters: --module and --file' }));
                 process.exit(1);
             }
-            result = invokeBatchWrite(graphRoot, args.module, args.file);
+            result = invokeBatchWrite(graphRoot, platformId, args.module, args.file);
             break;
     }
 

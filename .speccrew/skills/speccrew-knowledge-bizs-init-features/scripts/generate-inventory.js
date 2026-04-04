@@ -5,7 +5,8 @@
  * Scans source directory for page files and generates a flat feature list with analysis status tracking.
  * All configuration is passed via parameters - the script does not infer anything.
  *
- * Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--analysisMethod <method>] [--excludeDirs <json>]
+ * Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>]
+ *     Array parameters (--techStack, --fileExtensions, --excludeDirs) accept both JSON format and comma-separated format.
  *
  * Example:
  *   node generate-inventory.js \
@@ -14,14 +15,34 @@
  *     --platformName "Web Frontend" \
  *     --platformType "web" \
  *     --platformSubtype "vue" \
- *     --techStack '["vue","typescript"]' \
- *     --fileExtensions '[".vue",".ts"]' \
+ *     --techIdentifier "vue" \
+ *     --techStack "vue,typescript" \
+ *     --fileExtensions ".vue,.ts" \
  *     --analysisMethod "ui-based" \
- *     --excludeDirs '["components","composables","hooks","utils"]'
+ *     --excludeDirs "components,composables,hooks,utils"
  */
 
 const fs = require('fs');
 const path = require('path');
+
+/**
+ * Parse array parameter that supports both JSON format and comma-separated format.
+ * JSON format: '["vue","typescript"]'
+ * Comma-separated format: "vue,typescript"  (recommended for PowerShell compatibility)
+ */
+function parseArrayParam(value) {
+  if (!value) return [];
+  const trimmed = value.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      return JSON.parse(trimmed);
+    } catch (e) {
+      // PowerShell may strip quotes: [vue,typescript] → parse as comma-separated
+      return trimmed.slice(1, -1).split(',').map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+}
 
 // Parse command line arguments
 function parseArgs() {
@@ -87,7 +108,9 @@ function getModuleName(dirPath, excludeDirs, fallbackModuleName) {
       return part;
     }
   }
-  return fallbackModuleName || '_root';
+  // All parts were excluded (e.g., "src/App.vue" with src excluded)
+  // Return "_root" to indicate framework/root-level files
+  return '_root';
 }
 
 // Recursively find all files matching extensions
@@ -137,25 +160,64 @@ function main() {
 
   // Optional parameters
   const platformSubtype = params.platformSubtype || '';
+  const techIdentifier = params.techIdentifier || platformSubtype;
   const analysisMethod = params.analysisMethod || 'ui-based';
-  const excludeDirsStr = params.excludeDirs || '["components","composables","hooks","utils"]';
+  let excludeDirsStr = params.excludeDirs;
 
-  // Validate required parameters
-  if (!sourcePath || !outputFileName || !platformName || !platformType || !techStackStr || !fileExtensionsStr) {
-    console.error('Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--analysisMethod <method>] [--excludeDirs <json>]');
-    console.error('Example: node generate-inventory.js --sourcePath "src/views" --outputFileName "features-web.json" --platformName "Web Frontend" --platformType "web" --platformSubtype "vue" --techStack \'["vue","typescript"]\' --fileExtensions \'[".vue",".ts"]\' --analysisMethod "ui-based" --excludeDirs \'["components","composables","hooks","utils"]\'');
-    process.exit(1);
-  }
-
-  // Resolve source path
+  // Resolve source path first to find project root
   const resolvedSourcePath = path.resolve(sourcePath);
   if (!fs.existsSync(resolvedSourcePath)) {
     console.error(`Error: Source path does not exist: ${sourcePath}`);
     process.exit(1);
   }
 
-  // Find project root and sync-state directory
+  // Find project root for config file lookup
   const projectRoot = findProjectRoot(resolvedSourcePath);
+
+  // If excludeDirs not provided or empty, try to read from tech-stack-mappings.json
+  if (!excludeDirsStr || excludeDirsStr === '[]') {
+    try {
+      const configPath = path.join(projectRoot, 'speccrew-workspace', 'docs', 'configs', 'tech-stack-mappings.json');
+      if (fs.existsSync(configPath)) {
+        const configContent = fs.readFileSync(configPath, 'utf8');
+        const config = JSON.parse(configContent);
+        
+        // Load tech-stack-specific exclude_dirs
+        let techExcludeDirs = [];
+        if (config.tech_stacks && 
+            config.tech_stacks[platformType] && 
+            config.tech_stacks[platformType][techIdentifier] &&
+            config.tech_stacks[platformType][techIdentifier].exclude_dirs) {
+          techExcludeDirs = config.tech_stacks[platformType][techIdentifier].exclude_dirs;
+        }
+        
+        // Load global exclude_dirs (applies to all platforms)
+        const globalExcludeDirs = config.global_exclude_dirs || [];
+        
+        // Merge: global + tech-specific
+        const mergedDirs = [...new Set([...globalExcludeDirs, ...techExcludeDirs])];
+        excludeDirsStr = JSON.stringify(mergedDirs);
+        console.log(`Loaded exclude_dirs from tech-stack-mappings.json (${globalExcludeDirs.length} global + ${techExcludeDirs.length} tech-specific = ${mergedDirs.length} total)`);
+      }
+    } catch (e) {
+      // Silent fallback - continue with default or empty
+      console.log(`Could not load exclude_dirs from config: ${e.message}`);
+    }
+  }
+
+  // Default fallback if still not set
+  if (!excludeDirsStr) {
+    excludeDirsStr = '["components","composables","hooks","utils"]';
+  }
+
+  // Validate required parameters
+  if (!sourcePath || !outputFileName || !platformName || !platformType || !techStackStr || !fileExtensionsStr) {
+    console.error('Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>]');
+    console.error('Example: node generate-inventory.js --sourcePath "src/views" --outputFileName "features-web.json" --platformName "Web Frontend" --platformType "web" --platformSubtype "vue" --techStack "vue,typescript" --fileExtensions ".vue,.ts" --analysisMethod "ui-based" --excludeDirs "components,composables,hooks,utils"');
+    process.exit(1);
+  }
+
+  // Find sync-state directory
   const syncStateDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
   const outputPath = path.join(syncStateDir, outputFileName);
 
@@ -180,19 +242,10 @@ function main() {
   console.log(`TechStack: ${techStackStr}`);
   console.log(`Extensions: ${fileExtensionsStr}`);
 
-  // Parse JSON parameters
-  let techStackArray;
-  let extensionsArray;
-  let excludeDirsArray;
-
-  try {
-    techStackArray = JSON.parse(techStackStr);
-    extensionsArray = JSON.parse(fileExtensionsStr);
-    excludeDirsArray = JSON.parse(excludeDirsStr);
-  } catch (e) {
-    console.error(`Error parsing JSON parameters: ${e.message}`);
-    process.exit(1);
-  }
+  // Parse array parameters (supports both JSON and comma-separated formats)
+  const techStackArray = parseArrayParam(techStackStr);
+  const extensionsArray = parseArrayParam(fileExtensionsStr);
+  const excludeDirsArray = parseArrayParam(excludeDirsStr);
 
   console.log(`Scanning for files: ${extensionsArray.map(ext => `*${ext}`).join(', ')}`);
 
@@ -295,6 +348,11 @@ function main() {
   // Add platformSubtype if provided
   if (platformSubtype) {
     inventory.platformSubtype = platformSubtype;
+  }
+
+  // Add techIdentifier if provided (used by reindex-modules.js to lookup exclude_dirs)
+  if (techIdentifier) {
+    inventory.techIdentifier = techIdentifier;
   }
 
   // Ensure sync-state directory exists

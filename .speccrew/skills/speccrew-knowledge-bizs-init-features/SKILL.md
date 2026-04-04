@@ -94,9 +94,9 @@ node "scripts/generate-inventory.js" \
   --platformName "Web Frontend" \
   --platformType "web" \
   --platformSubtype "vue" \
-  --techStack '["vue","typescript"]' \
-  --fileExtensions '[".vue"]' \
-  --excludeDirs '["components","composables","hooks","utils"]'
+  --techStack "vue,typescript" \
+  --fileExtensions ".vue" \
+  --excludeDirs "components,composables,hooks,utils"
 ```
 
 **Example - Mobile Platform (UniApp):**
@@ -107,9 +107,9 @@ node "scripts/generate-inventory.js" \
   --platformName "Mobile App" \
   --platformType "mobile" \
   --platformSubtype "uniapp" \
-  --techStack '["uniapp","vue"]' \
-  --fileExtensions '[".vue"]' \
-  --excludeDirs '["components","utils"]'
+  --techStack "uniapp,vue" \
+  --fileExtensions ".vue" \
+  --excludeDirs "components,utils"
 ```
 
 **Example - Backend Platform (Spring Single Module):**
@@ -120,38 +120,44 @@ node "scripts/generate-inventory.js" \
   --platformName "Backend API" \
   --platformType "backend" \
   --platformSubtype "spring" \
-  --techStack '["spring-boot","java"]' \
-  --fileExtensions '[".java"]' \
-  --excludeDirs '[]'
+  --techStack "spring-boot,java" \
+  --fileExtensions ".java" \
+  --excludeDirs ""
 ```
 
 **Example - Backend Platform (Spring Multi-Module):**
+
+> **IMPORTANT for Java/Kotlin backends**: Set `sourcePath` to the Java package root directory (e.g., `yudao-module-system/src/main/java/cn/iocoder/yudao/module/system`), NOT the module root. This ensures the `getModuleName` function extracts business module names (like `dept`, `auth`) instead of Java package segments (like `src`, `cn`).
 
 For projects with multiple backend modules (e.g., ruoyi-vue-pro), execute the script once per module:
 
 ```bash
 # Module 1: AI
 node "scripts/generate-inventory.js" \
-  --sourcePath "yudao-module-ai/src/main/java/cn/iocoder/yudao/module/ai/controller" \
+  --sourcePath "yudao-module-ai/src/main/java/cn/iocoder/yudao/module/ai" \
   --outputFileName "features-backend-ai.json" \
   --platformName "Backend API - AI Module" \
   --platformType "backend" \
-  --platformSubtype "spring" \
-  --techStack '["spring-boot","java"]' \
-  --fileExtensions '[".java"]' \
-  --excludeDirs '[]'
+  --platformSubtype "ai" \
+  --techIdentifier "spring" \
+  --techStack "spring-boot,java" \
+  --fileExtensions ".java" \
+  --excludeDirs ""
 
 # Module 2: System
 node "scripts/generate-inventory.js" \
-  --sourcePath "yudao-module-system/src/main/java/cn/iocoder/yudao/module/system/controller" \
+  --sourcePath "yudao-module-system/src/main/java/cn/iocoder/yudao/module/system" \
   --outputFileName "features-backend-system.json" \
   --platformName "Backend API - System Module" \
   --platformType "backend" \
-  --platformSubtype "spring" \
-  --techStack '["spring-boot","java"]' \
-  --fileExtensions '[".java"]' \
-  --excludeDirs '[]'
+  --platformSubtype "system" \
+  --techIdentifier "spring" \
+  --techStack "spring-boot,java" \
+  --fileExtensions ".java" \
+  --excludeDirs ""
 ```
+
+> **Note**: For multi-module backend projects, prefer per-module execution (above) over scan-all to get proper module-level directory isolation (e.g., `backend-ai/`, `backend-system/`).
 
 **Alternative: Scan All Modules at Once**
 
@@ -164,9 +170,9 @@ node "scripts/generate-inventory.js" \
   --platformName "Backend API - All Modules" \
   --platformType "backend" \
   --platformSubtype "spring" \
-  --techStack '["spring-boot","java"]' \
-  --fileExtensions '[".java"]' \
-  --excludeDirs '["test","target",".git"]'
+  --techStack "spring-boot,java" \
+  --fileExtensions ".java" \
+  --excludeDirs "test,target,.git"
 ```
 
 **Output: `features-{platform}.json` Structure:**

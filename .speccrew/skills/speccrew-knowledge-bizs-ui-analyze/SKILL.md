@@ -6,6 +6,8 @@ tools: Read, Write, Glob, Grep, SearchCodebase, Bash
 
 # UI Feature Analysis - Single Feature
 
+> **CRITICAL CONSTRAINT**: DO NOT create temporary scripts, batch files, or workaround code files (`.py`, `.bat`, `.sh`, `.ps1`, etc.) under any circumstances. If execution encounters errors, STOP and report the exact error. Fixes must be applied to the Skill definition or source scripts — not patched at runtime.
+
 Analyze one specific UI feature from source code, extract business functionality, and generate feature documentation. This skill operates at feature granularity - one worker per feature file.
 
 ## Trigger Scenarios
@@ -103,8 +105,8 @@ Before executing the workflow, verify the following inputs:
 
 ```mermaid
 graph TB
-    Start([Start]) --> Step1[Step 1 Read Feature File]
-    Step1 --> Step2[Step 2 Analyze UI Structure]
+    Start([Start]) --> Step1[Step 1 Read Analysis Template]
+    Step1 --> Step2[Step 2 Read Feature File and Analyze UI Structure]
     Step2 --> Step3[Step 3 Extract Business Features]
     Step3 --> Step4[Step 4 Find Referencing Pages]
     Step4 --> Step5[Step 5 Generate Feature Document]
@@ -115,7 +117,7 @@ graph TB
 
 ---
 
-### Step 1: Read Feature File
+### Step 1: Read Analysis Template
 
 **Step 1 Status: 🔄 IN PROGRESS**
 
@@ -123,20 +125,7 @@ graph TB
    - If `{{analyzed}}` is `true`, output "Step 1 Status: ⏭️ SKIPPED (already analyzed)" and skip to Step 6 with status="skipped"
    - If `{{analyzed}}` is `false`, proceed
 
-2. **Locate and Read the feature file:**
-   - Use `{{sourcePath}}` as the relative file path from project root
-   - Read the feature file content
-   - Output: "Step 1 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines)"
-
-### Step 2: Analyze UI Structure
-
-**Step 2 Status: 🔄 IN PROGRESS**
-
-**Prerequisites:**
-- Feature file is a page/component file (e.g., `frontend-web/src/views/system/user/index.vue`)
-
-**Actions:**
-1. **Read the appropriate template based on platform type:**
+2. **Read the appropriate template based on platform type:**
    
    **Template Selection:**
    
@@ -151,7 +140,26 @@ graph TB
    
    Select template based on `{{platform_type}}` and `{{platform_subtype}}` parameters.
    
-2. Analyze page/screen/window structure, components, props, state management
+3. **Understand template structure:**
+   - Read the template content
+   - Understand the required information dimensions and sections
+   - Note the analysis requirements for each section
+   - Output: "Step 1 Status: ✅ COMPLETED - Read template for {{platform_type}}/{{platform_subtype}}"
+
+### Step 2: Read Feature File and Analyze UI Structure
+
+**Step 2 Status: 🔄 IN PROGRESS**
+
+**Prerequisites:**
+- Template has been read and understood
+- Feature file is a page/component file (e.g., `frontend-web/src/views/system/user/index.vue`)
+
+**Actions:**
+1. **Locate and Read the feature file:**
+   - Use `{{sourcePath}}` as the relative file path from project root
+   - Read the feature file content
+
+2. **Analyze page/screen/window structure, components, props, state management** guided by the template requirements
 
 **Analysis Scope:**
 
@@ -248,7 +256,7 @@ Example format:
 ```
 If no obvious performance risks exist, SHOULD explicitly note "当前数据规模下无明显性能风险".
 
-**Output:** "Step 2 Status: ✅ COMPLETED - Analyzed {{componentCount}} components, {{eventCount}} events"
+**Output:** "Step 2 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines), Analyzed {{componentCount}} components, {{eventCount}} events"
 
 ### Step 3: Extract Business Features
 
@@ -586,16 +594,16 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 ## Checklist
 
 - [ ] Input variables received (`{{feature}}`, `{{fileName}}`, `{{sourcePath}}`, `{{documentPath}}`, `{{module}}`, `{{analyzed}}`, `{{platform_type}}`, `{{platform_subtype}}`, `{{language}}`, `{{completed_dir}}`, `{{sourceFile}}`)
-- [ ] Skip if `{{analyzed}}` is `true`
-- [ ] **Correct template selected** based on `{{platform_type}}` and `{{platform_subtype}}`
+- [ ] Skip if `{{analyzed}}` is `true` (Step 1)
+- [ ] **Correct template selected** based on `{{platform_type}}` and `{{platform_subtype}}` (Step 1)
   - [ ] Web (Vue/React): Use `FEATURE-DETAIL-TEMPLATE-UI.md`
   - [ ] Mobile Native: Use `FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md`
   - [ ] Mini Program: Use `FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md`
   - [ ] Desktop (WinForms/WPF): Use `FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md`
   - [ ] Desktop (Electron): Use `FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md`
   - [ ] Unknown: Default to `FEATURE-DETAIL-TEMPLATE-UI.md`
-- [ ] Template read and understood
-- [ ] Source file `{{sourcePath}}` read and analyzed
+- [ ] Template read and understood (Step 1)
+- [ ] Source file `{{sourcePath}}` read and analyzed (Step 2)
 - [ ] **Section 1**: Content Overview filled with feature metadata
 - [ ] **Section 2**: Interface Prototype with ASCII wireframes for main page and embedded modals
 - [ ] **Section 3**: Business Flow diagrams for page init, events, timers, websocket, page close

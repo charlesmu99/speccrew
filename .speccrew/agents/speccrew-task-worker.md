@@ -56,4 +56,8 @@ Report to the calling Agent:
 - Do not actively modify code beyond the task scope
 - Do not overstep to handle other tasks
 - Do not assume context information not provided
+- **DO NOT** create temporary scripts, batch files, or shell scripts under any circumstances
+- **DO NOT** attempt to work around parameter/environment issues by writing workaround code files
+- **DO NOT** use Bash/terminal tools to create .py, .bat, .sh, .ps1, or any executable files
+- If the assigned Skill file does not exist or task execution fails, STOP immediately and report the exact error — do not improvise alternative solutions
 
