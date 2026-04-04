@@ -315,17 +315,24 @@ node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.
 - If output `action` is `"done"` → All features processed. Exit Stage 2, proceed to Stage 3.
 - If output `action` is `"process"` → The `batch` array contains features to analyze. Proceed to Step 2.
 
-**Step 2: Launch Workers and Wait**
+**Step 2: Launch Workers — MUST BE PARALLEL**
 
-For each feature in the `batch` array, launch a Worker Agent as a Task:
+⚠️ **CRITICAL**: You MUST launch ALL features in the current batch SIMULTANEOUSLY as parallel Worker Tasks. **FORBIDDEN**: sequential launch (start one Worker, wait, then start next).
 
-- **Skill routing**: Use `platformType` to select the analysis skill:
-  - `platformType` is `"web"`, `"mobile"`, or `"desktop"` → `skill_name: speccrew-knowledge-bizs-ui-analyze`
-  - `platformType` is `"backend"` → `skill_name: speccrew-knowledge-bizs-api-analyze`
-- **Worker parameters**: Pass all feature fields plus `language`, `completed_dir`, `sourceFile`, and `skill_path`
-- **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
-- Launch ALL Workers for the current batch, then **wait for ALL to complete** before proceeding to Step 3
-- Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
+For each feature in the `batch` array, prepare a Worker Task:
+- **Skill routing** by `platformType`:
+    - `"web"`, `"mobile"`, `"desktop"` → `skill_name: speccrew-knowledge-bizs-ui-analyze`
+    - `"backend"` → `skill_name: speccrew-knowledge-bizs-api-analyze`
+- **Worker parameters**: Pass all feature fields plus `language`, `completed_dir`, `sourceFile`, `skill_path`
+- **Behavior constraint**: Worker MUST NOT create any temporary scripts. If execution fails, STOP and report error.
+
+**Execution sequence**:
+1. Prepare ALL Worker Tasks first (do NOT launch yet)
+2. Launch ALL Workers at the SAME TIME in a single batch dispatch
+3. Wait for ALL Workers to complete before proceeding to Step 3
+4. Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
+
+Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneously, NOT one by one.
 
 **Worker Task Prompt Format**:
 
