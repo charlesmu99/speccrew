@@ -274,9 +274,9 @@ function main() {
       reclassifiedCount++;
       feature.module = newModule;
       
-      // 重建 documentPath
+      // 重建 documentPath（使用 fileName 而非 feature.id，避免文件名过长）
       if (platformId) {
-        feature.documentPath = `speccrew-workspace/knowledges/bizs/${platformId}/${newModule}/${feature.id}.md`;
+        feature.documentPath = `speccrew-workspace/knowledges/bizs/${platformId}/${newModule}/${feature.fileName}.md`;
       }
     }
   });
