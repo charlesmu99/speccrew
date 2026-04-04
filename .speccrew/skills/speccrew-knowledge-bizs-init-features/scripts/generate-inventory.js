@@ -406,8 +406,9 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
         continue;
       }
       
-      // Scan files in the entry directory
-      const files = findFilesInDir(entryFullPath, extensions, absoluteSourcePath);
+      // Scan files in the entry directory (recursive for web/mobile platforms with nested dirs)
+      const excludeDirs = techStackConfig.exclude_dirs || [];
+      const files = findFiles(entryFullPath, extensions, excludeDirs, absoluteSourcePath);
       
       for (const file of files) {
         // Apply exclude_file_suffixes filter
