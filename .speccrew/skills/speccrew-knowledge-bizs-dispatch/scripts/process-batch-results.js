@@ -242,8 +242,8 @@ function main() {
         process.exit(1);
     }
     if (!fs.existsSync(graphRoot)) {
-        console.error(`GraphRoot not found: ${args.graphRoot}`);
-        process.exit(1);
+        console.log(`GraphRoot not found, creating: ${args.graphRoot}`);
+        fs.mkdirSync(graphRoot, { recursive: true });
     }
     if (!fs.existsSync(graphWriteScript)) {
         console.error(`GraphWriteScript not found: ${args.graphWriteScript}`);
