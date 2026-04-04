@@ -900,22 +900,46 @@ Or in case of failure:
 
 **1. Write .done file (MANDATORY):**
 
-> **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.done` file MUST be valid JSON. Do NOT write plain text, key=value pairs, or any other format. The file content MUST start with `{` and end with `}`. Non-JSON content will cause pipeline failure.
+> **🚨 CRITICAL - JSON FORMAT MANDATORY**: The `.done` file **MUST** be valid JSON. Writing plain text, status messages, or progress updates into this file is **STRICTLY FORBIDDEN**.
+>
+> **❌ FORBIDDEN - NEVER DO THIS:**
+> ```
+> Scanning files...
+> Analysis complete
+> ```
+>
+> **✅ CORRECT - ONLY VALID JSON:**
+> ```json
+> {"fileName": "UserController", "status": "success", ...}
+> ```
 
 Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
 
 **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
 
+**Complete JSON Template (ALL fields required):**
 ```json
 {
   "fileName": "{{fileName}}",
   "sourcePath": "{{sourcePath}}",
   "sourceFile": "{{sourceFile}}",
   "module": "{{module}}",
+  "documentPath": "{{documentPath}}",
   "status": "{{status}}",
   "analysisNotes": "{{message}}"
 }
 ```
+
+**Field Descriptions:**
+| Field | Required | Description | Example |
+|-------|----------|-------------|---------|
+| `fileName` | ✅ YES | Java class name **WITHOUT extension** | `"UserController"` |
+| `sourcePath` | ✅ YES | Relative path to source file | `"yudao-module-system/.../UserController.java"` |
+| `sourceFile` | ✅ YES | Source features JSON filename | `"features-admin-api.json"` |
+| `module` | ✅ YES | Business module name | `"system"` |
+| `documentPath` | ✅ YES | Path to generated document (same as Step 5a) | `"speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md"` |
+| `status` | ✅ YES | Analysis status | `"success"`, `"partial"`, or `"failed"` |
+| `analysisNotes` | ✅ YES | Summary message | `"Analyzed 8 API endpoints"` |
 
 > **⚠️ CRITICAL - fileName Field Rules:**
 > - The `fileName` field MUST contain only the Java class name **WITHOUT file extension**
@@ -925,6 +949,8 @@ Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
 > - ❌ WRONG: `"fileName": "UserController.class"` (includes extension)
 
 > **⚠️ CRITICAL**: The `sourceFile` field is MANDATORY. It MUST be the features JSON filename (e.g., `features-admin-api.json`). Missing this field will cause pipeline failure.
+
+> **⚠️ CRITICAL**: The `documentPath` field is MANDATORY. It MUST match the `{{documentPath}}` variable from Step 5a. This is used to verify the document was created successfully.
 
 ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
 - ✅ CORRECT: `UserController.done` (using Java class name directly)
