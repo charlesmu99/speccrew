@@ -380,28 +380,30 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{fileName}.done           ← Completion status marker (JSON format)
-{completed_dir}/{fileName}.graph.json     ← Graph data marker (JSON format)
+{completed_dir}/{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
 **Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
 - `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
 
 **❌ WRONG Format - NEVER USE:**
 ```
 {fileName}.completed.json    ← WRONG extension
-{fileName}.done.json         ← WRONG extension
+{fileName}.done              ← WRONG extension (missing .json)
+{fileName}.done.txt          ← WRONG extension
 {fileName}_done.json         ← WRONG separator and extension
 {fileName}-completed.json    ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
-- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done`
-- `UserController.done.json` - WRONG: uses `.done.json` instead of `.done`
+- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
+- `UserController.done` - WRONG: uses `.done` instead of `.done.json`
+- `UserController.done.txt` - WRONG: uses `.done.txt` instead of `.done.json`
 - `UserController_done.json` - WRONG: uses underscore and wrong extension
-- `dict-UserController.done` - WRONG: has module prefix
-- `system-UserController.done` - WRONG: has module prefix
+- `dict-UserController.done.json` - WRONG: has module prefix
+- `system-UserController.done.json` - WRONG: has module prefix
 
 ---
 
@@ -451,15 +453,15 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 | Marker Type | File Name Format | Example |
 |-------------|------------------|---------|
-| Completion marker | `{fileName}.done` | `index.done`, `UserController.done`, `AiKnowledgeDocumentCreateListReqVO.done` |
+| Completion marker | `{fileName}.done.json` | `index.done.json`, `UserController.done.json`, `AiKnowledgeDocumentCreateListReqVO.done.json` |
 | Graph data | `{fileName}.graph.json` | `index.graph.json`, `UserController.graph.json`, `AiKnowledgeDocumentCreateListReqVO.graph.json` |
 
 **Worker Completion Requirements:**
 
-- Worker MUST create **both** `.done` (JSON) and `.graph.json` (JSON) marker files
+- Worker MUST create **both** `.done.json` (JSON) and `.graph.json` (JSON) marker files
 - **Both files must be valid JSON format** — plain text content will cause processing failures
 - Task is considered **incomplete** if either file is missing or contains invalid JSON
-- The `.done` file must include all required fields: `fileName`, `sourcePath`, `sourceFile`, `module`, `status`, `analysisNotes`
+- The `.done.json` file must include all required fields: `fileName`, `sourcePath`, `sourceFile`, `module`, `status`, `analysisNotes`
 - The `.graph.json` file must follow the graph data schema defined in `speccrew-knowledge-graph-write/SKILL.md`
 - **sourcePath and documentPath MUST be relative paths** (as received from features JSON), NEVER convert to absolute paths
 

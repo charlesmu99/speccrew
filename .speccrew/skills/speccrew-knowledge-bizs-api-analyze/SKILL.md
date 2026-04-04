@@ -64,7 +64,7 @@ This skill operates in **strict sequential execution mode**:
 
 **Generated Files:**
 1. `{{documentPath}}` - Controller documentation file
-2. `{{completed_dir}}/{{fileName}}.done` - Completion status marker
+2. `{{completed_dir}}/{{fileName}}.done.json` - Completion status marker
 3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
 
 **Return Value:**
@@ -818,9 +818,9 @@ Or in case of failure:
 - [ ] File is written with UTF-8 encoding
 
 **Pre-write Verification (MUST check before writing):**
-- [ ] `.done` JSON: `fileName` does NOT contain file extension
-- [ ] `.done` JSON: `sourceFile` matches `features-{platform}.json` pattern  
-- [ ] `.done` JSON: `module` field is present and non-empty
+- [ ] `.done.json` JSON: `fileName` does NOT contain file extension
+- [ ] `.done.json` JSON: `sourceFile` matches `features-{platform}.json` pattern  
+- [ ] `.done.json` JSON: `module` field is present and non-empty
 - [ ] `.graph.json` JSON: root-level `module` field is present (MANDATORY)
 - [ ] `.graph.json` JSON: `nodes` and `edges` are arrays (can be empty)
 - [ ] Both files: valid JSON (no trailing commas, all strings quoted)
@@ -831,28 +831,30 @@ Or in case of failure:
 
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{fileName}.done           ← Completion status marker (JSON format)
-{completed_dir}/{fileName}.graph.json     ← Graph data marker (JSON format)
+{completed_dir}/{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
 **Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
 - `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
 
 **❌ WRONG Format - NEVER USE:**
 ```
 {fileName}.completed.json    ← WRONG extension
-{fileName}.done.json         ← WRONG extension
+{fileName}.done              ← WRONG extension (missing .json)
+{fileName}.done.txt          ← WRONG extension
 {fileName}_done.json         ← WRONG separator and extension
 {fileName}-completed.json    ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
-- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done`
-- `UserController.done.json` - WRONG: uses `.done.json` instead of `.done`
+- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
+- `UserController.done` - WRONG: uses `.done` instead of `.done.json`
+- `UserController.done.txt` - WRONG: uses `.done.txt` instead of `.done.json`
 - `UserController_done.json` - WRONG: uses underscore and wrong extension
-- `dict-UserController.done` - WRONG: has module prefix
-- `system-UserController.done` - WRONG: has module prefix
+- `dict-UserController.done.json` - WRONG: has module prefix
+- `system-UserController.done.json` - WRONG: has module prefix
 
 ---
 
@@ -898,9 +900,9 @@ Or in case of failure:
 
 ---
 
-**1. Write .done file (MANDATORY):**
+**1. Write .done.json file (MANDATORY):**
 
-> **🚨 CRITICAL - JSON FORMAT MANDATORY**: The `.done` file **MUST** be valid JSON. Writing plain text, status messages, or progress updates into this file is **STRICTLY FORBIDDEN**.
+> **🚨 CRITICAL - JSON FORMAT MANDATORY**: The `.done.json` file **MUST** be valid JSON. Writing plain text, status messages, or progress updates into this file is **STRICTLY FORBIDDEN**.
 >
 > **❌ FORBIDDEN - NEVER DO THIS:**
 > ```
@@ -913,9 +915,9 @@ Or in case of failure:
 > {"fileName": "UserController", "status": "success", ...}
 > ```
 
-Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
+Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done.json`:
 
-**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
+**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
 
 **Complete JSON Template (ALL fields required):**
 ```json
@@ -952,11 +954,12 @@ Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
 
 > **⚠️ CRITICAL**: The `documentPath` field is MANDATORY. It MUST match the `{{documentPath}}` variable from Step 5a. This is used to verify the document was created successfully.
 
-⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
-- ✅ CORRECT: `UserController.done` (using Java class name directly)
-- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.done` (using Java class name directly)
-- ❌ WRONG: `dict-UserController.done` (using old featureId format)
-- ❌ WRONG: `system-UserController.done` (using module prefix)
+⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done.json`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
+- ✅ CORRECT: `UserController.done.json` (using Java class name directly)
+- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.done.json` (using Java class name directly)
+- ❌ WRONG: `UserController.done` (missing .json extension)
+- ❌ WRONG: `dict-UserController.done.json` (using old featureId format)
+- ❌ WRONG: `system-UserController.done.json` (using module prefix)
 
 ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 

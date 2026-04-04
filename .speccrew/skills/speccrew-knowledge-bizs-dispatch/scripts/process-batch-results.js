@@ -3,7 +3,7 @@
 /**
  * Batch process completed analysis results.
  *
- * Scans the completed/ directory for .done and .graph.json marker files,
+ * Scans the completed/ directory for .done.json and .graph.json marker files,
  * updates feature statuses, writes graph data, updates metadata, and cleans up.
  */
 
@@ -11,13 +11,13 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-// Helper: Validate and normalize .done file content
+// Helper: Validate and normalize .done.json file content
 function validateAndNormalizeDoneContent(content, doneFile) {
     // Strip file extensions from fileName if present
     if (content.fileName && /\.\w+$/.test(content.fileName)) {
         const original = content.fileName;
         content.fileName = content.fileName.replace(/\.\w+$/, '');
-        console.warn(`[WARN] .done file ${doneFile}: stripped extension from fileName "${original}" → "${content.fileName}"`);
+        console.warn(`[WARN] .done.json file ${doneFile}: stripped extension from fileName "${original}" → "${content.fileName}"`);
     }
 
     // Validate required fields
@@ -30,7 +30,7 @@ function validateAndNormalizeDoneContent(content, doneFile) {
 
     // Validate sourcePath format if present
     if (content.sourcePath && typeof content.sourcePath !== 'string') {
-        console.warn(`[WARN] .done file ${doneFile}: invalid sourcePath type, converting to string`);
+        console.warn(`[WARN] .done.json file ${doneFile}: invalid sourcePath type, converting to string`);
         content.sourcePath = String(content.sourcePath);
     }
 
@@ -253,7 +253,7 @@ function main() {
     const completedDir = path.join(syncStatePath, 'completed');
 
     // Diagnostic logging for completed directory
-    console.log(`Scanning for .done files in: ${completedDir}`);
+    console.log(`Scanning for .done.json files in: ${completedDir}`);
     console.log(`Directory exists: ${fs.existsSync(completedDir)}`);
 
     // Auto-create completed directory if it doesn't exist
@@ -271,12 +271,12 @@ function main() {
     // Check for .done files and warn if none found
     if (fs.existsSync(completedDir)) {
         const allFiles = fs.readdirSync(completedDir);
-        const doneFiles = allFiles.filter(f => f.endsWith('.done'));
+        const doneFiles = allFiles.filter(f => f.endsWith('.done.json'));
         if (doneFiles.length === 0) {
-            console.warn(`[WARNING] No .done files found in completed directory. Workers may not have created marker files correctly.`);
+            console.warn(`[WARNING] No .done.json files found in completed directory. Workers may not have created marker files correctly.`);
             console.warn(`[INFO] Files in completed directory: ${allFiles.length > 0 ? allFiles.join(', ') : '(empty)'}`);
         } else {
-            console.log(`[INFO] Found ${doneFiles.length} .done file(s)`);
+            console.log(`[INFO] Found ${doneFiles.length} .done.json file(s)`);
         }
     }
 
@@ -346,7 +346,7 @@ function main() {
         execFileSync('node', commandArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
     }
 
-    // ── Step 1: Process .done files and update status ────────────────────────────
+    // ── Step 1: Process .done.json files and update status ────────────────────────────
 
     // Fallback: try to parse key=value format when JSON parsing fails
     function parseFallbackDone(rawContent, fileName) {
@@ -359,16 +359,16 @@ function main() {
             }
         }
         if (result.fileName || result.status) {
-            console.warn(`[WARN] Parsed .done file ${fileName} using fallback key=value format`);
+            console.warn(`[WARN] Parsed .done.json file ${fileName} using fallback key=value format`);
             return result;
         }
         return null;
     }
 
-    // Fallback: recover minimal info from filename and context when .done is non-JSON
+    // Fallback: recover minimal info from filename and context when .done.json is non-JSON
     function recoverDoneFileFromContext(doneFile, completedDir, syncStatePath) {
-        const fileName = doneFile.replace(/\.done$/, '');
-        console.warn(`[WARN] .done file is not valid JSON: ${doneFile}. Attempting recovery from filename...`);
+        const fileName = doneFile.replace(/\.done\.json$/, '');
+        console.warn(`[WARN] .done.json file is not valid JSON: ${doneFile}. Attempting recovery from filename...`);
 
         // Try to get module from same-named .graph.json
         let module = 'unknown';
@@ -417,7 +417,7 @@ function main() {
             module: module,
             sourcePath: null,
             status: 'success',
-            analysisNotes: 'Auto-recovered from non-JSON .done file'
+            analysisNotes: 'Auto-recovered from non-JSON .done.json file'
         };
     }
 
@@ -426,7 +426,7 @@ function main() {
             return;
         }
 
-        const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
+        const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done.json'));
 
         for (const doneFile of doneFiles) {
             let rawContent;
@@ -434,7 +434,7 @@ function main() {
                 const doneFilePath = path.join(completedDir, doneFile);
                 rawContent = fs.readFileSync(doneFilePath, 'utf8');
                 if (!rawContent || rawContent.trim() === '') {
-                    console.warn(`Empty .done file detected: ${doneFile} - Worker may have failed to write content`);
+                    console.warn(`Empty .done.json file detected: ${doneFile} - Worker may have failed to write content`);
                     skippedFilesCount++;
                     continue;
                 }
@@ -450,7 +450,7 @@ function main() {
                 let analysisNotes = content.analysisNotes;
 
                 if (!fileName || !sourceFile) {
-                    console.warn(`Invalid .done file format: ${doneFile}`);
+                    console.warn(`Invalid .done.json file format: ${doneFile}`);
                     console.warn(`  Expected fields: fileName (got: '${fileName}'), sourceFile (got: '${sourceFile}')`);
                     console.warn(`  File content preview: ${rawContent.substring(0, Math.min(200, rawContent.length))}`);
                     continue;
@@ -458,7 +458,7 @@ function main() {
 
                 // Warn if module field is missing or empty (non-blocking)
                 if (!module) {
-                    console.warn(`[WARN] module field missing from .done file: ${doneFile}`);
+                    console.warn(`[WARN] module field missing from .done.json file: ${doneFile}`);
                 }
 
                 // Check if document exists before marking as analyzed
@@ -466,8 +466,8 @@ function main() {
                 if (!docCheck.exists) {
                     const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                     console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                    console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed - document must exist. .done file PRESERVED for retry.`);
-                    // Do NOT mark as successful - preserve .done for retry
+                    console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed - document must exist. .done.json file PRESERVED for retry.`);
+                    // Do NOT mark as successful - preserve .done.json for retry
                     docMissingCount++;
                     continue;
                 }
@@ -483,7 +483,7 @@ function main() {
             } catch (error) {
                 // Defensive check: if rawContent is undefined, file read itself failed
                 if (rawContent === undefined) {
-                    writeErrorContinue(`Failed to read .done file ${doneFile}: ${error.message}`);
+                    writeErrorContinue(`Failed to read .done.json file ${doneFile}: ${error.message}`);
                     continue;
                 }
                 // Try fallback parsing for non-JSON format
@@ -506,7 +506,7 @@ function main() {
                             if (!docCheck.exists) {
                                 const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                                 console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                                console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (fallback path) - document must exist. .done file PRESERVED.`);
+                                console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (fallback path) - document must exist. .done.json file PRESERVED.`);
                                 docMissingCount++;
                                 continue;
                             }
@@ -517,7 +517,7 @@ function main() {
                             continue;
                         }
                     } catch (fallbackError) {
-                        writeErrorContinue(`Failed to process .done file ${doneFile} (fallback): ${fallbackError.message}`);
+                        writeErrorContinue(`Failed to process .done.json file ${doneFile} (fallback): ${fallbackError.message}`);
                         continue;
                     }
                 }
@@ -538,7 +538,7 @@ function main() {
                         if (!docCheck.exists) {
                             const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                             console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                            console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (recovery path) - document must exist. .done file PRESERVED.`);
+                            console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (recovery path) - document must exist. .done.json file PRESERVED.`);
                             docMissingCount++;
                             continue;
                         }
@@ -548,12 +548,12 @@ function main() {
                         successfulDoneFiles.add(doneFile);
                         continue;
                     } catch (recoveryError) {
-                        writeErrorContinue(`Failed to process .done file ${doneFile} (recovery): ${recoveryError.message}`);
+                        writeErrorContinue(`Failed to process .done.json file ${doneFile} (recovery): ${recoveryError.message}`);
                         continue;
                     }
                 }
 
-                writeErrorContinue(`Failed to process .done file ${doneFile}: ${error.message}`);
+                writeErrorContinue(`Failed to process .done.json file ${doneFile}: ${error.message}`);
             }
         }
     }
@@ -587,8 +587,8 @@ function main() {
                 let module = content.module;
 
                 if (!module) {
-                    // Try to read module from corresponding .done file
-                    const doneFileName = graphFile.replace('.graph.json', '.done');
+                    // Try to read module from corresponding .done.json file
+                    const doneFileName = graphFile.replace('.graph.json', '.done.json');
                     const doneFilePath = path.join(completedDir, doneFileName);
 
                     if (fs.existsSync(doneFilePath)) {
@@ -598,17 +598,17 @@ function main() {
                             if (doneContent.module) {
                                 module = doneContent.module;
                                 content.module = module;
-                                console.warn(`[WARN] .graph.json missing root-level "module" field, falling back to .done file: ${graphFile}`);
+                                console.warn(`[WARN] .graph.json missing root-level "module" field, falling back to .done.json file: ${graphFile}`);
                             }
                         } catch (doneError) {
-                            console.warn(`Failed to read module from .done file ${doneFileName}: ${doneError.message}`);
+                            console.warn(`Failed to read module from .done.json file ${doneFileName}: ${doneError.message}`);
                         }
                     }
 
                     // If still no module, skip this file
                     if (!module) {
                         console.warn(`Cannot determine module for: ${graphFile}, skipping`);
-                        console.warn(`  Tried to read from .done file: ${doneFileName}`);
+                        console.warn(`  Tried to read from .done.json file: ${doneFileName}`);
                         console.warn(`  File content preview: ${rawContent.substring(0, Math.min(200, rawContent.length))}`);
                         continue;
                     }
@@ -743,13 +743,13 @@ function main() {
 
         // Log cleanup plan before execution
         console.log('=== Cleanup Plan ===');
-        console.log(`[INFO] Successfully processed .done files to remove: ${successfulDoneFiles.size}`);
+        console.log(`[INFO] Successfully processed .done.json files to remove: ${successfulDoneFiles.size}`);
         console.log(`[INFO] Successfully processed .graph.json files to remove: ${successfulGraphFiles.size}`);
         
-        const allDoneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
+        const allDoneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done.json'));
         const failedDoneFiles = allDoneFiles.filter(f => !successfulDoneFiles.has(f));
         if (failedDoneFiles.length > 0) {
-            console.log(`[INFO] Failed/unprocessed .done files to PRESERVE: ${failedDoneFiles.length}`);
+            console.log(`[INFO] Failed/unprocessed .done.json files to PRESERVE: ${failedDoneFiles.length}`);
             for (const file of failedDoneFiles) {
                 console.log(`  [PRESERVE] ${file}`);
             }
@@ -765,21 +765,21 @@ function main() {
         }
         console.log('====================');
 
-        // Remove .done files (ONLY successfully processed ones)
-        // IMPORTANT: Failed .done files are PRESERVED for retry after fixing the issue
-        const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
+        // Remove .done.json files (ONLY successfully processed ones)
+        // IMPORTANT: Failed .done.json files are PRESERVED for retry after fixing the issue
+        const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done.json'));
         for (const file of doneFiles) {
             if (successfulDoneFiles.has(file)) {
                 try {
                     const filePath = path.join(completedDir, file);
-                    console.log(`[CLEANUP] Removing successfully processed .done file: ${file}`);
+                    console.log(`[CLEANUP] Removing successfully processed .done.json file: ${file}`);
                     fs.unlinkSync(filePath);
                 } catch (error) {
-                    writeErrorContinue(`Failed to remove .done file ${file}: ${error.message}`);
+                    writeErrorContinue(`Failed to remove .done.json file ${file}: ${error.message}`);
                 }
             } else {
-                // PRESERVE failed .done files for later retry - DO NOT DELETE
-                console.warn(`[PRESERVE] Keeping failed .done file for retry: ${file}`);
+                // PRESERVE failed .done.json files for later retry - DO NOT DELETE
+                console.warn(`[PRESERVE] Keeping failed .done.json file for retry: ${file}`);
             }
         }
 
@@ -836,7 +836,7 @@ function main() {
 
     // Exit with error code if features were skipped due to missing documents
     if (docMissingCount > 0) {
-        console.error(`\n[ERROR] ${docMissingCount} feature(s) skipped - documents not found. .done files preserved in completed/ for retry.`);
+        console.error(`\n[ERROR] ${docMissingCount} feature(s) skipped - documents not found. .done.json files preserved in completed/ for retry.`);
         process.exit(1);
     }
 }

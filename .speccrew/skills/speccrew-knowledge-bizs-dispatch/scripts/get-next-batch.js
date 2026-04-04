@@ -5,7 +5,7 @@
  *
  * Scans the sync-state directory for all features-*.json files and extracts
  * features where analyzed=false or analyzed field is missing.
- * Additionally excludes features that have a corresponding .done file in the
+ * Additionally excludes features that have a corresponding .done.json file in the
  * completed/ directory (indicating Worker has finished but results not yet processed).
  * Returns a JSON array limited to BatchSize items.
  */
@@ -61,9 +61,9 @@ function main() {
         const completedFeatureFileNames = new Set();
         const completedFeatureIds = new Set();
         if (fs.existsSync(completedDir) && fs.statSync(completedDir).isDirectory()) {
-            const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
+            const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done.json'));
             for (const doneFile of doneFiles) {
-                // Read .done file content to extract fileName or featureId
+                // Read .done.json file content to extract fileName or featureId
                 const doneFilePath = path.join(completedDir, doneFile);
                 try {
                     const doneRawContent = fs.readFileSync(doneFilePath, 'utf8');
@@ -76,9 +76,9 @@ function main() {
                         completedFeatureIds.add(doneContent.featureId);
                     }
                 } catch (error) {
-                    console.warn(`Warning: Failed to read .done file ${doneFile}: ${error.message}`);
+                    console.warn(`Warning: Failed to read .done.json file ${doneFile}: ${error.message}`);
                     // Fallback: use filename without extension (legacy behavior)
-                    const baseName = path.basename(doneFile, '.done');
+                    const baseName = path.basename(doneFile, '.done.json');
                     completedFeatureIds.add(baseName);
                 }
             }
@@ -118,7 +118,7 @@ function main() {
                 const featureId = feature.id;
                 const featureFileName = feature.fileName;
 
-                // Skip if already completed (has .done file)
+                // Skip if already completed (has .done.json file)
                 // Check both fileName (new format) and featureId (legacy format)
                 if (completedFeatureFileNames.has(featureFileName) || completedFeatureIds.has(featureId)) {
                     continue;
