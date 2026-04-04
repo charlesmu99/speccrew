@@ -733,47 +733,63 @@ function main() {
             return;
         }
 
-        // Remove .done files (only successfully processed ones)
+        // Log cleanup plan before execution
+        console.log('=== Cleanup Plan ===');
+        console.log(`[INFO] Successfully processed .done files to remove: ${successfulDoneFiles.size}`);
+        console.log(`[INFO] Successfully processed .graph.json files to remove: ${successfulGraphFiles.size}`);
+        
+        const allDoneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
+        const failedDoneFiles = allDoneFiles.filter(f => !successfulDoneFiles.has(f));
+        if (failedDoneFiles.length > 0) {
+            console.log(`[INFO] Failed/unprocessed .done files to PRESERVE: ${failedDoneFiles.length}`);
+            for (const file of failedDoneFiles) {
+                console.log(`  [PRESERVE] ${file}`);
+            }
+        }
+        
+        const allGraphFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.graph.json'));
+        const failedGraphFiles = allGraphFiles.filter(f => !successfulGraphFiles.has(f));
+        if (failedGraphFiles.length > 0) {
+            console.log(`[INFO] Failed/unprocessed .graph.json files to PRESERVE: ${failedGraphFiles.length}`);
+            for (const file of failedGraphFiles) {
+                console.log(`  [PRESERVE] ${file}`);
+            }
+        }
+        console.log('====================');
+
+        // Remove .done files (ONLY successfully processed ones)
+        // IMPORTANT: Failed .done files are PRESERVED for retry after fixing the issue
         const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
         for (const file of doneFiles) {
             if (successfulDoneFiles.has(file)) {
                 try {
-                    fs.unlinkSync(path.join(completedDir, file));
+                    const filePath = path.join(completedDir, file);
+                    console.log(`[CLEANUP] Removing successfully processed .done file: ${file}`);
+                    fs.unlinkSync(filePath);
                 } catch (error) {
                     writeErrorContinue(`Failed to remove .done file ${file}: ${error.message}`);
                 }
             } else {
-                // Log failed .done file content for debugging, then delete to avoid blocking get-next-batch
-                try {
-                    const failedContent = fs.readFileSync(path.join(completedDir, file), 'utf8');
-                    console.warn(`Removing failed .done file: ${file}`);
-                    console.warn(`  Content was: ${failedContent.substring(0, Math.min(500, failedContent.length))}`);
-                    fs.unlinkSync(path.join(completedDir, file));
-                } catch (error) {
-                    writeErrorContinue(`Failed to remove failed .done file ${file}: ${error.message}`);
-                }
+                // PRESERVE failed .done files for later retry - DO NOT DELETE
+                console.warn(`[PRESERVE] Keeping failed .done file for retry: ${file}`);
             }
         }
 
-        // Remove .graph.json files (only successfully processed ones)
+        // Remove .graph.json files (ONLY successfully processed ones)
+        // IMPORTANT: Failed .graph.json files are PRESERVED for retry after fixing the issue
         const graphFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.graph.json'));
         for (const file of graphFiles) {
             if (successfulGraphFiles.has(file)) {
                 try {
-                    fs.unlinkSync(path.join(completedDir, file));
+                    const filePath = path.join(completedDir, file);
+                    console.log(`[CLEANUP] Removing successfully processed .graph.json file: ${file}`);
+                    fs.unlinkSync(filePath);
                 } catch (error) {
                     writeErrorContinue(`Failed to remove .graph.json file ${file}: ${error.message}`);
                 }
             } else {
-                // Log failed .graph.json file content for debugging, then delete to avoid blocking get-next-batch
-                try {
-                    const failedContent = fs.readFileSync(path.join(completedDir, file), 'utf8');
-                    console.warn(`Removing failed .graph.json file: ${file}`);
-                    console.warn(`  Content was: ${failedContent.substring(0, Math.min(500, failedContent.length))}`);
-                    fs.unlinkSync(path.join(completedDir, file));
-                } catch (error) {
-                    writeErrorContinue(`Failed to remove failed .graph.json file ${file}: ${error.message}`);
-                }
+                // PRESERVE failed .graph.json files for later retry - DO NOT DELETE
+                console.warn(`[PRESERVE] Keeping failed .graph.json file for retry: ${file}`);
             }
         }
     }

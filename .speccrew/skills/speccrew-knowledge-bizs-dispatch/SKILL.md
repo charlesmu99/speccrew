@@ -472,7 +472,7 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 2. **Execute process-results**:
    ```
-   node "{path_to_batch_orchestrator_js}" process-results --syncStatePath "{sync_state_path}" --graphRoot "{graph_root}" --graphWriteScript "{graph_write_script_path}"
+   node "{path_to_batch_orchestrator_js}" process-results --syncStatePath "{sync_state_path}" --graphRoot "{graph_root}" --graphWriteScript "{graph_write_script_path}" --platformId "{platformId}"
    ```
 
 This script:
