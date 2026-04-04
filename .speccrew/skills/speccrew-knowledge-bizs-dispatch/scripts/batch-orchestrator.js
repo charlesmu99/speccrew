@@ -22,7 +22,8 @@ function parseArgs() {
         syncStatePath: null,
         batchSize: 5,
         graphRoot: null,
-        graphWriteScript: null
+        graphWriteScript: null,
+        platformId: null
     };
 
     // First non-option argument is the mode
@@ -49,6 +50,10 @@ function parseArgs() {
                 case '--graphWriteScript':
                 case '-GraphWriteScript':
                     result.graphWriteScript = args[++i];
+                    break;
+                case '--platformId':
+                case '-PlatformId':
+                    result.platformId = args[++i];
                     break;
             }
         } else if (!modeFound) {
@@ -113,6 +118,9 @@ function processResults(args) {
     if (!args.graphWriteScript) {
         throw new Error('--graphWriteScript is required for process-results mode');
     }
+    if (!args.platformId) {
+        throw new Error('--platformId is required for process-results mode');
+    }
 
     const processBatchResultsScript = getScriptPath('process-batch-results.js');
 
@@ -120,7 +128,8 @@ function processResults(args) {
         processBatchResultsScript,
         '--syncStatePath', args.syncStatePath,
         '--graphRoot', args.graphRoot,
-        '--graphWriteScript', args.graphWriteScript
+        '--graphWriteScript', args.graphWriteScript,
+        '--platformId', args.platformId
     ];
 
     // Execute process-batch-results.js and capture output
@@ -138,7 +147,7 @@ function main() {
             console.error('Error: Mode is required. Use "get-batch" or "process-results"');
             console.error('Usage:');
             console.error('  node batch-orchestrator.js get-batch --syncStatePath <path> [--batchSize 5]');
-            console.error('  node batch-orchestrator.js process-results --syncStatePath <path> --graphRoot <path> --graphWriteScript <path>');
+            console.error('  node batch-orchestrator.js process-results --syncStatePath <path> --graphRoot <path> --graphWriteScript <path> --platformId <id>');
             process.exit(1);
         }
 

@@ -254,6 +254,7 @@ function main() {
 
     // Result tracking
     let processedCount = 0;
+    let skippedFilesCount = 0;
     const modulesUpdated = [];
     const errors = [];
     const failedOperations = [];
@@ -349,6 +350,7 @@ function main() {
                 rawContent = fs.readFileSync(doneFilePath, 'utf8');
                 if (!rawContent || rawContent.trim() === '') {
                     console.warn(`Empty .done file detected: ${doneFile} - Worker may have failed to write content`);
+                    skippedFilesCount++;
                     continue;
                 }
                 let content = JSON.parse(rawContent);
@@ -367,6 +369,11 @@ function main() {
                     console.warn(`  Expected fields: fileName (got: '${fileName}'), sourceFile (got: '${sourceFile}')`);
                     console.warn(`  File content preview: ${rawContent.substring(0, Math.min(200, rawContent.length))}`);
                     continue;
+                }
+
+                // Warn if module field is missing or empty (non-blocking)
+                if (!module) {
+                    console.warn(`[WARN] module field missing from .done file: ${doneFile}`);
                 }
 
                 // Check if document exists before marking as analyzed
@@ -451,6 +458,7 @@ function main() {
                 const rawContent = fs.readFileSync(graphFilePath, 'utf8');
                 if (!rawContent || rawContent.trim() === '') {
                     console.warn(`Empty .graph.json file detected: ${graphFile} - Worker may have failed to write content`);
+                    skippedFilesCount++;
                     continue;
                 }
                 const content = JSON.parse(rawContent);
@@ -468,7 +476,7 @@ function main() {
                             if (doneContent.module) {
                                 module = doneContent.module;
                                 content.module = module;
-                                console.warn(`Missing module field, read "${module}" from .done file: ${doneFileName}`);
+                                console.warn(`[WARN] .graph.json missing root-level "module" field, falling back to .done file: ${graphFile}`);
                             }
                         } catch (doneError) {
                             console.warn(`Failed to read module from .done file ${doneFileName}: ${doneError.message}`);
@@ -496,9 +504,13 @@ function main() {
 
                 if (content.nodes && Array.isArray(content.nodes)) {
                     moduleGroups[effectiveModule].nodes.push(...content.nodes);
+                } else if (content.nodes !== undefined) {
+                    console.warn(`[WARN] .graph.json "nodes" field is not an array in: ${graphFile}`);
                 }
                 if (content.edges && Array.isArray(content.edges)) {
                     moduleGroups[effectiveModule].edges.push(...content.edges);
+                } else if (content.edges !== undefined) {
+                    console.warn(`[WARN] .graph.json "edges" field is not an array in: ${graphFile}`);
                 }
                 moduleGroups[effectiveModule].files.push(graphFilePath);
             } catch (error) {
@@ -667,6 +679,7 @@ function main() {
 
     const output = {
         processed: processedCount,
+        skipped: skippedFilesCount,
         modules_updated: modulesUpdated,
         errors: errors,
         failed_operations: failedOperations

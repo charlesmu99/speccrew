@@ -508,6 +508,14 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
 **Actions:**
 
+**Pre-write Verification (MUST check before writing):**
+- [ ] `.done` JSON: `fileName` does NOT contain file extension
+- [ ] `.done` JSON: `sourceFile` matches `features-{platform}.json` pattern  
+- [ ] `.done` JSON: `module` field is present and non-empty
+- [ ] `.graph.json` JSON: root-level `module` field is present (MANDATORY)
+- [ ] `.graph.json` JSON: `nodes` and `edges` are arrays (can be empty)
+- [ ] Both files: valid JSON (no trailing commas, all strings quoted)
+
 1. **Write .done file (MANDATORY):**
 
    > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.done` file MUST be valid JSON. Do NOT write plain text, key=value pairs, or any other format. The file content MUST start with `{` and end with `}`. Non-JSON content will cause pipeline failure.
@@ -527,6 +535,13 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
    }
    ```
 
+   > **⚠️ CRITICAL - fileName Field Rules:**
+   > - The `fileName` field MUST contain only the feature file name **WITHOUT file extension**
+   > - ✅ CORRECT: `"fileName": "index"`
+   > - ✅ CORRECT: `"fileName": "UserForm"`
+   > - ❌ WRONG: `"fileName": "index.vue"` (includes extension)
+   > - ❌ WRONG: `"fileName": "UserForm.tsx"` (includes extension)
+
    > **⚠️ CRITICAL**: The `sourceFile` field is MANDATORY. It MUST be the features JSON filename (e.g., `features-web-vue.json`). Missing this field will cause pipeline failure.
 
    ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
@@ -539,7 +554,7 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
 2. **Write .graph.json file (MANDATORY):**
 
-   > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and MUST include the top-level `"module"` field. Missing the `module` field will cause the graph merge pipeline to reject this file.
+   > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and **MUST include the root-level `module` field**. Do NOT rely on scripts to infer the module from `.done` file - the `module` field MUST be explicitly present at the root level of `.graph.json`.
 
    Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`:
    
@@ -572,6 +587,11 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
      ]
    }
    ```
+
+   > **⚠️ CRITICAL - module Field Requirement:**
+   > - The `.graph.json` file **MUST** have a root-level `module` field
+   > - Do NOT assume scripts will fall back to reading from `.done` file
+   > - Missing `module` field will cause the graph merge pipeline to reject this file
 
    ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.graph.json`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
    - ✅ CORRECT: `index.graph.json` (using file name directly)
