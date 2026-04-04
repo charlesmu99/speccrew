@@ -413,12 +413,38 @@ For each feature in the `batch` array, launch a Worker Agent as a Task:
 - Launch ALL Workers for the current batch, then **wait for ALL to complete** before proceeding to Step 3
 - Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
 
+> ⚠️ **CRITICAL - Marker File Format**:
+> The `.done` file MUST be valid JSON format, NOT plain text.
+>
+> Required `.done` JSON structure:
+> ```json
+> {
+>   "fileName": "<class name without extension>",
+>   "sourcePath": "<relative source file path>",
+>   "sourceFile": "<features JSON filename, e.g. features-backend-ai.json>",
+>   "module": "<business module name>",
+>   "status": "success|partial|failed",
+>   "analysisNotes": "<brief notes>"
+> }
+> ```
+>
+> ❌ **WRONG**: Writing plain text like "COMPLETED" or "Analysis done"
+> ✅ **CORRECT**: Writing valid JSON with all required fields
+
 **Marker File Naming Convention**:
 
 | Marker Type | File Name Format | Example |
 |-------------|------------------|---------|
 | Completion marker | `{fileName}.done` | `index.done`, `UserController.done`, `AiKnowledgeDocumentCreateListReqVO.done` |
 | Graph data | `{fileName}.graph.json` | `index.graph.json`, `UserController.graph.json`, `AiKnowledgeDocumentCreateListReqVO.graph.json` |
+
+**Worker Completion Requirements**:
+
+- Worker MUST create **both** `.done` (JSON) and `.graph.json` (JSON) marker files
+- **Both files must be valid JSON format** — plain text content will cause processing failures
+- Task is considered **incomplete** if either file is missing or contains invalid JSON
+- The `.done` file must include all required fields: `fileName`, `sourcePath`, `sourceFile`, `module`, `status`, `analysisNotes`
+- The `.graph.json` file must follow the graph data schema defined in `speccrew-knowledge-graph-write/SKILL.md`
 
 **Step 3: Process Batch Results**
 

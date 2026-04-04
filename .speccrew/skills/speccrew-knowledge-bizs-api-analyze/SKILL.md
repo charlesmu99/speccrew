@@ -145,6 +145,19 @@ graph TB
 | 5. References | Services, Mappers, other controllers this controller uses | Field injections, imports |
 | 6. Business Rules | Permission rules, validation rules, business logic rules | Code logic, annotations, comments |
 
+**Handling VO/DTO Source Files:**
+If the source file is a VO/DTO class (not a Controller), certain sections may be simplified, but ALL section headers and numbering must still be preserved:
+- Section 2 (API Endpoint Definitions): Note "This is a VO/DTO class containing only data structure definitions, no API endpoints"
+- Section 4 (References): Document fields and their types as the primary content
+- Other sections: Use "N/A" or "Not applicable for VO/DTO classes"
+- NEVER skip sections or reorganize the template structure
+
+> ⚠️ CRITICAL: The template defines the EXACT output structure. You MUST:
+> - Generate ALL sections listed in the template, in the SAME order
+> - Fill ALL tables defined in the template (use "N/A" for unavailable data, never skip a table)
+> - Follow the EXACT heading hierarchy and numbering from the template
+> - Do NOT invent your own section structure or reorganize sections
+
 **Output:** "Step 1 Status: ✅ COMPLETED - Template loaded, {{sectionCount}} sections identified for analysis"
 
 ### Step 2: Read Controller and Analyze API Structure
@@ -169,6 +182,11 @@ graph TB
 3. **Identify all public API endpoint methods**
 
 4. **Extract method signatures, HTTP methods, and paths**
+
+5. **Systematically gather information for EVERY section in the template:**
+   - For each template section, identify what source code information is needed
+   - If source code doesn't provide enough info for a section, note it for "N/A" filling later
+   - Do NOT skip gathering info just because it seems minor
 
 **Output:** "Step 2 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines), Analyzed {{endpointCount}} endpoints, {{serviceCount}} services"
 
@@ -256,6 +274,13 @@ public class UserController {
      - Table structure (fields, types, constraints)
      - Index usage
      - Relationships with other tables
+   
+   **MANDATORY Analysis for Template Sections 6-7:**
+   - Trace the complete call chain to Service → Mapper/DAO → Database tables
+   - Analyze transaction boundaries (methods with @Transactional or equivalent)
+   - Analyze database operation types (SELECT/INSERT/UPDATE/DELETE) for each table
+   - Identify service dependencies and cross-module calls for Dependency Analysis section
+   - Note potential performance considerations (N+1 queries, large batch operations, missing indexes)
 
 4. **Business Flow Visualization**:
    - Generate Mermaid flowchart for **each API endpoint**
@@ -344,6 +369,29 @@ Use the appropriate template based on `{{tech_stack}}` to generate the feature d
 | Other/Unknown | `templates/FEATURE-DETAIL-TEMPLATE.md` | Use as default/generic template |
 
 Select the template that matches the `{{platform_subtype}}` and `{{tech_stack}}` parameters. If no specific template matches, default to `FEATURE-DETAIL-TEMPLATE.md` (Java template serves as the generic base).
+
+> ⚠️ MANDATORY OUTPUT STRUCTURE:
+> The generated document MUST contain ALL of the following sections from the template, in order.
+> Skipping any section is a VIOLATION. If data is unavailable, write the section header and note "Information not available from source code analysis."
+>
+> **Pre-write Checklist (verify ALL before writing):**
+> - [ ] Every Section from the template has a corresponding heading in the output
+> - [ ] Every table defined in the template exists in the output (with data or "N/A")
+> - [ ] Section numbering matches the template exactly
+> - [ ] No custom/invented sections that break the template structure
+> - [ ] Mermaid diagrams are included where the template specifies them
+>
+> **Template Section Checklist (verify each section exists):**
+> - [ ] Section 1: Content Overview
+> - [ ] Section 2: API Endpoint Definitions (with Error Codes, Flow Step Description, Call Chain, Database Operations, Transaction Boundaries tables)
+> - [ ] Section 3: Data Field Definition
+> - [ ] Section 4: References
+> - [ ] Section 5: Business Rule Constraints
+> - [ ] Section 6: Dependency Analysis
+> - [ ] Section 7: Performance Considerations
+> - [ ] Section 8: Troubleshooting Guide
+> - [ ] Section 9: Notes and Additional Information
+> - [ ] Section 10: Appendix
 
 **Template Variables:**
 - `{Controller Name}`: Controller class name (e.g., "UserController")

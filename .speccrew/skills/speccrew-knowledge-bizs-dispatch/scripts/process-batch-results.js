@@ -330,10 +330,66 @@ function main() {
             }
         }
         if (result.fileName || result.status) {
-            console.warn(`Parsed .done file ${fileName} using fallback key=value format`);
+            console.warn(`[WARN] Parsed .done file ${fileName} using fallback key=value format`);
             return result;
         }
         return null;
+    }
+
+    // Fallback: recover minimal info from filename and context when .done is non-JSON
+    function recoverDoneFileFromContext(doneFile, completedDir, syncStatePath) {
+        const fileName = doneFile.replace(/\.done$/, '');
+        console.warn(`[WARN] .done file is not valid JSON: ${doneFile}. Attempting recovery from filename...`);
+
+        // Try to get module from same-named .graph.json
+        let module = 'unknown';
+        const graphFilePath = path.join(completedDir, fileName + '.graph.json');
+        if (fs.existsSync(graphFilePath)) {
+            try {
+                const graphContent = JSON.parse(fs.readFileSync(graphFilePath, 'utf8'));
+                if (graphContent.module) {
+                    module = graphContent.module;
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+
+        // Try to match sourceFile from features-*.json files
+        let sourceFile = 'unknown';
+        try {
+            const files = fs.readdirSync(syncStatePath);
+            const featureFiles = files.filter(f => f.startsWith('features-') && f.endsWith('.json'));
+
+            for (const f of featureFiles) {
+                const filePath = path.join(syncStatePath, f);
+                try {
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                    if (content.features && Array.isArray(content.features)) {
+                        const found = content.features.find(feat => feat.fileName === fileName);
+                        if (found) {
+                            sourceFile = f;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    // Continue checking next file
+                }
+            }
+        } catch (e) {
+            // Ignore read errors
+        }
+
+        console.warn(`[WARN] Recovered minimal info: fileName=${fileName}, module=${module}, sourceFile=${sourceFile}. Some fields may be inaccurate.`);
+
+        return {
+            fileName: fileName,
+            sourceFile: sourceFile,
+            module: module,
+            sourcePath: null,
+            status: 'success',
+            analysisNotes: 'Auto-recovered from non-JSON .done file'
+        };
     }
 
     function processDoneFiles() {
@@ -431,6 +487,36 @@ function main() {
                         continue;
                     }
                 }
+
+                // Final fallback: recover from filename and context
+                const recoveredContent = recoverDoneFileFromContext(doneFile, completedDir, syncStatePath);
+                if (recoveredContent && recoveredContent.fileName && recoveredContent.sourceFile !== 'unknown') {
+                    try {
+                        const fileName = recoveredContent.fileName;
+                        const featureSourcePath = recoveredContent.sourcePath;
+                        const sourceFile = recoveredContent.sourceFile;
+                        let analysisNotes = recoveredContent.analysisNotes;
+
+                        const sourceFilePath = path.join(syncStatePath, sourceFile);
+
+                        // Check if document exists before marking as analyzed (recovery path)
+                        const docCheck = checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourcePath);
+                        if (!docCheck.exists) {
+                            const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
+                            console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
+                            analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
+                        }
+
+                        updateFeatureStatus(sourceFilePath, fileName, featureSourcePath, 'true', true, analysisNotes);
+                        processedCount++;
+                        successfulDoneFiles.add(doneFile);
+                        continue;
+                    } catch (recoveryError) {
+                        writeErrorContinue(`Failed to process .done file ${doneFile} (recovery): ${recoveryError.message}`);
+                        continue;
+                    }
+                }
+
                 writeErrorContinue(`Failed to process .done file ${doneFile}: ${error.message}`);
             }
         }

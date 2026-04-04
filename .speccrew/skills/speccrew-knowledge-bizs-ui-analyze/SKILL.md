@@ -146,6 +146,12 @@ graph TB
    - Note the analysis requirements for each section
    - Output: "Step 1 Status: ✅ COMPLETED - Read template for {{platform_type}}/{{platform_subtype}}"
 
+   > ⚠️ CRITICAL: The template defines the EXACT output structure. You MUST:
+   > - Generate ALL sections listed in the template, in the SAME order
+   > - Fill ALL tables defined in the template (use "N/A" for unavailable data, never skip a table)
+   > - Follow the EXACT heading hierarchy and numbering from the template
+   > - Do NOT invent your own section structure or reorganize sections
+
 ### Step 2: Read Feature File and Analyze UI Structure
 
 **Step 2 Status: 🔄 IN PROGRESS**
@@ -160,6 +166,17 @@ graph TB
    - Read the feature file content
 
 2. **Analyze page/screen/window structure, components, props, state management** guided by the template requirements
+
+   > ⚠️ When analyzing, systematically gather information for EVERY section in the template:
+   > - For each template section, identify what source code information is needed
+   > - If source code doesn't provide enough info for a section, note it for "N/A" filling later
+   > - Do NOT skip gathering info just because it seems minor
+
+3. **Deep Analysis Requirements:**
+   - Analyze complete component interfaces: props, events, slots
+   - Trace API call chains and data flow paths
+   - Analyze routing configuration and state management integration
+   - Document component dependencies and injection patterns
 
 **Analysis Scope:**
 
@@ -429,6 +446,17 @@ Use the selected template to generate the feature document:
   - [ ] Scalability limitations documented
   - [ ] Pending confirmations include design reasonability questions and improvement suggestions
 - [ ] Source traceability links in all sections
+
+> ⚠️ MANDATORY OUTPUT STRUCTURE:
+> The generated document MUST contain ALL sections from the template, in order.
+> Skipping any section is a VIOLATION. If data is unavailable, write the section header and note "Information not available from source code analysis."
+>
+> Pre-write Checklist (verify ALL before writing):
+> - [ ] Every Section from the template has a corresponding heading
+> - [ ] Every table defined in the template exists (with data or "N/A")
+> - [ ] Section numbering matches exactly
+> - [ ] No custom sections that break template structure
+> - [ ] Mermaid diagrams included where template specifies them
 
 **CRITICAL - Link Format Rules:**
 
