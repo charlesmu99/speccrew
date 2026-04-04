@@ -60,6 +60,18 @@ This skill operates in **strict sequential execution mode**:
 - Output step status after each step completion
 - Do NOT skip any step
 
+## 🚫 ABSOLUTE PROHIBITIONS (ZERO TOLERANCE)
+
+> **These rules apply to ALL steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the analysis document (`{{documentPath}}`). Documents MUST be created by copying the template (Step 5a) then filling sections with `search_replace` (Step 5b). `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: File deletion** — NEVER use `Remove-Item`, `del`, `rm`, `fs.unlinkSync`, or any delete command on generated files. If a file is malformed, fix it with `search_replace`.
+
+3. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+4. **MANDATORY: Template-first workflow** — Step 5a (copy template) MUST execute before Step 5b (fill sections). Skipping Step 5a and writing content directly is FORBIDDEN.
+
 ## Output
 
 **Generated Files:**
