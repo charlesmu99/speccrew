@@ -52,8 +52,16 @@ graph TB
 - erDiagram syntax
 - flowchart instead of graph
 - Quoted node text ["text"]
-- Special characters: # < > & etc.
+- Special characters: @ # < > & etc.
 ```
+
+**Special Character Handling:**
+| Character | Source | Fix |
+|-----------|--------|-----|
+| `@` | Java annotations (`@RestController`) | Remove `@` prefix: `RestController` |
+| `#` | Markdown headers | Spell out or omit |
+| `<` `>` | Generics (`List<String>`) | Use parentheses: `List(String)` |
+| `&` | HTML entities | Spell out: `and` |
 
 ### 5. Multi-line Text Handling
 
