@@ -17,12 +17,6 @@ Analyze one specific UI feature from source code, extract business functionality
 - "Generate documentation for feature {fileName}"
 - "Analyze UI feature from features.json"
 
-## User
-
-Worker Agent (speccrew-task-worker)
-
-## Input
-
 ## Input Variables
 
 | Variable | Type | Description | Example |
@@ -84,23 +78,6 @@ Worker Agent (speccrew-task-worker)
 
 The return value is used by dispatch to update the feature status in `features-{platform}.json`.
 
-## Execution Requirements
-
-This skill operates in **strict sequential execution mode**:
-- Execute steps in exact order (Step 1 → Step 2 → ... → Step 7)
-- Output step status after each step completion
-- Do NOT skip any step
-
-## Execution Checklist
-
-Before executing the workflow, verify the following inputs:
-
-- Feature: `{{fileName}}` (`{{sourcePath}}`)
-- Target: `{{documentPath}}`
-- Language: `{{language}}`
-- Module: `{{module}}`
-- Platform: `{{platform_type}}`/`{{platform_subtype}}`
-
 ## Workflow
 
 ```mermaid
@@ -109,8 +86,9 @@ graph TB
     Step1 --> Step2[Step 2 Read Feature File and Analyze UI Structure]
     Step2 --> Step3[Step 3 Extract Business Features]
     Step3 --> Step4[Step 4 Find Referencing Pages]
-    Step4 --> Step5[Step 5 Generate Feature Document]
-    Step5 --> Step6[Step 6 Report Results]
+    Step4 --> Step5a[Step 5a Copy Template to Document Path]
+    Step5a --> Step5b[Step 5b Fill Each Section Using search_replace]
+    Step5b --> Step6[Step 6 Report Results]
     Step6 --> Step7[Step 7 Write Completion Markers]
     Step7 --> End([End])
 ```
@@ -406,62 +384,331 @@ Search other page files in the codebase to find which pages reference/navigate t
 
 **Output:** "Step 4 Status: ✅ COMPLETED - Found {{referenceCount}} referencing pages"
 
-### Step 5: Generate Feature Document
+### Step 5a: Copy Template to Document Path
 
-**Step 5 Status: 🔄 IN PROGRESS**
+**Step 5a Status: 🔄 IN PROGRESS**
 
-Use the selected template to generate the feature document:
+**Objective:** Copy the appropriate template file to the target document path, replacing top-level placeholders.
 
-**Template Variables by Platform:**
+**Actions:**
 
-| Platform | Page/Screen Term | Event Terms | Lifecycle Terms |
-|----------|-----------------|-------------|-----------------|
-| Web | Page, Component | onClick, onChange, onBlur | mount, unmount |
-| Mobile | Screen, View | onTap, onLongPress, onSwipe | viewDidLoad, onCreate |
-| Mini Program | Page | bind:tap, bind:input | onLoad, onShow |
-| Desktop (WinForms/WPF) | Window, Form | Click, DoubleClick | Form.Load, Initialized |
-| Desktop (Electron) | Window, Renderer | click, IPC events | DOMContentLoaded
+1. **Select Template Based on Platform Type:**
 
-**Template Variables:**
-- `{Feature Name}`: Human-readable feature name
-- `{sourcePath}`: Source file path from feature object (relative to project root)
-- `{documentPath}`: Target document path from feature object (relative to project root)
-- `{line}`: Source code line number for traceability
+   | Platform Type | Template File |
+   |--------------|---------------|
+   | `web` | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` |
+   | `mobile` | `templates/FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md` |
+   | `miniapp` | `templates/FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md` |
+   | `desktop` | `templates/FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md` |
+   | `electron` | `templates/FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md` |
+   | Unknown/Other | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` |
 
-**Generation Checklist:**
-- [ ] Section 1: Content Overview
-- [ ] Section 2: Interface Prototype (ASCII wireframes)
-- [ ] Section 3: Business Flow (Mermaid diagrams)
-  - [ ] **API call sequence analysis** added for all multi-API flows (serial/parallel, try/catch/finally timing, race conditions)
-  - [ ] **Boundary scenarios** documented (empty data, error branches, state reset, concurrent operations)
-- [ ] Section 4: Data Field Definition
-  - [ ] **Data binding mapping table**: field → UI component (v-model/v-for) → data flow → sync timing
-  - [ ] **Reactive dependency chain**: watch/computed dependencies documented (or explicitly stated "无响应式依赖")
-- [ ] Section 5.1-5.4: References (APIs, methods, components, pages)
-- [ ] Section 5.5: Referenced By
-- [ ] Section 6: Business Rules
-- [ ] Section 7: Notes — **performance and scalability analysis** included
-  - [ ] Full-load performance risks identified (e.g., dropdown loading all records)
-  - [ ] UI performance risks under large data volumes noted
-  - [ ] Scalability limitations documented
-  - [ ] Pending confirmations include design reasonability questions and improvement suggestions
-- [ ] Source traceability links in all sections
+2. **Read the Selected Template File:**
+   - Read the template file content from the skill's templates directory
+   - Example path: `d:/dev/speccrew/.speccrew/skills/speccrew-knowledge-bizs-ui-analyze/templates/FEATURE-DETAIL-TEMPLATE-UI.md`
 
-> ⚠️ MANDATORY OUTPUT STRUCTURE:
-> The generated document MUST contain ALL sections from the template, in order.
-> Skipping any section is a VIOLATION. If data is unavailable, write the section header and note "Information not available from source code analysis."
->
-> Pre-write Checklist (verify ALL before writing):
-> - [ ] Every Section from the template has a corresponding heading
-> - [ ] Every table defined in the template exists (with data or "N/A")
-> - [ ] Section numbering matches exactly
-> - [ ] No custom sections that break template structure
-> - [ ] Mermaid diagrams included where template specifies them
+3. **Replace Top-Level Placeholders:**
+   
+   Replace the following placeholders in the template content:
+   
+   | Placeholder | Replacement | Example |
+   |-------------|-------------|---------|
+   | `{Feature Name}` | Human-readable feature name extracted from analysis | `"用户管理列表"` |
+   | `{documentPath}` | `{{documentPath}}` input variable | `"speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md"` |
+   | `{sourcePath}` | `{{sourcePath}}` input variable | `"frontend-web/src/views/system/user/index.vue"` |
+   | `{Date}` | Current date | `"2026-04-04"` |
+   | `{FeatureFile}.vue` | `{{fileName}}` with appropriate extension | `"index.vue"` |
+
+4. **Write the Document Using create_file:**
+   
+   Use `create_file` to write the placeholder-replaced template content to `{{documentPath}}`.
+   
+   **Example:**
+   ```
+   create_file(
+     file_path: "{{documentPath}}",
+     file_content: "<template content with top-level placeholders replaced>"
+   )
+   ```
+
+**Pre-write Checklist:**
+- [ ] Template file selected based on `{{platform_type}}`
+- [ ] Template content read successfully
+- [ ] All top-level placeholders replaced
+- [ ] Document path is valid
+
+**Output:** "Step 5a Status: ✅ COMPLETED - Template copied to {{documentPath}}"
+
+---
+
+### Step 5b: Fill Each Section Using search_replace
+
+**Step 5b Status: 🔄 IN PROGRESS**
+
+**Objective:** Fill each section of the copied template document using `search_replace`, preserving section structure.
+
+**CRITICAL Rules:**
+- ⚠️ **NEVER use `create_file` to rewrite the entire document** — this defeats the purpose of template-based generation
+- ⚠️ **ALWAYS use `search_replace` to update specific sections**
+- ⚠️ **Section titles and numbering MUST be preserved**
+- ⚠️ **If a section has no corresponding information, replace placeholder content with "N/A"**
+
+**Section Filling Order:**
+
+#### 1. Section 1 - Content Overview
+
+**Anchor:** The `description:` line under Section 1 header
+
+**Operation:** Replace the placeholder description with actual feature description:
+
+```markdown
+# Before (template)
+description: Feature overview.
+
+# After (filled)
+description: 用户管理列表页面，提供用户查询、新增、编辑、删除、状态切换等功能。
+```
+
+**search_replace Example:**
+```
+original_text: "description: Feature overview."
+new_text: "description: 用户管理列表页面，提供用户查询、新增、编辑、删除、状态切换等功能。"
+```
+
+---
+
+#### 2. Section 2 - Interface Prototype
+
+**Anchor:** The ASCII wireframe block under each `### 2.x` subsection
+
+**Operation:** Replace the example ASCII wireframe with actual wireframe drawn in Step 3
+
+**search_replace Example:**
+```
+original_text: |
+  ```
+  ┌─────────────────────────────────────────────────────────────┐
+  │ [Page Title] {e.g., Product Management List}                │
+  ├─────────────────────────────────────────────────────────────┤
+  ... (entire example wireframe block)
+  └─────────────────────────────────────────────────────────────┘
+  ```
+
+new_text: |
+  ```
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 用户管理                                                    │
+  ├─────────────────────────────────────────────────────────────┤
+  │ 昵称: [________] 用户名: [________] 状态: [全部 ▼]          │
+  │ [查询] [重置] [新增]                                        │
+  ...
+  ```
+```
+
+**For Interface Element Description table:**
+- Replace each example row with actual element descriptions
+- Use `search_replace` to replace the entire table content
+
+---
+
+#### 3. Section 3 - Business Flow
+
+**Anchors:** Each `### 3.x` and `#### 3.x.x` subsection with its Mermaid diagram
+
+**Operation:** Replace example Mermaid diagrams with actual flow diagrams from Step 3
+
+**Required Flow Types (from template):**
+- `3.1` Page Initialization Flow
+- `3.2.x` Component Event Flows (onClick, onChange, etc.)
+- `3.3.x` Timer/WebSocket Flows (if applicable)
+- `3.4` Page Close/Cleanup Flow (if applicable)
+
+**search_replace Example:**
+```
+original_text: |
+  ```mermaid
+  graph TB
+      Start([Page Load]) --> Init[Initialize Page State]
+      Init --> CheckParams[Parse URL Parameters]
+      ... (example flow)
+  ```
+
+new_text: |
+  ```mermaid
+  graph TB
+      Start([页面加载]) --> Init[初始化页面状态]
+      Init --> GetUserList[获取用户列表]
+      GetUserList --> API1[API getUserList - 查询API - 获取用户列表]
+      ...
+  ```
+```
+
+**Flow Description Table:** Replace the example table with actual step descriptions
+
+**Referenced Items Table:** Replace with actual API/method references
+
+**MANDATORY Additions for Section 3:**
+
+After each multi-API flow, add **时序分析 / Sequence Analysis**:
+
+```markdown
+**时序分析**：
+- getUserRoleList 和 getSimpleRoleList 为串行调用
+- formLoading 在 finally 中恢复
+- ⚠️ 竞态风险：getUserRoleList 失败时，getSimpleRoleList 仍会执行
+```
+
+After flow descriptions, add **边界场景 / Boundary Scenarios** table:
+
+```markdown
+**边界场景**：
+| 场景 | 触发条件 | 处理方式 |
+|------|----------|----------|
+| 空列表 | API 返回 data=[] | 展示空状态提示 |
+| API 失败 | 网络超时/服务端报错 | ElMessage 提示错误信息 |
+| 状态重置 | 关闭弹窗 | resetForm() 清空所有字段 |
+```
+
+---
+
+#### 4. Section 4 - Data Field Definition
+
+**Anchors:** 
+- `### 4.1 Page State Fields` table
+- `### 4.2 Form Fields` table
+
+**Operation:** Replace example field rows with actual field definitions from Step 2 analysis
+
+**search_replace Example:**
+```
+original_text: |
+  | Field Name | Field Type | Description | Source |
+  |------------|------------|-------------|--------|
+  | {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../{sourcePath}) |
+  | {Field 2} | String | {Description} | [Source](../../{sourcePath}) |
+
+new_text: |
+  | Field Name | Field Type | Description | Source |
+  |------------|------------|-------------|--------|
+  | userList | Array | 用户列表数据 | [Source](../../frontend-web/src/views/system/user/index.vue) |
+  | loading | Boolean | 列表加载状态 | [Source](../../frontend-web/src/views/system/user/index.vue) |
+  | queryParams | Object | 查询参数对象 | [Source](../../frontend-web/src/views/system/user/index.vue) |
+```
+
+**MANDATORY Additions for Section 4:**
+
+After the field tables, add **数据绑定映射 / Data Binding Mapping** table:
+
+```markdown
+**数据绑定映射**：
+| 字段 | UI 绑定 | 数据流向 | 同步时机 |
+|------|---------|----------|----------|
+| formData.roleIds | `<el-transfer v-model>` | 组件内部 ↔ formData | 用户操作穿梭框时实时同步 |
+| roleList | `<el-transfer :data>` | API → roleList | 弹窗打开时一次性加载 |
+```
+
+Add **响应式依赖链 / Reactive Dependency Chain**:
+
+```markdown
+**响应式依赖链**：
+- watch(props.userId) → 触发 getUserRoleList() → 更新 formData.roleIds
+- computed: 无
+```
+
+---
+
+#### 5. Section 5 - References
+
+**Anchors:** Tables under `### 5.1` through `### 5.5`
+
+**Operation:** Replace each reference table with actual references found in analysis
+
+**Subsections to Fill:**
+- `5.1 APIs` — All API functions imported and called
+- `5.2 Frontend Shared Methods` — Utility functions used
+- `5.3 Shared Components` — External components used
+- `5.4 Other Pages (This Page References)` — Pages navigated to
+- `5.5 Referenced By (Other Pages Reference This Page)` — From Step 4 results
+
+**search_replace Example:**
+```
+original_text: |
+  | API Name | Type | Main Function | Source | Document Path |
+  |----------|------|---------------|--------|---------------|
+  | {API Name} | Query/Mutation | {Brief description} | [Source](../../{apiSourcePath}) | [API Doc](../../apis/{api-name}.md) |
+
+new_text: |
+  | API Name | Type | Main Function | Source | Document Path |
+  |----------|------|---------------|--------|---------------|
+  | getUserList | Query | 获取用户列表 | [Source](../../frontend-web/src/api/system/user.ts) | [API Doc](../../apis/system/user/getUserList.md) |
+  | updateUserStatus | Mutation | 更新用户状态 | [Source](../../frontend-web/src/api/system/user.ts) | [API Doc](../../apis/system/user/updateUserStatus.md) |
+```
+
+---
+
+#### 6. Section 6 - Business Rule Constraints
+
+**Anchors:** Tables and lists under `### 6.1`, `### 6.2`, `### 6.3`
+
+**Operation:** Replace with actual business rules extracted from code
+
+**Subsections to Fill:**
+- `6.1 Permission Rules` — Role/permission requirements
+- `6.2 Business Logic Rules` — Domain rules and constraints
+- `6.3 Validation Rules` — Form validation rules
+
+---
+
+#### 7. Section 7 - Notes and Additional Information
+
+**Anchors:** Content under `### 7.1`, `### 7.2`, `### 7.3`
+
+**Operation:** Replace with actual notes from analysis
+
+**MANDATORY Addition for Section 7:**
+
+Add **性能与可扩展性考量** subsection:
+
+```markdown
+### 7.x 性能与可扩展性考量
+
+- ⚠️ **全量加载风险**：getSimpleRoleList 全量加载角色列表，角色数量大时存在性能隐患
+- ⚠️ **UI 渲染风险**：el-transfer 组件在角色数量超过 500 条时渲染性能明显下降
+- **可扩展性限制**：当前设计不支持角色分页搜索
+
+**待确认事项**：
+- [ ] 是否需要对角色列表增加搜索过滤功能？
+- [ ] 是否应将全量加载改为分页 + 搜索模式？
+```
+
+---
+
+**Section Filling Checklist:**
+- [ ] Section 1: Content Overview — description filled
+- [ ] Section 2: Interface Prototype — ASCII wireframes replaced
+- [ ] Section 2: Interface Element Description table filled
+- [ ] Section 3.1: Page Initialization Flow — Mermaid diagram replaced
+- [ ] Section 3.2.x: All Component Event Flows — diagrams and descriptions filled
+- [ ] Section 3: **API call sequence analysis** added for multi-API flows
+- [ ] Section 3: **Boundary scenarios** documented
+- [ ] Section 4.1: Page State Fields table filled
+- [ ] Section 4.2: Form Fields table filled
+- [ ] Section 4: **Data binding mapping** table added
+- [ ] Section 4: **Reactive dependency chain** documented
+- [ ] Section 5.1-5.4: All reference tables filled
+- [ ] Section 5.5: Referenced By table filled (from Step 4)
+- [ ] Section 6.1-6.3: All business rules tables filled
+- [ ] Section 7.1-7.3: Notes filled
+- [ ] Section 7: **Performance and scalability analysis** added
+
+**Output:** "Step 5b Status: ✅ COMPLETED - All sections filled using search_replace"
+
+---
 
 **CRITICAL - Link Format Rules:**
 
-❌ **NEVER use `file://` protocol in links** - This breaks Markdown preview
-✅ **ALWAYS use relative paths** - Markdown links work correctly
+❌ **NEVER use `file://` protocol in links** — This breaks Markdown preview
+✅ **ALWAYS use relative paths** — Markdown links work correctly
 
 **Source Traceability Format:**
 Use relative path from current document to source file:
@@ -473,8 +720,6 @@ Use relative path from current document to source file:
 Use relative path from current document:
 - Format: `[Doc](../../{documentPath})`
 - Example: `[Doc](../../speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md)`
-
-**Output:** "Step 5 Status: ✅ COMPLETED - Document generated at {{documentPath}} ({{fileSize}} bytes)"
 
 ### Step 6: Report Results
 
@@ -525,8 +770,12 @@ After analysis is complete, write the results to marker files for dispatch to pr
 - `{{completed_dir}}` - Marker files output directory (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`)
 - `{{sourceFile}}` - Source features JSON file name
 
-**CRITICAL - Ensure Directory Exists:**
-Before writing files, ensure the `{{completed_dir}}` directory exists. If it doesn't exist, create it first using appropriate file system tools.
+**MANDATORY - Create Directory First:**
+Before writing ANY marker files, you MUST create the completed_dir if it doesn't exist:
+- Use Bash: `mkdir -p "{{completed_dir}}"`
+- Or use Write tool to create a test file, which will auto-create the directory
+
+Then proceed with writing .done and .graph.json files.
 
 ### Pre-write Checklist (VERIFY before writing each file):
 - [ ] Filename follows `{fileName}` pattern (file name only)
@@ -543,6 +792,79 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 - [ ] `.graph.json` JSON: root-level `module` field is present (MANDATORY)
 - [ ] `.graph.json` JSON: `nodes` and `edges` are arrays (can be empty)
 - [ ] Both files: valid JSON (no trailing commas, all strings quoted)
+
+---
+
+### **CRITICAL - Marker File Naming Convention (STRICT RULES)**
+
+**✅ CORRECT Format - MUST USE:**
+```
+{completed_dir}/{fileName}.done           ← Completion status marker (JSON format)
+{completed_dir}/{fileName}.graph.json     ← Graph data marker (JSON format)
+```
+
+**Examples:**
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.done`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.graph.json`
+
+**❌ WRONG Format - NEVER USE:**
+```
+{fileName}.completed.json    ← WRONG extension
+{fileName}.done.json         ← WRONG extension
+{fileName}_done.json         ← WRONG separator and extension
+{fileName}-completed.json    ← WRONG separator and extension
+```
+
+**❌ WRONG Filename Examples - NEVER USE:**
+- `index.completed.json` - WRONG: uses `.completed.json` instead of `.done`
+- `index.done.json` - WRONG: uses `.done.json` instead of `.done`
+- `index_done.json` - WRONG: uses underscore and wrong extension
+- `dict-index.done` - WRONG: has module prefix
+- `system-index.done` - WRONG: has module prefix
+
+---
+
+### **CRITICAL - Path Format Rules (STRICT RULES)**
+
+**Path Variables:**
+- `{{completed_dir}}` - Absolute path to marker files directory (passed from dispatch)
+- `{{sourcePath}}` - Relative path to source file (from features JSON)
+- `{{documentPath}}` - Relative path to generated document (from features JSON)
+
+**Path Format Requirements:**
+
+| Field | Format | Example |
+|-------|--------|---------|
+| `sourcePath` in `.done` | Relative path (as-is from input) | `frontend-web/src/views/system/user/index.vue` |
+| `documentPath` in `.done` | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md` |
+| `sourcePath` in `.graph.json` nodes | Relative path (as-is from input) | `frontend-web/src/views/system/user/index.vue` |
+| `documentPath` in `.graph.json` nodes | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md` |
+
+**⚠️ CRITICAL: NEVER convert relative paths to absolute paths in the JSON content!**
+
+**Correct vs Wrong Example:**
+```json
+// ✅ CORRECT - .done file content:
+{
+  "fileName": "index",
+  "sourcePath": "frontend-web/src/views/system/user/index.vue",
+  "sourceFile": "features-web-vue.json",
+  "module": "system",
+  "status": "success",
+  "analysisNotes": "Successfully analyzed user management page"
+}
+
+// ❌ WRONG - .done file content (DO NOT DO THIS):
+{
+  "fileName": "index",
+  "sourcePath": "d:/dev/project/frontend-web/src/views/system/user/index.vue",  ← WRONG: absolute path
+  "sourceFile": "features-web-vue.json",
+  "module": "system",
+  "status": "success"
+}
+```
+
+---
 
 1. **Write .done file (MANDATORY):**
 
@@ -642,50 +964,4 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 **On Failure:** "Step 7 Status: ⚠️ PARTIAL - Marker file write failed, but analysis completed"
 
 **⚠️ IMPORTANT: If this step fails, the dispatch script will NOT be able to process your analysis results. You MUST ensure both marker files are written successfully.**
-
-## Checklist
-
-- [ ] Input variables received (`{{feature}}`, `{{fileName}}`, `{{sourcePath}}`, `{{documentPath}}`, `{{module}}`, `{{analyzed}}`, `{{platform_type}}`, `{{platform_subtype}}`, `{{language}}`, `{{completed_dir}}`, `{{sourceFile}}`)
-- [ ] Skip if `{{analyzed}}` is `true` (Step 1)
-- [ ] **Correct template selected** based on `{{platform_type}}` and `{{platform_subtype}}` (Step 1)
-  - [ ] Web (Vue/React): Use `FEATURE-DETAIL-TEMPLATE-UI.md`
-  - [ ] Mobile Native: Use `FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md`
-  - [ ] Mini Program: Use `FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md`
-  - [ ] Desktop (WinForms/WPF): Use `FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md`
-  - [ ] Desktop (Electron): Use `FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md`
-  - [ ] Unknown: Default to `FEATURE-DETAIL-TEMPLATE-UI.md`
-- [ ] Template read and understood (Step 1)
-- [ ] Source file `{{sourcePath}}` read and analyzed (Step 2)
-- [ ] **Section 1**: Content Overview filled with feature metadata
-- [ ] **Section 2**: Interface Prototype with ASCII wireframes for main page and embedded modals
-- [ ] **Section 3**: Business Flow diagrams for page init, events, timers, websocket, page close
-  - [ ] Use `graph TB/LR` syntax (not `flowchart`)
-  - [ ] No parentheses `()` in node text
-  - [ ] No HTML tags like `<br/>`
-  - [ ] Follow `speccrew-workspace/docs/rules/mermaid-rule.md`
-- [ ] **Section 4**: Data Field Definition with page state and form fields
-  - [ ] **Data Binding Mapping Table**: field → UI component binding (v-model/v-for/etc) → data flow direction → sync timing
-  - [ ] **Reactive Dependency Chain**: document all watch/computed dependencies; if none exist, explicitly state "无响应式依赖"
-- [ ] **Section 5.1-5.4**: References to APIs, shared methods, shared components, other pages this page references
-  - [ ] **API Coverage Verification**: ALL imported API functions from `@/api/...` are documented
-  - [ ] **Status Update APIs**: updateStatus, toggleEnable, setActive, etc.
-  - [ ] **Special Operation APIs**: resetPassword, exportData, importData, batchDelete, etc.
-- [ ] **Step 4**: Find Referencing Pages - search other pages for references to this page
-- [ ] **Section 5.5**: Referenced By - list all pages that reference this page (page name, function description, source path, document path)
-- [ ] **Section 6**: Business Rules documented
-- [ ] **Section 7**: Notes and Additional Information
-  - [ ] **Performance Analysis** (MUST): full-load risks, large-data UI performance risks
-  - [ ] **Scalability Analysis** (MUST): component extensibility limitations
-  - [ ] **Pending Confirmations**: include design reasonability questions and improvement suggestions
-- [ ] **Section 3 API Sequence** (MUST): serial/parallel analysis, try/catch/finally timing, race condition warnings
-- [ ] **Section 3 Boundary Scenarios** (MUST): empty data, errors, state reset, concurrent operations
-- [ ] Source traceability links added to all sections
-- [ ] Document generated at `{{documentPath}}`
-- [ ] Results reported in JSON format with `{{status}}`, `{{feature_name}}`, `{{message}}`
-- [ ] **Step 7**: Write Completion Markers - **MANDATORY** - write `.done` and `.graph.json` files to `{{completed_dir}}` using Write tool
-  - [ ] Ensure `{{completed_dir}}` directory exists before writing
-  - [ ] Write `.done` file: `{{completed_dir}}/{{fileName}}.done`
-  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{fileName}}.graph.json`
-  - [ ] Task is NOT complete until both marker files are written successfully
-
 

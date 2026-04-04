@@ -252,6 +252,34 @@ function main() {
 
     const completedDir = path.join(syncStatePath, 'completed');
 
+    // Diagnostic logging for completed directory
+    console.log(`Scanning for .done files in: ${completedDir}`);
+    console.log(`Directory exists: ${fs.existsSync(completedDir)}`);
+
+    // Auto-create completed directory if it doesn't exist
+    if (!fs.existsSync(completedDir)) {
+        console.error(`[ERROR] completed directory does not exist: ${completedDir}`);
+        console.log(`[INFO] Auto-creating completed directory...`);
+        try {
+            fs.mkdirSync(completedDir, { recursive: true });
+            console.log(`[INFO] Successfully created completed directory`);
+        } catch (error) {
+            console.error(`[ERROR] Failed to create completed directory: ${error.message}`);
+        }
+    }
+
+    // Check for .done files and warn if none found
+    if (fs.existsSync(completedDir)) {
+        const allFiles = fs.readdirSync(completedDir);
+        const doneFiles = allFiles.filter(f => f.endsWith('.done'));
+        if (doneFiles.length === 0) {
+            console.warn(`[WARNING] No .done files found in completed directory. Workers may not have created marker files correctly.`);
+            console.warn(`[INFO] Files in completed directory: ${allFiles.length > 0 ? allFiles.join(', ') : '(empty)'}`);
+        } else {
+            console.log(`[INFO] Found ${doneFiles.length} .done file(s)`);
+        }
+    }
+
     // Result tracking
     let processedCount = 0;
     let skippedFilesCount = 0;

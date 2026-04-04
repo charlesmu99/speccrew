@@ -24,10 +24,6 @@ Read all {{feature_name}}.md files of a specific module, extract and summarize i
 - "Complete module overview for {name}"
 - "Finalize module documentation for {name}"
 
-## User
-
-Worker Agent (speccrew-task-worker)
-
 ## Input
 
 - `module_name`: Module name to summarize
@@ -42,59 +38,34 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
-### Prerequisites
-
-Before starting, verify the initial module overview file exists:
-- **File**: `module_path/module_name-overview.md`
-- **Created by**: The dispatch skill (Stage 3 preparation) generates an initial skeleton containing:
-  - Section 1: Module Basic Information (from feature inventory metadata)
-  - Section 2: Feature List Table (linking to all feature-detail.md files)
-  - Remaining sections: Empty placeholders (to be completed by this skill)
-- **If missing**: Create a minimal skeleton with Section 1-2 from the feature inventory data, then proceed with the workflow
-
-### Edge Cases
-
-- **No feature documents found**: If `module_path/features/` is empty or missing, generate a minimal overview with only Section 1 (Module Basic Info) and Section 2 (empty feature list), then return with `status: "partial"` and a warning message.
-- **Incomplete feature documents**: If a feature-detail.md is missing expected sections (e.g., no Section 3 or Section 6), extract whatever is available and note the gaps in the corresponding overview section with `<!-- DATA INCOMPLETE: {feature_name} missing Section X -->`.
-- **Feature count mismatch**: If the number of feature-detail.md files doesn't match the inventory count, log the discrepancy in the return stats but proceed with available documents.
-
 ```mermaid
 flowchart TD
-    Start([Start]) --> Step0[Step 0: Read Module Overview Template]
-    Step0 --> Step1[Step 1: Read Initial Module Overview]
-    Step1 --> Step2[Step 2: Read All Feature Details]
-    Step2 --> Step3[Step 3: Extract Entities]
-    Step3 --> Step4[Step 4: Identify Dependencies]
-    Step4 --> Step5[Step 5: Summarize Business Rules]
-    Step5 --> Step6[Step 6: Generate Complete MODULE-OVERVIEW.md]
-    Step6 --> Step7[Step 7: Report Results]
-    Step7 --> End([End])
+    Start([Start]) --> Step1[Step 1: Read Prerequisites]
+    Step1 --> Step2[Step 2: Extract Entities]
+    Step2 --> Step3[Step 3: Identify Dependencies]
+    Step3 --> Step4[Step 4: Summarize Business Rules]
+    Step4 --> Step5[Step 5: Generate Complete MODULE-OVERVIEW.md]
+    Step5 --> Step6[Step 6: Report Results]
+    Step6 --> End([End])
 ```
 
-### Step 0: Read Module Overview Template
+### Step 1: Read Prerequisites
 
-Before processing, read the template file to understand the required content structure:
-- **Read**: `templates/MODULE-OVERVIEW-TEMPLATE.md`
-- **Purpose**: Understand the template chapters and example content requirements for module overview documents
-- **Key sections to follow**:
-  - Section 1: Module Basic Information (Module Positioning, Module Boundary with Mermaid diagram)
-  - Section 2: Feature List (Feature Tree with mindmap, Feature List Table with status)
-  - Section 3: Business Entities and Relationships (Core Entity List, Entity Relationship Diagram with ER diagram, Entity State Transition with state diagram)
-  - Section 4: External Dependencies and Interfaces (Module Dependency Relationships, External Interfaces Provided, Dependent Module Interfaces)
-  - Section 5: Core Business Processes (Core Process Within Module with flowchart, Exception Handling Rules)
-  - Section 6: Business Rules and Constraints (Business Rules, Data Constraints, Permission Rules)
-  - Section 7: Related Pages and Prototypes (Page List, Page Prototype reference)
-  - Section 8: Change History (version tracking table)
+Before processing, read all required files:
 
-### Step 1: Read Initial Module Overview
+1. **Read Template**: `templates/MODULE-OVERVIEW-TEMPLATE.md` - Understand the required content structure and section formats
 
-Read existing {{module_name}}-overview.md (initial version) to get:
-- Module basic info (name, purpose, domain)
-- Feature list with links to detail docs
+2. **Read Initial Module Overview**: `{{module_path}}/{{module_name}}-overview.md` (initial skeleton created by dispatch) containing:
+   - Section 1: Module Basic Information
+   - Section 2: Feature List Table with links to detail docs
+   - Remaining sections: Empty placeholders
+   - **If missing**: Create a minimal skeleton from feature inventory data
 
-### Step 2: Read All Feature Details
+3. **Read All Feature Details**: Find and read all `{{module_path}}/features/{{feature_name}}.md` files
 
-Find and read all `{{module_path}}/features/{{feature_name}}.md` files.
+**Edge Cases**:
+- **No feature documents found**: Generate a minimal overview with only Section 1-2, return with `status: "partial"`
+- **Incomplete feature documents**: Extract available data, note gaps with `<!-- DATA INCOMPLETE: {feature_name} missing Section X -->`
 
 For each feature-detail.md, extract and categorize the following:
 
@@ -120,7 +91,7 @@ For each feature-detail.md, extract and categorize the following:
 - Data constraints: field types, ranges, uniqueness, required fields
 - Build constraint matrix for entities
 
-### Step 3: Extract Entities
+### Step 2: Extract Entities
 
 Aggregate entities from all features:
 
@@ -136,14 +107,14 @@ For each entity, collect:
 - Validation constraints
 - Relationships (from multiple features)
 
-### Step 4: Identify Dependencies
+### Step 3: Identify Dependencies
 
 Analyze feature details to identify:
 - **Internal dependencies**: Other modules this module calls
 - **External dependencies**: Third-party services, APIs
 - **Data dependencies**: Shared entities, common DTOs
 
-### Step 5: Summarize Business Rules
+### Step 4: Summarize Business Rules
 
 Collect all business rules from feature details:
 - Validation rules
@@ -151,7 +122,7 @@ Collect all business rules from feature details:
 - Authorization rules
 - Data consistency rules
 
-### Step 6: Generate Complete MODULE-OVERVIEW.md
+### Step 5: Generate Complete MODULE-OVERVIEW.md
 
 **IMPORTANT**: ALL generated content (entity descriptions, business rules, flow descriptions, section headers, and narrative text) MUST be written in the language specified by the `language` parameter. Only code identifiers, file paths, and technical terms (class names, API endpoints) remain in their original language.
 
@@ -215,7 +186,7 @@ Order List: Load data → Display list → User selects → Load detail → Disp
 
 Apply source traceability rules (see [Reference Guides > Source Traceability Guide](#source-traceability-guide))
 
-### Step 7: Report Results
+### Step 6: Report Results
 
 ```
 Module summarization completed:
@@ -310,14 +281,10 @@ Frontend (React): `[OrderDetail.tsx](../../src/pages/order/OrderDetail.tsx#L10-L
 
 ## Checklist
 
-- [ ] Initial {{module_name}}-overview.md read
-- [ ] All {{feature_name}}.md files read
-- [ ] Source file references extracted from feature documents
-- [ ] Entities extracted and aggregated
-- [ ] Dependencies identified
-- [ ] Business rules collected
-- [ ] Section 3-6 completed in {{module_name}}-overview.md
-- [ ] Source traceability information included
-- [ ] Mermaid diagrams follow compatibility guidelines
-- [ ] Results reported
+- [ ] Step 1: Prerequisites read (template, initial overview, feature details)
+- [ ] Step 2: Entities extracted and aggregated
+- [ ] Step 3: Dependencies identified
+- [ ] Step 4: Business rules collected
+- [ ] Step 5: Section 3-6 completed in {{module_name}}-overview.md
+- [ ] Step 6: Results reported
 

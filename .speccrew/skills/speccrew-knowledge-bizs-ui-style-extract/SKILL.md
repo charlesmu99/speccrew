@@ -24,10 +24,6 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 - "Extract UI patterns from bizs features"
 - "Aggregate UI design patterns"
 
-## User
-
-Worker Agent (speccrew-task-worker)
-
 ## Input
 
 | Variable | Description | Required |
@@ -39,15 +35,6 @@ Worker Agent (speccrew-task-worker)
 | `module_overviews_path` | **Parent directory** containing all module overview subdirectories. Example: `knowledges/bizs/web-vue/` (this directory contains `system/system-overview.md`, `user/user-overview.md`, etc.). **NOT** a specific module directory like `knowledges/bizs/web-vue/system/`. | Yes |
 | `output_path` | Output directory, e.g., `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/` | Yes |
 | `language` | User language code | Yes |
-
-**Input Validation**:
-
-| Parameter | Validation Rule |
-|-----------|----------------|
-| `platform_type` | Must be `web`, `mobile`, or `desktop` (skip for `backend`) |
-| `features_manifest_path` | Must exist and be a valid JSON file |
-| `feature_docs_path` | Must exist and be a directory |
-| `output_path` | Must be a valid directory path (create if not exists) |
 
 ## Output
 
@@ -80,6 +67,12 @@ graph TB
 ## Step 1: Load Features Manifest
 
 **Goal**: Read the features manifest to identify all completed features.
+
+**Input Validation**:
+- If `platform_type` is NOT `web`, `mobile`, or `desktop` → Skip this skill (backend platforms do not have UI patterns)
+- Verify `features_manifest_path` exists and is valid JSON
+- Verify `feature_docs_path` exists and is a directory
+- Create `output_path` directory if it does not exist
 
 **Action**:
 - Read `{features_manifest_path}` (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-{platform}.json`)

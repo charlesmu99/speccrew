@@ -91,7 +91,28 @@ function parseArgs(argv) {
   return args;
 }
 
+/**
+ * Find project root by searching upward for speccrew-workspace directory
+ */
+function findProjectRoot(startPath) {
+  let currentDir = path.resolve(startPath);
+  const root = path.parse(currentDir).root;
+
+  while (currentDir !== root) {
+    const workspaceDir = path.join(currentDir, 'speccrew-workspace');
+    if (fs.existsSync(workspaceDir) && fs.statSync(workspaceDir).isDirectory()) {
+      return currentDir;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+
+  // Fallback: return start path's parent directory
+  return path.dirname(path.resolve(startPath));
+}
+
 function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData) {
+  console.log(`Loading exclude_dirs: platformType="${platformType}", techIdentifier="${techIdentifier || '(auto)'}"`);
+  
   // 尝试推断 techIdentifier
   if (!techIdentifier) {
     const techStack = featuresData.techStack || [];
@@ -109,15 +130,18 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
       const lower = tech.toLowerCase();
       if (techMap[lower]) {
         techIdentifier = techMap[lower];
+        console.log(`Inferred techIdentifier from techStack "${tech}": "${techIdentifier}"`);
         break;
       }
     }
   }
   
   if (!platformType || !techIdentifier) {
-    console.error('Warning: Cannot determine platformType/techIdentifier for exclude_dirs lookup');
+    console.warn('WARNING: Cannot determine platformType/techIdentifier for exclude_dirs lookup');
     // Return fallback even when platformType/techIdentifier unknown
-    return FALLBACK_EXCLUDE_DIRS[platformType] || [];
+    const fallbackDirs = FALLBACK_EXCLUDE_DIRS[platformType] || [];
+    console.log(`Using fallback exclude_dirs (${fallbackDirs.length}): ${fallbackDirs.slice(0, 5).join(', ')}...`);
+    return { excludeDirs: fallbackDirs, stripModulePrefixes: [] };
   }
 
   // Get fallback dirs for this platformType
@@ -131,6 +155,7 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
 
   let loadedDirs = [];
   let globalDirs = [];
+  let stripModulePrefixes = [];
   for (const configPath of configPaths) {
     try {
       if (fs.existsSync(configPath)) {
@@ -139,9 +164,15 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
         // Load tech-stack-specific exclude_dirs
         if (config.tech_stacks &&
             config.tech_stacks[platformType] &&
-            config.tech_stacks[platformType][techIdentifier] &&
-            config.tech_stacks[platformType][techIdentifier].exclude_dirs) {
-          loadedDirs = config.tech_stacks[platformType][techIdentifier].exclude_dirs;
+            config.tech_stacks[platformType][techIdentifier]) {
+          const techConfig = config.tech_stacks[platformType][techIdentifier];
+          if (techConfig.exclude_dirs) {
+            loadedDirs = techConfig.exclude_dirs;
+          }
+          // Load strip_module_prefixes
+          if (techConfig.strip_module_prefixes) {
+            stripModulePrefixes = techConfig.strip_module_prefixes;
+          }
         }
         
         // Load global exclude_dirs (applies to all platforms)
@@ -161,12 +192,18 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
   const merged = [...new Set([...globalDirs, ...loadedDirs, ...fallback])];
   
   if (loadedDirs.length === 0 && globalDirs.length === 0) {
-    console.log(`Using fallback exclude_dirs for platformType: ${platformType}`);
+    console.warn(`WARNING: No tech-stack-specific exclude_dirs found for ${platformType}/${techIdentifier}, using fallback`);
+    console.log(`Fallback exclude_dirs (${fallback.length}): ${fallback.slice(0, 5).join(', ')}...`);
   } else {
-    console.log(`Loaded exclude_dirs (${globalDirs.length} global + ${loadedDirs.length} tech-specific), merged with fallback = ${merged.length} total`);
+    console.log(`Loaded exclude_dirs: ${globalDirs.length} global + ${loadedDirs.length} tech-specific (${platformType}/${techIdentifier})`);
+    console.log(`Merged with fallback = ${merged.length} total dirs`);
   }
 
-  return merged;
+  if (stripModulePrefixes.length > 0) {
+    console.log(`Loaded strip_module_prefixes: ${stripModulePrefixes.join(', ')}`);
+  }
+
+  return { excludeDirs: merged, stripModulePrefixes };
 }
 
 function extractPlatformId(featuresData) {
@@ -191,7 +228,6 @@ function main() {
   // 1. 解析命令行参数
   const args = parseArgs(process.argv.slice(2));
   const featuresFile = args.featuresFile;
-  const projectRoot = args.projectRoot || '.';
   
   if (!featuresFile) {
     console.error('Error: --featuresFile is required');
@@ -207,17 +243,27 @@ function main() {
     process.exit(1);
   }
   
+  // Auto-detect projectRoot from featuresFile if not provided
+  const projectRoot = args.projectRoot || findProjectRoot(featuresFile);
+  console.log(`Project root: ${projectRoot}`);
+  
   const inventorySourcePath = normalizePath(featuresData.sourcePath || '');
   const platformType = args.platformType || featuresData.platformType || '';
   
   // 3. 加载 exclude_dirs
   let excludeDirs = [];
+  let stripModulePrefixes = [];
   if (args.excludeDirs) {
     excludeDirs = parseArrayParam(args.excludeDirs);
   } else {
-    // 从 tech-stack-mappings.json 加载，优先使用命令行参数，其次使用 features JSON 中的 techIdentifier
-    const techId = args.techIdentifier || featuresData.techIdentifier;
-    excludeDirs = loadExcludeDirs(projectRoot, platformType, techId, featuresData);
+    // 从 tech-stack-mappings.json 加载，按优先级确定 techIdentifier：
+    // 1. 命令行参数 --techIdentifier
+    // 2. features JSON 中的 techIdentifier
+    // 3. features JSON 中的 platformSubtype (兼容旧数据)
+    const techId = args.techIdentifier || featuresData.techIdentifier || featuresData.platformSubtype;
+    const config = loadExcludeDirs(projectRoot, platformType, techId, featuresData);
+    excludeDirs = config.excludeDirs;
+    stripModulePrefixes = config.stripModulePrefixes;
   }
   
   if (excludeDirs.length === 0) {
@@ -268,7 +314,15 @@ function main() {
     
     // 用 getModuleName 重新提取模块名
     const fallback = feature.module || '_root';
-    const newModule = getModuleName(dirPath, excludeDirs, fallback);
+    let newModule = getModuleName(dirPath, excludeDirs, fallback);
+    
+    // 应用 strip_module_prefixes 前缀去除
+    for (const prefix of stripModulePrefixes) {
+      if (newModule.startsWith(prefix)) {
+        newModule = newModule.substring(prefix.length);
+        break;
+      }
+    }
     
     if (newModule !== feature.module) {
       reclassifiedCount++;

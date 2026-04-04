@@ -6,13 +6,6 @@ tools: None
 
 # Bizs Module Classify
 
-> **CRITICAL CONSTRAINT**: 
-> - This skill is a PURE REASONING task. DO NOT use any tools (Read, Write, Bash, terminal, etc.)
-> - DO NOT run any commands via terminal, including `python -c`, `node -e`, or any inline scripts
-> - DO NOT read files — the module summary is provided as input parameter `module_summary`
-> - DO NOT modify any files — output a mapping JSON only
-> - If you cannot complete the analysis from the provided summary, STOP and report what additional information is needed
-
 Reclassify features in `features-{platform}.json` files into proper business modules based on source code analysis.
 
 ## Language Adaptation
@@ -22,10 +15,6 @@ Reclassify features in `features-{platform}.json` files into proper business mod
 - User writes in 中文 → Generate Chinese content, use `language: "zh"`
 - User writes in English → Generate English content, use `language: "en"`
 - User writes in other languages → Use appropriate language code
-
-## User
-
-Worker Agent (speccrew-task-worker)
 
 ## Input
 
@@ -59,6 +48,8 @@ Worker MUST return a JSON result containing the module mapping (NOT modify the f
 - Worker MUST NOT modify the features file directly
 
 ## Workflow
+
+> **CRITICAL CONSTRAINT**: This skill is a PURE REASONING task. DO NOT use any tools (Read, Write, Bash, terminal, etc.). DO NOT read files — the module summary is provided as input parameter `module_summary`. DO NOT modify any files — output a mapping JSON only.
 
 ### Step 1: Parse Module Summary
 

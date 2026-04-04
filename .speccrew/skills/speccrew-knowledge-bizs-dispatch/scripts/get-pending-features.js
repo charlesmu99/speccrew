@@ -15,7 +15,8 @@ const path = require('path');
 function parseArgs() {
     const args = process.argv.slice(2);
     const result = {
-        syncStatePath: null
+        syncStatePath: null,
+        platformId: null
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -24,6 +25,10 @@ function parseArgs() {
             case '--syncStatePath':
             case '-SyncStatePath':
                 result.syncStatePath = args[++i];
+                break;
+            case '--platformId':
+            case '-platformId':
+                result.platformId = args[++i];
                 break;
         }
     }
@@ -47,10 +52,16 @@ function main() {
             process.exit(1);
         }
 
-        // Find all features-*.json files
-        const featureFiles = fs.readdirSync(fullPath).filter(f => {
+        // Find features-*.json files, filtered by platformId if specified
+        let featureFiles = fs.readdirSync(fullPath).filter(f => {
             return f.startsWith('features-') && f.endsWith('.json') && fs.statSync(path.join(fullPath, f)).isFile();
         });
+
+        // If platformId is specified, filter to only the matching file
+        if (args.platformId) {
+            const targetFile = `features-${args.platformId}.json`;
+            featureFiles = featureFiles.filter(f => f === targetFile);
+        }
 
         const pendingFeatures = [];
 

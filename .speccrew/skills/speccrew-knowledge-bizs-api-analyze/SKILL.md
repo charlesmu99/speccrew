@@ -17,10 +17,6 @@ Analyze one specific API controller from source code, extract all business featu
 - "Generate documentation for API controller {fileName}"
 - "Analyze API feature from features.json"
 
-## User
-
-Worker Agent (speccrew-task-worker)
-
 ## Input Variables
 
 | Variable | Type | Description | Example |
@@ -66,12 +62,12 @@ This skill operates in **strict sequential execution mode**:
 
 ## Output
 
-**Generated Files (MANDATORY - Task is NOT complete until all files are written):**
+**Generated Files:**
 1. `{{documentPath}}` - Controller documentation file
 2. `{{completed_dir}}/{{fileName}}.done` - Completion status marker
 3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
 
-**Return Value (JSON format):**
+**Return Value:**
 ```json
 {
   "status": "success|partial|failed",
@@ -107,8 +103,9 @@ graph TB
     Step1 --> Step2[Step 2 Read Controller and Analyze API Structure]
     Step2 --> Step3[Step 3 Extract API Features]
     Step3 --> Step4[Step 4 Find API Consumers]
-    Step4 --> Step5[Step 5 Generate Feature Document]
-    Step5 --> Step6[Step 6 Report Results]
+    Step4 --> Step5a[Step 5a Copy Template to Document Path]
+    Step5a --> Step5b[Step 5b Fill Each Section Using search_replace]
+    Step5b --> Step6[Step 6 Report Results]
     Step6 --> Step7[Step 7 Write Completion Markers]
     Step7 --> End([End])
 ```
@@ -353,11 +350,11 @@ Search frontend page files in the codebase to find which pages call the APIs in 
 
 ---
 
-### Step 5: Generate Feature Document
+### Step 5a: Copy Template to Document Path
 
-**Step 5 Status: 🔄 IN PROGRESS**
+**Step 5a Status: 🔄 IN PROGRESS**
 
-Use the appropriate template based on `{{tech_stack}}` to generate the feature document:
+Copy the appropriate template to the target document path and replace top-level placeholders.
 
 **Template Selection:**
 
@@ -368,72 +365,398 @@ Use the appropriate template based on `{{tech_stack}}` to generate the feature d
 | .NET/ASP.NET Core/EF Core | `templates/FEATURE-DETAIL-TEMPLATE-NET.md` | Controller → Service → Repository → EF Core |
 | Other/Unknown | `templates/FEATURE-DETAIL-TEMPLATE.md` | Use as default/generic template |
 
-Select the template that matches the `{{platform_subtype}}` and `{{tech_stack}}` parameters. If no specific template matches, default to `FEATURE-DETAIL-TEMPLATE.md` (Java template serves as the generic base).
+**Actions:**
 
-> ⚠️ MANDATORY OUTPUT STRUCTURE:
-> The generated document MUST contain ALL of the following sections from the template, in order.
-> Skipping any section is a VIOLATION. If data is unavailable, write the section header and note "Information not available from source code analysis."
->
-> **Pre-write Checklist (verify ALL before writing):**
-> - [ ] Every Section from the template has a corresponding heading in the output
-> - [ ] Every table defined in the template exists in the output (with data or "N/A")
-> - [ ] Section numbering matches the template exactly
-> - [ ] No custom/invented sections that break the template structure
-> - [ ] Mermaid diagrams are included where the template specifies them
->
-> **Template Section Checklist (verify each section exists):**
-> - [ ] Section 1: Content Overview
-> - [ ] Section 2: API Endpoint Definitions (with Error Codes, Flow Step Description, Call Chain, Database Operations, Transaction Boundaries tables)
-> - [ ] Section 3: Data Field Definition
-> - [ ] Section 4: References
-> - [ ] Section 5: Business Rule Constraints
-> - [ ] Section 6: Dependency Analysis
-> - [ ] Section 7: Performance Considerations
-> - [ ] Section 8: Troubleshooting Guide
-> - [ ] Section 9: Notes and Additional Information
-> - [ ] Section 10: Appendix
+1. **Read the selected template file** based on `{{tech_stack}}`
 
-**Template Variables:**
-- `{Controller Name}`: Controller class name (e.g., "UserController")
-- `{sourcePath}`: Source file path from feature object (relative to project root)
-- `{documentPath}`: Target document path from feature object (relative to project root)
-- `{endpointCount}`: Number of API endpoints in this controller
+2. **Replace top-level placeholders** with known variables:
 
-**Generation Checklist:**
-- [ ] Section 1: Content Overview
-- [ ] Section 2: API Endpoint Definitions (for each endpoint):
-  - [ ] Method, Path, Description, Permission
-  - [ ] Request/Response DTO fields
-  - [ ] Error Codes
-  - [ ] **Business Flow** (Mermaid graph TB showing Controller → Service → Mapper → DB)
-  - [ ] **Detailed Call Chain** (with specific class/method names)
-  - [ ] **Database Operations** (SQL types, table names)
-  - [ ] **Transaction Boundaries**
-- [ ] Section 3: Data Field Definitions:
-  - [ ] **Database Table Structure** (fields, types, constraints, indexes)
-  - [ ] Entity-Database Mapping
-  - [ ] DTO/VO Definitions
-- [ ] Section 4: References (Services, Mappers, DTOs, Entities, API Consumers)
-- [ ] Section 5: Business Rules (Permission, Validation, Business Logic)
-- [ ] Source traceability links in all sections (use relative paths, NO file://)
+| Placeholder | Replace With | Source |
+|-------------|--------------|--------|
+| `{Controller}` | `{{fileName}}` | Input variable |
+| `{sourcePath}` | `{{sourcePath}}` | Input variable |
+| `{documentPath}` | `{{documentPath}}` | Input variable |
+| `{module}` | `{{module}}` | Input variable |
+| `[Feature Name]` | `{{fileName}}` | Document title |
 
-**CRITICAL - Link Format Rules:**
+3. **Create the document file** using `create_file`:
+   - Target path: `{{documentPath}}`
+   - Content: Template with top-level placeholders replaced
+   - Ensure parent directory exists
+
+4. **Verify the document skeleton**:
+   - Document should now have complete Section 1-10 structure
+   - Each section should have placeholder content waiting to be filled
+
+**Output:** "Step 5a Status: ✅ COMPLETED - Template copied to {{documentPath}}, ready for section filling"
+
+---
+
+### Step 5b: Fill Each Section Using search_replace
+
+**Step 5b Status: 🔄 IN PROGRESS**
+
+Fill each section of the document with actual data extracted from source code analysis.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **禁止使用 create_file 重写整个文档** - 会丢失模板结构
+> - **必须使用 search_replace 逐块替换**
+> - **每个 Section 的标题和编号必须保留**，不得删除或修改
+> - 若某 Section 无对应源码信息，保留 Section 标题，将占位内容替换为 "N/A - No applicable data found in source code"
+
+**Section Filling Order:**
+
+Fill sections in order (1 → 10), using `search_replace` for each content block.
+
+---
+
+#### Section 1: Content Overview
+
+**Locate anchor:** `<!-- AI-TAG: OVERVIEW -->`
+
+**Fill Basic Information Table:**
+
+Replace placeholder rows in the Basic Information table:
+
+```
+original: "| Controller Name | {Fill in controller name} |"
+new: "| Controller Name | {{fileName}} |"
+
+original: "| Module | {e.g., Order Management Module} |"
+new: "| Module | {{module}} Module |"
+
+original: "| Core Function | {1-3 sentences describing core API functionality} |"
+new: "| Core Function | {从源码提取的实际功能描述} |"
+
+original: "| Base Path | {e.g., /admin-api/system/user} |"
+new: "| Base Path | {从 @RequestMapping 提取的实际路径} |"
+```
+
+**Fill API Scope List:**
+
+Replace placeholder list items with actual endpoints:
+
+```
+original: "- [ ] {GET /page} - {Description}"
+new: "- [x] GET /page - 分页查询用户列表"
+```
+
+Repeat for each endpoint discovered in Step 3.
+
+---
+
+#### Section 2: API Endpoint Definitions
+
+**Locate anchor:** `<!-- AI-TAG: API_ENDPOINTS -->`
+
+For each API endpoint found in Step 3, fill the corresponding subsection:
+
+**Fill Endpoint Information Table:**
+
+```
+original: "| Method | {GET/POST/PUT/DELETE} |"
+new: "| Method | GET |"
+
+original: "| Path | {/admin-api/system/user/page} |"
+new: "| Path | /admin-api/system/user/page |"
+
+original: "| Description | {Brief description of what this endpoint does} |"
+new: "| Description | 分页查询用户列表 |"
+
+original: "| Permission | {Required permission code or role} |"
+new: "| Permission | system:user:query |"
+```
+
+**Fill Request Parameters Table:**
+
+Replace placeholder rows with actual parameters:
+
+```
+original: "| {param1} | {String/Integer/Long} | {Yes/No} | {Description} | {e.g., Length 1-50, Not blank} |"
+new: "| username | String | No | 用户名 | Length 1-50 |"
+```
+
+**Fill Response Data Table:**
+
+Replace placeholder rows with actual response fields:
+
+```
+original: "| {id} | {Long} | {Record ID} | {No} |"
+new: "| id | Long | 用户ID | No |"
+```
+
+**Fill Error Codes Table:**
+
+```
+original: "| {ERR_001} | {Error description} | {When this error occurs} |"
+new: "| 400 | 参数校验失败 | 请求参数不合法 |"
+```
+
+**Fill Business Flow Mermaid Diagram:**
+
+Replace the entire example Mermaid block with actual business flow:
+
+```
+original: "```mermaid\ngraph TB\n    Start([Request Received]) --> Auth{Permission Check}\n    ... (整个示例图)\n```"
+new: "```mermaid\ngraph TB\n    Start([请求到达]) --> Auth{权限检查}\n    Auth -->|无权限| Err403[返回403]\n    ...\n```"
+```
+
+**Fill Flow Step Description Table:**
+
+```
+original: "| 1 | Permission Check | Controller | {Controller} | Request + Token | Permission result | Return 403 |"
+new: "| 1 | 权限检查 | Controller | UserController | Request + Token | 权限校验结果 | 返回403 |"
+```
+
+**Fill Detailed Call Chain Table:**
+
+```
+original: "| 1 | Controller | {UserController} | {createUser} | Receive request, validate params, call service | [Source](../../{controllerSourcePath}) |"
+new: "| 1 | Controller | UserController | createUser | 接收请求，校验参数，调用服务 | [Source](../../yudao-module-system/.../UserController.java) |"
+```
+
+**Fill Database Operations Table:**
+
+```
+original: "| {INSERT} | {user} | {INSERT} | {Insert new user record} |"
+new: "| INSERT | system_user | INSERT | 插入新用户记录 |"
+```
+
+**Fill Transaction Boundaries Table:**
+
+```
+original: "| {UserService.createUser} | {User + UserRole} | {READ_COMMITTED} | {Atomic operation} |"
+new: "| UserService.createUser | system_user + system_user_role | READ_COMMITTED | 原子操作 |"
+```
+
+---
+
+#### Section 3: Data Field Definition
+
+**Locate anchor:** `<!-- AI-TAG: DATA_DEFINITION -->`
+
+**Fill Database Table Structure:**
+
+```
+original: "**Table Name:** {table_name}"
+new: "**Table Name:** system_user"
+
+original: "| {id} | {Long} | {BIGINT} | {20} | {No} | {Auto increment} | {PRIMARY KEY} | {PRIMARY} | {Primary key} |"
+new: "| id | Long | BIGINT | 20 | No | Auto increment | PRIMARY KEY | PRIMARY | 主键ID |"
+```
+
+**Fill Indexes Table:**
+
+```
+original: "| {idx_name} | {INDEX} | {field1} | {Query optimization} |"
+new: "| idx_username | UNIQUE | username | 用户名唯一索引 |"
+```
+
+**Fill Relationships Table:**
+
+```
+original: "| {related_table} | {One-to-Many} | {this_table.related_id} | {Relationship description} |"
+new: "| system_user_role | One-to-Many | system_user.id = system_user_role.user_id | 用户角色关联 |"
+```
+
+---
+
+#### Section 4: References
+
+**Locate anchor:** `<!-- AI-TAG: REFERENCES -->`
+
+**Fill Internal Services Table:**
+
+```
+original: "| {ServiceName} | {e.g., User business logic} | [Source](../../{serviceSourcePath}) |"
+new: "| UserService | 用户业务逻辑处理 | [Source](../../yudao-module-system/.../UserService.java) |"
+```
+
+**Fill Data Access Layer Table:**
+
+```
+original: "| {MapperName} | {EntityName} | {e.g., User CRUD operations} | [Source](../../{mapperSourcePath}) |"
+new: "| UserMapper | UserDO | 用户CRUD操作 | [Source](../../yudao-module-system/.../UserMapper.java) |"
+```
+
+**Fill DTOs and Entities Table:**
+
+```
+original: "| {DTOClass} | Request DTO | {e.g., Create user request} | [Source](../../{dtoSourcePath}) |"
+new: "| UserCreateReqVO | Request DTO | 创建用户请求 | [Source](../../yudao-module-system/.../UserCreateReqVO.java) |"
+```
+
+**Fill API Consumers Table:**
+
+```
+original: "| {PageName} | {e.g., User management list page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |"
+new: "| 用户管理页面 | 用户列表展示与管理 | [Source](../../yudao-ui-admin/src/views/system/user/index.vue) | [Doc](../../speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md) |"
+```
+
+---
+
+#### Section 5: Business Rule Constraints
+
+**Locate anchor:** `<!-- AI-TAG: BUSINESS_RULES -->`
+
+**Fill Permission Rules Table:**
+
+```
+original: "| {GET /page} | Have {permission code} permission | Return 403 Forbidden |"
+new: "| GET /page | 需要 system:user:query 权限 | 返回 403 Forbidden |"
+```
+
+**Fill Business Logic Rules:**
+
+```
+original: "1. **{Rule 1}**: {e.g., User name must be unique across system}"
+new: "1. **用户名唯一性**: 用户名在系统中必须唯一，不能重复"
+```
+
+**Fill Validation Rules Table:**
+
+```
+original: "| Parameter validation | {Field} cannot be empty | Return 400 Bad Request | ERR_001 |"
+new: "| 参数校验 | 用户名不能为空 | 返回 400 Bad Request | 400 |"
+```
+
+---
+
+#### Section 6: Dependency Analysis
+
+**Locate anchor:** `<!-- AI-TAG: DEPENDENCIES -->`
+
+**Fill Module Dependencies Table:**
+
+```
+original: "| {Module A} | Strong | {Purpose description} | {Impact when unavailable} |"
+new: "| system | Strong | 用户权限校验 | 权限功能不可用 |"
+```
+
+**Fill Service Dependencies Mermaid:**
+
+Replace example diagram with actual dependencies:
+
+```
+original: "```mermaid\ngraph LR\n    A[This Feature] --> B[Dependency Service 1]\n    ...\n```"
+new: "```mermaid\ngraph LR\n    A[UserController] --> B[UserService]\n    B --> C[UserMapper]\n    ...\n```"
+```
+
+**Fill External Dependencies Table:**
+
+```
+original: "| {Payment Gateway} | REST API | {Payment processing} | {Queue and retry} |"
+new: "| N/A | N/A | 无外部依赖 | N/A |"
+```
+
+---
+
+#### Section 7: Performance Considerations
+
+**Locate anchor:** `<!-- AI-TAG: PERFORMANCE -->`
+
+**Fill Performance Bottlenecks Table:**
+
+```
+original: "| {List query} | {Large data volume} | {Add index, pagination} | High |"
+new: "| 分页查询 | 大数据量时性能下降 | 添加索引，强制分页 | High |"
+```
+
+**Fill Index Suggestions Table:**
+
+```
+original: "| {table_name} | {field1, field2} | {COMPOSITE INDEX} | {Query optimization} |"
+new: "| system_user | username, status | INDEX | 用户名和状态联合查询优化 |"
+```
+
+**Fill Caching Strategy Table:**
+
+```
+original: "| {User info} | {Redis} | {30 minutes} | {Write-through} |"
+new: "| 用户信息 | Redis | 30 minutes | 写穿透 |"
+```
+
+**Fill Transaction Boundaries Table:**
+
+```
+original: "| {Create order} | {Order + Details} | {READ_COMMITTED} | {30 seconds} |"
+new: "| 创建用户 | system_user + system_user_role | READ_COMMITTED | 30 seconds |"
+```
+
+---
+
+#### Section 8: Troubleshooting Guide
+
+**Locate anchor:** `<!-- AI-TAG: TROUBLESHOOTING -->`
+
+**Fill Common Issues Table:**
+
+```
+original: "| {Query timeout} | {Missing index} | {Check execution plan} | {Add index} |"
+new: "| 查询超时 | 缺少索引 | 检查执行计划 | 添加索引 |"
+```
+
+**Fill Error Code Reference Table:**
+
+```
+original: "| ERR_001 | {Required field empty} | {Form submission} | {Check required fields} |"
+new: "| 400 | 参数校验失败 | 表单提交 | 检查必填字段 |"
+```
+
+**Fill Key Log Points Table:**
+
+```
+original: "| {Service layer} | ERROR | {Exception stack trace} | {Locate error root cause} |"
+new: "| UserService | ERROR | 异常堆栈信息 | 定位错误根因 |"
+```
+
+---
+
+#### Section 9: Notes and Additional Information
+
+**Locate anchor:** `<!-- AI-TAG: ADDITIONAL_NOTES -->`
+
+**Fill Pending Confirmations:**
+
+```
+original: "- [ ] **{Pending 1}**: {e.g., Whether product category dropdown needs to support fuzzy search}"
+new: "- [ ] **待确认1**: 是否需要支持批量导出用户数据"
+```
+
+---
+
+#### Section 10: Appendix
+
+Fill Best Practices and Configuration Examples based on analysis:
+
+```
+original: "- {Best practice 1: e.g., Use batch operations for large datasets}"
+new: "- 批量操作用户时使用事务确保数据一致性"
+```
+
+---
+
+**Link Format Rules:**
 
 ❌ **NEVER use `file://` protocol in links** - This breaks Markdown preview
 ✅ **ALWAYS use relative paths** - Markdown links work correctly
 
 **Source Traceability Format:**
-Use relative path from current document to source file:
 - Format: `[Source](../../{sourcePath})`
 - Example: `[Source](../../yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java)`
 - The `../../` goes from `speccrew-workspace/knowledges/bizs/admin-api/system/user/` to project root
 
 **Document Link Format:**
-Use relative path from current document:
 - Format: `[Doc](../../{documentPath})`
 - Example: `[Doc](../../speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md)`
 
-**Output:** "Step 5 Status: ✅ COMPLETED - Document generated at {{documentPath}} ({{fileSize}} bytes)"
+**N/A Handling Rule:**
+If a section has no applicable data from source code:
+1. Keep the section header and structure
+2. Replace placeholder content with: "N/A - No applicable data found in source code"
+3. DO NOT remove the section or change its numbering
+
+**Output:** "Step 5b Status: ✅ COMPLETED - All sections filled at {{documentPath}} ({{fileSize}} bytes)"
 
 ### Step 6: Report Results
 
@@ -486,8 +809,12 @@ Or in case of failure:
 - `{{completed_dir}}` - Marker files output directory (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`)
 - `{{sourceFile}}` - Source features JSON file name
 
-**CRITICAL - Ensure Directory Exists:**
-Before writing files, ensure the `{{completed_dir}}` directory exists. If it doesn't exist, create it first using appropriate file system tools.
+**MANDATORY - Create Directory First:**
+Before writing ANY marker files, you MUST create the completed_dir if it doesn't exist:
+- Use Bash: `mkdir -p "{{completed_dir}}"`
+- Or use Write tool to create a test file, which will auto-create the directory
+
+Then proceed with writing .done and .graph.json files.
 
 ### Pre-write Checklist (VERIFY before writing each file):
 - [ ] Filename follows `{fileName}` pattern (Java class name only)
@@ -502,6 +829,79 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 - [ ] `.graph.json` JSON: root-level `module` field is present (MANDATORY)
 - [ ] `.graph.json` JSON: `nodes` and `edges` are arrays (can be empty)
 - [ ] Both files: valid JSON (no trailing commas, all strings quoted)
+
+---
+
+### **CRITICAL - Marker File Naming Convention (STRICT RULES)**
+
+**✅ CORRECT Format - MUST USE:**
+```
+{completed_dir}/{fileName}.done           ← Completion status marker (JSON format)
+{completed_dir}/{fileName}.graph.json     ← Graph data marker (JSON format)
+```
+
+**Examples:**
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
+
+**❌ WRONG Format - NEVER USE:**
+```
+{fileName}.completed.json    ← WRONG extension
+{fileName}.done.json         ← WRONG extension
+{fileName}_done.json         ← WRONG separator and extension
+{fileName}-completed.json    ← WRONG separator and extension
+```
+
+**❌ WRONG Filename Examples - NEVER USE:**
+- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done`
+- `UserController.done.json` - WRONG: uses `.done.json` instead of `.done`
+- `UserController_done.json` - WRONG: uses underscore and wrong extension
+- `dict-UserController.done` - WRONG: has module prefix
+- `system-UserController.done` - WRONG: has module prefix
+
+---
+
+### **CRITICAL - Path Format Rules (STRICT RULES)**
+
+**Path Variables:**
+- `{{completed_dir}}` - Absolute path to marker files directory (passed from dispatch)
+- `{{sourcePath}}` - Relative path to source file (from features JSON)
+- `{{documentPath}}` - Relative path to generated document (from features JSON)
+
+**Path Format Requirements:**
+
+| Field | Format | Example |
+|-------|--------|---------|
+| `sourcePath` in `.done` | Relative path (as-is from input) | `yudao-module-system/.../UserController.java` |
+| `documentPath` in `.done` | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
+| `sourcePath` in `.graph.json` nodes | Relative path (as-is from input) | `yudao-module-system/.../UserController.java` |
+| `documentPath` in `.graph.json` nodes | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
+
+**⚠️ CRITICAL: NEVER convert relative paths to absolute paths in the JSON content!**
+
+**Correct vs Wrong Example:**
+```json
+// ✅ CORRECT - .done file content:
+{
+  "fileName": "UserController",
+  "sourcePath": "yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java",
+  "sourceFile": "features-admin-api.json",
+  "module": "system",
+  "status": "success",
+  "analysisNotes": "Successfully analyzed UserController"
+}
+
+// ❌ WRONG - .done file content (DO NOT DO THIS):
+{
+  "fileName": "UserController",
+  "sourcePath": "d:/dev/project/yudao-module-system/.../UserController.java",  ← WRONG: absolute path
+  "sourceFile": "features-admin-api.json",
+  "module": "system",
+  "status": "success"
+}
+```
+
+---
 
 **1. Write .done file (MANDATORY):**
 
@@ -602,52 +1002,6 @@ Before writing the graph.json file, verify:
 **Output:** "Step 7 Status: ✅ COMPLETED - Marker files written to {{completed_dir}}"
 
 **⚠️ IMPORTANT: If this step fails, the dispatch script will NOT be able to process your analysis results. You MUST ensure both marker files are written successfully.**
-
-## Checklist
-
-- [ ] Input variables received (`{{feature}}`, `{{fileName}}`, `{{sourcePath}}`, `{{documentPath}}`, `{{module}}`, `{{analyzed}}`, `{{platform_type}}`, `{{completed_dir}}`, `{{sourceFile}}`, `{{language}}`)
-- [ ] Skip if `{{analyzed}}` is `true`
-- [ ] **Correct template selected** based on `{{tech_stack}}` (Java/FastAPI/.NET/Other)
-  - [ ] Java/Spring Boot: Use `FEATURE-DETAIL-TEMPLATE.md`
-  - [ ] FastAPI: Use `FEATURE-DETAIL-TEMPLATE-FASTAPI.md`
-  - [ ] .NET: Use `FEATURE-DETAIL-TEMPLATE-NET.md`
-  - [ ] Other/Unknown: Default to `FEATURE-DETAIL-TEMPLATE.md`
-- [ ] Template read and understood
-- [ ] Source file `{{sourcePath}}` read and analyzed
-- [ ] **Section 1**: Content Overview filled with API handler metadata
-- [ ] **Section 2**: API Endpoint Definitions for all public endpoints
-  - [ ] **API Coverage Verification**: ALL public endpoint methods in the controller are documented
-  - [ ] **Status Update Endpoints**: updateStatus, toggleEnable, setActive, etc.
-  - [ ] **Special Operation Endpoints**: resetPassword, export, import, batchDelete, etc.
-  - [ ] Method, Path, Request/Response DTOs, Error Codes
-  - [ ] **Business Flow**: Mermaid graph TB showing complete call chain
-    - **Java**: Controller → Service → Mapper → Database
-    - **FastAPI**: Router → Service → CRUD → SQLAlchemy Model
-    - **.NET**: Controller → Service → Repository → EF Core
-  - [ ] **Detailed Call Chain**: Specific class/method names with source links
-  - [ ] **Database Operations**: SQL types, table names
-  - [ ] **Transaction Boundaries**: Transaction scope and isolation level
-  - [ ] Use `graph TB/LR` syntax (not `flowchart`)
-  - [ ] No parentheses `()` in node text
-  - [ ] No HTML tags like `<br/>`
-  - [ ] Follow `speccrew-workspace/docs/rules/mermaid-rule.md`
-- [ ] **Section 3**: Data Field Definitions
-  - [ ] **Database Table Structure**: Fields, types, constraints, indexes, relationships
-  - [ ] Entity/Model-Database Mapping
-  - [ ] DTO/Schema Definitions
-- [ ] **Section 4**: References to Services/CRUD/Repositories, DTOs/Schemas, Entities/Models
-- [ ] **Step 4**: Find API Consumers - search frontend pages for API usage
-- [ ] **Section 4.4**: API Consumers - list all pages that call this API's endpoints
-- [ ] **Section 5**: Business Rules documented (Permission, Validation, Business Logic)
-- [ ] Source traceability links added to all sections (NO `file://` protocol)
-- [ ] Document generated at `{{documentPath}}`
-- [ ] **Step 7**: Write Completion Markers - **MANDATORY** - write `.done` and `.graph.json` files to `{{completed_dir}}` using Write tool
-  - [ ] Ensure `{{completed_dir}}` directory exists before writing
-  - [ ] Write `.done` file: `{{completed_dir}}/{{fileName}}.done`
-  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{fileName}}.graph.json`
-  - [ ] Task is NOT complete until both marker files are written successfully
-
----
 
 ## Reference Guides
 

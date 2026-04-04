@@ -4,10 +4,6 @@ description: Scan source code directories to identify all platforms and generate
 tools: Read, Write, Glob, Grep, SearchCodebase, Skill, Bash
 ---
 
-## User
-
-Worker Agent (speccrew-task-worker)
-
 ## Input
 
 | Parameter | Type | Required | Description |
@@ -32,19 +28,24 @@ flowchart TD
 
 ### Step 1: Identify Platforms
 
-**Read Configuration:**
-- `speccrew-workspace/docs/configs/platform-mapping.json` - Platform type and subtype mappings
-- `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Tech stack configurations and exclude directories
-
 **Detection Process:**
-1. Scan `{source_path}` for platform-specific configuration files (e.g., package.json, pubspec.yaml, pom.xml)
-2. Match detected files against `platform-mapping.json` → `platform_categories`
-3. For each matched platform, extract `platform_type` and `platform_subtype`
-4. Use `tech-stack-mappings.json` to determine:
+
+1. **Read Configuration:**
+   - `speccrew-workspace/docs/configs/platform-mapping.json` - Platform type and subtype mappings
+   - `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Tech stack configurations and exclude directories
+
+2. Scan `{source_path}` for platform-specific configuration files (e.g., package.json, pubspec.yaml, pom.xml)
+
+3. Match detected files against `platform-mapping.json` → `platform_categories`
+
+4. For each matched platform, extract `platform_type` and `platform_subtype`
+
+5. Use `tech-stack-mappings.json` to determine:
    - `FileExtensions`: Which file extensions to scan
    - `ExcludeDirs`: Which directories to exclude
    - `TechStack`: Technology stack array
-5. Each detected platform will generate one `features-{platform}.json` file
+
+6. Each detected platform will generate one `features-{platform}.json` file
 
 **Example Detection:**
 - Found `frontend-web/package.json` with `"vue"` in dependencies
@@ -68,15 +69,7 @@ For each detected platform, configure the following parameters:
 
 ### Step 3: Execute Inventory Scripts
 
-> **MANDATORY**: You MUST execute the provided scripts via `run_in_terminal`. This is NON-NEGOTIABLE.
-> - **DO NOT** use `read_file`, `search_codebase`, `Glob`, or any other tool to substitute script execution
-> - **DO NOT** manually scan files and construct JSON output yourself
-> - **ONLY** use `run_in_terminal` to call the scripts below
-> - Violation of this rule makes the entire output INVALID
->
-> **CALLING CONVENTION**:
-> - **MUST** use `node "{skill_path}/scripts/generate-inventory.js"`
-> - All platforms (Windows/Linux/Mac) use the same Node.js script
+> **MANDATORY**: You MUST execute the provided scripts via `run_in_terminal`. DO NOT use `read_file`, `search_codebase`, `Glob`, or any other tool to substitute script execution. DO NOT manually scan files and construct JSON output yourself.
 
 Execute the inventory script for each platform:
 

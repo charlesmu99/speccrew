@@ -16,7 +16,7 @@
     "web": {
       "react": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "hocs", "src", "views", "pages"],
+        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "hocs", "src", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/pages/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "apiClient.", "useQuery", "useMutation"],
         "state_management": ["useState", "useReducer", "Redux", "Zustand", "MobX"],
@@ -25,7 +25,7 @@
       },
       "vue": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "hooks", "utils", "mixins", "directives", "src", "views", "pages"],
+        "exclude_dirs": ["components", "composables", "hooks", "utils", "mixins", "directives", "src", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/views/**/*.vue", "src/components/**/*.vue", "pages/**/*.vue"],
         "api_call_patterns": ["axios.", "fetch(", "$http", "useFetch"],
         "state_management": ["Pinia", "Vuex", "ref", "reactive", "computed"],
@@ -34,7 +34,7 @@
       },
       "angular": {
         "extensions": [".ts", ".html", ".scss", ".css"],
-        "exclude_dirs": ["components", "directives", "pipes", "guards", "interceptors", "services", "src", "views", "pages"],
+        "exclude_dirs": ["components", "directives", "pipes", "guards", "interceptors", "services", "src", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/app/components/**/*.ts", "src/app/pages/**/*.ts"],
         "api_call_patterns": ["HttpClient", "http.get", "http.post"],
         "state_management": ["RxJS", "NgRx", "BehaviorSubject", "Observable"],
@@ -43,7 +43,7 @@
       },
       "nextjs": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "api", "src", "views", "pages"],
+        "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "api", "src", "views", "pages", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["app/**/*.{tsx,jsx}", "pages/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "useSWR", "React Query"],
         "state_management": ["useState", "Zustand", "Redux", "Context API"],
@@ -52,7 +52,7 @@
       },
       "nuxt": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "utils", "plugins", "middleware", "src", "views", "pages"],
+        "exclude_dirs": ["components", "composables", "utils", "plugins", "middleware", "src", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
         "api_call_patterns": ["$fetch", "useFetch", "axios."],
         "state_management": ["Pinia", "useState", "composables"],
@@ -61,7 +61,7 @@
       },
       "svelte": {
         "extensions": [".svelte", ".ts", ".js"],
-        "exclude_dirs": ["components", "lib", "utils", "stores", "actions", "src", "views", "pages"],
+        "exclude_dirs": ["components", "lib", "utils", "stores", "actions", "src", "views", "pages", "api", "layout", "layouts", "assets", "store", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/**/*.svelte", "routes/**/*.svelte"],
         "api_call_patterns": ["fetch(", "axios."],
         "state_management": ["writable", "readable", "derived", "Svelte Store"],
@@ -81,7 +81,7 @@
       },
       "react-native": {
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
-        "exclude_dirs": ["components", "hooks", "utils", "contexts", "navigations", "src", "views", "pages"],
+        "exclude_dirs": ["components", "hooks", "utils", "contexts", "navigations", "src", "views", "pages", "api", "screens", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/screens/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
         "api_call_patterns": ["fetch(", "axios.", "apiClient."],
         "state_management": ["useState", "Redux", "MobX", "Zustand", "Recoil"],
@@ -90,7 +90,9 @@
       },
       "uniapp": {
         "extensions": [".vue", ".ts", ".js"],
-        "exclude_dirs": ["components", "composables", "utils", "mixins", "directives", "src", "views", "pages"],
+        "exclude_dirs": ["components", "composables", "utils", "mixins", "directives", "src", "views", "pages", "api", "static", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs", "http", "tabbar", "constants", "common", "hooks", "style"],
+        "exclude_file_suffixes": [],
+        "strip_module_prefixes": ["pages-"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
         "api_call_patterns": ["uni.request", "uni.uploadFile", "uni.downloadFile"],
         "state_management": ["Vuex", "Pinia", "globalData"],
@@ -115,7 +117,9 @@
       },
       "miniprogram": {
         "extensions": [".js", ".ts", ".wxml", ".wxss", ".json"],
-        "exclude_dirs": ["components", "utils", "behaviors", "mixins", "src", "views", "pages"],
+        "exclude_dirs": ["components", "utils", "behaviors", "mixins", "src", "views", "pages", "api", "static", "assets", "store", "stores", "router", "routes", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs", "http", "tabbar", "constants", "common", "hooks", "style"],
+        "exclude_file_suffixes": [],
+        "strip_module_prefixes": ["pages-"],
         "entry_patterns": ["pages/**/*.js", "pages/**/*.ts", "components/**/*.js"],
         "api_call_patterns": ["wx.request", "wx.uploadFile", "wx.downloadFile"],
         "state_management": ["Page data", "globalData", "MobX", "Westore"],
@@ -127,6 +131,7 @@
       "spring": {
         "extensions": [".java", ".kt"],
         "exclude_dirs": ["controller", "controllers", "admin", "app", "api", "service", "services", "repository", "repositories", "dao", "dal", "mysql", "redis", "dataobject", "entity", "entities", "model", "models", "dto", "dtos", "vo", "vos", "mapper", "mappers", "convert", "converter", "converters", "config", "configs", "util", "utils", "common", "exception", "exceptions", "enums", "framework", "job", "mq", "listener", "listeners", "producer", "consumer"],
+        "exclude_file_suffixes": ["VO", "DTO", "DO", "Entity", "Convert", "Converter"],
         "entry_patterns": ["**/*Controller.java", "**/*Controller.kt", "**/*Service.java"],
         "api_patterns": {
           "controller": ["@Controller", "@RestController", "@RequestMapping"],
@@ -140,6 +145,7 @@
       "nestjs": {
         "extensions": [".ts"],
         "exclude_dirs": ["services", "repositories", "entities", "dtos", "guards", "interceptors", "middleware", "pipes", "filters", "decorators", "utils", "helpers"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["**/*.controller.ts", "**/*.service.ts", "**/*.module.ts"],
         "api_patterns": {
           "controller": ["@Controller"],
@@ -153,6 +159,7 @@
       "express": {
         "extensions": [".js", ".ts"],
         "exclude_dirs": ["services", "models", "middleware", "utils", "helpers", "validators", "schemas"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["routes/**/*.js", "controllers/**/*.js", "**/*.routes.ts"],
         "api_patterns": {
           "router": ["router.get", "router.post", "router.put", "router.delete", "router.patch"],
@@ -166,6 +173,7 @@
       "fastify": {
         "extensions": [".js", ".ts"],
         "exclude_dirs": ["services", "models", "schemas", "plugins", "hooks", "utils", "helpers"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["routes/**/*.js", "**/*.routes.ts"],
         "api_patterns": {
           "routes": ["fastify.get", "fastify.post", "fastify.route"],
@@ -178,6 +186,7 @@
       "django": {
         "extensions": [".py"],
         "exclude_dirs": ["models", "serializers", "forms", "utils", "helpers", "middleware", "templatetags"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["views.py", "**/views/*.py", "api/*.py"],
         "api_patterns": {
           "views": ["def.*request", "class.*APIView", "@api_view"],
@@ -190,6 +199,7 @@
       "fastapi": {
         "extensions": [".py"],
         "exclude_dirs": ["models", "schemas", "services", "repositories", "utils", "helpers", "dependencies", "middleware"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["main.py", "routers/*.py", "api/*.py"],
         "api_patterns": {
           "routes": ["@app.get", "@app.post", "@app.put", "@app.delete", "@router.get"],
@@ -202,6 +212,7 @@
       "go": {
         "extensions": [".go"],
         "exclude_dirs": ["service", "services", "repository", "repositories", "model", "models", "dto", "dtos", "middleware", "utils", "helpers"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["**/*.go", "handlers/*.go", "controllers/*.go"],
         "api_patterns": {
           "router": ["gin.Router", "echo.Echo", "mux.Router", "http.HandleFunc"],
@@ -214,6 +225,7 @@
       "rust": {
         "extensions": [".rs"],
         "exclude_dirs": ["service", "services", "repository", "repositories", "model", "models", "dto", "dtos", "middleware", "utils", "helpers", "schema", "migrations"],
+        "exclude_file_suffixes": [],
         "entry_patterns": ["src/**/*.rs", "handlers/*.rs", "routes/*.rs"],
         "api_patterns": {
           "frameworks": ["actix-web", "axum", "rocket", "warp"],
