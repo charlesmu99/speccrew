@@ -290,12 +290,13 @@ Repeat the following 3 steps until all features are processed:
 
 **Step 0: Ensure completed directory exists (MANDATORY)**
 
-Before launching any Workers, you MUST create the `completed_dir` directory:
+Before launching any Workers, you MUST create the `completed_dir` directory using Node.js (cross-platform compatible):
 
 ```bash
-# Create completed directory if it doesn't exist
-mkdir -p "{completed_dir}"
+node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.log('completed dir ready')"
 ```
+
+> **Note**: Using Node.js ensures cross-platform compatibility (Windows/macOS/Linux).
 
 > **⚠️ CRITICAL**: The `completed_dir` MUST be an **absolute path** (e.g., `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`). Relative paths will cause Worker marker file writes to fail silently.
 

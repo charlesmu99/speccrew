@@ -770,12 +770,7 @@ After analysis is complete, write the results to marker files for dispatch to pr
 - `{{completed_dir}}` - Marker files output directory (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`)
 - `{{sourceFile}}` - Source features JSON file name
 
-**MANDATORY - Create Directory First:**
-Before writing ANY marker files, you MUST create the completed_dir if it doesn't exist:
-- Use Bash: `mkdir -p "{{completed_dir}}"`
-- Or use Write tool to create a test file, which will auto-create the directory
-
-Then proceed with writing .done and .graph.json files.
+> **ASSUMPTION**: The `completed_dir` directory already exists (pre-created by dispatch Stage 2). If write fails, report error — do NOT attempt to create directories.
 
 ### Pre-write Checklist (VERIFY before writing each file):
 - [ ] Filename follows `{fileName}` pattern (file name only)
