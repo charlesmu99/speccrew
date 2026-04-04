@@ -57,14 +57,30 @@ function main() {
         // Path to completed directory
         const completedDir = path.join(fullPath, 'completed');
 
-        // Build set of completed feature IDs (for fast lookup)
+        // Build set of completed feature fileNames (for fast lookup)
+        const completedFeatureFileNames = new Set();
         const completedFeatureIds = new Set();
         if (fs.existsSync(completedDir) && fs.statSync(completedDir).isDirectory()) {
             const doneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done'));
             for (const doneFile of doneFiles) {
-                // Done filename format: {module}-{fileName}.done
-                const baseName = path.basename(doneFile, '.done');
-                completedFeatureIds.add(baseName);
+                // Read .done file content to extract fileName or featureId
+                const doneFilePath = path.join(completedDir, doneFile);
+                try {
+                    const doneRawContent = fs.readFileSync(doneFilePath, 'utf8');
+                    const doneContent = JSON.parse(doneRawContent);
+                    // Use fileName field if available, fallback to featureId
+                    if (doneContent.fileName) {
+                        completedFeatureFileNames.add(doneContent.fileName);
+                    }
+                    if (doneContent.featureId) {
+                        completedFeatureIds.add(doneContent.featureId);
+                    }
+                } catch (error) {
+                    console.warn(`Warning: Failed to read .done file ${doneFile}: ${error.message}`);
+                    // Fallback: use filename without extension (legacy behavior)
+                    const baseName = path.basename(doneFile, '.done');
+                    completedFeatureIds.add(baseName);
+                }
             }
         }
 
@@ -98,11 +114,13 @@ function main() {
                     continue;
                 }
 
-                // Use feature's id field directly
+                // Use feature's id and fileName fields
                 const featureId = feature.id;
+                const featureFileName = feature.fileName;
 
                 // Skip if already completed (has .done file)
-                if (completedFeatureIds.has(featureId)) {
+                // Check both fileName (new format) and featureId (legacy format)
+                if (completedFeatureFileNames.has(featureFileName) || completedFeatureIds.has(featureId)) {
                     continue;
                 }
 

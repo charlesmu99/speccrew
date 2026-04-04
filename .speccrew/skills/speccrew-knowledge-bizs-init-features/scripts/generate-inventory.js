@@ -31,6 +31,8 @@ const path = require('path');
  * Comma-separated format: "vue,typescript"  (recommended for PowerShell compatibility)
  */
 function parseArrayParam(value) {
+  // Handle boolean true (from flag-only args like --excludeDirs without value)
+  if (value === true) return [];
   if (!value) return [];
   const trimmed = value.trim();
   if (trimmed.startsWith('[')) {
@@ -54,7 +56,8 @@ function parseArgs() {
     if (arg.startsWith('--')) {
       const key = arg.slice(2);
       const value = args[i + 1];
-      if (value && !value.startsWith('--')) {
+      // Accept empty string "" as valid value, only skip if undefined or next arg is a flag
+      if (value !== undefined && !value.startsWith('--')) {
         params[key] = value;
         i++;
       } else {

@@ -417,8 +417,8 @@ For each feature in the `batch` array, launch a Worker Agent as a Task:
 
 | Marker Type | File Name Format | Example |
 |-------------|------------------|---------|
-| Completion marker | `{featureId}.done` | `dict-index.done`, `dict-UserController.done` |
-| Graph data | `{featureId}.graph.json` | `dict-index.graph.json`, `dict-UserController.graph.json` |
+| Completion marker | `{fileName}.done` | `index.done`, `UserController.done`, `AiKnowledgeDocumentCreateListReqVO.done` |
+| Graph data | `{fileName}.graph.json` | `index.graph.json`, `UserController.graph.json`, `AiKnowledgeDocumentCreateListReqVO.graph.json` |
 
 **Step 3: Process Batch Results**
 

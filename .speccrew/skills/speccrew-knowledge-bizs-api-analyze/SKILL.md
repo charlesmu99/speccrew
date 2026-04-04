@@ -68,8 +68,8 @@ This skill operates in **strict sequential execution mode**:
 
 **Generated Files (MANDATORY - Task is NOT complete until all files are written):**
 1. `{{documentPath}}` - Controller documentation file
-2. `{{completed_dir}}/{{featureId}}.done` - Completion status marker
-3. `{{completed_dir}}/{{featureId}}.graph.json` - Graph data marker
+2. `{{completed_dir}}/{{fileName}}.done` - Completion status marker
+3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
 
 **Return Value (JSON format):**
 ```json
@@ -442,7 +442,7 @@ Or in case of failure:
 Before writing files, ensure the `{{completed_dir}}` directory exists. If it doesn't exist, create it first using appropriate file system tools.
 
 ### Pre-write Checklist (VERIFY before writing each file):
-- [ ] Filename follows `{featureId}` pattern (use feature's `id` field)
+- [ ] Filename follows `{fileName}` pattern (Java class name only)
 - [ ] File content is valid JSON (not empty)
 - [ ] All required fields are present and non-empty
 - [ ] File is written with UTF-8 encoding
@@ -451,9 +451,9 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
 > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.done` file MUST be valid JSON. Do NOT write plain text, key=value pairs, or any other format. The file content MUST start with `{` and end with `}`. Non-JSON content will cause pipeline failure.
 
-Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.done`:
+Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
 
-**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/dict-UserController.done`
+**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done`
 
 ```json
 {
@@ -468,9 +468,11 @@ Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.done`:
 
 > **⚠️ CRITICAL**: The `sourceFile` field is MANDATORY. It MUST be the features JSON filename (e.g., `features-admin-api.json`). Missing this field will cause pipeline failure.
 
-⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{featureId}.done`, where `featureId` is the `id` field from the feature object (e.g., `dict-UserController`, `trade-OrderController`).
-- ✅ CORRECT: `dict-UserController.done` (using feature's id field directly)
-- ❌ WRONG: `system-UserController.done` (using reclassified module - causes naming collision)
+⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
+- ✅ CORRECT: `UserController.done` (using Java class name directly)
+- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.done` (using Java class name directly)
+- ❌ WRONG: `dict-UserController.done` (using old featureId format)
+- ❌ WRONG: `system-UserController.done` (using module prefix)
 
 ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -478,9 +480,9 @@ Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.done`:
 
 > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and MUST include the top-level `"module"` field. Missing the `module` field will cause the graph merge pipeline to reject this file.
 
-Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.graph.json`:
+Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`:
 
-**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/dict-UserController.graph.json`
+**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
 
 ```json
 {
@@ -507,9 +509,11 @@ Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.graph.json
 }
 ```
 
-⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{featureId}.graph.json`, where `featureId` is the `id` field from the feature object (e.g., `dict-UserController`, `trade-OrderController`).
-- ✅ CORRECT: `dict-UserController.graph.json` (using feature's id field directly)
-- ❌ WRONG: `system-UserController.graph.json` (using reclassified module - causes naming collision)
+⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.graph.json`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
+- ✅ CORRECT: `UserController.graph.json` (using Java class name directly)
+- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.graph.json` (using Java class name directly)
+- ❌ WRONG: `dict-UserController.graph.json` (using old featureId format)
+- ❌ WRONG: `system-UserController.graph.json` (using module prefix)
 
 ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -571,8 +575,8 @@ Before writing the graph.json file, verify:
 - [ ] Document generated at `{{documentPath}}`
 - [ ] **Step 7**: Write Completion Markers - **MANDATORY** - write `.done` and `.graph.json` files to `{{completed_dir}}` using Write tool
   - [ ] Ensure `{{completed_dir}}` directory exists before writing
-  - [ ] Write `.done` file: `{{completed_dir}}/{{featureId}}.done`
-  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{featureId}}.graph.json`
+  - [ ] Write `.done` file: `{{completed_dir}}/{{fileName}}.done`
+  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{fileName}}.graph.json`
   - [ ] Task is NOT complete until both marker files are written successfully
 
 ---

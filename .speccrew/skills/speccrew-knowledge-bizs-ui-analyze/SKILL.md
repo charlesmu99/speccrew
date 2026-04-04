@@ -63,8 +63,8 @@ Worker Agent (speccrew-task-worker)
 
 **Generated Files (MANDATORY - Task is NOT complete until all files are written):**
 1. `{{documentPath}}` - Feature documentation file
-2. `{{completed_dir}}/{{featureId}}.done` - Completion status marker
-3. `{{completed_dir}}/{{featureId}}.graph.json` - Graph data marker
+2. `{{completed_dir}}/{{fileName}}.done` - Completion status marker
+3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
 
 **Return Value (JSON format):**
 ```json
@@ -501,7 +501,7 @@ After analysis is complete, write the results to marker files for dispatch to pr
 Before writing files, ensure the `{{completed_dir}}` directory exists. If it doesn't exist, create it first using appropriate file system tools.
 
 ### Pre-write Checklist (VERIFY before writing each file):
-- [ ] Filename follows `{featureId}` pattern (use feature's `id` field)
+- [ ] Filename follows `{fileName}` pattern (file name only)
 - [ ] File content is valid JSON (not empty)
 - [ ] All required fields are present and non-empty
 - [ ] File is written with UTF-8 encoding
@@ -512,9 +512,9 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
    > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.done` file MUST be valid JSON. Do NOT write plain text, key=value pairs, or any other format. The file content MUST start with `{` and end with `}`. Non-JSON content will cause pipeline failure.
 
-   Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.done`:
+   Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done`:
    
-   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/dict-index.done`
+   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.done`
 
    ```json
    {
@@ -529,9 +529,11 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
    > **⚠️ CRITICAL**: The `sourceFile` field is MANDATORY. It MUST be the features JSON filename (e.g., `features-web-vue.json`). Missing this field will cause pipeline failure.
 
-   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{featureId}.done`, where `featureId` is the `id` field from the feature object (e.g., `dict-index`, `dict-DictTypeForm`).
-   - ✅ CORRECT: `dict-index.done` (using feature's id field directly)
-   - ❌ WRONG: `system-index.done` (using reclassified module - causes naming collision)
+   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
+   - ✅ CORRECT: `index.done` (using file name directly)
+   - ✅ CORRECT: `UserForm.done` (using file name directly)
+   - ❌ WRONG: `dict-index.done` (using old featureId format)
+   - ❌ WRONG: `system-index.done` (using module prefix)
 
    ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -539,9 +541,9 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 
    > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and MUST include the top-level `"module"` field. Missing the `module` field will cause the graph merge pipeline to reject this file.
 
-   Use the Write tool to create file at `{{completed_dir}}/{{featureId}}.graph.json`:
+   Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`:
    
-   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/dict-index.graph.json`
+   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.graph.json`
 
    ```json
    {
@@ -571,9 +573,11 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
    }
    ```
 
-   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{featureId}.graph.json`, where `featureId` is the `id` field from the feature object (e.g., `dict-index`, `dict-DictTypeForm`).
-   - ✅ CORRECT: `dict-index.graph.json` (using feature's id field directly)
-   - ❌ WRONG: `system-index.graph.json` (using reclassified module - causes naming collision)
+   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.graph.json`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
+   - ✅ CORRECT: `index.graph.json` (using file name directly)
+   - ✅ CORRECT: `UserForm.graph.json` (using file name directly)
+   - ❌ WRONG: `dict-index.graph.json` (using old featureId format)
+   - ❌ WRONG: `system-index.graph.json` (using module prefix)
 
    ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -585,7 +589,7 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
    - [ ] Each `calls` edge has proper metadata with trigger information
    - [ ] No API import is left without a corresponding edge
 
-**Output:** "Step 7 Status: ✅ COMPLETED - Marker files written ({{completed_dir}}/{{module}}-{{fileName}}.done, .graph.json)"
+**Output:** "Step 7 Status: ✅ COMPLETED - Marker files written ({{completed_dir}}/{{fileName}}.done, .graph.json)"
 
 **On Failure:** "Step 7 Status: ⚠️ PARTIAL - Marker file write failed, but analysis completed"
 
@@ -632,8 +636,8 @@ Before writing files, ensure the `{{completed_dir}}` directory exists. If it doe
 - [ ] Results reported in JSON format with `{{status}}`, `{{feature_name}}`, `{{message}}`
 - [ ] **Step 7**: Write Completion Markers - **MANDATORY** - write `.done` and `.graph.json` files to `{{completed_dir}}` using Write tool
   - [ ] Ensure `{{completed_dir}}` directory exists before writing
-  - [ ] Write `.done` file: `{{completed_dir}}/{{featureId}}.done`
-  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{featureId}}.graph.json`
+  - [ ] Write `.done` file: `{{completed_dir}}/{{fileName}}.done`
+  - [ ] Write `.graph.json` file: `{{completed_dir}}/{{fileName}}.graph.json`
   - [ ] Task is NOT complete until both marker files are written successfully
 
 

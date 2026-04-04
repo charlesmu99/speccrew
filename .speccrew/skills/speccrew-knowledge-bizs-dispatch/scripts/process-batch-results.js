@@ -454,17 +454,31 @@ function main() {
                     continue;
                 }
                 const content = JSON.parse(rawContent);
-                const module = content.module;
+                let module = content.module;
 
                 if (!module) {
-                    // Try to infer module from filename: e.g. "system-UserController.graph.json" -> "system"
-                    const fileBaseName = graphFile.replace('.graph.json', '');
-                    const inferredModule = fileBaseName.split('-')[0];
-                    if (inferredModule) {
-                        content.module = inferredModule;
-                        console.warn(`Missing module field, inferred "${inferredModule}" from filename: ${graphFile}`);
-                    } else {
-                        console.warn(`Cannot infer module from filename: ${graphFile}, skipping`);
+                    // Try to read module from corresponding .done file
+                    const doneFileName = graphFile.replace('.graph.json', '.done');
+                    const doneFilePath = path.join(completedDir, doneFileName);
+
+                    if (fs.existsSync(doneFilePath)) {
+                        try {
+                            const doneRawContent = fs.readFileSync(doneFilePath, 'utf8');
+                            const doneContent = JSON.parse(doneRawContent);
+                            if (doneContent.module) {
+                                module = doneContent.module;
+                                content.module = module;
+                                console.warn(`Missing module field, read "${module}" from .done file: ${doneFileName}`);
+                            }
+                        } catch (doneError) {
+                            console.warn(`Failed to read module from .done file ${doneFileName}: ${doneError.message}`);
+                        }
+                    }
+
+                    // If still no module, skip this file
+                    if (!module) {
+                        console.warn(`Cannot determine module for: ${graphFile}, skipping`);
+                        console.warn(`  Tried to read from .done file: ${doneFileName}`);
                         console.warn(`  File content preview: ${rawContent.substring(0, Math.min(200, rawContent.length))}`);
                         continue;
                     }
