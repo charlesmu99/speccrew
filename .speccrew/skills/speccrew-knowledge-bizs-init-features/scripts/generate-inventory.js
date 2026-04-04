@@ -289,7 +289,19 @@ function inferFrameworkFromTechStack(techStack) {
     'reactnative': 'react-native'
   };
 
-  // Find first matching tech stack
+  // Platform-specific frameworks have higher priority than generic ones
+  const platformSpecific = new Set(['uniapp', 'flutter', 'react-native', 'next']);
+
+  // First pass: look for platform-specific framework match
+  for (const tech of techStack) {
+    const normalizedTech = tech.toLowerCase();
+    const framework = techToFramework[normalizedTech];
+    if (framework && platformSpecific.has(framework)) {
+      return framework;
+    }
+  }
+
+  // Second pass: fallback to first matching generic framework
   for (const tech of techStack) {
     const normalizedTech = tech.toLowerCase();
     if (techToFramework[normalizedTech]) {
