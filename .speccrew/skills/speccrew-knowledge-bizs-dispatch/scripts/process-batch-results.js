@@ -283,6 +283,7 @@ function main() {
     // Result tracking
     let processedCount = 0;
     let skippedFilesCount = 0;
+    let docMissingCount = 0;  // Features skipped due to missing document
     const modulesUpdated = [];
     const errors = [];
     const failedOperations = [];
@@ -465,7 +466,10 @@ function main() {
                 if (!docCheck.exists) {
                     const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                     console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                    analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
+                    console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed - document must exist. .done file PRESERVED for retry.`);
+                    // Do NOT mark as successful - preserve .done for retry
+                    docMissingCount++;
+                    continue;
                 }
 
                 // Build source file path (relative to SyncStatePath)
@@ -502,7 +506,9 @@ function main() {
                             if (!docCheck.exists) {
                                 const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                                 console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                                analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
+                                console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (fallback path) - document must exist. .done file PRESERVED.`);
+                                docMissingCount++;
+                                continue;
                             }
 
                             updateFeatureStatus(sourceFilePath, fileName, featureSourcePath, 'true', true, analysisNotes);
@@ -532,7 +538,9 @@ function main() {
                         if (!docCheck.exists) {
                             const warnMsg = `[WARN: document missing at ${docCheck.path || 'unknown path'}]`;
                             console.warn(`Document not found for feature ${fileName}: ${warnMsg}`);
-                            analysisNotes = analysisNotes ? `${analysisNotes} ${warnMsg}` : warnMsg;
+                            console.warn(`[SKIP] Feature ${fileName} NOT marked as analyzed (recovery path) - document must exist. .done file PRESERVED.`);
+                            docMissingCount++;
+                            continue;
                         }
 
                         updateFeatureStatus(sourceFilePath, fileName, featureSourcePath, 'true', true, analysisNotes);
@@ -810,6 +818,7 @@ function main() {
     const output = {
         processed: processedCount,
         skipped: skippedFilesCount,
+        doc_missing: docMissingCount,
         modules_updated: modulesUpdated,
         errors: errors,
         failed_operations: failedOperations
@@ -823,6 +832,12 @@ function main() {
         for (const op of failedOperations) {
             console.warn(`  Module: ${op.module}, Operation: ${op.operation}, Error: ${op.error}`);
         }
+    }
+
+    // Exit with error code if features were skipped due to missing documents
+    if (docMissingCount > 0) {
+        console.error(`\n[ERROR] ${docMissingCount} feature(s) skipped - documents not found. .done files preserved in completed/ for retry.`);
+        process.exit(1);
     }
 }
 
