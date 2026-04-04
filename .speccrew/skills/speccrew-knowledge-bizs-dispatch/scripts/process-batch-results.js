@@ -104,7 +104,7 @@ function checkDocumentExists(syncStatePath, sourceFile, fileName, featureSourceP
 
 // Validate document existence for all analyzed features
 function validateDocumentExistence(syncStatePath) {
-    console.log('=== Document Existence Validation ===');
+    console.error('=== Document Existence Validation ===');
 
     const syncStateDir = path.resolve(syncStatePath);
     if (!fs.existsSync(syncStateDir)) {
@@ -156,18 +156,18 @@ function validateDocumentExistence(syncStatePath) {
         }
     }
 
-    console.log('\n=== Validation Summary ===');
-    console.log(`Total analyzed features: ${totalAnalyzed}`);
-    console.log(`Missing documents: ${missingDocs}`);
+    console.error('\n=== Validation Summary ===');
+    console.error(`Total analyzed features: ${totalAnalyzed}`);
+    console.error(`Missing documents: ${missingDocs}`);
 
     if (missingList.length > 0) {
-        console.log('\nMissing documents list:');
+        console.error('\nMissing documents list:');
         for (const item of missingList) {
-            console.log(`  - ${item.platform}/${item.feature}: ${item.documentPath}`);
+            console.error(`  - ${item.platform}/${item.feature}: ${item.documentPath}`);
         }
         process.exit(1);
     } else {
-        console.log('All analyzed features have corresponding documents.');
+        console.error('All analyzed features have corresponding documents.');
         process.exit(0);
     }
 }
@@ -246,7 +246,7 @@ function main() {
         process.exit(1);
     }
     if (!fs.existsSync(graphRoot)) {
-        console.log(`GraphRoot not found, creating: ${args.graphRoot}`);
+        console.error(`GraphRoot not found, creating: ${args.graphRoot}`);
         fs.mkdirSync(graphRoot, { recursive: true });
     }
     if (!fs.existsSync(graphWriteScript)) {
@@ -257,16 +257,16 @@ function main() {
     const completedDir = path.join(syncStatePath, 'completed');
 
     // Diagnostic logging for completed directory
-    console.log(`Scanning for .done.json files in: ${completedDir}`);
-    console.log(`Directory exists: ${fs.existsSync(completedDir)}`);
+    console.error(`Scanning for .done.json files in: ${completedDir}`);
+    console.error(`Directory exists: ${fs.existsSync(completedDir)}`);
 
     // Auto-create completed directory if it doesn't exist
     if (!fs.existsSync(completedDir)) {
         console.error(`[ERROR] completed directory does not exist: ${completedDir}`);
-        console.log(`[INFO] Auto-creating completed directory...`);
+        console.error(`[INFO] Auto-creating completed directory...`);
         try {
             fs.mkdirSync(completedDir, { recursive: true });
-            console.log(`[INFO] Successfully created completed directory`);
+            console.error(`[INFO] Successfully created completed directory`);
         } catch (error) {
             console.error(`[ERROR] Failed to create completed directory: ${error.message}`);
         }
@@ -280,7 +280,7 @@ function main() {
             console.warn(`[WARNING] No .done.json files found in completed directory. Workers may not have created marker files correctly.`);
             console.warn(`[INFO] Files in completed directory: ${allFiles.length > 0 ? allFiles.join(', ') : '(empty)'}`);
         } else {
-            console.log(`[INFO] Found ${doneFiles.length} .done.json file(s)`);
+            console.error(`[INFO] Found ${doneFiles.length} .done.json file(s)`);
         }
     }
 
@@ -746,28 +746,28 @@ function main() {
         }
 
         // Log cleanup plan before execution
-        console.log('=== Cleanup Plan ===');
-        console.log(`[INFO] Successfully processed .done.json files to remove: ${successfulDoneFiles.size}`);
-        console.log(`[INFO] Successfully processed .graph.json files to remove: ${successfulGraphFiles.size}`);
+        console.error('=== Cleanup Plan ===');
+        console.error(`[INFO] Successfully processed .done.json files to remove: ${successfulDoneFiles.size}`);
+        console.error(`[INFO] Successfully processed .graph.json files to remove: ${successfulGraphFiles.size}`);
         
         const allDoneFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.done.json'));
         const failedDoneFiles = allDoneFiles.filter(f => !successfulDoneFiles.has(f));
         if (failedDoneFiles.length > 0) {
-            console.log(`[INFO] Failed/unprocessed .done.json files to PRESERVE: ${failedDoneFiles.length}`);
+            console.error(`[INFO] Failed/unprocessed .done.json files to PRESERVE: ${failedDoneFiles.length}`);
             for (const file of failedDoneFiles) {
-                console.log(`  [PRESERVE] ${file}`);
+                console.error(`  [PRESERVE] ${file}`);
             }
         }
         
         const allGraphFiles = fs.readdirSync(completedDir).filter(f => f.endsWith('.graph.json'));
         const failedGraphFiles = allGraphFiles.filter(f => !successfulGraphFiles.has(f));
         if (failedGraphFiles.length > 0) {
-            console.log(`[INFO] Failed/unprocessed .graph.json files to PRESERVE: ${failedGraphFiles.length}`);
+            console.error(`[INFO] Failed/unprocessed .graph.json files to PRESERVE: ${failedGraphFiles.length}`);
             for (const file of failedGraphFiles) {
-                console.log(`  [PRESERVE] ${file}`);
+                console.error(`  [PRESERVE] ${file}`);
             }
         }
-        console.log('====================');
+        console.error('====================');
 
         // Remove .done.json files (ONLY successfully processed ones)
         // IMPORTANT: Failed .done.json files are PRESERVED for retry after fixing the issue
@@ -776,7 +776,7 @@ function main() {
             if (successfulDoneFiles.has(file)) {
                 try {
                     const filePath = path.join(completedDir, file);
-                    console.log(`[CLEANUP] Removing successfully processed .done.json file: ${file}`);
+                    console.error(`[CLEANUP] Removing successfully processed .done.json file: ${file}`);
                     fs.unlinkSync(filePath);
                 } catch (error) {
                     writeErrorContinue(`Failed to remove .done.json file ${file}: ${error.message}`);
@@ -794,7 +794,7 @@ function main() {
             if (successfulGraphFiles.has(file)) {
                 try {
                     const filePath = path.join(completedDir, file);
-                    console.log(`[CLEANUP] Removing successfully processed .graph.json file: ${file}`);
+                    console.error(`[CLEANUP] Removing successfully processed .graph.json file: ${file}`);
                     fs.unlinkSync(filePath);
                 } catch (error) {
                     writeErrorContinue(`Failed to remove .graph.json file ${file}: ${error.message}`);
