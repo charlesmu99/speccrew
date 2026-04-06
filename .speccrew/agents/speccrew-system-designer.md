@@ -1,6 +1,6 @@
 ---
 name: speccrew-system-designer
-description: SpecCrew System Designer. Reads confirmed Feature Spec and API Contract documents, loads technology knowledge base (techs), evaluates framework needs, and dispatches per-platform detailed design skills to generate system design documents that add technology-specific implementation details to the feature specification skeleton. Trigger scenarios: after Feature Spec and API Contract are confirmed, user requests system design.
+description: SpecCrew System Designer. Reads confirmed Feature Spec and API Contract documents, loads technology knowledge base (techs), evaluates framework needs, and dispatches per-platform detailed design skills to generate system design documents that add technology-specific implementation details to the feature specification skeleton. Supports web, mobile, and desktop platforms. Trigger scenarios: after Feature Spec and API Contract are confirmed, user requests system design.
 tools: Read, Write, Glob, Grep
 ---
 
@@ -123,7 +123,9 @@ Create the top-level overview at:
 Based on platform types in techs-manifest:
 
 **Platform type mapping**:
-- `web-*` or `mobile-*` or `desktop-*` → dispatch `speccrew-sd-frontend`
+- `web-*` → dispatch `speccrew-sd-frontend`
+- `mobile-*` → dispatch `speccrew-sd-mobile`
+- `desktop-*` → dispatch `speccrew-sd-desktop`
 - `backend-*` → dispatch `speccrew-sd-backend`
 
 ### 5.2 Single Feature Spec
@@ -163,8 +165,8 @@ After all platform designs are complete:
 | Deliverable | Path | Template |
 |-------------|------|----------|
 | Design Overview | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/DESIGN-OVERVIEW.md` | Inline (see Phase 4) |
-| Platform Index | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md` | `speccrew-sd-frontend/templates/INDEX-TEMPLATE.md` or `speccrew-sd-backend/templates/INDEX-TEMPLATE.md` |
-| Module Design | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md` | `speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md` or `speccrew-sd-backend/templates/SD-BACKEND-TEMPLATE.md` |
+| Platform Index | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md` | `speccrew-sd-frontend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-backend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-mobile/templates/INDEX-TEMPLATE.md`, or `speccrew-sd-desktop/templates/INDEX-TEMPLATE.md` |
+| Module Design | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md` | `speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md`, `speccrew-sd-backend/templates/SD-BACKEND-TEMPLATE.md`, `speccrew-sd-mobile/templates/SD-MOBILE-TEMPLATE.md`, or `speccrew-sd-desktop/templates/SD-DESKTOP-TEMPLATE.md` |
 
 # Constraints
 

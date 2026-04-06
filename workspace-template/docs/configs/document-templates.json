@@ -337,6 +337,130 @@
         "{{IntegrationPoints}}"
       ]
     },
+    "system_design_mobile": {
+      "name": "SD-MOBILE-TEMPLATE",
+      "file_name": "SD-MOBILE-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SD-MOBILE-TEMPLATE.md",
+      "description": "Template for system designer to create mobile detailed design documents",
+      "used_by": ["speccrew-system-designer"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["mobile"]
+      },
+      "output_pattern": "{module-name}-design.md",
+      "sections": [
+        {
+          "name": "Design Goal",
+          "required": true,
+          "description": "Module design objective and Feature Spec reference"
+        },
+        {
+          "name": "Screen Architecture",
+          "required": true,
+          "description": "Screen/widget tree and screen summary"
+        },
+        {
+          "name": "Navigation Design",
+          "required": true,
+          "description": "Navigation stack, deep linking, and route guards"
+        },
+        {
+          "name": "State Management",
+          "required": true,
+          "description": "Store/provider design with actions and selectors"
+        },
+        {
+          "name": "API Layer",
+          "required": true,
+          "description": "API functions, error handling, and caching strategy"
+        },
+        {
+          "name": "Local Storage",
+          "required": true,
+          "description": "Storage strategy, schema, and sync patterns"
+        },
+        {
+          "name": "Platform Features",
+          "required": false,
+          "description": "Permissions, native integration, and platform channels"
+        },
+        {
+          "name": "Unit Test Points",
+          "required": true,
+          "description": "Key test scenarios for screens, state, and API layer"
+        }
+      ],
+      "placeholders": [
+        "ModuleName",
+        "PlatformId",
+        "Framework",
+        "Language",
+        "FeatureSpecPath",
+        "ApiContractPath"
+      ]
+    },
+    "system_design_desktop": {
+      "name": "SD-DESKTOP-TEMPLATE",
+      "file_name": "SD-DESKTOP-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SD-DESKTOP-TEMPLATE.md",
+      "description": "Template for system designer to create desktop detailed design documents",
+      "used_by": ["speccrew-system-designer"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["desktop"]
+      },
+      "output_pattern": "{module-name}-design.md",
+      "sections": [
+        {
+          "name": "Design Goal",
+          "required": true,
+          "description": "Module design objective and Feature Spec reference"
+        },
+        {
+          "name": "Process Architecture",
+          "required": true,
+          "description": "Main/renderer process model and responsibilities"
+        },
+        {
+          "name": "Window Design",
+          "required": true,
+          "description": "Window configuration, lifecycle, and multi-window communication"
+        },
+        {
+          "name": "IPC Communication",
+          "required": true,
+          "description": "IPC channel registry, message types, and handlers"
+        },
+        {
+          "name": "UI Component Design",
+          "required": true,
+          "description": "Component tree, detail design with desktop patterns"
+        },
+        {
+          "name": "Native Integration",
+          "required": true,
+          "description": "File system, system tray, menu bar, notifications, shortcuts"
+        },
+        {
+          "name": "Security Design",
+          "required": true,
+          "description": "Context isolation, preload scripts, CSP"
+        },
+        {
+          "name": "Unit Test Points",
+          "required": true,
+          "description": "Key test scenarios for processes, IPC, and UI"
+        }
+      ],
+      "placeholders": [
+        "ModuleName",
+        "PlatformId",
+        "Framework",
+        "Language",
+        "FeatureSpecPath",
+        "ApiContractPath"
+      ]
+    },
     "techs_index": {
       "name": "TECHS-INDEX-TEMPLATE",
       "file_name": "TECHS-INDEX-TEMPLATE.md",

@@ -249,6 +249,8 @@ your-project/
 │       ├── speccrew-fd-api-contract/
 │       ├── speccrew-sd-frontend/
 │       ├── speccrew-sd-backend/
+│       ├── speccrew-sd-mobile/
+│       ├── speccrew-sd-desktop/
 │       ├── speccrew-dev-task/
 │       ├── speccrew-test-report/
 │       ├── speccrew-knowledge-dispatch/
