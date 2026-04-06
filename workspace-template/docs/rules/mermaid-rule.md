@@ -53,7 +53,7 @@ graph TB
 - flowchart instead of graph
 - mindmap syntax (compatibility issues)
 - Quoted node text ["text"]
-- Special characters: @ # < > & [ ] / etc.
+- Special characters: @ # < > & [ ] / ( ) etc.
 ```
 
 **Special Character Handling:**
@@ -65,6 +65,7 @@ graph TB
 | `&` | HTML entities | Spell out: `and` |
 | `[` `]` | Array index (`arr[0]`) | Use parentheses or omit: `arr(0)` or `arr0` |
 | `/` | File paths (`/pages/index`) | Remove leading `/` or use parentheses: `pages/index` |
+| `(` `)` | Function calls (`handleQuery()`) | Remove parentheses: `handleQuery` |
 
 ### 5. Multi-line Text Handling
 
