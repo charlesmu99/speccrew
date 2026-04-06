@@ -118,6 +118,47 @@ watch({stateName}, (newVal, oldVal) => {
 })
 ```
 
+#### Advanced Pseudo-code Patterns
+
+<!-- AI-NOTE: Common patterns for conditional rendering, form validation, and pagination -->
+
+```typescript
+// Conditional rendering and list iteration
+const filteredItems = computed(() => 
+  items.value.filter(item => item.status === 'active')
+)
+
+// Form validation
+const validateForm = (): boolean => {
+  const errors: Record<string, string> = {}
+  if (!formData.value.name?.trim()) {
+    errors.name = 'Name is required'
+  }
+  if (formData.value.price < 0) {
+    errors.price = 'Price must be non-negative'
+  }
+  formErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+
+// Pagination boundary handling
+const loadMore = async () => {
+  if (isLoading.value || !hasMore.value) return
+  isLoading.value = true
+  try {
+    const result = await fetchPage(currentPage.value + 1)
+    if (result.items.length === 0) {
+      hasMore.value = false
+      return
+    }
+    items.value.push(...result.items)
+    currentPage.value++
+  } finally {
+    isLoading.value = false
+  }
+}
+```
+
 **Referenced APIs**:
 
 | API Name | Method | Path | Usage Context |
@@ -203,6 +244,35 @@ export const use{StoreName}Store = defineStore('{storeName}', {
 |--------|-------------|-------------|
 | {getter} | {type} | {description} |
 
+### 4.2 State Synchronization Patterns
+
+<!-- AI-NOTE: Patterns for cross-component state sync and optimistic updates with rollback -->
+
+```typescript
+// Cross-component state synchronization
+watch(() => userStore.currentUser, (newUser, oldUser) => {
+  if (newUser && newUser.id !== oldUser?.id) {
+    // User switched - reload dependent data
+    orderStore.resetAndReload(newUser.id)
+    notificationStore.subscribe(newUser.id)
+  }
+})
+
+// Optimistic update with rollback
+const updateItem = async (id: string, data: Partial<Item>) => {
+  const previousState = { ...items.value.find(i => i.id === id) }
+  // Optimistic update
+  Object.assign(items.value.find(i => i.id === id)!, data)
+  try {
+    await api.updateItem(id, data)
+  } catch (error) {
+    // Rollback on failure
+    Object.assign(items.value.find(i => i.id === id)!, previousState)
+    throw error
+  }
+}
+```
+
 ## 5. API Layer
 
 ### 5.1 API Functions
@@ -232,6 +302,47 @@ export const {apiFunctionName2} = (id: string): Promise<{ResponseType}> => {
 | Error Code | HTTP Status | Frontend Handling | User Feedback |
 |-----------|-------------|------------------|---------------|
 | {code} | {status} | {handling logic} | {message/toast/redirect} |
+
+### 5.3 API Error Handling & Recovery
+
+<!-- AI-NOTE: Unified error handling patterns including retry logic and exponential backoff -->
+
+```typescript
+// Unified error handling
+const handleApiError = (error: AxiosError) => {
+  if (error.response?.status === 401) {
+    // Token expired - trigger refresh
+    authStore.refreshToken()
+    return
+  }
+  if (error.response?.status === 403) {
+    // Permission denied - redirect
+    router.push('/forbidden')
+    return
+  }
+  if (error.response?.status === 422) {
+    // Validation error - extract field errors
+    return error.response.data.errors
+  }
+  // Network error or timeout - show retry
+  if (!error.response) {
+    showRetryNotification(error.config)
+  }
+}
+
+// Request retry with exponential backoff
+const withRetry = async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (i === maxRetries - 1) throw error
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)))
+    }
+  }
+  throw new Error('Unreachable')
+}
+```
 
 ## 6. Routing
 

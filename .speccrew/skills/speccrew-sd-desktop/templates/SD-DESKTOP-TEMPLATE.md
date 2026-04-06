@@ -147,6 +147,62 @@ export const {apiFunction} = async (payload: {PayloadType}): Promise<{ResponseTy
 // }
 ```
 
+### 4.4 IPC Error Recovery & Retry
+
+<!-- AI-NOTE: IPC timeout, retry logic, and error classification patterns -->
+
+```typescript
+// IPC call with timeout and retry
+const ipcCallWithRetry = async <T>(
+  channel: string, 
+  payload: unknown, 
+  options: { timeout?: number; maxRetries?: number } = {}
+): Promise<T> => {
+  const { timeout = 10000, maxRetries = 3 } = options;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const result = await Promise.race([
+        window.electronAPI[channel](payload),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('IPC_TIMEOUT')), timeout)
+        ),
+      ]);
+      return result as T;
+    } catch (error) {
+      if (error.message === 'IPC_TIMEOUT' && attempt < maxRetries - 1) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('IPC_MAX_RETRIES_EXCEEDED');
+};
+
+// IPC error classification and handling
+const handleIpcError = (error: Error, channel: string) => {
+  if (error.message === 'IPC_TIMEOUT') {
+    // Main process may be busy - show non-blocking notification
+    showNotification('Operation is taking longer than expected...');
+    return;
+  }
+  if (error.message?.includes('ENOENT')) {
+    // File not found
+    showError(`File not found: ${error.message}`);
+    return;
+  }
+  if (error.message?.includes('EPERM') || error.message?.includes('EACCES')) {
+    // Permission denied
+    showError('Permission denied. Please check file permissions.');
+    return;
+  }
+  // Unknown error - log and show generic message
+  console.error(`IPC error on channel ${channel}:`, error);
+  showError('An unexpected error occurred. Please try again.');
+};
+```
+
 ## 5. UI Component Design
 
 ### 5.1 Component Tree
@@ -249,6 +305,65 @@ export const {ComponentName}: React.FC<{ComponentName}Props> = ({ {propName} }) 
 
 ---
 
+### 5.4 Component Error Boundary & Loading States
+
+<!-- AI-NOTE: Error handling and async data loading patterns for desktop apps -->
+
+```typescript
+// Error boundary wrapper for desktop app sections
+const SectionErrorBoundary: React.FC<{
+  fallback: React.ReactNode;
+  onError?: (error: Error) => void;
+  children: React.ReactNode;
+}> = ({ fallback, onError, children }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  // Note: Use React ErrorBoundary class component in actual implementation
+  // This shows the pattern for the design document
+  if (hasError) return <>{fallback}</>;
+  return <>{children}</>;
+};
+
+// Loading state management pattern
+const useAsyncData = <T>(fetcher: () => Promise<T>) => {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await fetcher();
+      setData(result);
+    } catch (e) {
+      setError(e instanceof Error ? e : new Error(String(e)));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetcher]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { data, isLoading, error, reload: load };
+};
+
+// Usage in component
+const FileManager: React.FC = () => {
+  const { data: files, isLoading, error, reload } = useAsyncData(
+    () => window.electronAPI.listFiles(currentDir)
+  );
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorPanel message={error.message} onRetry={reload} />;
+  if (!files?.length) return <EmptyState message="No files in this directory" />;
+
+  return (
+    <FileGrid files={files} onFileClick={handleFileClick} />
+  );
+};
+```
+
 ## 6. State Management
 
 ### 6.1 Main Process State
@@ -344,7 +459,64 @@ See Section 4.3 for IPC pseudo-code.
 | Open Dialog | {API} | {scope} | {security measure} |
 | Save Dialog | {API} | {scope} | {security measure} |
 
-### 8.2 System Tray Design
+### 8.2 File System Safety Patterns
+
+<!-- AI-NOTE: Path validation, size limits, and safe file operations -->
+
+```typescript
+// Main process: Safe file operations with path validation
+const ALLOWED_BASE_PATHS = [
+  app.getPath('documents'),
+  app.getPath('downloads'),
+  app.getPath('userData'),
+];
+
+ipcMain.handle('file:read', async (_event, filePath: string) => {
+  // Path traversal prevention
+  const resolvedPath = path.resolve(filePath);
+  const isAllowed = ALLOWED_BASE_PATHS.some(base => 
+    resolvedPath.startsWith(path.resolve(base))
+  );
+  if (!isAllowed) {
+    throw new Error('ACCESS_DENIED: Path outside allowed directories');
+  }
+  
+  // Check existence before reading
+  try {
+    await fs.promises.access(resolvedPath, fs.constants.R_OK);
+  } catch {
+    throw new Error(`FILE_NOT_FOUND: ${path.basename(resolvedPath)}`);
+  }
+  
+  // Read with size limit (prevent memory issues)
+  const stats = await fs.promises.stat(resolvedPath);
+  if (stats.size > 100 * 1024 * 1024) { // 100MB limit
+    throw new Error('FILE_TOO_LARGE: Max 100MB');
+  }
+  
+  return await fs.promises.readFile(resolvedPath, 'utf-8');
+});
+
+// Renderer process: File operation with user feedback
+const openAndReadFile = async (): Promise<string | null> => {
+  try {
+    setIsLoading(true);
+    const filePath = await window.electronAPI.showOpenDialog({
+      filters: [{ name: 'Documents', extensions: ['json', 'csv', 'txt'] }],
+    });
+    if (!filePath) return null; // User cancelled
+    
+    return await ipcCallWithRetry<string>('file:read', filePath, { timeout: 30000 });
+  } catch (error) {
+    handleIpcError(error, 'file:read');
+    return null;
+  } finally {
+    setIsLoading(false);
+  }
+};
+```
+
+### 8.3 System Tray Design
 
 - **Icon**: {icon path or generation method}
 - **Context Menu Items**:
@@ -353,7 +525,7 @@ See Section 4.3 for IPC pseudo-code.
   | {item} | {action} | {handler} |
 - **Click Behavior**: {single click / double click behavior}
 
-### 8.3 Menu Bar Design
+### 8.4 Menu Bar Design
 
 | Menu | Items | Shortcuts | Handler |
 |------|-------|-----------|---------|
@@ -361,7 +533,7 @@ See Section 4.3 for IPC pseudo-code.
 | Edit | {items} | {shortcuts} | {handlers} |
 | View | {items} | {shortcuts} | {handlers} |
 
-### 8.4 OS Notifications
+### 8.5 OS Notifications
 
 <!-- AI-NOTE: Describe notification usage -->
 
@@ -369,14 +541,14 @@ See Section 4.3 for IPC pseudo-code.
 |----------|-------|------|---------|
 | {scenario} | {title} | {body} | {actions} |
 
-### 8.5 Protocol Handlers & File Associations
+### 8.6 Protocol Handlers & File Associations
 
 | Protocol/Extension | Handler | Description |
 |-------------------|---------|-------------|
 | {protocol} | {handler} | {description} |
 | {.ext} | {handler} | {description} |
 
-### 8.6 Keyboard Shortcuts
+### 8.7 Keyboard Shortcuts
 
 | Shortcut | Scope | Action |
 |----------|-------|--------|

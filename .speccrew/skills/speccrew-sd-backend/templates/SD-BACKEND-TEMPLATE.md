@@ -52,6 +52,34 @@ graph TD
 {Service pseudo-code with step-by-step logic}
 ```
 
+**Business Validation Pseudo-code**:
+
+<!-- AI-NOTE: Detailed business rule validation patterns -->
+
+```java
+// Business rule validation - detailed conditions
+public void validateOrder(CreateOrderRequest request) {
+  // Null/empty checks
+  if (request.getItems() == null || request.getItems().isEmpty()) {
+    throw new BusinessException("ORDER_EMPTY", "Order must contain at least one item");
+  }
+  // Business rule: price validation
+  for (OrderItem item : request.getItems()) {
+    if (item.getQuantity() <= 0) {
+      throw new BusinessException("INVALID_QUANTITY", "Quantity must be positive");
+    }
+    if (item.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+      throw new BusinessException("INVALID_PRICE", "Price must be non-negative");
+    }
+  }
+  // Business rule: total amount limit
+  BigDecimal total = calculateTotal(request.getItems());
+  if (total.compareTo(new BigDecimal("999999.99")) > 0) {
+    throw new BusinessException("AMOUNT_EXCEEDED", "Order total exceeds limit");
+  }
+}
+```
+
 **Business Flow**:
 
 ```mermaid
@@ -119,6 +147,61 @@ flowchart TD
 {Transaction pseudo-code}
 ```
 
+### 5.1 Concurrency Control Pseudo-code
+
+<!-- AI-NOTE: Optimistic locking and batch processing patterns -->
+
+```java
+// Optimistic locking with version check
+@Transactional(isolation = Isolation.READ_COMMITTED)
+public void updateStock(Long productId, int quantity, Long expectedVersion) {
+  Product product = productRepository.findById(productId)
+    .orElseThrow(() -> new NotFoundException("PRODUCT_NOT_FOUND", productId));
+  
+  // Optimistic lock check
+  if (!product.getVersion().equals(expectedVersion)) {
+    throw new ConcurrentModificationException("Data has been modified by another user");
+  }
+  
+  // Business rule: stock boundary check
+  int newStock = product.getStock() - quantity;
+  if (newStock < 0) {
+    throw new BusinessException("INSUFFICIENT_STOCK", 
+      String.format("Available: %d, Requested: %d", product.getStock(), quantity));
+  }
+  
+  product.setStock(newStock);
+  productRepository.save(product); // Version auto-incremented by @Version
+}
+
+// Batch operation with chunked processing
+@Transactional
+public BatchResult batchImport(List<ImportItem> items) {
+  int successCount = 0;
+  List<String> errors = new ArrayList<>();
+  
+  // Process in chunks to avoid memory/timeout issues
+  List<List<ImportItem>> chunks = Lists.partition(items, 100);
+  for (List<ImportItem> chunk : chunks) {
+    try {
+      repository.saveAll(chunk.stream().map(this::toEntity).collect(toList()));
+      successCount += chunk.size();
+    } catch (DataIntegrityViolationException e) {
+      // Fallback: process one by one to identify problematic records
+      for (ImportItem item : chunk) {
+        try {
+          repository.save(toEntity(item));
+          successCount++;
+        } catch (Exception ex) {
+          errors.add(String.format("Row %d: %s", item.getRowNum(), ex.getMessage()));
+        }
+      }
+    }
+  }
+  return new BatchResult(successCount, errors);
+}
+```
+
 ## 6. Exception Handling
 
 ### 6.1 Exception Types
@@ -132,6 +215,45 @@ flowchart TD
 ```{framework-language}
 // AI-NOTE: Use actual exception handler syntax
 {Global/local exception handler pseudo-code}
+```
+
+### 6.3 Pagination & Boundary Handling
+
+<!-- AI-NOTE: Pagination safety and null-safe data access patterns -->
+
+```java
+// Pagination boundary handling
+public Page<OrderDTO> listOrders(int page, int size, String sortBy) {
+  // Boundary normalization
+  page = Math.max(0, page);
+  size = Math.min(Math.max(1, size), 100); // Limit: 1-100 per page
+  
+  // Validate sort field (prevent SQL injection via sort)
+  Set<String> allowedSorts = Set.of("createdAt", "updatedAt", "amount");
+  if (!allowedSorts.contains(sortBy)) {
+    sortBy = "createdAt"; // Default fallback
+  }
+  
+  Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
+  Page<Order> orders = orderRepository.findAll(pageable);
+  
+  return orders.map(this::toDTO);
+}
+
+// Null-safe data access patterns
+private OrderDTO toDTO(Order order) {
+  return OrderDTO.builder()
+    .id(order.getId())
+    .customerName(Optional.ofNullable(order.getCustomer())
+      .map(Customer::getName)
+      .orElse("Unknown"))
+    .totalAmount(Optional.ofNullable(order.getItems())
+      .map(items -> items.stream()
+        .map(OrderItem::getSubtotal)
+        .reduce(BigDecimal.ZERO, BigDecimal::add))
+      .orElse(BigDecimal.ZERO))
+    .build();
+}
 ```
 
 ## 7. Business Rules Implementation

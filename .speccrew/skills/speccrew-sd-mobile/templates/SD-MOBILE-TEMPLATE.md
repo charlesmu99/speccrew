@@ -146,6 +146,72 @@ class _{ScreenName}State extends State<{ScreenName}> {
 
 ---
 
+### 3.3 Advanced Widget Patterns
+
+<!-- AI-NOTE: Common patterns for conditional rendering, form validation, and pagination with pull-to-refresh -->
+
+```dart
+// Conditional rendering with loading/empty/error states
+@override
+Widget build(BuildContext context) {
+  if (_isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  }
+  if (_error != null) {
+    return ErrorWidget(
+      message: _error!,
+      onRetry: () => _loadData(),
+    );
+  }
+  if (_items.isEmpty) {
+    return const EmptyStateWidget(message: 'No items found');
+  }
+  return ListView.builder(
+    itemCount: _items.length,
+    itemBuilder: (context, index) => ItemCard(item: _items[index]),
+  );
+}
+
+// Form validation with field-level errors
+String? _validateField(String field, dynamic value) {
+  switch (field) {
+    case 'name':
+      if (value == null || (value as String).trim().isEmpty) {
+        return 'Name is required';
+      }
+      if (value.length > 100) return 'Name too long (max 100)';
+      return null;
+    case 'price':
+      if (value == null || value < 0) return 'Price must be non-negative';
+      return null;
+    default:
+      return null;
+  }
+}
+
+// Pagination with pull-to-refresh
+Future<void> _loadMore() async {
+  if (_isLoadingMore || !_hasMore) return;
+  setState(() => _isLoadingMore = true);
+  try {
+    final result = await _api.fetchPage(_currentPage + 1);
+    setState(() {
+      _items.addAll(result.items);
+      _currentPage++;
+      _hasMore = result.items.isNotEmpty;
+    });
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Load failed: ${e.toString()}')),
+    );
+  } finally {
+    setState(() => _isLoadingMore = false);
+  }
+}
+```
+
+---
+
 ## 4. Navigation Design
 
 ### 4.1 Navigation Stack
@@ -235,6 +301,76 @@ class {StoreName}Provider with ChangeNotifier {
 |-------------|-----------|-------------|-----------|
 | {action} | {params} | {description} | {api references} |
 
+### 5.2 Advanced Provider Patterns
+
+<!-- AI-NOTE: Combined data loading with error state, computed properties, and optimistic updates -->
+
+```dart
+// Combined data loading with error state management
+class OrderListProvider with ChangeNotifier {
+  List<Order> _orders = [];
+  bool _isLoading = false;
+  String? _error;
+  int _currentPage = 0;
+  bool _hasMore = true;
+
+  List<Order> get orders => _orders;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  bool get hasMore => _hasMore;
+
+  // Computed property - filtered orders
+  List<Order> get pendingOrders => 
+    _orders.where((o) => o.status == OrderStatus.pending).toList();
+
+  Future<void> loadOrders({bool refresh = false}) async {
+    if (_isLoading) return;
+    if (refresh) {
+      _currentPage = 0;
+      _hasMore = true;
+    }
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _api.getOrders(page: _currentPage);
+      if (refresh) {
+        _orders = result.items;
+      } else {
+        _orders.addAll(result.items);
+      }
+      _hasMore = result.items.isNotEmpty;
+      _currentPage++;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Optimistic update with rollback
+  Future<void> updateOrderStatus(String id, OrderStatus status) async {
+    final index = _orders.indexWhere((o) => o.id == id);
+    if (index == -1) return;
+    
+    final previousStatus = _orders[index].status;
+    _orders[index] = _orders[index].copyWith(status: status);
+    notifyListeners();
+
+    try {
+      await _api.updateOrder(id, {'status': status.value});
+    } catch (e) {
+      // Rollback
+      _orders[index] = _orders[index].copyWith(status: previousStatus);
+      notifyListeners();
+      rethrow;
+    }
+  }
+}
+```
+
 ## 6. API Layer
 
 ### 6.1 API Functions
@@ -271,6 +407,63 @@ class {Module}Api {
 | API | Cache Strategy | TTL | Invalidation Trigger |
 |-----|---------------|-----|---------------------|
 | {api} | {strategy} | {duration} | {trigger} |
+
+### 6.4 API Error Handling & Cache Strategy
+
+<!-- AI-NOTE: Unified error handling with token refresh, retry logic, and simple TTL cache -->
+
+```dart
+// Unified API error handling
+Future<T> safeApiCall<T>(Future<T> Function() apiCall) async {
+  try {
+    return await apiCall();
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 401) {
+      // Token expired - trigger refresh and retry
+      await _authProvider.refreshToken();
+      return await apiCall(); // Retry once
+    }
+    if (e.response?.statusCode == 422) {
+      // Validation error
+      throw ValidationException(e.response?.data['errors']);
+    }
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw NetworkException('Connection timeout, please check network');
+    }
+    rethrow;
+  }
+}
+
+// Request retry with exponential backoff
+Future<T> withRetry<T>(Future<T> Function() fn, {int maxRetries = 3}) async {
+  for (int i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(Duration(seconds: (1 << i))); // 1s, 2s, 4s
+    }
+  }
+  throw Exception('Unreachable');
+}
+
+// Simple cache with TTL
+final Map<String, _CacheEntry> _cache = {};
+
+Future<List<Item>> fetchItems({bool forceRefresh = false}) async {
+  final cacheKey = 'items_list';
+  if (!forceRefresh && _cache.containsKey(cacheKey)) {
+    final entry = _cache[cacheKey]!;
+    if (DateTime.now().difference(entry.timestamp).inMinutes < 5) {
+      return entry.data as List<Item>;
+    }
+  }
+  final items = await _dio.get<List<Item>>('/items');
+  _cache[cacheKey] = _CacheEntry(data: items, timestamp: DateTime.now());
+  return items;
+}
+```
 
 ## 7. Local Storage Design
 
