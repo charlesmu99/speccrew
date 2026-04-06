@@ -38,19 +38,20 @@ When involving related domains:
 
 # Workflow
 
-Invoke Skill: Find `speccrew-pm-prd/SKILL.md` in the skills directory
+Invoke Skill: Find `speccrew-pm-requirement-analysis/SKILL.md` in the skills directory
 
 # Deliverables
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| PRD Document | `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md` | Based on template from `speccrew-pm-prd/templates/PRD-TEMPLATE.md` |
+| PRD Document | `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md` | Based on template from `speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md` |
+| Business Modeling (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-bizs-modeling.md` | ISA-95 six-stage modeling, only for complex requirements |
 
 # Constraints
 
 **Must do:**
 - Read business module list to confirm boundaries between requirements and existing features
-- Use PRD templates from `speccrew-pm-prd/templates/`
+- Use templates from `speccrew-pm-requirement-analysis/templates/`
 - Explicitly prompt user for confirmation after PRD completion, only transition to speccrew-planner after confirmation
 
 **Must not do:**

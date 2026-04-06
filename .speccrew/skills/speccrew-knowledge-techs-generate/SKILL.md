@@ -4,6 +4,13 @@ description: Stage 2 of technology knowledge initialization - Generate technolog
 tools: Read, Write, Glob, Grep, Skill
 ---
 
+> **⚠️ DEPRECATED**: This skill has been split into two specialized skills for parallel execution:
+> - **`speccrew-knowledge-techs-generate-conventions`** — Generates convention documents (INDEX, tech-stack, architecture, conventions-*)
+> - **`speccrew-knowledge-techs-generate-ui-style`** — Generates UI style documents (ui-style/ directory, frontend platforms only)
+>
+> **Do NOT invoke this skill directly.** Use the specialized skills via `speccrew-knowledge-techs-dispatch` Stage 2 dual-worker orchestration.
+> This file is retained as reference documentation only.
+
 # Stage 2: Generate Platform Technology Documents
 
 Generate comprehensive technology documentation for a specific platform by analyzing its configuration files and source code structure.
@@ -37,6 +44,7 @@ Worker Agent (speccrew-task-worker)
 - `convention_files`: List of convention file paths (eslint, prettier, etc.)
 - `output_path`: Output directory for generated documents (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
 - `language`: Target language (e.g., "zh", "en") - **REQUIRED**
+- `completed_dir`: (Optional) Directory for analysis coverage report output. If provided, the analysis JSON will be written here instead of the knowledges directory
 
 ## Output
 
@@ -113,8 +121,9 @@ flowchart TD
     Step3 --> Step4[Step 4: Invoke UI Style Analysis]
     Step4 --> Step5[Step 5: Generate Documents]
     Step5 --> Step6[Step 6: Write Output Files]
-    Step6 --> Step7[Step 7: Report Results]
-    Step7 --> End([End])
+    Step6 --> Step7[Step 7: Generate Analysis Coverage Report]
+    Step7 --> Step8[Step 8: Report Results]
+    Step8 --> End([End])
 ```
 
 ### Step 0: Read Document Templates
@@ -204,6 +213,78 @@ Parse configuration files to extract:
    - Follow compatibility guidelines from `mermaid-rule.md`
    - See: [Mermaid Diagram Guide](#mermaid-diagram-guide)
 
+### Domain-Specific Convention Extraction (MANDATORY)
+
+In addition to the general conventions above, you MUST actively search for and extract the following domain-specific topics. These are critical for downstream Agents (solution, design, development, testing).
+
+**For Frontend Platforms (web-vue, mobile-uniapp, etc.):**
+
+| Topic | What to Search For | Where to Look |
+|-------|-------------------|---------------|
+| **i18n/Internationalization** | i18n framework config, locale files, translation key patterns | `locales/`, `i18n/`, `lang/`, package.json deps |
+| **Authorization & Permissions** | Permission directives (`v-hasPermi`), route guards, permission stores | `permission/`, `router/`, `store/`, `utils/auth` |
+| **Menu Registration** | Menu config, dynamic menu loading, menu-to-route mapping | `router/`, `store/`, `layout/`, API calls for menus |
+| **Data Dictionary** | Dict components (`DictTag`), dict stores, dict API calls | `components/Dict`, `utils/dict`, `store/` |
+| **Logging** | Error reporting service, console policy, error boundaries | `utils/log`, `plugins/sentry`, error handling config |
+| **API Request Layer** | Axios/fetch instance, interceptors, token refresh, base URL config | `utils/request`, `api/`, `config/`, `interceptors/` |
+| **Data Validation** | Form validation rules, custom validators, validation timing | `utils/validate`, form schemas, component props validation |
+| **File Upload** | Upload components, upload API calls, file size limits | `components/Upload`, `api/file`, `utils/upload` |
+
+**For Backend Platforms (backend-spring, etc.):**
+
+| Topic | What to Search For | Where to Look |
+|-------|-------------------|---------------|
+| **Authorization & Permissions** | `@PreAuthorize`, `@DataPermission`, security config, permission enums | Security config, controller annotations, framework modules |
+| **Data Dictionary** | Dict entity, dict service, dict cache, dict enum patterns | `dict/`, `system/` module, enum classes |
+| **Multi-tenancy** | Tenant interceptor/plugin, tenant column, tenant context, `@TenantIgnore` | MyBatis plugins, framework config, base entity |
+| **Backend i18n** | messages.properties, MessageSource, i18n config, ValidationMessages | `resources/i18n/`, `messages*.properties`, i18n config beans |
+| **Logging** | Logger usage, log config (logback.xml/log4j2), operation log annotation, audit trail | `logback*.xml`, `log4j2*.xml`, `@OperateLog`, `operatelog/` module |
+| **Exception Handling** | GlobalExceptionHandler, business exceptions, error codes, error response format | `handler/`, `exception/`, `enums/ErrorCode`, `GlobalExceptionHandler` |
+| **Caching** | @Cacheable, RedisTemplate, cache key patterns, cache config | `cache/`, `redis/`, `CacheConfig`, `@Cacheable` annotations |
+| **Data Validation** | @Valid, @Validated, custom validators, validation groups | DTO classes, `validator/`, `@NotNull/@Size` patterns |
+| **Scheduled Jobs** | @Scheduled, Quartz config, XXL-Job handler, cron expressions | `job/`, `task/`, `schedule/`, `@Scheduled` methods |
+| **File Storage** | FileService, upload API, OSS/S3 config, file path patterns | `file/`, `infra/file/`, `FileClient`, storage config |
+
+**If a topic is not found in the source code**, explicitly state "Not applicable" in the corresponding template section. Do NOT leave the section empty or skip it silently.
+
+### Analysis Tracking (MANDATORY)
+
+During Step 3, you MUST maintain an internal tracking record for each topic you search. For every topic in the tables above:
+
+1. **Search** the source code using the "Where to Look" paths
+2. **Record** the result:
+   - `found` — Topic implementation found, relevant files identified
+   - `not_found` — Searched all suggested paths, no implementation exists
+   - `partial` — Some aspects found but incomplete
+3. **List** all files you actually read/analyzed for that topic
+
+This tracking data will be used in Step 8 to generate the analysis coverage report. Do NOT skip any topic — if a topic is not applicable to this platform type, record it as `not_found` with a note.
+
+**Topic Checklist by Platform Type:**
+
+**Frontend Topics (web, mobile, desktop):**
+1. i18n / Internationalization
+2. Authorization & Permissions
+3. Menu Registration & Routing
+4. Data Dictionary Usage
+5. Logging & Error Reporting
+6. API Request Layer (Axios/fetch)
+7. Data Validation
+8. File Upload & Storage
+9. UI Style System (handled in Step 4)
+
+**Backend Topics (backend):**
+1. Backend Internationalization
+2. Authorization & Permissions (annotations, data permission)
+3. Data Dictionary Management
+4. Logging & Audit Trail
+5. Exception Handling & Error Codes
+6. Caching Strategy
+7. Data Validation (JSR 380, custom validators)
+8. Scheduled Jobs & Task Scheduling
+9. File Storage
+10. Multi-tenancy
+
 ### Step 4: UI Style Analysis (Frontend Platforms Only) - WITH FALLBACK
 
 If `platform_type` is `web`, `mobile`, or `desktop`:
@@ -218,9 +299,9 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
   - May not exist if bizs pipeline has not been executed
 
 **Primary Path (UI Analyzer Available and Succeeds)**:
-1. **CRITICAL**: Use the Skill tool to invoke `speccrew-ui-style-analyzer` with these exact parameters:
+1. **CRITICAL**: Use the Skill tool to invoke `speccrew-knowledge-techs-ui-analyze` with these exact parameters:
    ```
-   skill: "speccrew-ui-style-analyzer"
+   skill: "speccrew-knowledge-techs-ui-analyze"
    args: "source_path={source_path};platform_id={platform_id};platform_type={platform_type};framework={framework};output_path={output_path}/ui-style/;language={language}"
    ```
 
@@ -241,15 +322,46 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
 4. Record: `ui_style_analysis_level = "full"`
 
 **Secondary Path (UI Analyzer Fails or Partial Output)**:
-If analyzer fails, times out, or produces incomplete output:
+
+**MANDATORY: UI Style Fallback Path - Complete Directory Structure**
+
+When UI Style Analyzer fails or produces incomplete output, you MUST create ALL of the following directories and files. Skipping ANY item is FORBIDDEN.
+
+**Required Directory Structure (MANDATORY - ALL items must be created):**
+```
+ui-style/
+├── ui-style-guide.md              ← MANDATORY
+├── page-types/
+│   └── page-type-summary.md       ← MANDATORY
+├── components/
+│   └── component-library.md       ← MANDATORY
+├── layouts/
+│   └── page-layouts.md            ← MANDATORY
+└── styles/
+    └── color-system.md            ← MANDATORY
+```
+
+**Self-Verification Checklist (MUST complete before reporting success):**
+- [ ] ui-style/ui-style-guide.md exists and has content
+- [ ] ui-style/page-types/page-type-summary.md exists and has content
+- [ ] ui-style/components/component-library.md exists and has content
+- [ ] ui-style/layouts/page-layouts.md exists and has content
+- [ ] ui-style/styles/color-system.md exists and has content
+
+If ANY file in the checklist is missing, you MUST create it before proceeding to the next step. Do NOT report "completed" with missing files.
+
+**Execution Steps:**
+
 1. Create ui-style directory structure:
    `{output_path}/ui-style/`, `{output_path}/ui-style/page-types/`, `{output_path}/ui-style/components/`, `{output_path}/ui-style/layouts/`, `{output_path}/ui-style/styles/`
+
 2. Generate minimal ui-style-guide.md by manually scanning source code:
    - Design system: identify UI framework from dependencies (Material UI, Ant Design, Tailwind, etc.)
    - Color system: scan for CSS variables, theme files, or color constants in `{source_path}/src/styles/` or `{source_path}/src/theme/`
    - Typography: scan for font-family declarations
    - Component library: list directories under `{source_path}/src/components/`
    - Page types: list directories/files under `{source_path}/src/pages/` or `{source_path}/src/views/`
+
 3. Content structure for minimal ui-style-guide.md:
    ```markdown
    # UI Style Guide - {platform_id}
@@ -269,7 +381,33 @@ If analyzer fails, times out, or produces incomplete output:
    ## Styling Configuration
    {extract from tailwind.config / theme file / CSS variables file}
    ```
-4. Record: `ui_style_analysis_level = "minimal"`
+
+4. **MANDATORY: UI Style Fallback - Copy Template + Fill Workflow**
+
+   For each ui-style sub-document, copy the template and use search_replace to fill:
+
+   **4.1 component-library.md**:
+   - Copy `templates/COMPONENT-LIBRARY-TEMPLATE.md` to `{output_path}/ui-style/components/component-library.md`
+   - Use search_replace to fill each AI-TAG section with data extracted from source code
+   - MUST include props tables for at least the top 5 most-used components
+   - Fill: COMPONENT_CATEGORIES, API_REFERENCE, COMPOSITION_PATTERNS, AGENT_GUIDE sections
+
+   **4.2 page-layouts.md**:
+   - Copy `templates/PAGE-LAYOUTS-TEMPLATE.md` to `{output_path}/ui-style/layouts/page-layouts.md`
+   - Fill layout types, slots, responsive behavior from source analysis
+   - Fill: LAYOUT_TYPES, LAYOUT_DETAILS, NAVIGATION sections
+
+   **4.3 page-type-summary.md**:
+   - Copy `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` to `{output_path}/ui-style/page-types/page-type-summary.md`
+   - Fill page classifications and routing conventions
+   - Fill: PAGE_TYPES, PAGE_TYPE_DETAILS, ROUTING sections
+
+   **4.4 color-system.md**:
+   - Copy `templates/COLOR-SYSTEM-TEMPLATE.md` to `{output_path}/ui-style/styles/color-system.md`
+   - Fill theme colors, functional colors, typography from CSS/SCSS variables
+   - Fill: THEME_COLORS, FUNCTIONAL_COLORS, SEMANTIC_TOKENS, TYPOGRAPHY, SPACING sections
+
+5. Record: `ui_style_analysis_level = "minimal"`
 
 **Tertiary Path (No UI Analysis Possible)**:
 If source code scanning also fails (e.g., non-standard structure):
@@ -301,22 +439,113 @@ Analysis completeness: {ui_style_analysis_level}
 - reference_only: Source file references only - manual review needed
 ```
 
-### Step 5: Generate Documents
+### Step 5: Generate Documents (MANDATORY: Copy Template + Fill)
 
-1. **Load Templates**:
-   - Use templates from `templates/` directory
-   - See: [Template Reference](#template-reference)
+**CRITICAL**: This step MUST follow the template fill workflow - copy template first, then fill sections.
 
-2. **Generate Each Document**:
+1. **For Each Document, Follow This Workflow**:
+
+   **Step 5.1: Copy Template File**
+   - Copy the corresponding template file to the output path:
+     - `templates/INDEX-TEMPLATE.md` → `{output_path}/INDEX.md`
+     - `templates/TECH-STACK-TEMPLATE.md` → `{output_path}/tech-stack.md`
+     - `templates/ARCHITECTURE-TEMPLATE.md` → `{output_path}/architecture.md`
+     - `templates/CONVENTIONS-DESIGN-TEMPLATE.md` → `{output_path}/conventions-design.md`
+     - `templates/CONVENTIONS-DEV-TEMPLATE.md` → `{output_path}/conventions-dev.md`
+     - `templates/CONVENTIONS-TEST-TEMPLATE.md` → `{output_path}/conventions-test.md`
+     - `templates/CONVENTIONS-BUILD-TEMPLATE.md` → `{output_path}/conventions-build.md`
+     - `templates/CONVENTIONS-DATA-TEMPLATE.md` → `{output_path}/conventions-data.md` (if applicable)
+
+   **Step 5.2: Fill Template Sections with search_replace**
+   - Use `search_replace` tool to fill each section of the template
+   - Replace placeholder content with actual analyzed data
    - Follow [Document Structure Standard](#document-structure-standard)
    - Apply [Source Traceability Requirements](#source-traceability-requirements)
+
+   **MANDATORY RULES**:
+   - **Do NOT use create_file to rewrite the entire document**
+   - **Do NOT delete or skip any template section**
+   - Only replace the placeholder content within each section
+   - Preserve all template section headers and structure
+
+2. **Document Generation Order**:
    - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md, conventions-data.md (if applicable)
 
 ### Step 6: Write Output Files
 
 Create output directory if not exists, then write all generated documents.
 
-### Step 7: Report Results
+### Step 7: Generate Analysis Coverage Report (MANDATORY)
+
+After completing all document generation, you MUST create an analysis coverage report as a JSON file.
+
+**Output file**: `{completed_dir}/{platform_id}.analysis.json`
+
+Where `{completed_dir}` is the directory passed via the `completed_dir` parameter (if provided). If `completed_dir` is not provided, output to the platform's knowledges directory.
+
+**Report Format**:
+
+```json
+{
+  "platform_id": "{platform_id}",
+  "platform_type": "{platform_type}",
+  "analyzed_at": "{ISO 8601 timestamp}",
+  "topics": {
+    "i18n": {
+      "status": "found",
+      "files_analyzed": ["src/i18n/index.ts", "locales/zh-CN.ts"],
+      "notes": "Vue I18n with 2 locale files"
+    },
+    "authorization": {
+      "status": "found",
+      "files_analyzed": ["src/permission/index.ts", "src/router/guard.ts"],
+      "notes": "RBAC with route guards and v-hasPermi directive"
+    },
+    "data_dictionary": {
+      "status": "not_found",
+      "files_analyzed": [],
+      "notes": "No dictionary implementation found in suggested paths"
+    }
+  },
+  "config_files_analyzed": [
+    "package.json",
+    "vite.config.ts",
+    "tsconfig.json"
+  ],
+  "source_dirs_scanned": [
+    "src/components/",
+    "src/views/",
+    "src/utils/",
+    "src/store/"
+  ],
+  "documents_generated": [
+    "INDEX.md",
+    "tech-stack.md",
+    "architecture.md",
+    "conventions-dev.md",
+    "conventions-design.md",
+    "conventions-test.md",
+    "conventions-build.md"
+  ],
+  "coverage_summary": {
+    "topics_found": 7,
+    "topics_partial": 1,
+    "topics_not_found": 1,
+    "topics_total": 9,
+    "coverage_percent": 78
+  }
+}
+```
+
+**Rules**:
+- Every topic from the Topic Checklist in Step 3 MUST appear in the `topics` object
+- `files_analyzed` MUST list the actual file paths you read (relative to source_path)
+- `status` MUST be one of: `found`, `not_found`, `partial`
+- `coverage_percent` = (topics_found + topics_partial) / topics_total * 100, rounded to integer
+- `documents_generated` MUST list all .md files actually created
+- Use `create_file` to write this JSON file (this is the ONE exception where create_file is allowed — for JSON output files)
+
+### Step 8: Report Results
 
 ```
 Platform Technology Documents Generated: {{platform_id}}
@@ -329,7 +558,9 @@ Platform Technology Documents Generated: {{platform_id}}
 - conventions-build.md: ✓
 - conventions-data.md: ✓ (or skipped if not applicable)
 - ui-style-guide.md: ✓ (frontend platforms only, analysis level: {{ui_style_analysis_level}})
+- {{platform_id}}.analysis.json: ✓ (analysis coverage report)
 - Output Directory: {{output_path}}
+- Analysis Report: {{completed_dir}}/{{platform_id}}.analysis.json (or knowledges dir if completed_dir not provided)
 ```
 
 ---
@@ -361,7 +592,33 @@ When generating Mermaid diagrams, follow these compatibility guidelines:
 
 ### Source Traceability Requirements
 
-**CRITICAL**: All generated documents must include source traceability.
+**CRITICAL: All source file links MUST use RELATIVE PATHS. Absolute paths and `file://` protocol are STRICTLY FORBIDDEN.**
+
+**FORBIDDEN:**
+- ❌ Do NOT use absolute paths (e.g., `d:/dev/ruoyi-vue-pro/...`)
+- ❌ Do NOT use `file://` protocol (e.g., `file://d:/dev/...`)
+- ❌ Do NOT hardcode machine-specific paths
+- ✅ ALWAYS use relative paths calculated from the document's location
+
+**Dynamic Relative Path Calculation:**
+
+Documents are located at: `speccrew-workspace/knowledges/techs/{platform_id}/{document}.md`
+This is 4 levels deep from the project root:
+  - speccrew-workspace (1)
+  - knowledges (2)
+  - techs (3)
+  - {platform_id} (4)
+
+Therefore, to reference a source file from the project root, use `../../../../` as the prefix.
+
+Example calculation:
+  - Document: `speccrew-workspace/knowledges/techs/backend-spring/architecture.md`
+  - Source file: `yudao-server/src/main/java/.../YudaoServerApplication.java`
+  - Relative path: `../../../../yudao-server/src/main/java/.../YudaoServerApplication.java`
+
+For root INDEX.md (one level less deep):
+  - Document: `speccrew-workspace/knowledges/techs/INDEX.md`
+  - Prefix: `../../../` (3 levels)
 
 **1. File Reference Block (`<cite>`)**
 
@@ -370,8 +627,8 @@ Place at the beginning of each document:
 ```markdown
 <cite>
 **Files Referenced in This Document**
-- [package.json](file://path/to/package.json)
-- [tsconfig.json](file://path/to/tsconfig.json)
+- [package.json](../../../../yudao-ui/yudao-ui-admin-vue3/package.json)
+- [tsconfig.json](../../../../yudao-ui/yudao-ui-admin-vue3/tsconfig.json)
 </cite>
 ```
 
@@ -381,7 +638,7 @@ After each Mermaid diagram:
 
 ```markdown
 **Diagram Source**
-- [file-name.ext](file://path/to/file.ext#L10-L50)
+- [file-name.ext](../../../../yudao-server/src/main/java/...#L10-L50)
 ```
 
 **3. Section Source Annotation**
@@ -390,7 +647,7 @@ At the end of each major section:
 
 ```markdown
 **Section Source**
-- [file-name.ext](file://path/to/file.ext#L10-L50)
+- [file-name.ext](../../../../yudao-server/src/main/java/...#L10-L50)
 ```
 
 For generic guidance sections without specific file references:
@@ -428,7 +685,7 @@ All generated documents must follow this structure:
 ... content sections ...
 
 **Section Source**
-- [file.ext](file://path#Lstart-Lend)
+- [file.ext](../../../../path/to/file#Lstart-Lend)
 ```
 
 ### Document Content Specifications
@@ -799,7 +1056,7 @@ Wherever possible, include concrete examples:
 - [ ] conventions-data.md generated (only if applicable per platform type mapping)
 
 ### UI Style Analysis (Frontend Platforms - web/mobile/desktop)
-- [ ] For web/mobile/desktop platforms: `speccrew-ui-style-analyzer` skill invoked with correct parameters
+- [ ] For web/mobile/desktop platforms: `speccrew-knowledge-techs-ui-analyze` skill invoked with correct parameters
 - [ ] `ui-style/ui-style-guide.md` generated
 - [ ] `ui-style/page-types/page-type-summary.md` generated
 - [ ] `ui-style/page-types/[type]-pages.md` generated (one per discovered page type)
@@ -820,5 +1077,6 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
 - [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md)
+- [ ] **Analysis Coverage Report**: `{platform_id}.analysis.json` generated with all topics tracked
 - [ ] Results reported with conventions-data.md and ui-style-guide.md generation status (including ui_style_analysis_level)
 

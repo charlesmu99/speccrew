@@ -10,7 +10,12 @@
       "language": "typescript",
       "source_path": "src/web",
       "config_files": ["package.json", "tsconfig.json", "vite.config.ts"],
-      "convention_files": [".eslintrc.js", ".prettierrc"]
+      "convention_files": [".eslintrc.js", ".prettierrc"],
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "analysisLevel": null,
+      "topicsCoverage": null
     },
     {
       "platform_id": "backend-nestjs",
@@ -19,7 +24,12 @@
       "language": "typescript",
       "source_path": "src/server",
       "config_files": ["package.json", "nest-cli.json", "tsconfig.json"],
-      "convention_files": [".eslintrc.js"]
+      "convention_files": [".eslintrc.js"],
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "analysisLevel": null,
+      "topicsCoverage": null
     }
   ]
 }

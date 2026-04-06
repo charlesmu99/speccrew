@@ -434,7 +434,7 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
         const featureId = `${moduleName}-${entryDirNormalized}-${file.fileName}`;
         
         // Build relative file path from sourcePath
-        const relativeFilePath = normalizePath(path.relative(absoluteSourcePath, file.fullPath));
+        const relativeFilePath = normalizePath(path.relative(projectRoot, file.fullPath));
         
         // Build document path
         const docPath = `speccrew-workspace/knowledges/bizs/${platformType}-${platformSubtype}/${moduleName}/${file.fileName}.md`;

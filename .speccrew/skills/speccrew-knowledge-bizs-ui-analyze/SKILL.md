@@ -867,10 +867,19 @@ After analysis is complete, write the results to marker files for dispatch to pr
 
 | Field | Format | Example |
 |-------|--------|---------|
-| `sourcePath` in `.done` | Relative path (as-is from input) | `frontend-web/src/views/system/user/index.vue` |
+| `sourcePath` in `.done` | Project-root-relative path | `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue` |
 | `documentPath` in `.done` | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md` |
-| `sourcePath` in `.graph.json` nodes | Relative path (as-is from input) | `frontend-web/src/views/system/user/index.vue` |
+| `sourcePath` in `.graph.json` nodes | Project-root-relative path | `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue` |
 | `documentPath` in `.graph.json` nodes | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md` |
+
+**⚠️ CRITICAL - sourcePath Validation Rules:**
+- `sourcePath` MUST be a project-root-relative path (e.g., `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue`, `yudao-module-system/src/main/java/.../UserController.java`)
+- NEVER use platform-source-relative short paths (e.g., `pages/bpm/index.vue`, `pages-bpm/category/index.vue`, `controller/admin/user/UserController.java`)
+- Exception: `node_modules/` and third-party library paths are kept as-is (e.g., `node_modules/wot-design-uni/components/wd-icon/wd-icon.vue`)
+
+**⚠️ CRITICAL - documentPath Rules:**
+- When no corresponding document exists for a component/API, `documentPath` MUST be `"N/A"`
+- NEVER use empty string `""` for `documentPath` — this causes downstream processing issues
 
 **⚠️ CRITICAL: NEVER convert relative paths to absolute paths in the JSON content!**
 
@@ -879,7 +888,7 @@ After analysis is complete, write the results to marker files for dispatch to pr
 // ✅ CORRECT - .done file content:
 {
   "fileName": "index",
-  "sourcePath": "frontend-web/src/views/system/user/index.vue",
+  "sourcePath": "yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",
   "sourceFile": "features-web-vue.json",
   "module": "system",
   "status": "success",
@@ -889,7 +898,27 @@ After analysis is complete, write the results to marker files for dispatch to pr
 // ❌ WRONG - .done file content (DO NOT DO THIS):
 {
   "fileName": "index",
-  "sourcePath": "d:/dev/project/frontend-web/src/views/system/user/index.vue",  ← WRONG: absolute path
+  "sourcePath": "d:/dev/project/yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",  ← WRONG: absolute path
+  "sourceFile": "features-web-vue.json",
+  "module": "system",
+  "status": "success"
+}
+
+// ❌ WRONG - documentPath empty string (DO NOT DO THIS):
+{
+  "fileName": "index",
+  "sourcePath": "yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",
+  "documentPath": "",  ← WRONG: use "N/A" when no document exists
+  "sourceFile": "features-web-vue.json",
+  "module": "system",
+  "status": "success"
+}
+
+// ✅ CORRECT - documentPath N/A when no document:
+{
+  "fileName": "index",
+  "sourcePath": "yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",
+  "documentPath": "N/A",
   "sourceFile": "features-web-vue.json",
   "module": "system",
   "status": "success"

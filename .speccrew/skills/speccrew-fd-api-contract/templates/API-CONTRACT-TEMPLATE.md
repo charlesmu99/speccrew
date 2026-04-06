@@ -2,8 +2,8 @@
 
 > Based on Solution: [Link to corresponding Solution file]
 >
-> **Important**: This document is output by Solution Agent and is the sole baseline for frontend-backend collaboration.
-> *Read-only reference in design/development phase, no modifications allowed.* If changes are needed, must trace back to Solution Agent for correction and re-confirmation.
+> **Important**: This document is output by Feature Designer Agent and is the sole baseline for frontend-backend collaboration.
+> *Read-only reference in design/development phase, no modifications allowed.* If changes are needed, must trace back to Feature Designer Agent for correction and re-confirmation.
 
 ---
 
@@ -11,7 +11,7 @@
 
 | Version | Date | Changes | Changed By |
 |---------|------|---------|------------|
-| v1.0 | [Date] | Initial version | Solution Agent |
+| v1.0 | [Date] | Initial version | Feature Designer Agent |
 
 ---
 

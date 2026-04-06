@@ -177,13 +177,29 @@ Read each platform's INDEX.md to extract:
 - Primary language
 - Key technologies (brief)
 
-### Step 4: Generate Root INDEX.md
+### Step 4: Generate Root INDEX.md (MANDATORY: Copy Template + Fill)
 
-1. **Get Timestamp**:
+**CRITICAL**: This step MUST follow the template fill workflow - copy template first, then fill sections.
+
+1. **Copy Template File**:
+   - Copy `templates/INDEX-TEMPLATE.md` to `{output_path}/INDEX.md`
+   - This preserves the template structure and all required sections
+
+2. **Fill Template Sections with search_replace**:
+   - Use `search_replace` tool to fill each section of the template
+   - Replace placeholder content with actual data from platform analysis
+
+   **MANDATORY RULES**:
+   - **Do NOT use create_file to rewrite the entire document**
+   - **Do NOT delete or skip any template section**
+   - Only replace the placeholder content within each section
+   - Preserve all template section headers and structure
+
+3. **Get Timestamp**:
    - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
    - Store the returned timestamp as `{{generated_at}}` template variable
 
-2. **Create the master index document** with the following sections:
+4. **Fill the following sections** in the copied template:
 
 #### Section 1: Header
 
@@ -192,7 +208,7 @@ Read each platform's INDEX.md to extract:
 
 <cite>
 **Files Referenced in This Document**
-- [techs-manifest.json](file://path/to/techs-manifest.json)
+- [techs-manifest.json](../../../speccrew-workspace/knowledges/techs/techs-manifest.json)
 </cite>
 
 > **Target Audience**: devcrew-designer-*, devcrew-dev-*, devcrew-test-*

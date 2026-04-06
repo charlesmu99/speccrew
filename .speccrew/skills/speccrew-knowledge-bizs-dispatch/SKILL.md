@@ -418,10 +418,19 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 | Field | Format | Example |
 |-------|--------|---------|
-| `sourcePath` in `.done` | Relative path (as-is from input) | `yudao-module-system/.../UserController.java` |
+| `sourcePath` in `.done` | Project-root-relative path | `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java` |
 | `documentPath` in `.done` | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
-| `sourcePath` in `.graph.json` nodes | Relative path (as-is from input) | `yudao-module-system/.../UserController.java` |
+| `sourcePath` in `.graph.json` nodes | Project-root-relative path | `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java` |
 | `documentPath` in `.graph.json` nodes | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
+
+**⚠️ CRITICAL - sourcePath Validation Rules:**
+- `sourcePath` MUST be a project-root-relative path (e.g., `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue`, `yudao-module-system/src/main/java/.../UserController.java`)
+- NEVER use platform-source-relative short paths (e.g., `pages/bpm/index.vue`, `pages-bpm/category/index.vue`, `controller/admin/user/UserController.java`)
+- Exception: `node_modules/` and third-party library paths are kept as-is (e.g., `node_modules/wot-design-uni/components/wd-icon/wd-icon.vue`)
+
+**⚠️ CRITICAL - documentPath Rules:**
+- When no corresponding document exists for a component/API, `documentPath` MUST be `"N/A"`
+- NEVER use empty string `""` for `documentPath` — this causes downstream processing issues
 
 **⚠️ CRITICAL: NEVER convert relative paths to absolute paths in the JSON content!**
 
@@ -464,6 +473,7 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 - The `.done.json` file must include all required fields: `fileName`, `sourcePath`, `sourceFile`, `module`, `status`, `analysisNotes`
 - The `.graph.json` file must follow the graph data schema defined in `speccrew-knowledge-graph-write/SKILL.md`
 - **sourcePath and documentPath MUST be relative paths** (as received from features JSON), NEVER convert to absolute paths
+- **documentPath MUST NOT be empty string** — use `"N/A"` when no corresponding document exists
 
 **Step 3: Process Batch Results**
 

@@ -1,5 +1,5 @@
 ---
-name: speccrew-ui-style-analyzer
+name: speccrew-knowledge-techs-ui-analyze
 description: Analyze existing frontend UI codebase to extract and summarize page styles, layout patterns, component usage, and design conventions. Generates comprehensive UI style guides for each platform (PC, Mobile, etc.) including page type classifications, component libraries, layout patterns, and styling conventions. Used to ensure new pages maintain consistency with existing system design.
 tools: Read, Write, Glob, Grep
 ---
@@ -52,19 +52,21 @@ Generate the following documents in `{output_path}/`:
 │   ├── [type-2]-pages.md         # Specific page type analysis
 │   └── ...                       # Other discovered page types
 ├── components/                    # Component analysis
-│   ├── component-library.md      # Component library inventory
+│   ├── component-library.md      # Component inventory (summary)
 │   ├── common-components.md      # Common component usage conventions
-│   └── business-components.md    # Business component usage conventions
+│   ├── business-components.md    # Business component usage conventions
+│   └── {component-name}.md       # Individual component detail (one per discovered component)
 ├── layouts/                       # Layout patterns
-│   ├── page-layouts.md           # Page layout patterns
-│   └── navigation-patterns.md    # Navigation patterns
+│   ├── page-layouts.md           # Layout patterns summary
+│   ├── navigation-patterns.md    # Navigation patterns
+│   └── {layout-name}-layout.md   # Individual layout detail (one per discovered layout)
 └── styles/                        # Styling conventions
     ├── color-system.md           # Color system
     ├── typography.md             # Typography conventions
     └── spacing-system.md         # Spacing system
 ```
 
-**Note**: Page type documents are dynamically named based on discovered types, e.g.,
+**Note**: Page type documents are dynamically named based on discovered types, e.g.
 - If system has `*List.vue` files → `list-pages.md`
 - If system has `*Form.vue` files → `form-pages.md`
 - If system has `*Dashboard.vue` files → `dashboard-pages.md`
@@ -84,8 +86,10 @@ Before analysis, read all template files to understand document structures and r
 | `templates/COMPONENT-LIBRARY-TEMPLATE.md` | `components/component-library.md` | Component inventory structure |
 | `templates/COMMON-COMPONENTS-TEMPLATE.md` | `components/common-components.md` | Common component usage structure |
 | `templates/BUSINESS-COMPONENTS-TEMPLATE.md` | `components/business-components.md` | Business component usage structure |
+| `templates/COMPONENT-INDIVIDUAL-TEMPLATE.md` | `components/{component-name}.md` | Individual component detail |
 | `templates/LAYOUT-PATTERNS-TEMPLATE.md` | `layouts/page-layouts.md` | Layout patterns structure |
 | `templates/NAVIGATION-PATTERNS-TEMPLATE.md` | `layouts/navigation-patterns.md` | Navigation patterns structure |
+| `templates/LAYOUT-INDIVIDUAL-TEMPLATE.md` | `layouts/{layout-name}-layout.md` | Individual layout detail |
 | `templates/STYLE-SYSTEM-TEMPLATE.md` | `styles/color-system.md` | Color system structure |
 | `templates/TYPOGRAPHY-TEMPLATE.md` | `styles/typography.md` | Typography structure |
 | `templates/SPACING-TEMPLATE.md` | `styles/spacing-system.md` | Spacing system structure |
@@ -193,9 +197,15 @@ For each identified page type, extract according to `PAGE-TYPE-INDIVIDUAL-TEMPLA
 - `templates/BUSINESS-COMPONENTS-TEMPLATE.md` - Business component patterns
 
 **Output Documents**:
-1. `components/component-library.md` - Component inventory
+1. `components/component-library.md` - Component inventory (summary with links)
 2. `components/common-components.md` - Common component usage conventions
 3. `components/business-components.md` - Business component usage conventions
+4. `components/{component-name}.md` - Individual component detail (one per discovered component)
+
+**Note**: `component-library.md` serves as the inventory/index:
+- Lists ALL discovered components with category, source, and brief description
+- Links to individual component documents: [wd-button](wd-button.md)
+- Does NOT contain detailed Props/Events (those are in individual files)
 
 Analyze component imports and usage:
 
@@ -233,6 +243,28 @@ Analyze component imports and usage:
 - Props and event definitions
 - Business logic integration patterns
 
+#### Generate Individual Component Documents
+
+For each component discovered during analysis:
+
+1. **Copy Template**: Copy `templates/COMPONENT-INDIVIDUAL-TEMPLATE.md` to `{output_path}/components/{component-name}.md`
+   - Component name: lowercase, kebab-case (e.g., `wd-button.md`, `fg-search-form.md`)
+
+2. **Fill Template**: Use search_replace to fill each section:
+   - Extract Props/Events/Slots from source code (TypeScript interfaces, defineProps, defineEmits)
+   - Generate usage examples from actual usage found in pages/
+   - Extract CSS variables/classes from component styles
+   - Identify related components from imports
+
+3. **Scope Control**:
+   - For UI framework components (e.g., wd-*, el-*): Focus on project-specific usage patterns and customization, NOT full API docs (defer to official documentation)
+   - For custom components (e.g., fg-*): Full Props/Events/Slots documentation
+   - Skip trivial components (< 10 lines, no props/events)
+
+4. **Naming Convention**: {component-name}.md
+   - Use the component tag name in kebab-case
+   - Examples: wd-button.md, fg-search-form.md, z-paging.md
+
 ### Step 4: Analyze Layout Patterns
 
 **Purpose**: Generate layout documentation in `layouts/` directory
@@ -242,8 +274,15 @@ Analyze component imports and usage:
 - `templates/NAVIGATION-PATTERNS-TEMPLATE.md` - Navigation pattern structure
 
 **Output Documents**:
-1. `layouts/page-layouts.md` - Page layout patterns
+1. `layouts/page-layouts.md` - Layout pattern summary (with links)
 2. `layouts/navigation-patterns.md` - Navigation patterns
+3. `layouts/{layout-name}-layout.md` - Individual layout detail (one per discovered layout)
+
+**Note**: `page-layouts.md` serves as the layout pattern summary:
+- Lists ALL discovered layout patterns with type and usage frequency
+- Links to individual layout documents: [TabBar Layout](tabbar-layout.md)
+- Contains high-level comparison table between layouts
+- Does NOT contain detailed region/component analysis (those are in individual files)
 
 Identify common layout patterns:
 
@@ -288,6 +327,29 @@ Identify common layout patterns:
 - Menu organization patterns
 - Route configuration conventions
 - Navigation state management
+
+#### Generate Individual Layout Documents
+
+For each distinct layout pattern discovered:
+
+1. **Copy Template**: Copy `templates/LAYOUT-INDIVIDUAL-TEMPLATE.md` to `{output_path}/layouts/{layout-name}-layout.md`
+   - Layout name: lowercase, kebab-case (e.g., `tabbar-layout.md`, `detail-layout.md`)
+
+2. **Fill Template**: Use search_replace to fill each section:
+   - Generate ASCII layout diagram from actual page structure
+   - List components used in this layout
+   - Extract page configuration from pages.json or route config
+   - Identify pages that use this layout pattern
+
+3. **Discovery Rules**:
+   - Analyze page structures to identify distinct layout patterns
+   - Group pages with similar structure into layout categories
+   - Minimum 2 pages must share a layout pattern to warrant a document
+   - Common layout types: tabbar, detail, form, list, dashboard, modal, fullscreen
+
+4. **Naming Convention**: {layout-name}-layout.md
+   - Use descriptive name in kebab-case
+   - Examples: tabbar-layout.md, detail-layout.md, form-layout.md
 
 ### Step 5: Extract Style Conventions
 
@@ -365,11 +427,13 @@ For each document, follow this process:
 | 4 | `components/component-library.md` | COMPONENT-LIBRARY-TEMPLATE.md | Step 3 | None |
 | 5 | `components/common-components.md` | COMMON-COMPONENTS-TEMPLATE.md | Step 3 | component-library.md |
 | 6 | `components/business-components.md` | BUSINESS-COMPONENTS-TEMPLATE.md | Step 3 | component-library.md |
-| 7 | `layouts/page-layouts.md` | LAYOUT-PATTERNS-TEMPLATE.md | Step 4 | None |
-| 8 | `layouts/navigation-patterns.md` | NAVIGATION-PATTERNS-TEMPLATE.md | Step 4 | page-layouts.md |
-| 9 | `styles/color-system.md` | STYLE-SYSTEM-TEMPLATE.md | Step 5 | None |
-| 10 | `styles/typography.md` | TYPOGRAPHY-TEMPLATE.md | Step 5 | color-system.md |
-| 11 | `styles/spacing-system.md` | SPACING-TEMPLATE.md | Step 5 | color-system.md |
+| 7 | `components/{component-name}.md` | COMPONENT-INDIVIDUAL-TEMPLATE.md | Step 3 | component-library.md |
+| 8 | `layouts/page-layouts.md` | LAYOUT-PATTERNS-TEMPLATE.md | Step 4 | None |
+| 9 | `layouts/navigation-patterns.md` | NAVIGATION-PATTERNS-TEMPLATE.md | Step 4 | page-layouts.md |
+| 10 | `layouts/{layout-name}-layout.md` | LAYOUT-INDIVIDUAL-TEMPLATE.md | Step 4 | page-layouts.md |
+| 11 | `styles/color-system.md` | STYLE-SYSTEM-TEMPLATE.md | Step 5 | None |
+| 12 | `styles/typography.md` | TYPOGRAPHY-TEMPLATE.md | Step 5 | color-system.md |
+| 13 | `styles/spacing-system.md` | SPACING-TEMPLATE.md | Step 5 | color-system.md |
 
 **Note**: `ui-style-guide.md` should reference/link to all other generated documents.
 
@@ -383,8 +447,10 @@ For each document, follow this process:
 | `components/component-library.md` | COMPONENT-LIBRARY-TEMPLATE.md | ✅ Yes |
 | `components/common-components.md` | COMMON-COMPONENTS-TEMPLATE.md | ✅ Yes |
 | `components/business-components.md` | BUSINESS-COMPONENTS-TEMPLATE.md | ✅ Yes |
+| `components/{component-name}.md` | COMPONENT-INDIVIDUAL-TEMPLATE.md | ✅ Yes (one per discovered component) |
 | `layouts/page-layouts.md` | LAYOUT-PATTERNS-TEMPLATE.md | ✅ Yes |
 | `layouts/navigation-patterns.md` | NAVIGATION-PATTERNS-TEMPLATE.md | ✅ Yes |
+| `layouts/{layout-name}-layout.md` | LAYOUT-INDIVIDUAL-TEMPLATE.md | ✅ Yes (one per discovered layout) |
 | `styles/color-system.md` | STYLE-SYSTEM-TEMPLATE.md | ✅ Yes |
 | `styles/typography.md` | TYPOGRAPHY-TEMPLATE.md | ✅ Yes |
 | `styles/spacing-system.md` | SPACING-TEMPLATE.md | ✅ Yes |
@@ -405,10 +471,12 @@ For each document, follow this process:
 ├── components/
 │   ├── component-library.md                    ✅ Required
 │   ├── common-components.md                    ✅ Required
-│   └── business-components.md                  ✅ Required
+│   ├── business-components.md                  ✅ Required
+│   └── {component-name}.md                     ✅ Required (one per discovered component)
 ├── layouts/
 │   ├── page-layouts.md                         ✅ Required
-│   └── navigation-patterns.md                  ✅ Required
+│   ├── navigation-patterns.md                  ✅ Required
+│   └── {layout-name}-layout.md                 ✅ Required (one per discovered layout)
 └── styles/
     ├── color-system.md                         ✅ Required
     ├── typography.md                           ✅ Required
@@ -418,13 +486,17 @@ For each document, follow this process:
 **Verification Rules**:
 1. Count discovered page types from Step 2
 2. Verify each page type has a corresponding `[type]-pages.md` file
-3. Verify all 11 required documents exist
-4. If any file is missing, regenerate before proceeding
+3. Verify all 13 required documents exist (11 base + individual component/layout files)
+4. Verify each component in component-library.md has a corresponding `{component-name}.md` file
+5. Verify each layout in page-layouts.md has a corresponding `{layout-name}-layout.md` file
+6. Verify component-library.md contains links to all individual component files
+7. Verify page-layouts.md contains links to all individual layout files
+8. If any file is missing, regenerate before proceeding
 
 ## Checklist
 
 ### Pre-Analysis (Step 0)
-- [ ] All 11 templates read and understood
+- [ ] All 13 templates read and understood
 - [ ] Template section requirements mapped to extraction tasks
 - [ ] Source path exists and accessible
 - [ ] Framework identified (Vue3, React, etc.)
@@ -447,17 +519,21 @@ For each document, follow this process:
 - [ ] COMPONENT-LIBRARY-TEMPLATE.md read
 - [ ] COMMON-COMPONENTS-TEMPLATE.md read
 - [ ] BUSINESS-COMPONENTS-TEMPLATE.md read
+- [ ] COMPONENT-INDIVIDUAL-TEMPLATE.md read
 - [ ] Components extracted and classified
 - [ ] component-library.md generated
 - [ ] common-components.md generated
 - [ ] business-components.md generated
+- [ ] Individual {component-name}.md files generated (one per discovered component)
 
 **Step 4: Layout Patterns**
 - [ ] LAYOUT-PATTERNS-TEMPLATE.md read
 - [ ] NAVIGATION-PATTERNS-TEMPLATE.md read
+- [ ] LAYOUT-INDIVIDUAL-TEMPLATE.md read
 - [ ] Layout patterns identified
 - [ ] page-layouts.md generated
 - [ ] navigation-patterns.md generated
+- [ ] Individual {layout-name}-layout.md files generated (one per discovered layout)
 
 **Step 5: Style Conventions**
 - [ ] STYLE-SYSTEM-TEMPLATE.md read
@@ -471,7 +547,9 @@ For each document, follow this process:
 ### Documentation Phase (Step 6)
 - [ ] UI-STYLE-GUIDE-TEMPLATE.md read
 - [ ] ui-style-guide.md generated with links to all other documents
-- [ ] All 11 required documents exist
+- [ ] All 13 required documents exist (11 base + individual component/layout files)
+- [ ] Each component in component-library.md links to its individual file
+- [ ] Each layout in page-layouts.md links to its individual file
 - [ ] Document cross-references are valid
 
 ### Quality Checks
@@ -479,4 +557,6 @@ For each document, follow this process:
 - [ ] File paths are correct and accessible
 - [ ] Code examples are syntactically correct
 - [ ] ASCII diagrams are clear and accurate
+- [ ] Individual component files follow template structure (Props table, Usage examples, etc.)
+- [ ] Individual layout files follow template structure (Regions table, Navigation, etc.)
 - [ ] Results reported with file counts

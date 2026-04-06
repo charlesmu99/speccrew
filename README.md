@@ -245,9 +245,9 @@ your-project/
 │   │   ├── speccrew-dev-[framework].md
 │   │   └── speccrew-test-[framework].md
 │   └── skills/                      # 16 个 Skill
-│       ├── speccrew-pm-prd/
-│       ├── speccrew-solution-plan/
-│       ├── speccrew-solution-api-contract/
+│       ├── speccrew-pm-requirement-analysis/
+│       ├── speccrew-fd-feature-design/
+│       ├── speccrew-fd-api-contract/
 │       ├── speccrew-design-frontend/
 │       ├── speccrew-design-backend/
 │       ├── speccrew-dev-task/

@@ -183,7 +183,7 @@ node "scripts/generate-inventory.js" \
   "features": [
     {
       "fileName": "index",
-      "sourcePath": "frontend-web/src/views/system/user/index.vue",
+      "sourcePath": "yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",
       "documentPath": "speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md",
       "module": "system",
       "analyzed": false,
@@ -202,6 +202,11 @@ node "scripts/generate-inventory.js" \
 - Example: `components/Table.vue` (excluded dir) → skipped by ExcludeDirs
 - Files at root level (no subdirectory) → module = `_root`
 - The top-level `modules` array lists all unique module names found
+
+**sourcePath Format:**
+- In both full-scan mode and entry-dirs mode, `sourcePath` is always a **project-root-relative path**
+- Example: `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue` (NOT `pages/bpm/index.vue`)
+- Example: `yudao-module-system/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java`
 
 **Verification Checklist:**
 - [ ] All `features-{platform}.json` files exist and are valid JSON
@@ -250,7 +255,7 @@ Final Output:
 - [ ] **Inventory scripts executed**: Node.js script generated `features-{platform}.json` files
 - [ ] **Inventory files valid**: JSON structure correct, all features listed
 - [ ] **Total count verified**: `totalFiles` matches actual source file count per platform
-- [ ] **File paths correct**: All `sourcePath` and `documentPath` values are accurate
+- [ ] **File paths correct**: All `sourcePath` and `documentPath` values are accurate (sourcePath MUST be project-root-relative path)
 
 ### Output Generation
 - [ ] All platform inventory files generated in `sync-state` directory

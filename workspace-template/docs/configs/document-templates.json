@@ -200,11 +200,11 @@
       ]
     },
     "solution_plan": {
-      "name": "SOLUTION-TEMPLATE",
-      "file_name": "SOLUTION-TEMPLATE.md",
-      "path": "speccrew-workspace/docs/templates/SOLUTION-TEMPLATE.md",
-      "description": "Template for solution manager to create solution documents",
-      "used_by": ["speccrew-solution-manager"],
+      "name": "FEATURE-SPEC-TEMPLATE",
+      "file_name": "FEATURE-SPEC-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/FEATURE-SPEC-TEMPLATE.md",
+      "description": "Template for feature designer to create feature specification documents",
+      "used_by": ["speccrew-feature-designer"],
       "applies_to": {
         "system_types": ["ui", "api"],
         "platforms": ["web", "mobile", "backend", "desktop", "api"]

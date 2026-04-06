@@ -172,7 +172,7 @@ Invoke `ui-analyzer`...    ← 错误：未显式判断条件
 ```markdown
 ### Step 4: Analyze UI
 If `platform_type` in [`web`, `mobile`, `desktop`]:
-1. **Invoke** `speccrew-ui-style-analyzer`
+1. **Invoke** `speccrew-knowledge-techs-ui-analyze`
 Else:
 1. **Skip** this step
 ```
@@ -277,7 +277,7 @@ For frontend platforms, invoke `ui-analyzer`:
 ## Workflow
 ### Step 4: UI Style Analysis
 If `platform_type` in [web, mobile, desktop]:
-1. **Invoke** `speccrew-ui-style-analyzer` with:
+1. **Invoke** `speccrew-knowledge-techs-ui-analyze` with:
    - `source_path`: `{{source_path}}`
    - `platform_id`: `{{platform_id}}`
    - `output_path`: `{{output_path}}/ui-style/`

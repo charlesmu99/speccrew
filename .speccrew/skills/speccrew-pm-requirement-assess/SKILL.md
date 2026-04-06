@@ -1,12 +1,12 @@
 ---
 name: speccrew-pm-requirement-assess
-description: Assess new requirements by analyzing impact scope, affected modules, and change type based on existing system documentation. Use when PM Agent needs to evaluate new requirements, determine impact range, or plan implementation approach.
-tools: Read, SearchCodebase
+description: Quick impact assessment for new requirements. Analyzes affected modules, change type, risk level, and cross-module dependencies using system documentation and knowledge graph. Use when PM Agent needs a lightweight evaluation before deciding whether to run full requirement-analysis workflow.
+tools: Read, Glob, Grep
 ---
 
 # Requirement Assessment for Product Manager
 
-Guide PM Agent to quickly assess new requirements using system documentation and module knowledge.
+Guide PM Agent to quickly assess new requirements using system documentation, module knowledge, and knowledge graph.
 
 ## Trigger Scenarios
 
@@ -15,7 +15,7 @@ Guide PM Agent to quickly assess new requirements using system documentation and
 - "Determine if requirement is new or modification"
 - "Quick requirement assessment"
 - "New requirement impact analysis"
-- "Requirement change type determination"
+- "How big is this requirement?"
 
 ## User
 
@@ -26,14 +26,15 @@ PM Agent (speccrew-product-manager)
 - New requirement description
 - system-overview.md (system documentation)
 - Related {name}-overview.md files (if specific modules identified)
+- Knowledge graph (for cross-module dependency analysis)
 
 ## Output
 
 - Requirement assessment report with:
-  - Impact scope (modules affected)
+  - Impact scope (modules affected, direct + indirect)
   - Change type (New/Modify/Mixed/Cross-module/Config)
-  - Risk level
-  - Implementation approach suggestion
+  - Risk level with specific factors
+  - Recommended workflow path (simple PRD vs full ISA-95 modeling)
 
 ## Assessment Workflow
 
@@ -44,12 +45,36 @@ Analyze the new requirement:
 - What entities are involved?
 - What processes are affected?
 
-### Step 2: Locate in System Context
+### Step 2: Load System Context
 
-Refer to system-overview.md:
-- Section 1.2: Identify which business domain
-- Section 2.3: Find related modules
-- Section 3.2: Check process-module mapping matrix
+#### 2.1 Read System Overview
+
+```
+speccrew-workspace/knowledges/bizs/system-overview.md
+```
+
+Identify:
+- Which business domain the requirement belongs to
+- Which modules are potentially related
+- Which business processes are involved
+
+#### 2.2 Load Related Module Overviews
+
+For each potentially affected module:
+```
+speccrew-workspace/knowledges/bizs/{module-name}/{module-name}-overview.md
+```
+
+#### 2.3 Query Knowledge Graph (for cross-module analysis)
+
+Use `speccrew-knowledge-graph-query` skill to trace dependencies:
+
+| Action | Use Case |
+|--------|----------|
+| `search` | Find entities related to requirement keywords |
+| `trace-upstream` | What depends on the affected entities? |
+| `trace-downstream` | What do the affected entities depend on? |
+| `query-nodes` | List all entities in a suspected module |
 
 ### Step 3: Determine Change Type
 
@@ -78,8 +103,8 @@ New Requirement
 
 Check for impact on:
 - **Direct modules**: Modules explicitly mentioned in requirement
-- **Dependency modules**: Upstream/downstream dependencies (Section 2.2)
-- **External integrations**: Third-party systems (Section 4.2)
+- **Dependency modules**: Upstream/downstream from graph query (Step 2.3)
+- **External integrations**: Third-party systems
 - **Data entities**: New or modified entities
 
 ### Step 5: Assess Risk Level
@@ -92,7 +117,18 @@ Check for impact on:
 | Process | Alters critical business flow |
 | State | Modifies entity state machine |
 
-### Step 6: Generate Assessment Report
+### Step 6: Recommend Workflow Path
+
+Based on assessment results, recommend the appropriate next step:
+
+| Assessment Result | Recommended Path |
+|-------------------|-----------------|
+| 1 module, low risk, clear domain | Simple PRD (skip ISA-95 modeling) |
+| 2+ modules, medium risk | Full requirement-analysis with ISA-95 modeling |
+| Cross-module, high risk | Full requirement-analysis with ISA-95 modeling + Master-Sub PRD |
+| Configuration only | Direct implementation, PRD optional |
+
+### Step 7: Generate Assessment Report
 
 ## Assessment Report Template
 
@@ -109,35 +145,32 @@ Check for impact on:
 [ ] New Feature  [ ] Modification  [ ] Mixed  [ ] Cross-module  [ ] Configuration
 
 ### Impact Scope
-| Module | Impact Type | Details |
-|--------|-------------|---------|
-| {Module A} | Direct | New API needed |
-| {Module B} | Indirect | Data structure change |
+| Module | Impact Type | Evidence |
+|--------|-------------|----------|
+| {Module A} | Direct | [from system-overview / graph query] |
+| {Module B} | Indirect | [upstream dependency via graph] |
 
 ### Risk Level
 [ ] Low  [ ] Medium  [ ] High
 
 **Risk Factors**:
-- [List specific risks]
+- [List specific risks with evidence]
 
-### Implementation Approach
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
+### Recommended Workflow
+- [ ] Simple PRD (speccrew-pm-requirement-analysis, simple path)
+- [ ] Full ISA-95 Modeling + PRD (speccrew-pm-requirement-analysis, complex path)
+- [ ] Full ISA-95 Modeling + Master-Sub PRD (complex path, multi-module)
+- [ ] Configuration change only
+
+### Key Findings from Graph Analysis
+- [Cross-module dependencies discovered]
+- [Upstream/downstream impacts identified]
 
 ### Related Documentation
-- [Links to relevant module docs]
+- [Links to relevant module docs and graph nodes]
 ```
 
 ## Quick Reference
-
-### Module Location Checklist
-
-- [ ] Which business domain? (system-overview.md Section 1.2)
-- [ ] Which modules in that domain? (Section 2.3)
-- [ ] What processes are involved? (Section 3.1)
-- [ ] Which modules does the process touch? (Section 3.2 matrix)
-- [ ] Any external dependencies? (Section 4.2)
 
 ### Change Type Quick Guide
 
@@ -152,11 +185,11 @@ Check for impact on:
 ## Checklist
 
 - [ ] Requirement understood and categorized
-- [ ] Business domain identified
-- [ ] Related modules located
+- [ ] System overview and related module overviews loaded
+- [ ] Knowledge graph queried for cross-module dependencies
 - [ ] Change type determined
-- [ ] Impact scope mapped (direct + indirect)
-- [ ] Risk level assessed
-- [ ] Implementation approach outlined
+- [ ] Impact scope mapped (direct + indirect with graph evidence)
+- [ ] Risk level assessed with specific factors
+- [ ] Workflow path recommended
 - [ ] Assessment report generated
 

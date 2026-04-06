@@ -1,25 +1,25 @@
 ---
-name: speccrew-solution-api-contract
-description: API Contract Generation SOP. Based on Solution document, outputs structured frontend-backend API contract document. Once confirmed, the contract cannot be modified in downstream stages.
+name: speccrew-fd-api-contract
+description: API Contract Generation SOP. Based on feature spec document, outputs structured frontend-backend API contract document. Once confirmed, the contract cannot be modified in downstream stages.
 tools: Read, Write, Glob, Grep
 ---
 
 # Trigger Scenarios
 
-- Automatically triggered by speccrew-solution-plan Skill after Solution document completion
+- Automatically triggered by speccrew-fd-feature-design Skill after feature spec document completion
 - User requests "Generate API documentation" or "Define API contract"
 
 # Workflow
 
 ## Step 1: Read Input
 
-1. Solution document: `projects/pXXX/02.solutions/[feature-name]-solution.md`
-2. API Contract template: `speccrew-solution-api-contract/templates/API-CONTRACT-TEMPLATE.md`
-3. System architecture (API specification part): `speccrew-workspace/knowledge/architecture/backend/README.md` (refer to API naming conventions)
+1. Feature spec document: `speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-feature-spec.md`
+2. API Contract template: `speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md`
+3. System architecture (API specification part): Refer to project tech-stack-mappings.json for API naming conventions
 
 ## Step 2: Organize API List
 
-Extract all APIs from Solution document and organize into a list:
+Extract all APIs from feature spec document and organize into a list:
 
 | API Name | Method | URL | Description | Caller |
 |----------|--------|-----|-------------|--------|
@@ -27,7 +27,7 @@ Extract all APIs from Solution document and organize into a list:
 
 Naming conventions:
 - URL uses RESTful style, plural nouns
-- Follow API specifications in `speccrew-workspace/knowledge/architecture/backend/README.md`
+- Follow API specifications in project tech-stack-mappings.json
 
 ## Step 3: Define Contract for Each API
 
@@ -40,16 +40,16 @@ Complete definition for each API:
 
 ## Step 4: Write to File
 
-Write path: `projects/pXXX/02.solutions/[feature-name]-api-contract.md`
+Write path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-api-contract.md`
 
 ## Step 5: Joint Confirmation
 
-After both documents (Solution + API Contract) are ready, request confirmation from user:
+After both documents (Feature Spec + API Contract) are ready, request confirmation from user:
 
 ```
-Solution phase deliverables are ready:
-- Solution: projects/pXXX/02.solutions/[feature-name]-solution.md
-- API Contract: projects/pXXX/02.solutions/[feature-name]-api-contract.md
+Feature design phase deliverables are ready:
+- Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-feature-spec.md
+- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-api-contract.md
 
 Please confirm the following key points:
 1. Is the overall technical solution feasible?
@@ -65,10 +65,9 @@ After confirmation, you can start frontend and backend Designer Agents separatel
 
 # Checklist
 
-- [ ] All APIs mentioned in Solution have defined contracts
+- [ ] All APIs mentioned in feature spec have defined contracts
 - [ ] Each API has complete request/response structure definition
 - [ ] URL naming conforms to backend architecture specifications
 - [ ] Error code list is complete
 - [ ] File has been written to correct path
 - [ ] Summary of both documents has been shown to user and confirmation requested
-
