@@ -118,11 +118,29 @@ For each platform, pass the following context:
 - `design_doc_paths`: List of module design documents for this platform
 - `techs_knowledge_paths`: Relevant techs knowledge file paths
 
-### 4.3 Parallel Execution
+### 4.3 Multi-Platform Parallel Execution
 
-- Independent platforms can run development skills in parallel
-- Each platform skill executes independently and reports completion
-- Track all dispatched skills and their completion status
+When multiple platforms are identified in DESIGN-OVERVIEW.md, invoke `speccrew-task-worker` agents in parallel:
+- Each worker handles one platform's development end-to-end
+- Each worker receives:
+  - `skill_name`: Per-platform dev skill based on platform type:
+    - `web-*` → `speccrew-dev-frontend`
+    - `backend-*` → `speccrew-dev-backend`
+    - `mobile-*` → `speccrew-dev-mobile`
+    - `desktop-*` → `speccrew-dev-desktop`
+  - `context`:
+    - `platform_id`: Platform identifier from design overview
+    - `iteration_path`: Path to current iteration directory
+    - `design_doc_paths`: List of module design documents for this platform (from `03.system-design/{platform_id}/`)
+    - `api_contract_path`: Path to API Contract document
+    - `techs_knowledge_paths`: Relevant techs knowledge file paths for this platform
+- Parallel execution pattern:
+  - Worker 1: speccrew-dev-frontend for web-vue → implements frontend code
+  - Worker 2: speccrew-dev-backend for backend-springboot → implements backend code
+  - Worker N: platform-specific skill for {platform_id} → implements platform code
+- All workers execute simultaneously to maximize efficiency
+- Track all dispatched workers and their completion status
+- Wait for all workers to complete before proceeding to Step 5 (Integration Check)
 
 ## Step 5: Integration Check
 
