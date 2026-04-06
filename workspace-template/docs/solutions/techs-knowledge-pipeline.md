@@ -160,7 +160,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 ├── architecture.md            # Required - Architecture conventions
 ├── conventions-design.md      # Required - Design conventions
 ├── conventions-dev.md         # Required - Development conventions
-├── conventions-test.md        # Required - Testing conventions
+├── conventions-unit-test.md        # Required - Unit testing conventions
 ├── conventions-data.md        # Optional - Data conventions (conditional)
 ├── ui-style/                  # Optional - UI style analysis (frontend only)
 │   ├── ui-style-guide.md      # techs Stage 2
@@ -227,7 +227,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 | `architecture.md` | Layering, components, patterns | Designer Agent |
 | `conventions-design.md` | Design principles, patterns, UI conventions | Designer Agent |
 | `conventions-dev.md` | Naming, directory structure, code style | Dev Agent |
-| `conventions-test.md` | Testing frameworks, coverage, patterns | Test Agent |
+| `conventions-unit-test.md` | Unit testing frameworks, coverage, patterns | Test Agent |
 | `conventions-data.md` | ORM, database modeling, migrations | Designer/Dev Agent |
 
 **Parallel Execution Example**:
@@ -289,7 +289,7 @@ speccrew-workspace/knowledges/base/sync-state/knowledge-techs/
         "architecture.md",
         "conventions-design.md",
         "conventions-dev.md",
-        "conventions-test.md"
+        "conventions-unit-test.md"
       ],
       "output_path": "speccrew-workspace/knowledges/techs/web-react/"
     },
@@ -304,7 +304,7 @@ speccrew-workspace/knowledges/base/sync-state/knowledge-techs/
         "architecture.md",
         "conventions-design.md",
         "conventions-dev.md",
-        "conventions-test.md",
+        "conventions-unit-test.md",
         "conventions-data.md"
       ],
       "output_path": "speccrew-workspace/knowledges/techs/backend-nestjs/"
@@ -436,7 +436,7 @@ Generated Documents:
 - speccrew-workspace/knowledges/techs/web-react/architecture.md
 - speccrew-workspace/knowledges/techs/web-react/conventions-design.md
 - speccrew-workspace/knowledges/techs/web-react/conventions-dev.md
-- speccrew-workspace/knowledges/techs/web-react/conventions-test.md
+- speccrew-workspace/knowledges/techs/web-react/conventions-unit-test.md
 - [Other platforms...]
 
 Agent Mapping:
@@ -480,7 +480,7 @@ speccrew-workspace/
             ├── architecture.md                # Architecture conventions
             ├── conventions-design.md          # Design conventions
             ├── conventions-dev.md             # Development conventions
-            ├── conventions-test.md            # Testing conventions
+            ├── conventions-unit-test.md            # Unit testing conventions
             ├── conventions-data.md            # Data conventions (optional)
             ├── ui-style/                      # UI style (frontend only) - techs Stage 2
             │   ├── ui-style-guide.md          # 框架级设计系统指南
@@ -694,7 +694,7 @@ Based on generated techs-manifest.json, Agents are dynamically created and mappe
 |------------|-----------------|------------------------|
 | Designer | architecture.md, conventions-design.md | conventions-data.md (if platform has data layer) |
 | Developer | conventions-dev.md | conventions-data.md (if platform has data layer) |
-| Tester | conventions-test.md | - |
+| Tester | conventions-unit-test.md | - |
 
 ---
 
@@ -719,7 +719,7 @@ Templates are organized by platform type and framework:
 │  ├── architecture-TEMPLATE.md
 │  ├── conventions-design-TEMPLATE.md
 │  ├── conventions-dev-TEMPLATE.md
-│  ├── conventions-test-TEMPLATE.md
+│  ├── conventions-unit-test-TEMPLATE.md
 │  └── conventions-data-TEMPLATE.md
 ├── backend-nestjs/
 │  └── [similar structure]

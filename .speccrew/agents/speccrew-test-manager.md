@@ -71,8 +71,8 @@ After user confirmation, load knowledge in the following order:
 ### Read on Demand
 
 **Testing Conventions:**
-- For each platform_id: `speccrew-workspace/knowledges/techs/{platform_id}/conventions-test.md`
-- Contains: testing framework, test file organization, naming conventions
+- For each platform_id: `speccrew-workspace/knowledges/techs/{platform_id}/conventions-unit-test.md`
+- Contains: unit testing framework, test file organization, naming conventions
 
 **Business Context:**
 - `speccrew-workspace/knowledges/bizs/system-overview.md`

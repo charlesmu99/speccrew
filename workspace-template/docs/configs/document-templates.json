@@ -543,16 +543,16 @@
       "output_pattern": "conventions-dev.md"
     },
     "conventions_test": {
-      "name": "CONVENTIONS-TEST-TEMPLATE",
-      "file_name": "CONVENTIONS-TEST-TEMPLATE.md",
-      "path": "speccrew-workspace/docs/templates/CONVENTIONS-TEST-TEMPLATE.md",
-      "description": "Template for documenting testing conventions",
+      "name": "CONVENTIONS-UNIT-TEST-TEMPLATE",
+      "file_name": "CONVENTIONS-UNIT-TEST-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md",
+      "description": "Template for documenting unit testing conventions",
       "used_by": ["speccrew-knowledge-techs-generate"],
       "applies_to": {
         "system_types": ["ui", "api"],
         "platforms": ["web", "mobile", "backend", "desktop", "api"]
       },
-      "output_pattern": "conventions-test.md"
+      "output_pattern": "conventions-unit-test.md"
     },
     "conventions_data": {
       "name": "CONVENTIONS-DATA-TEMPLATE",

@@ -133,7 +133,7 @@ Backend Designer Agent:
 | Frontend/Backend Detailed Design | `iterations/iXXX/03.system-design/[platform]/[feature-name]-design.md` | Required, load first | Core input |
 | Development Conventions | `knowledge/techs/conventions/` | Required | Code conventions, commit conventions |
 | Frontend/Backend Architecture Details | `knowledge/techs/[platform]/` | On-demand | Reference when design document is ambiguous |
-| Unit Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test writing conventions |
+| Unit Testing Conventions | `knowledge/techs/conventions/unit-testing.md` | Required | Unit test writing conventions |
 
 #### Loading Strategy
 

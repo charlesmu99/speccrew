@@ -191,7 +191,7 @@ knowledges/
         ├── architecture.md        # 架构约定
         ├── conventions-design.md  # 设计约定
         ├── conventions-dev.md     # 开发约定
-        └── conventions-test.md    # 测试约定
+        └── conventions-unit-test.md    # 单元测试约定
 ```
 
 #### 4.1 base/ - 基础元数据
@@ -248,7 +248,7 @@ techs/
     ├── architecture.md            # 架构模式和约定
     ├── conventions-design.md      # 设计阶段约定
     ├── conventions-dev.md         # 开发阶段约定
-    ├── conventions-test.md        # 测试阶段约定
+    ├── conventions-unit-test.md        # 单元测试阶段约定
     ├── ui-style/                  # UI 样式知识 (techs pipeline 管理)
     │   ├── ui-style-guide.md      # UI 样式指南
     │   ├── styles/                # 通用样式规范

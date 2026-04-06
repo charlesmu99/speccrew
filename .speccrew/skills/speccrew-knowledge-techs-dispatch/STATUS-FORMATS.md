@@ -113,7 +113,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "architecture.md",
         "conventions-design.md",
         "conventions-dev.md",
-        "conventions-test.md",
+        "conventions-unit-test.md",
         "conventions-build.md"
       ],
       "documents_missing": [],
@@ -159,7 +159,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "architecture.md",
         "conventions-design.md",
         "conventions-dev.md",
-        "conventions-test.md",
+        "conventions-unit-test.md",
         "conventions-build.md"
       ],
       "documents_missing": [],
@@ -203,7 +203,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "architecture.md",
         "conventions-design.md",
         "conventions-dev.md",
-        "conventions-test.md",
+        "conventions-unit-test.md",
         "conventions-build.md",
         "conventions-data.md"
       ],
@@ -338,7 +338,7 @@ All platforms MUST generate these documents:
 3. `architecture.md` - Architecture patterns and decisions
 4. `conventions-design.md` - Design conventions and patterns
 5. `conventions-dev.md` - Development conventions and coding standards
-6. `conventions-test.md` - Testing conventions and practices
+6. `conventions-unit-test.md` - Unit testing conventions and practices
 7. `conventions-build.md` - Build configuration and deployment conventions
 
 ### Optional Documents (1)

@@ -35,16 +35,16 @@ Load platform testing conventions to understand the target test framework:
 ### 2.1 Primary Convention Path
 
 ```
-speccrew-workspace/knowledges/techs/{platform_id}/conventions-test.md
+speccrew-workspace/knowledges/techs/{platform_id}/conventions-unit-test.md
 ```
 
 ### 2.2 Fallback Convention Path
 
-If `conventions-test.md` does not exist, read `conventions-dev.md` and infer:
+If `conventions-unit-test.md` does not exist, read `conventions-dev.md` and infer:
 
 | Convention File | Inference Strategy |
 |-----------------|-------------------|
-| conventions-dev.md | Extract framework from tech stack, infer test framework |
+| conventions-dev.md | Extract framework from tech stack, infer unit test framework |
 
 ### 2.3 Information to Extract
 
@@ -210,7 +210,7 @@ test('{test name}', () => {
 
 ### 6.3 Platform-Specific Conventions
 
-Follow conventions from `conventions-test.md`:
+Follow conventions from `conventions-unit-test.md`:
 
 | Platform | Convention Examples |
 |----------|---------------------|
@@ -284,7 +284,7 @@ Use: `speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md`
 |------|-------------|
 | **TC ID Traceability** | Every test function MUST have a TC ID comment |
 | **Checkpoint Required** | Must confirm code plan with user before generating |
-| **Convention Compliance** | Follow platform-specific conventions-test.md |
+| Convention Compliance | Follow platform-specific conventions-unit-test.md |
 | **Arrange-Act-Assert** | Maintain clear test structure |
 | **Mock Strategy Documented** | All mocks documented in code plan |
 | **No Test Execution** | This skill only generates code, does not run tests |
@@ -292,14 +292,14 @@ Use: `speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md`
 # Checklist
 
 - [ ] Test case document read, all cases parsed
-- [ ] Technical conventions loaded (conventions-test.md or inferred)
+- [ ] Technical conventions loaded (conventions-unit-test.md or inferred)
 - [ ] System design read, dependencies identified
 - [ ] Code plan generated with file-to-case mapping
 - [ ] Checkpoint passed: code plan confirmed with user
 - [ ] Every test case ID has a corresponding test function
 - [ ] Each test function has a TC ID annotation comment
 - [ ] Mock/stub strategy covers all external dependencies
-- [ ] Test code follows platform conventions-test.md style
+- [ ] Test code follows platform conventions-unit-test.md style
 - [ ] Shared fixtures and helpers are extracted properly
 - [ ] Arrange-Act-Assert structure maintained in tests
 - [ ] Code plan document written to correct path

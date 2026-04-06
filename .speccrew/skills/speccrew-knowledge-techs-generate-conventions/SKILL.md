@@ -51,7 +51,7 @@ Generate the following documents in `{output_path}/`:
 ├── architecture.md            # Architecture conventions (Required)
 ├── conventions-design.md      # Design conventions (Required)
 ├── conventions-dev.md         # Development conventions (Required)
-├── conventions-test.md        # Testing conventions (Required)
+├── conventions-unit-test.md        # Unit testing conventions (Required)
 ├── conventions-build.md       # Build & Deployment conventions (Required)
 └── conventions-data.md        # Data conventions (Optional)
 ```
@@ -121,7 +121,7 @@ Before processing, read all template files to understand the required content st
 - **Read**: `../speccrew-knowledge-techs-generate/templates/ARCHITECTURE-TEMPLATE.md` - Architecture patterns and conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` - Design principles and patterns structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` - Development conventions structure
-- **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-TEST-TEMPLATE.md` - Testing conventions structure
+- **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` - Unit testing conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-BUILD-TEMPLATE.md` - Build and deployment conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` - Data layer conventions structure (if applicable)
 - **Purpose**: Understand each template's chapters and example content requirements
@@ -285,7 +285,7 @@ This tracking data will be used in Step 6 to generate the analysis coverage repo
      - `../speccrew-knowledge-techs-generate/templates/ARCHITECTURE-TEMPLATE.md` → `{output_path}/architecture.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` → `{output_path}/conventions-design.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` → `{output_path}/conventions-dev.md`
-     - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-TEST-TEMPLATE.md` → `{output_path}/conventions-test.md`
+     - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` → `{output_path}/conventions-unit-test.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-BUILD-TEMPLATE.md` → `{output_path}/conventions-build.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` → `{output_path}/conventions-data.md` (if applicable)
 
@@ -302,7 +302,7 @@ This tracking data will be used in Step 6 to generate the analysis coverage repo
    - Preserve all template section headers and structure
 
 2. **Document Generation Order**:
-   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md, conventions-data.md (if applicable)
+   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md, conventions-data.md (if applicable)
 
 3. **UI Design Conventions Reference in conventions-design.md**:
    In conventions-design.md, ALWAYS include UI reference section:
@@ -367,7 +367,7 @@ Where `{completed_dir}` is the directory passed via the `completed_dir` paramete
     "architecture.md",
     "conventions-dev.md",
     "conventions-design.md",
-    "conventions-test.md",
+    "conventions-unit-test.md",
     "conventions-build.md"
   ],
   "coverage_summary": {
@@ -606,7 +606,7 @@ Wherever possible, include concrete examples:
 - [ ] architecture.md generated with platform-specific patterns
 - [ ] conventions-design.md generated with design principles
 - [ ] conventions-dev.md generated with naming and style rules
-- [ ] conventions-test.md generated with testing requirements
+- [ ] conventions-unit-test.md generated with testing requirements
 - [ ] conventions-build.md generated with build and deployment conventions
 
 ### Optional Document
@@ -618,6 +618,6 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
-- [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md)
+- [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md)
 - [ ] **Analysis Coverage Report**: `{platform_id}.analysis-conventions.json` generated with all topics tracked
 - [ ] Results reported with conventions-data.md generation status

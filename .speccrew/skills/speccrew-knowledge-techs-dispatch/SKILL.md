@@ -222,7 +222,7 @@ After generating all documents and the analysis report, each Worker MUST create 
   "documents_generated": [
     "INDEX.md", "tech-stack.md", "architecture.md",
     "conventions-dev.md", "conventions-design.md",
-    "conventions-test.md", "conventions-build.md"
+    "conventions-unit-test.md", "conventions-build.md"
   ],
   "analysis_file": "web-vue.analysis-conventions.json",
   "completed_at": "2024-01-15T10:45:00Z"
@@ -262,7 +262,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 ├── architecture.md            # Required
 ├── conventions-design.md      # Required
 ├── conventions-dev.md         # Required
-├── conventions-test.md        # Required
+├── conventions-unit-test.md        # Required
 ├── conventions-build.md       # Required
 ├── conventions-data.md        # Optional — platform-specific
 └── ui-style/                  # Optional — frontend only (web/mobile/desktop)
@@ -654,7 +654,7 @@ ON Worker Failure:
 - [ ] Stage 3: `stage3-status.json` generated with index info
 
 ### Document Completeness Verification
-- [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md
+- [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md
 - [ ] `conventions-data.md` exists only for appropriate platforms (backend required, others optional)
 - [ ] All documents include `<cite>` reference blocks
 - [ ] All documents include AI-TAG and AI-CONTEXT comments
