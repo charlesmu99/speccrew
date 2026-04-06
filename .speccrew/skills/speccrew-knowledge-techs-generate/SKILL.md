@@ -50,6 +50,7 @@ Generate the following documents in `{output_path}/`:
 ├── conventions-design.md      # Design conventions (Required)
 ├── conventions-dev.md         # Development conventions (Required)
 ├── conventions-test.md        # Testing conventions (Required)
+├── conventions-build.md       # Build & Deployment conventions (Required)
 ├── conventions-data.md        # Data conventions (Optional)
 └── ui-style/                  # UI style analysis (Optional, frontend platforms only)
     ├── ui-style-guide.md      # Main UI style guide
@@ -63,11 +64,11 @@ Generate the following documents in `{output_path}/`:
 
 | Platform Type | Required Documents | Optional Documents | Generate conventions-data.md? |
 |---------------|-------------------|-------------------|------------------------------|
-| `backend` | All 6 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
-| `web` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
-| `mobile` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `desktop` | All 6 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `api` | All 6 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
+| `backend` | All 7 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
+| `web` | All 7 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
+| `mobile` | All 7 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `desktop` | All 7 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `api` | All 7 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
 
 ### Decision Logic for conventions-data.md
 
@@ -125,6 +126,7 @@ Before processing, read all template files to understand the required content st
 - **Read**: `templates/CONVENTIONS-DESIGN-TEMPLATE.md` - Design principles and patterns structure
 - **Read**: `templates/CONVENTIONS-DEV-TEMPLATE.md` - Development conventions structure
 - **Read**: `templates/CONVENTIONS-TEST-TEMPLATE.md` - Testing conventions structure
+- **Read**: `templates/CONVENTIONS-BUILD-TEMPLATE.md` - Build and deployment conventions structure
 - **Read**: `templates/CONVENTIONS-DATA-TEMPLATE.md` - Data layer conventions structure (if applicable)
 - **Purpose**: Understand each template's chapters and example content requirements
 - **Key principle**: Extract information from source code according to template section requirements
@@ -202,10 +204,20 @@ Parse configuration files to extract:
    - Follow compatibility guidelines from `mermaid-rule.md`
    - See: [Mermaid Diagram Guide](#mermaid-diagram-guide)
 
-### Step 4: Invoke UI Style Analysis (Frontend Platforms Only)
+### Step 4: UI Style Analysis (Frontend Platforms Only) - WITH FALLBACK
 
 If `platform_type` is `web`, `mobile`, or `desktop`:
 
+**Directory Ownership**:
+- `ui-style/` — Fully managed by techs pipeline (this skill)
+  - Contains: ui-style-guide.md, styles/, page-types/, components/, layouts/
+  - Source: Framework-level design system analysis from source code
+- `ui-style-patterns/` — Managed by bizs pipeline (Stage 3.5: bizs-ui-style-extract)
+  - Contains: Business pattern aggregation from feature documents
+  - NOT created or written by this skill
+  - May not exist if bizs pipeline has not been executed
+
+**Primary Path (UI Analyzer Available and Succeeds)**:
 1. **CRITICAL**: Use the Skill tool to invoke `speccrew-ui-style-analyzer` with these exact parameters:
    ```
    skill: "speccrew-ui-style-analyzer"
@@ -213,39 +225,81 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
    ```
 
 2. **Wait for completion** and verify output files exist:
-   - `{output_path}/ui-style/ui-style-guide.md`
-   - `{output_path}/ui-style/page-types/page-type-summary.md`
-   - `{output_path}/ui-style/page-types/[type]-pages.md` (one per discovered type)
-   - `{output_path}/ui-style/components/component-library.md`
-   - `{output_path}/ui-style/components/common-components.md`
-   - `{output_path}/ui-style/components/business-components.md`
-   - `{output_path}/ui-style/layouts/page-layouts.md`
-   - `{output_path}/ui-style/layouts/navigation-patterns.md`
-   - `{output_path}/ui-style/styles/color-system.md`
-   - `{output_path}/ui-style/styles/typography.md`
-   - `{output_path}/ui-style/styles/spacing-system.md`
+   - `{output_path}/ui-style/ui-style-guide.md` ✓
+   - `{output_path}/ui-style/page-types/page-type-summary.md` ✓
+   - `{output_path}/ui-style/page-types/[type]-pages.md` (one per discovered type) ✓
+   - `{output_path}/ui-style/components/component-library.md` ✓
+   - `{output_path}/ui-style/components/common-components.md` ✓
+   - `{output_path}/ui-style/components/business-components.md` ✓
+   - `{output_path}/ui-style/layouts/page-layouts.md` ✓
+   - `{output_path}/ui-style/layouts/navigation-patterns.md` ✓
+   - `{output_path}/ui-style/styles/color-system.md` ✓
+   - `{output_path}/ui-style/styles/typography.md` ✓
+   - `{output_path}/ui-style/styles/spacing-system.md` ✓
 
-3. **If UI style analysis fails or is skipped**, generate a minimal placeholder in `conventions-design.md`:
-   ```markdown
-   ## UI Design Conventions
-   
-   > Note: UI style analysis was not completed. Refer to source code in `{{source_path}}` for UI patterns.
-   ```
+3. If all outputs verified → proceed to next step
+4. Record: `ui_style_analysis_level = "full"`
 
-4. **If UI style analysis succeeds**, reference the generated docs in `conventions-design.md`:
+**Secondary Path (UI Analyzer Fails or Partial Output)**:
+If analyzer fails, times out, or produces incomplete output:
+1. Create ui-style directory structure:
+   `{output_path}/ui-style/`, `{output_path}/ui-style/page-types/`, `{output_path}/ui-style/components/`, `{output_path}/ui-style/layouts/`, `{output_path}/ui-style/styles/`
+2. Generate minimal ui-style-guide.md by manually scanning source code:
+   - Design system: identify UI framework from dependencies (Material UI, Ant Design, Tailwind, etc.)
+   - Color system: scan for CSS variables, theme files, or color constants in `{source_path}/src/styles/` or `{source_path}/src/theme/`
+   - Typography: scan for font-family declarations
+   - Component library: list directories under `{source_path}/src/components/`
+   - Page types: list directories/files under `{source_path}/src/pages/` or `{source_path}/src/views/`
+3. Content structure for minimal ui-style-guide.md:
    ```markdown
-   ## UI Design Conventions
+   # UI Style Guide - {platform_id}
    
-   This platform follows UI patterns documented in:
-   - [UI Style Guide](ui-style/ui-style-guide.md)
-   - [Page Type Summary](ui-style/page-types/page-type-summary.md)
+   > Note: Generated from manual source code inspection. Automated UI analysis was unavailable.
    
-   ### Page Type Selection Guide
+   ## Design System
+   - UI Framework: {detected from package.json}
+   - CSS Approach: {CSS Modules / Tailwind / styled-components / SCSS - detected from config}
    
-   | Scenario | Recommended Page Type | Reference |
-   |----------|----------------------|-----------|
-   | [Business scenario] | [Page type] | [Reference] |
+   ## Component Library Overview
+   {list component directories found}
+   
+   ## Page Types Identified
+   {list page directories/files found}
+   
+   ## Styling Configuration
+   {extract from tailwind.config / theme file / CSS variables file}
    ```
+4. Record: `ui_style_analysis_level = "minimal"`
+
+**Tertiary Path (No UI Analysis Possible)**:
+If source code scanning also fails (e.g., non-standard structure):
+1. Create `{output_path}/ui-style/ui-style-guide.md` with references only:
+   ```markdown
+   # UI Style Guide - {platform_id}
+   
+   > Note: Automated and manual UI analysis were not possible for this platform.
+   > Manual inspection of source code is required.
+   
+   ## References
+   - Source components: {source_path}/src/components/ (if exists)
+   - Source pages: {source_path}/src/pages/ (if exists)
+   - Style files: {source_path}/src/styles/ (if exists)
+   - Package dependencies: {source_path}/package.json
+   ```
+2. Record: `ui_style_analysis_level = "reference_only"`
+
+**In conventions-design.md, ALWAYS include UI reference section**:
+Regardless of analysis level, conventions-design.md MUST contain:
+```markdown
+## UI Design Conventions
+
+Refer to [UI Style Guide](ui-style/ui-style-guide.md) for design system details.
+
+Analysis completeness: {ui_style_analysis_level}
+- full: Complete automated analysis available
+- minimal: Manual inspection results only
+- reference_only: Source file references only - manual review needed
+```
 
 ### Step 5: Generate Documents
 
@@ -256,7 +310,7 @@ If `platform_type` is `web`, `mobile`, or `desktop`:
 2. **Generate Each Document**:
    - Follow [Document Structure Standard](#document-structure-standard)
    - Apply [Source Traceability Requirements](#source-traceability-requirements)
-   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-*.md
+   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md, conventions-data.md (if applicable)
 
 ### Step 6: Write Output Files
 
@@ -272,8 +326,9 @@ Platform Technology Documents Generated: {{platform_id}}
 - conventions-design.md: ✓
 - conventions-dev.md: ✓
 - conventions-test.md: ✓
+- conventions-build.md: ✓
 - conventions-data.md: ✓ (or skipped if not applicable)
-- ui-style-guide.md: ✓ (frontend platforms only)
+- ui-style-guide.md: ✓ (frontend platforms only, analysis level: {{ui_style_analysis_level}})
 - Output Directory: {{output_path}}
 ```
 
@@ -449,25 +504,213 @@ Design principles and patterns for detailed design.
 
 Development conventions for coding.
 
-**Sections:**
-- Naming Conventions (files, variables, classes, components)
-- Directory Structure
-- Code Style (from ESLint/Prettier)
-- Import/Export Patterns
-- Git Commit Conventions
-- Code Review Checklist
+**Sections (MUST INCLUDE)**:
+
+1. Naming Conventions
+   - File naming (with actual examples from project: e.g., UserProfile.tsx, userProfile.utils.ts)
+   - Variable/function naming with GOOD/BAD examples
+   - Class/component naming for platform
+   - Constants naming (SCREAMING_SNAKE_CASE or UPPER_CAMEL_CASE - which does project use?)
+
+2. Directory Structure
+   - Visual tree (actual from src/ - scan and present real structure)
+   - What goes where guide:
+     | Directory | Purpose | Naming Pattern |
+     |-----------|---------|---------------|
+     | components/ | Reusable UI components | PascalCase.tsx |
+     | pages/ | Page-level components | PascalCase.tsx |
+     | hooks/ | Custom hooks | useXxx.ts |
+     | utils/ | Utility functions | camelCase.ts |
+     | services/ | API services | xxxService.ts |
+   - Module-level organization patterns
+
+3. Code Style (Extracted from ESLint/Prettier configs)
+
+   MUST extract these specific fields:
+
+   **From Prettier/EditorConfig**:
+   | Setting | Value | Example |
+   |---------|-------|---------|
+   | Indentation | {tabs/spaces} {width} | (extract from .prettierrc or .editorconfig) |
+   | Quote style | {single/double} | ✓ const s = 'hello' |
+   | Semicolons | {always/never} | ✓ const x = 1; |
+   | Line width | {number} | Max {n} characters per line |
+   | Trailing comma | {all/es5/none} | ✓ [a, b, c,] |
+   | Arrow parens | {always/avoid} | ✓ (x) => x |
+
+   **From ESLint**:
+   - Key enabled rules (no-unused-vars, no-console, etc.)
+   - Parser settings (ecmaVersion, sourceType)
+   - Environment settings (node, browser, es6)
+
+   **GOOD vs BAD Code Examples** (generate 3-5 examples based on actual rules):
+   ```
+   ✓ GOOD: const userName = 'Alice';
+   ✗ BAD:  var user_name = "Alice";
+   Reason: Use const, camelCase naming, single quotes (from .prettierrc)
+   ```
+
+4. Import/Export Patterns
+   - ES Modules vs CommonJS (which does project use?)
+   - Barrel exports rules (index.ts patterns - does project use them?)
+   - Relative vs absolute imports (path aliases from tsconfig/vite.config?)
+   - Import ordering rules (from eslint-plugin-import config if present)
+
+5. Git Commit Conventions
+   - Message format (Conventional Commits? Semantic? Custom? - detect from commitlint config or .commitlintrc)
+   - Commit scope examples relevant to this project
+   - Branch naming convention (if detected from git hooks or CI config)
+
+6. Pre-Development Checklist (NEW - critical for Dev Agent onboarding)
+   - [ ] Runtime version check: extract from .nvmrc / .node-version / package.json engines / .python-version / .java-version
+   - [ ] Dependency installation command: npm install / yarn / pnpm install / mvn install / pip install -r requirements.txt
+   - [ ] Local dev server startup command: extract from package.json scripts.dev / scripts.start / Makefile
+   - [ ] Environment variables needed: list .env.local template variables (from .env.example if exists)
+   - [ ] Pre-commit hooks check: detect husky / lint-staged / pre-commit config
+   - [ ] IDE plugins recommended: based on tech stack (ESLint plugin, Prettier plugin, etc.)
+
+7. Code Review Checklist
+   - [ ] Linting passed: {actual lint command from package.json}
+   - [ ] Formatting consistent: {actual format command}
+   - [ ] Type safety: {TypeScript strict mode / type checking command}
+   - [ ] Tests written and passing: {actual test command}
+   - [ ] Naming follows conventions (Section 1)
+   - [ ] No hardcoded secrets or sensitive data
+   - [ ] Documentation updated for public APIs
+
+**Source extraction rules**:
+- Prettier config: .prettierrc, .prettierrc.js, .prettierrc.json, prettier.config.js
+- ESLint config: .eslintrc.js, .eslintrc.json, eslint.config.js (flat config)
+- EditorConfig: .editorconfig
+- Git hooks: .husky/, .git/hooks/, .pre-commit-config.yaml, lint-staged config in package.json
+- Commit conventions: .commitlintrc, commitlint.config.js
+- Runtime version: .nvmrc, .node-version, package.json engines, .tool-versions
+- IDE config: .vscode/extensions.json, .idea/ settings
 
 #### conventions-test.md
 
 Testing conventions and requirements.
 
-**Sections:**
-- Testing Framework
-- Test File Naming and Location
-- Coverage Requirements
-- Unit Testing Patterns
-- Integration Testing Patterns
-- Mocking Strategies
+**Sections (MUST INCLUDE)**:
+
+1. Unit Testing
+   - Framework (Jest/Vitest/pytest/JUnit/Go testing/etc.)
+   - Test file naming convention (*.test.ts vs *.spec.ts - extract from config)
+   - Test file location (co-located vs __tests__/ directory)
+   - Minimal test template with assertions (provide actual code example)
+   - Run command: extract from package.json scripts or project config
+
+2. Integration Testing
+   - When to write integration tests (API integration, module boundaries)
+   - Test data management:
+     - Fixtures location and format
+     - Seeding approach (factory functions, JSON fixtures, SQL scripts)
+   - Mock external services strategy:
+     - HTTP mocking tool (nock/msw/WireMock/mockito)
+     - When to mock vs when to use real services
+
+3. E2E Testing (CONDITIONAL: frontend/mobile platforms ONLY)
+   - E2E framework (Cypress/Playwright/Appium/Detox - detect from dependencies)
+   - Browser/device compatibility matrix:
+     | Browser/Device | Required | Notes |
+     |--------|----------|-------|
+   - Critical user flow scenarios to cover
+   - Run command (e.g., npm run test:e2e)
+   - CI environment considerations (headless mode, timeouts)
+   - If NO E2E framework detected: note "E2E framework not configured. Recommend: [Playwright/Cypress] based on {framework}"
+
+4. Database Testing (CONDITIONAL: backend platforms ONLY)
+   - Database isolation strategy (transaction rollback / separate test DB / in-memory DB)
+   - Migration testing (schema upgrade verification)
+   - Fixture management (location, format, seeding commands)
+   - Query verification approach (EXPLAIN PLAN usage)
+   - If NO database detected: SKIP this section
+
+5. Performance Testing
+   - Key metrics to monitor:
+     - Frontend: FCP, LCP, TTI, bundle size
+     - Backend: API response time (p50/p95/p99), throughput
+   - Load testing tool (k6/Artillery/JMeter/wrk - detect from dependencies or note recommendation)
+   - Baseline expectations (document actual values if found in config, else recommend defaults)
+   - When to run (pre-release, nightly, on-demand)
+
+6. Coverage Requirements
+   - Target coverage percentage (extract from jest.config/vitest.config/pytest.ini/.coveragerc)
+   - If not configured: recommend industry defaults (80% statements, 70% branches)
+   - Critical paths priority list
+   - Local coverage check command (e.g., npm run test:coverage)
+   - Coverage reporting tool (istanbul/c8/coverage.py/JaCoCo)
+
+7. Testing Troubleshooting
+   - Common failure scenarios and resolutions (platform-specific)
+   - Debugging test failures (breakpoint setup, verbose logging)
+   - Flaky test detection and investigation approach
+   - Test environment reset procedures
+
+**Source extraction rules**:
+- Test framework: from package.json devDependencies / pom.xml test scope / requirements-dev.txt
+- E2E framework: from cypress.config.*, playwright.config.*, detox config
+- Coverage config: from jest.config (coverageThreshold), vitest.config, .coveragerc, jacoco-maven-plugin
+- Performance tools: from package.json devDependencies (k6, artillery, lighthouse)
+- Database test config: from test configuration files, docker-compose.test.yml
+
+#### conventions-build.md
+
+Build & Deployment Conventions.
+
+**Required**: YES (all platform types)
+
+**Sections (MUST INCLUDE)**:
+
+1. Build Tool & Configuration
+   - Primary build tool (Vite/Webpack/Rollup/Maven/Gradle/Go build/Cargo etc.)
+   - Main config file path and key settings
+   - Build commands reference table:
+     | Command | Purpose | Example |
+     |---------|---------|---------|
+     | dev     | Start development server | npm run dev |
+     | build   | Production build | npm run build |
+     | preview | Preview production build | npm run preview |
+
+2. Environment Management
+   - Environment files (.env, .env.local, .env.production, application.yml, application-dev.yml)
+   - Environment variable naming conventions (VITE_ prefix / NEXT_PUBLIC_ prefix / spring profiles)
+   - Environment differences table:
+     | Setting | Development | Staging | Production |
+     |---------|-------------|---------|------------|
+     | API URL | localhost   | staging-api | prod-api |
+   - Sensitive config handling (secrets, API keys - what NOT to commit)
+
+3. Build Profiles & Outputs
+   - Build modes (development/production/test)
+   - Output directory and structure (dist/, build/, target/)
+   - Optimization strategies (code splitting, tree shaking, minification, source maps)
+   - Bundle size considerations (if frontend)
+
+4. CI/CD Pipeline Conventions (conditional: if CI config files detected)
+   - CI config file paths (.github/workflows/, Jenkinsfile, .gitlab-ci.yml)
+   - Pipeline stages definition (lint → test → build → deploy)
+   - Deployment targets and trigger conditions
+   - If NO CI config detected: note "CI/CD pipeline not configured in repository"
+
+5. Docker & Container (conditional: if Dockerfile detected)
+   - Dockerfile path and build command
+   - Image naming convention
+   - docker-compose configuration (if exists)
+   - If NO Dockerfile detected: SKIP this section entirely
+
+6. Dependency Management
+   - Package manager (npm/yarn/pnpm/maven/gradle/pip/go mod)
+   - Lock file strategy (committed? .gitignore'd?)
+   - Dependency upgrade workflow
+   - Compatibility checking approach
+
+**Source extraction rules**:
+- Build tool: from package.json scripts / pom.xml plugins / build.gradle / Makefile / Cargo.toml
+- Environment files: scan for .env*, application*.yml, application*.properties
+- CI config: scan for .github/workflows/*.yml, Jenkinsfile, .gitlab-ci.yml, .circleci/config.yml
+- Docker: scan for Dockerfile, docker-compose*.yml
+- Package manager: detect from lock files (package-lock.json → npm, yarn.lock → yarn, pnpm-lock.yaml → pnpm)
 
 #### conventions-data.md (Optional)
 
@@ -496,6 +739,7 @@ All templates are unified and located in `templates/` directory:
 | `templates/CONVENTIONS-DESIGN-TEMPLATE.md` | Design principles and patterns |
 | `templates/CONVENTIONS-DEV-TEMPLATE.md` | Development conventions |
 | `templates/CONVENTIONS-TEST-TEMPLATE.md` | Testing conventions |
+| `templates/CONVENTIONS-BUILD-TEMPLATE.md` | Build and deployment conventions |
 | `templates/CONVENTIONS-DATA-TEMPLATE.md` | Data layer conventions |
 
 Platform-specific content is generated dynamically based on:
@@ -549,6 +793,7 @@ Wherever possible, include concrete examples:
 - [ ] conventions-design.md generated with design principles
 - [ ] conventions-dev.md generated with naming and style rules
 - [ ] conventions-test.md generated with testing requirements
+- [ ] conventions-build.md generated with build and deployment conventions
 
 ### Optional Document
 - [ ] conventions-data.md generated (only if applicable per platform type mapping)
@@ -574,6 +819,6 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
-- [ ] **Document completeness**: Verify all required documents exist
-- [ ] Results reported with conventions-data.md and ui-style-guide.md generation status
+- [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md)
+- [ ] Results reported with conventions-data.md and ui-style-guide.md generation status (including ui_style_analysis_level)
 

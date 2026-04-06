@@ -9,9 +9,10 @@
 
 <cite>
 **Referenced Files**
-- [{EntryPoint}](../../{sourcePath}/{entryPointFile})    <!-- Backend: Controller/View/Router; Frontend: Page/View component -->
-- [{BusinessLogic}](../../{sourcePath}/{businessLogicFile})  <!-- Backend: Service; Frontend: Store/Composable/Hook -->
-- [{DataModel}](../../{sourcePath}/{dataModelFile})      <!-- Backend: Entity/Model; Frontend: Type/Interface definition -->
+<!-- Path Note: {relativePath} must be dynamically calculated based on document depth. See SKILL.md "Source Traceability Guide" for calculation method. -->
+- [{EntryPoint}]({relativePath}/{sourcePath}/{entryPointFile})    <!-- Backend: Controller/View/Router; Frontend: Page/View component -->
+- [{BusinessLogic}]({relativePath}/{sourcePath}/{businessLogicFile})  <!-- Backend: Service; Frontend: Store/Composable/Hook -->
+- [{DataModel}]({relativePath}/{sourcePath}/{dataModelFile})      <!-- Backend: Entity/Model; Frontend: Type/Interface definition -->
 </cite>
 
 ---
@@ -66,7 +67,7 @@ graph TB
 ```
 
 **Diagram Source**
-- [{Module} Entry Point](../../{sourcePath}/{moduleEntryFile})
+- [{Module} Entry Point]({relativePath}/{sourcePath}/{moduleEntryFile})
 
 **Boundary Description:**
 | Type | Content | Description |
@@ -300,7 +301,7 @@ flowchart TD
 ```
 
 **Diagram Source**
-- [{Module} Business Logic](../../{sourcePath}/{moduleLogicFile})
+- [{Module} Business Logic]({relativePath}/{sourcePath}/{moduleLogicFile})
 
 **Process Step Description:**
 
@@ -394,6 +395,6 @@ Frontend: Price field in OrderForm → order:edit_price → Readonly
 **Related System Document:** [System Overview Document](../system-overview.md)
 
 **Section Source**
-- [{Module} Entry](../../{sourcePath}/{moduleEntryFile})
-- [{Module} Logic](../../{sourcePath}/{moduleLogicFile})
-- [{Module} Model](../../{sourcePath}/{moduleModelFile})
+- [{Module} Entry]({relativePath}/{sourcePath}/{moduleEntryFile})
+- [{Module} Logic]({relativePath}/{sourcePath}/{moduleLogicFile})
+- [{Module} Model]({relativePath}/{sourcePath}/{moduleModelFile})

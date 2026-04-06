@@ -52,7 +52,7 @@ graph TB
 - erDiagram syntax
 - flowchart instead of graph
 - Quoted node text ["text"]
-- Special characters: @ # < > & etc.
+- Special characters: @ # < > & [ ] etc.
 ```
 
 **Special Character Handling:**
@@ -62,6 +62,7 @@ graph TB
 | `#` | Markdown headers | Spell out or omit |
 | `<` `>` | Generics (`List<String>`) | Use parentheses: `List(String)` |
 | `&` | HTML entities | Spell out: `and` |
+| `[` `]` | Array index (`arr[0]`) | Use parentheses or omit: `arr(0)` or `arr0` |
 
 ### 5. Multi-line Text Handling
 

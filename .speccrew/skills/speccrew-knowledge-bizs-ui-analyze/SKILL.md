@@ -598,16 +598,18 @@ After flow descriptions, add **边界场景 / Boundary Scenarios** table:
 original_text: |
   | Field Name | Field Type | Description | Source |
   |------------|------------|-------------|--------|
-  | {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../{sourcePath}) |
-  | {Field 2} | String | {Description} | [Source](../../{sourcePath}) |
+  | {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source]({pathPrefix}{sourcePath}) |
+  | {Field 2} | String | {Description} | [Source]({pathPrefix}{sourcePath}) |
 
 new_text: |
   | Field Name | Field Type | Description | Source |
   |------------|------------|-------------|--------|
-  | userList | Array | 用户列表数据 | [Source](../../frontend-web/src/views/system/user/index.vue) |
-  | loading | Boolean | 列表加载状态 | [Source](../../frontend-web/src/views/system/user/index.vue) |
-  | queryParams | Object | 查询参数对象 | [Source](../../frontend-web/src/views/system/user/index.vue) |
+  | userList | Array | 用户列表数据 | [Source](../../../../../../frontend-web/src/views/system/user/index.vue) |
+  | loading | Boolean | 列表加载状态 | [Source](../../../../../../frontend-web/src/views/system/user/index.vue) |
+  | queryParams | Object | 查询参数对象 | [Source](../../../../../../frontend-web/src/views/system/user/index.vue) |
 ```
+
+> **Note**: The example above assumes `documentPath` has 8 levels (e.g., `speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md`), so `{pathPrefix}` = `../../../../../../`. Adjust the number of `../` based on actual `documentPath` depth.
 
 **MANDATORY Additions for Section 4:**
 
@@ -649,14 +651,16 @@ Add **响应式依赖链 / Reactive Dependency Chain**:
 original_text: |
   | API Name | Type | Main Function | Source | Document Path |
   |----------|------|---------------|--------|---------------|
-  | {API Name} | Query/Mutation | {Brief description} | [Source](../../{apiSourcePath}) | [API Doc](../../apis/{api-name}.md) |
+  | {API Name} | Query/Mutation | {Brief description} | [Source]({pathPrefix}{apiSourcePath}) | [API Doc]({pathPrefix}apis/{api-name}.md) |
 
 new_text: |
   | API Name | Type | Main Function | Source | Document Path |
   |----------|------|---------------|--------|---------------|
-  | getUserList | Query | 获取用户列表 | [Source](../../frontend-web/src/api/system/user.ts) | [API Doc](../../apis/system/user/getUserList.md) |
-  | updateUserStatus | Mutation | 更新用户状态 | [Source](../../frontend-web/src/api/system/user.ts) | [API Doc](../../apis/system/user/updateUserStatus.md) |
+  | getUserList | Query | 获取用户列表 | [Source](../../../../../../frontend-web/src/api/system/user.ts) | [API Doc](../../../../../../apis/system/user/getUserList.md) |
+  | updateUserStatus | Mutation | 更新用户状态 | [Source](../../../../../../frontend-web/src/api/system/user.ts) | [API Doc](../../../../../../apis/system/user/updateUserStatus.md) |
 ```
+
+> **Note**: The example above assumes `documentPath` has 8 levels (e.g., `speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md`), so `{pathPrefix}` = `../../../../../../`. Adjust the number of `../` based on actual `documentPath` depth.
 
 ---
 
@@ -724,16 +728,33 @@ Add **性能与可扩展性考量** subsection:
 ❌ **NEVER use `file://` protocol in links** — This breaks Markdown preview
 ✅ **ALWAYS use relative paths** — Markdown links work correctly
 
+**Dynamic Path Calculation:**
+The document path depth is variable depending on `{platform_id}` and `{module_path}`. You MUST dynamically calculate the relative path prefix:
+
+1. **Calculate path depth from `documentPath`:**
+   - Count the number of directory separators in `{{documentPath}}` from project root
+   - Example: `speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md` = 8 levels
+   - Example: `speccrew-workspace/knowledges/bizs/mobile-uniapp/bpm/category-form-index.md` = 5 levels
+
+2. **Generate the path prefix:**
+   - For each level in `documentPath`, add one `../`
+   - Example: 5 levels → `../../../../../`
+   - Example: 8 levels → `../../../../../../`
+
+3. **Construct the final link:**
+   - Source link: `[Source]({pathPrefix}{sourcePath})`
+   - Document link: `[Doc]({pathPrefix}{documentPath})`
+
 **Source Traceability Format:**
 Use relative path from current document to source file:
-- Format: `[Source](../../{sourcePath})`
-- Example: `[Source](../../yudao-ui/yudao-ui-admin-vue3/src/views/system/user/index.vue)`
-- The `../../` goes from `speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/` to project root
+- Format: `[Source]({pathPrefix}{sourcePath})`
+- Example for 5-level depth: `[Source](../../../../../yudao-ui/yudao-ui-admin-vue3/src/views/system/user/index.vue)`
+- Example for 8-level depth: `[Source](../../../../../../yudao-ui/yudao-ui-admin-vue3/src/views/system/user/index.vue)`
 
 **Document Link Format:**
 Use relative path from current document:
-- Format: `[Doc](../../{documentPath})`
-- Example: `[Doc](../../speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md)`
+- Format: `[Doc]({pathPrefix}{documentPath})`
+- Example for 5-level depth: `[Doc](../../../../../speccrew-workspace/knowledges/bizs/web-vue3/src/views/system/user/index.md)`
 
 ### Step 6: Report Results
 

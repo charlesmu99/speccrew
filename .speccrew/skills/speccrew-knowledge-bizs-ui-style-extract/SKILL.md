@@ -1,12 +1,12 @@
 ---
 name: speccrew-knowledge-bizs-ui-style-extract
-description: Extract and aggregate UI design patterns (page types, components, layouts) from analyzed bizs feature documents, outputting to techs ui-style directory.
+description: Extract and aggregate UI design patterns (page types, components, layouts) from analyzed bizs feature documents, outputting to techs ui-style-patterns directory.
 tools: Read, Write
 ---
 
 # Bizs UI Style Extract
 
-Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature documents. Through cross-module clustering analysis, identify common page types, component patterns, and layout patterns, then output them to the techs knowledge base `ui-style/` subdirectory.
+Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature documents. Through cross-module clustering analysis, identify common page types, component patterns, and layout patterns, then output them to the techs knowledge base `ui-style-patterns/` subdirectory.
 
 ## Language Adaptation
 
@@ -33,10 +33,15 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 | `feature_docs_path` | Completed feature documents base path, e.g., `speccrew-workspace/knowledges/bizs/{platform-type}/{module}/features/` | Yes |
 | `features_manifest_path` | Path to features-{platform}.json, used to get completed feature list | Yes |
 | `module_overviews_path` | **Parent directory** containing all module overview subdirectories. Example: `knowledges/bizs/web-vue/` (this directory contains `system/system-overview.md`, `user/user-overview.md`, etc.). **NOT** a specific module directory like `knowledges/bizs/web-vue/system/`. | Yes |
-| `output_path` | Output directory, e.g., `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/` | Yes |
+| `output_path` | Output directory, e.g., `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/` | Yes |
 | `language` | User language code | Yes |
 
 ## Output
+
+> **Directory Separation**: This skill outputs to `ui-style-patterns/` (NOT `ui-style/`).
+> - `ui-style/` is managed by techs pipeline (framework-level design system, existing components/pages)
+> - `ui-style-patterns/` is managed by bizs pipeline (business pattern aggregation from feature docs)
+> This separation prevents file conflicts between the two pipelines.
 
 ```
 {output_path}/
@@ -260,6 +265,6 @@ After completion, return a summary object to the caller:
     }
   },
   "total_patterns": 6,
-  "output_path": "speccrew-workspace/knowledges/techs/web-vue/ui-style/"
+  "output_path": "speccrew-workspace/knowledges/techs/web-vue/ui-style-patterns/"
 }
 ```

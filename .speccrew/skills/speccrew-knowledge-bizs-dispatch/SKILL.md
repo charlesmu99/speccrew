@@ -49,7 +49,7 @@ Orchestrate **bizs knowledge base generation** with a 5-stage pipeline: Feature 
 - Feature inventory: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-{platform}.json`
 - Feature docs: `speccrew-workspace/knowledges/bizs/{platform}/{module}/features/*.md`
 - Module overviews: `speccrew-workspace/knowledges/bizs/{platform}/{module}/*-overview.md`
-- UI style patterns: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/` (page-types/, components/, layouts/)
+- UI style patterns: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/` (page-types/, components/, layouts/)
 - System overview: `speccrew-workspace/knowledges/bizs/system-overview.md`
 - Graph data: `speccrew-workspace/knowledges/bizs/graph/`
 
@@ -551,13 +551,13 @@ Platform: Mobile App (mobile-flutter)
 
 ## Stage 3.5: UI Style Pattern Extract (Parallel by Platform)
 
-**Goal**: Extract UI design patterns (page types, component patterns, layout patterns) from analyzed feature documents, aggregating cross-module patterns and outputting to the techs knowledge base `ui-style/` directory.
+**Goal**: Extract UI design patterns (page types, component patterns, layout patterns) from analyzed feature documents, aggregating cross-module patterns and outputting to the techs knowledge base `ui-style-patterns/` directory.
 
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Platform Filter**: Only execute for frontend platforms (platformType = web, mobile, desktop). Backend platforms skip this stage.
 
-**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`knowledges/techs/{platform_id}/ui-style/`) if it does not exist. No pre-check required.
+**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`knowledges/techs/{platform_id}/ui-style-patterns/`) if it does not exist. No pre-check required.
 
 **Action**:
 - Read all `features-{platform}.json` files
@@ -570,13 +570,13 @@ Platform: Mobile App (mobile-flutter)
   - `feature_docs_path`: Feature document base path for that platform
   - `features_manifest_path`: Path to the corresponding `features-{platform}.json`
   - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
-  - `output_path`: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/`
+  - `output_path`: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/`
   - `language`: User's language
   - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
 **Cross-Pipeline Output**:
 - This stage writes to techs knowledge base, not bizs knowledge base
-- Output location: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style/`
+- Output location: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/`
 - Subdirectories: `page-types/`, `components/`, `layouts/`
 - `ui-style-guide.md` and `styles/` are managed by techs pipeline, this stage does not modify them
 
@@ -584,7 +584,7 @@ Platform: Mobile App (mobile-flutter)
 
 **Output per Platform**:
 ```
-speccrew-workspace/knowledges/techs/{platform_id}/ui-style/
+speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/
 ├── page-types/
 │   └── {pattern-name}.md
 ├── components/

@@ -247,31 +247,46 @@ techs/
     ├── conventions-design.md      # 设计阶段约定
     ├── conventions-dev.md         # 开发阶段约定
     ├── conventions-test.md        # 测试阶段约定
-    └── ui-style/                  # UI 样式知识
-        ├── ui-style-guide.md      # UI 样式指南
-        ├── styles/                # 通用样式规范
-        ├── page-types/            # 页面类型样式模式
-        ├── components/            # 组件样式模式
-        └── layouts/               # 布局样式模式
+    ├── ui-style/                  # UI 样式知识 (techs pipeline 管理)
+    │   ├── ui-style-guide.md      # UI 样式指南
+    │   ├── styles/                # 通用样式规范
+    │   ├── page-types/            # 源码发现的页面类型
+    │   ├── components/            # 源码发现的组件库
+    │   └── layouts/               # 源码发现的布局模式
+    │
+    └── ui-style-patterns/         # UI 样式模式 (bizs pipeline Stage 3.5 管理)
+        ├── page-types/            # 业务聚合的页面类型模式
+        ├── components/            # 业务聚合的组件复用模式
+        └── layouts/               # 业务聚合的布局模式
 ```
 
-**ui-style/ 目录说明**：
+**UI Style 目录分离说明**：
 
-`ui-style/` 是 bizs pipeline 和 techs pipeline 的协作点，两个 pipeline 互补写入：
+| 目录 | 管理方 | 生成来源 | 内容说明 |
+|------|--------|----------|----------|
+| `ui-style/` | techs pipeline Stage 2 | 源码分析 | 框架级设计系统（技术视角） |
+| `ui-style-patterns/` | bizs pipeline Stage 3.5 | feature 文档聚合 | 业务 UI 模式（业务视角） |
 
-| 子目录/文件 | 生成来源 | 说明 |
-|-------------|----------|------|
-| `ui-style-guide.md` | techs pipeline Stage 2 | 技术框架层面的样式规范（颜色、字体、间距等基础变量） |
-| `styles/` | techs pipeline Stage 2 | 通用样式规范（全局样式、工具类等） |
-| `page-types/` | bizs pipeline Stage 3.5 | 基于实际 feature 分析归纳的页面类型样式模式 |
-| `components/` | bizs pipeline Stage 3.5 | 基于实际 feature 分析归纳的组件样式模式 |
-| `layouts/` | bizs pipeline Stage 3.5 | 基于实际 feature 分析归纳的布局样式模式 |
+**详细职责划分**：
 
-**跨 pipeline 写入说明**：
+| 子目录/文件 | 所属目录 | 生成来源 | 说明 |
+|-------------|----------|----------|------|
+| `ui-style-guide.md` | `ui-style/` | techs pipeline Stage 2 | 技术框架层面的样式指南 |
+| `styles/` | `ui-style/` | techs pipeline Stage 2 | 颜色/字体/间距系统等基础变量 |
+| `page-types/` | `ui-style/` | techs pipeline Stage 2 | 源码发现的页面类型 |
+| `components/` | `ui-style/` | techs pipeline Stage 2 | 源码发现的组件库 |
+| `layouts/` | `ui-style/` | techs pipeline Stage 2 | 源码发现的布局模式 |
+| `page-types/` | `ui-style-patterns/` | bizs pipeline Stage 3.5 | 业务聚合的页面类型模式 |
+| `components/` | `ui-style-patterns/` | bizs pipeline Stage 3.5 | 业务聚合的组件复用模式 |
+| `layouts/` | `ui-style-patterns/` | bizs pipeline Stage 3.5 | 业务聚合的布局模式 |
 
+**重要说明**：
+
+- `ui-style-patterns/` 目录仅在 bizs pipeline Stage 3.5 执行后才存在
 - **techs pipeline** 负责"自底向上"的基础样式规范，定义技术层面的设计语言
 - **bizs pipeline** 负责"自顶向下"的设计模式归纳，基于实际业务场景提炼可复用的样式模式
 - 两者互补：techs 提供原子层面的规范基础，bizs 提供业务层面的模式抽象
+- Designer Agent 应同时参考两个目录以获得完整的 UI 设计指导
 
 ---
 

@@ -230,13 +230,28 @@ Aggregate source file references from all feature documents:
 
 > **Note**: Use relative paths from the generated document to the source file. Do NOT use `file://` protocol.
 
-**Source reference examples by tech stack:**
+**CRITICAL: Dynamic Relative Path Calculation**
 
-Backend (Java): `[OrderController.java](../../src/main/java/.../OrderController.java#L10-L25)`
-Backend (Python): `[views.py](../../app/order/views.py#L10-L25)`
-Backend (Node.js): `[orderController.js](../../src/modules/order/orderController.js#L10-L25)`
-Frontend (Vue): `[OrderList.vue](../../src/views/order/OrderList.vue#L10-L25)`
-Frontend (React): `[OrderDetail.tsx](../../src/pages/order/OrderDetail.tsx#L10-L25)`
+The document generation location is `speccrew-workspace/knowledges/bizs/{platform_id}/{module_path}/{file}.md`, which has a **variable depth** from the project root. You MUST dynamically calculate the relative path depth based on the actual document location.
+
+**Calculation Method:**
+1. Count the number of directory separators (`/`) from the project root to the document's directory
+2. Each directory level requires one `../` to traverse up to the project root
+3. Example: Document at `speccrew-workspace/knowledges/bizs/backend-ai/chat/overview.md` (5 levels) → Use `../../../../../src/...`
+
+**Common Path Depths Reference:**
+| Document Location | Depth | Relative Path Prefix |
+|---|---|---|
+| `speccrew-workspace/knowledges/bizs/{platform}/{module}/` | 5+ | `../../../../../` |
+| `speccrew-workspace/knowledges/bizs/{platform}/{module}/{sub}/` | 6+ | `../../../../../../` |
+
+**Source reference examples by tech stack (assuming document at depth 5):**
+
+Backend (Java): `[OrderController.java](../../../../../src/main/java/.../OrderController.java#L10-L25)`
+Backend (Python): `[views.py](../../../../../app/order/views.py#L10-L25)`
+Backend (Node.js): `[orderController.js](../../../../../src/modules/order/orderController.js#L10-L25)`
+Frontend (Vue): `[OrderList.vue](../../../../../src/views/order/OrderList.vue#L10-L25)`
+Frontend (React): `[OrderDetail.tsx](../../../../../src/pages/order/OrderDetail.tsx#L10-L25)`
 
 1. **File Reference Block** (at document start):
 ```markdown

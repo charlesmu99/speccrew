@@ -109,6 +109,7 @@ speccrew-workspace/knowledges/techs/{{platform_id}}/
 ├── conventions-design.md      # Required - must exist
 ├── conventions-dev.md         # Required - must exist
 ├── conventions-test.md        # Required - must exist
+├── conventions-build.md       # Required - must exist
 └── conventions-data.md        # Optional - check existence dynamically
 ```
 
@@ -126,7 +127,8 @@ speccrew-workspace/knowledges/techs/{{platform_id}}/
        "conventions-design.md": true,
        "conventions-dev.md": true,
        "conventions-test.md": true,
-       "conventions-data.md": false  // Dynamically detected
+       "conventions-build.md": true,
+       "conventions-data.md": false  // Dynamically detected (optional)
      }
    }
    ```
@@ -135,17 +137,37 @@ speccrew-workspace/knowledges/techs/{{platform_id}}/
    - If any required document (except conventions-data.md) is missing → Note as warning
    - Record actual document availability for dynamic link generation
 
-**Document Availability Rules:**
+#### Document Verification Matrix
 
-| Document | Required | Action if Missing |
-|----------|----------|-------------------|
-| INDEX.md | ✅ Yes | Skip platform, report error |
-| tech-stack.md | ✅ Yes | Report warning |
-| architecture.md | ✅ Yes | Report warning |
-| conventions-design.md | ✅ Yes | Report warning |
-| conventions-dev.md | ✅ Yes | Report warning |
-| conventions-test.md | ✅ Yes | Report warning |
-| conventions-data.md | ❌ No | Omit from links, no warning |
+For each platform directory, verify document existence with these strict rules:
+
+| Document | Required? | If Missing | Action |
+|----------|-----------|------------|--------|
+| INDEX.md | YES | ERROR | Skip entire platform from root INDEX. Log: "ERROR: Platform {platform_id} skipped - INDEX.md missing" |
+| tech-stack.md | YES | WARN | Include platform but mark document as "[Missing]" in links. Log warning |
+| architecture.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
+| conventions-design.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
+| conventions-dev.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
+| conventions-test.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
+| conventions-build.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
+| conventions-data.md | NO | OK | Do not warn. Do not include link. Silently skip |
+
+**Platform Eligibility Rules**:
+- INDEX.md missing → Platform SKIPPED entirely (not listed in root INDEX)
+- Any required doc missing (except INDEX.md) → Platform INCLUDED but marked INCOMPLETE
+- Only conventions-data.md missing → Platform is COMPLETE (it's optional)
+
+**Verification Summary** (generate at end of verification step):
+```
+Verification Report:
+- Total platforms in manifest: {N}
+- Complete platforms: {X} (all 7 required docs present)
+- Incomplete platforms: {Y} (missing some required docs) [WARN]
+  - {platform_id}: missing {doc1}, {doc2}
+- Skipped platforms: {Z} (no INDEX.md) [ERROR]
+  - {platform_id}: INDEX.md not found
+- Optional conventions-data.md present in: {W} platforms
+```
 
 ### Step 3: Extract Platform Summaries
 
@@ -204,20 +226,22 @@ Summary table of all platforms with **dynamically generated document links**:
 ```markdown
 ## Platform Overview
 
-| Platform | Type | Framework | Language | Documents |
-|----------|------|-----------|----------|-----------|
-| [Web Frontend](web-react/INDEX.md) | Web | React 18.2.0 | TypeScript | [Stack](web-react/tech-stack.md), [Arch](web-react/architecture.md), [Design](web-react/conventions-design.md), [Dev](web-react/conventions-dev.md), [Test](web-react/conventions-test.md) |
-| [Backend API](backend-nestjs/INDEX.md) | Backend | NestJS 10.0.0 | TypeScript | [Stack](backend-nestjs/tech-stack.md), [Arch](backend-nestjs/architecture.md), [Design](backend-nestjs/conventions-design.md), [Dev](backend-nestjs/conventions-dev.md), [Test](backend-nestjs/conventions-test.md), [Data](backend-nestjs/conventions-data.md) |
-| [Mobile App](mobile-uniapp/INDEX.md) | Mobile | UniApp | TypeScript | [Stack](mobile-uniapp/tech-stack.md), [Arch](mobile-uniapp/architecture.md), [Design](mobile-uniapp/conventions-design.md), [Dev](mobile-uniapp/conventions-dev.md), [Test](mobile-uniapp/conventions-test.md) |
+| Platform | Type | Framework | Stack | Arch | Design | Dev | Test | Build | Data |
+|----------|------|-----------|-------|------|--------|-----|------|-------|------|
+| [web-react](web-react/INDEX.md) | web | React | [Stack](web-react/tech-stack.md) | [Arch](web-react/architecture.md) | [Design](web-react/conventions-design.md) | [Dev](web-react/conventions-dev.md) | [Test](web-react/conventions-test.md) | [Build](web-react/conventions-build.md) | - |
+| [backend-nestjs](backend-nestjs/INDEX.md) | backend | NestJS | [Stack](backend-nestjs/tech-stack.md) | [Arch](backend-nestjs/architecture.md) | [Design](backend-nestjs/conventions-design.md) | [Dev](backend-nestjs/conventions-dev.md) | [Test](backend-nestjs/conventions-test.md) | [Build](backend-nestjs/conventions-build.md) | [Data](backend-nestjs/conventions-data.md) |
+| [mobile-uniapp](mobile-uniapp/INDEX.md) | mobile | UniApp | [Stack](mobile-uniapp/tech-stack.md) | [Arch](mobile-uniapp/architecture.md) | [Design](mobile-uniapp/conventions-design.md) | [Dev](mobile-uniapp/conventions-dev.md) | [Test](mobile-uniapp/conventions-test.md) | [Build](mobile-uniapp/conventions-build.md) | - |
 ```
 
 **Dynamic Link Generation Rules:**
 
 1. **Always include links to required documents** (if they exist):
-   - INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md
+   - INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md
+   - If document missing → Display `[Missing]` instead of link
 
 2. **Conditionally include conventions-data.md**:
-   - Only add link if `conventions-data.md` exists in the platform directory
+   - If exists → Add link `[Data](...)`
+   - If not exists → Display `-` (dash, not [Missing])
    - For `backend` platforms, typically include
    - For `mobile` platforms without data layer, omit
 
@@ -227,7 +251,8 @@ Summary table of all platforms with **dynamically generated document links**:
    - `[Design]` → conventions-design.md
    - `[Dev]` → conventions-dev.md
    - `[Test]` → conventions-test.md
-   - `[Data]` → conventions-data.md (only if exists)
+   - `[Build]` → conventions-build.md (Required column)
+   - `[Data]` → conventions-data.md (Optional column, show `-` if missing)
 
 #### Section 3: Quick Reference
 
@@ -275,9 +300,10 @@ This section maps dynamically generated Agents to their respective platform docu
 | Tester | speccrew-test-web-react | [speccrew-workspace/knowledges/techs/web-react/](web-react/) |
 
 **Key Documents for Web Agents:**
-- Designer: [architecture.md](web-react/architecture.md), [conventions-design.md](web-react/conventions-design.md)
-- Developer: [conventions-dev.md](web-react/conventions-dev.md)
-- Tester: [conventions-test.md](web-react/conventions-test.md)
+- Designer: [architecture.md](web-react/architecture.md), [conventions-design.md](web-react/conventions-design.md), [ui-style/ui-style-guide.md](web-react/ui-style/ui-style-guide.md)
+  - If bizs pipeline executed: Also reference [ui-style-patterns/](web-react/ui-style-patterns/) for business UI patterns
+- Developer: [conventions-dev.md](web-react/conventions-dev.md), [conventions-build.md](web-react/conventions-build.md)
+- Tester: [conventions-test.md](web-react/conventions-test.md), [conventions-build.md](web-react/conventions-build.md)
 
 ### Backend API (backend-nestjs)
 
@@ -289,8 +315,8 @@ This section maps dynamically generated Agents to their respective platform docu
 
 **Key Documents for Backend Agents:**
 - Designer: [architecture.md](backend-nestjs/architecture.md), [conventions-design.md](backend-nestjs/conventions-design.md), [conventions-data.md](backend-nestjs/conventions-data.md)
-- Developer: [conventions-dev.md](backend-nestjs/conventions-dev.md), [conventions-data.md](backend-nestjs/conventions-data.md)
-- Tester: [conventions-test.md](backend-nestjs/conventions-test.md)
+- Developer: [conventions-dev.md](backend-nestjs/conventions-dev.md), [conventions-build.md](backend-nestjs/conventions-build.md), [conventions-data.md](backend-nestjs/conventions-data.md)
+- Tester: [conventions-test.md](backend-nestjs/conventions-test.md), [conventions-build.md](backend-nestjs/conventions-build.md)
 
 ### Mobile App (mobile-uniapp) - Example without conventions-data.md
 
@@ -301,24 +327,38 @@ This section maps dynamically generated Agents to their respective platform docu
 | Tester | speccrew-test-mobile-uniapp | [speccrew-workspace/knowledges/techs/mobile-uniapp/](mobile-uniapp/) |
 
 **Key Documents for Mobile Agents:**
-- Designer: [architecture.md](mobile-uniapp/architecture.md), [conventions-design.md](mobile-uniapp/conventions-design.md)
-- Developer: [conventions-dev.md](mobile-uniapp/conventions-dev.md)
-- Tester: [conventions-test.md](mobile-uniapp/conventions-test.md)
+- Designer: [architecture.md](mobile-uniapp/architecture.md), [conventions-design.md](mobile-uniapp/conventions-design.md), [ui-style/ui-style-guide.md](mobile-uniapp/ui-style/ui-style-guide.md)
+  - If bizs pipeline executed: Also reference [ui-style-patterns/](mobile-uniapp/ui-style-patterns/) for business UI patterns
+- Developer: [conventions-dev.md](mobile-uniapp/conventions-dev.md), [conventions-build.md](mobile-uniapp/conventions-build.md)
+- Tester: [conventions-test.md](mobile-uniapp/conventions-test.md), [conventions-build.md](mobile-uniapp/conventions-build.md)
 ```
 
 **Dynamic Adjustment Rules:**
 
 1. **Designer Agent Documents**:
-   - Always: architecture.md, conventions-design.md
-   - Conditionally: conventions-data.md (only if platform has data layer)
+   - Primary: architecture.md, conventions-design.md, ui-style/ui-style-guide.md
+   - Optional: conventions-data.md (if data layer involved)
+   - Optional: ui-style-patterns/ directory (if bizs pipeline Stage 3.5 executed)
+   - Note: For frontend/mobile platforms, Designer should reference both ui-style/ (tech perspective) and ui-style-patterns/ (business perspective, if exists)
 
 2. **Developer Agent Documents**:
-   - Always: conventions-dev.md
-   - Conditionally: conventions-data.md (only if platform has data layer)
+   - Primary: conventions-dev.md, conventions-build.md
+   - Optional: conventions-data.md
+   - Note: Developer needs conventions-build.md for build process, environment configuration, and CI/CD conventions
 
 3. **Tester Agent Documents**:
-   - Always: conventions-test.md
-   - Rarely: conventions-data.md (only if testing data layer specifically)
+   - Primary: conventions-test.md, conventions-build.md
+   - Optional: conventions-data.md (for database testing)
+   - Note: Tester needs conventions-build.md for CI/CD pipeline and test environment configuration
+
+**UI Style Directory Reference Guide**:
+
+For frontend platforms (web, mobile, desktop), the INDEX.md should document both UI style directories:
+
+| Directory | Managed By | Content | Reference Condition |
+|-----------|------------|---------|---------------------|
+| `ui-style/` | techs pipeline Stage 2 | Framework-level design system | Always reference for frontend platforms |
+| `ui-style-patterns/` | bizs pipeline Stage 3.5 | Business UI patterns | Only reference if directory exists |
 
 #### Section 5: Document Guide
 
@@ -344,6 +384,9 @@ Naming conventions, code style, directory structure, and Git conventions.
 
 ### conventions-test.md
 Testing frameworks, coverage requirements, and testing patterns.
+
+### conventions-build.md
+Build process, environment configuration, CI/CD pipelines, and deployment conventions.
 
 ### conventions-data.md
 Data modeling, ORM usage, and database conventions (if applicable).
@@ -409,7 +452,7 @@ Use template at `templates/INDEX-TEMPLATE.md`:
 ### Dynamic Document Detection
 - [ ] Each platform directory scanned for actual document existence
 - [ ] Document availability map created for each platform
-- [ ] Required documents verified (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md)
+- [ ] Required documents verified (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-test.md, conventions-build.md)
 - [ ] Optional conventions-data.md existence checked per platform
 
 ### Content Generation

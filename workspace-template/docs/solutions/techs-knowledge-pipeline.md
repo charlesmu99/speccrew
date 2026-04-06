@@ -162,25 +162,38 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 ├── conventions-dev.md         # Required - Development conventions
 ├── conventions-test.md        # Required - Testing conventions
 ├── conventions-data.md        # Optional - Data conventions (conditional)
-└── ui-style/                  # Optional - UI style analysis (frontend only)
-    ├── ui-style-guide.md
-    ├── styles/
-    ├── page-types/            # Filled by bizs pipeline Stage 3.5
-    ├── components/            # Filled by bizs pipeline Stage 3.5
-    └── layouts/               # Filled by bizs pipeline Stage 3.5
+├── ui-style/                  # Optional - UI style analysis (frontend only)
+│   ├── ui-style-guide.md      # techs Stage 2
+│   ├── styles/                # techs Stage 2
+│   ├── page-types/            # techs Stage 2
+│   ├── components/            # techs Stage 2
+│   └── layouts/               # techs Stage 2
+│
+└── ui-style-patterns/         # Optional - bizs Stage 3.5 (if executed)
+    ├── page-types/            # bizs Stage 3.5
+    ├── components/            # bizs Stage 3.5
+    └── layouts/               # bizs Stage 3.5
 ```
 
-**ui-style/ 子目录归属说明**：
+**UI Style Directory Ownership**:
 
-| 子目录/文件         | 生成来源                                    |
-|---------------------|---------------------------------------------|
-| ui-style-guide.md   | techs pipeline Stage 2                      |
-| styles/             | techs pipeline Stage 2                      |
-| page-types/         | bizs pipeline Stage 3.5 (ui-style-extract)  |
-| components/         | bizs pipeline Stage 3.5 (ui-style-extract)  |
-| layouts/            | bizs pipeline Stage 3.5 (ui-style-extract)  |
+| 目录/子目录         | 管理方                  | 生成来源                              | 内容描述                              |
+|---------------------|-------------------------|---------------------------------------|---------------------------------------|
+| `ui-style/`         | techs pipeline          | Stage 2 (techs-generate)              | 框架级设计系统分析（技术视角）        |
+| ├─ ui-style-guide.md| techs pipeline          | Stage 2                               | 技术框架层面的样式指南                |
+| ├─ styles/          | techs pipeline          | Stage 2                               | 颜色/字体/间距系统等基础变量          |
+| ├─ page-types/      | techs pipeline          | Stage 2                               | 源码发现的页面类型                    |
+| ├─ components/      | techs pipeline          | Stage 2                               | 源码发现的组件库                      |
+| └─ layouts/         | techs pipeline          | Stage 2                               | 源码发现的布局模式                    |
+| `ui-style-patterns/`| bizs pipeline           | Stage 3.5 (bizs-ui-style-extract)     | 业务聚合的UI模式（业务视角）          |
+| ├─ page-types/      | bizs pipeline           | Stage 3.5                             | 业务聚合的页面类型模式                |
+| ├─ components/      | bizs pipeline           | Stage 3.5                             | 业务聚合的组件复用模式                |
+| └─ layouts/         | bizs pipeline           | Stage 3.5                             | 业务聚合的布局模式                    |
 
-> **注意**: 如果 bizs pipeline 未执行，`page-types/`、`components/`、`layouts/` 三个子目录将为空。
+> **注意**: 
+> - `ui-style-patterns/` 目录仅在 bizs pipeline Stage 3.5 执行后才存在
+> - 两个目录的内容互补：techs 提供技术视角，bizs 提供业务视角
+> - Designer Agent 应同时参考两个目录
 
 **Document Generation Rules**:
 
@@ -469,13 +482,31 @@ speccrew-workspace/
             ├── conventions-dev.md             # Development conventions
             ├── conventions-test.md            # Testing conventions
             ├── conventions-data.md            # Data conventions (optional)
-            └── ui-style/                      # UI style (frontend only)
-                ├── ui-style-guide.md          # techs Stage 2
-                ├── styles/                    # techs Stage 2
-                ├── page-types/                # bizs Stage 3.5 (if executed)
-                ├── components/                # bizs Stage 3.5 (if executed)
-                └── layouts/                   # bizs Stage 3.5 (if executed)
+            ├── ui-style/                      # UI style (frontend only) - techs Stage 2
+            │   ├── ui-style-guide.md          # 框架级设计系统指南
+            │   ├── styles/                    # 颜色/字体/间距系统
+            │   ├── page-types/                # 源码发现的页面类型
+            │   ├── components/                # 源码发现的组件库
+            │   └── layouts/                   # 源码发现的布局模式
+            │
+            └── ui-style-patterns/             # UI patterns (frontend only) - bizs Stage 3.5
+                ├── page-types/                # 业务聚合的页面类型模式
+                ├── components/                # 业务聚合的组件复用模式
+                └── layouts/                   # 业务聚合的布局模式
 ```
+
+**UI Style Directory Separation**:
+
+| 目录 | 管理 Pipeline | 内容来源 | 存在条件 |
+|------|--------------|----------|----------|
+| `ui-style/` | techs pipeline Stage 2 | 框架级设计系统分析 | 前端平台始终存在 |
+| `ui-style-patterns/` | bizs pipeline Stage 3.5 | 业务 feature 文档聚合 | 仅当 bizs pipeline 执行后存在 |
+
+两个目录的内容互补：
+- **techs pipeline** 提供技术视角：从源码分析得出的框架设计系统、组件库、布局模式
+- **bizs pipeline** 提供业务视角：从业务 feature 文档聚合得出的可复用 UI 模式
+
+Designer Agent 应同时参考两个目录以获得完整的 UI 设计指导。
 
 ---
 
@@ -705,33 +736,52 @@ Template selection logic:
 
 ### UI Style Analysis Integration
 
-For frontend platforms (web, mobile, desktop), Stage 2 generates UI style documentation with the following scope:
+For frontend platforms (web, mobile, desktop), UI style documentation is generated across two separate directories with clear ownership:
 
-**techs pipeline Stage 2 Responsibilities**:
+**techs pipeline Stage 2 Responsibilities** (`ui-style/` directory):
 - `ui-style-guide.md` - Main UI style guide (tech stack, design system overview)
 - `styles/` - Style-related documentation (color system, typography, spacing, etc.)
+- `page-types/` - Page types discovered from source code analysis
+- `components/` - Component library discovered from source code
+- `layouts/` - Layout patterns discovered from source code
 
 ```
 Stage 2 Worker (Frontend Platforms)
     │
     ├─> Extract tech stack
     ├─> Analyze conventions
-    ├─> Generate UI Style (partial)
-    │       Output: ui-style-guide.md, styles/
+    ├─> Generate UI Style (complete)
+    │       Output: ui-style/ (all subdirectories)
     │
     └─> Generate convention documents
 ```
 
-**bizs pipeline Stage 3.5 Responsibilities**:
-The `page-types/`, `components/`, `layouts/` subdirectories are filled by **bizs pipeline Stage 3.5** (`speccrew-knowledge-bizs-ui-style-extract` skill), which extracts UI style patterns from actual business pages:
+**bizs pipeline Stage 3.5 Responsibilities** (`ui-style-patterns/` directory):
+The `ui-style-patterns/` directory and its subdirectories are created and managed by **bizs pipeline Stage 3.5** (`speccrew-knowledge-bizs-ui-style-extract` skill), which extracts UI style patterns from actual business feature documents:
 
-| Subdirectory     | Generated By                              | Content Description |
-|------------------|-------------------------------------------|---------------------|
-| page-types/      | bizs Stage 3.5 (ui-style-extract)         | Page type analysis from business modules |
-| components/      | bizs Stage 3.5 (ui-style-extract)         | Component documentation from actual usage |
-| layouts/         | bizs Stage 3.5 (ui-style-extract)         | Layout patterns from business pages |
+| Directory/Subdirectory | Generated By                              | Content Description |
+|------------------------|-------------------------------------------|---------------------|
+| `ui-style-patterns/`   | bizs Stage 3.5 (ui-style-extract)         | Business pattern aggregation root |
+| ├─ page-types/         | bizs Stage 3.5                            | Page type patterns from business modules |
+| ├─ components/         | bizs Stage 3.5                            | Component reuse patterns from actual usage |
+| └─ layouts/            | bizs Stage 3.5                            | Layout patterns from business pages |
 
-> **Note**: If bizs pipeline is not executed, these three subdirectories (`page-types/`, `components/`, `layouts/`) will remain empty. Refer to `bizs-knowledge-pipeline.md` for details on Stage 3.5.
+> **Important**: 
+> - `ui-style-patterns/` directory is **NOT** created by techs pipeline
+> - It only exists if bizs pipeline Stage 3.5 has been executed
+> - techs pipeline should never write to `ui-style-patterns/`
+> - Refer to `bizs-knowledge-pipeline.md` for details on Stage 3.5
+
+**Cross-Directory Usage for Designer Agent**:
+
+Designer Agent should reference both directories for complete UI design guidance:
+
+| Design Task | Primary Reference | Secondary Reference |
+|-------------|-------------------|---------------------|
+| Color/Typography/Spacing | `ui-style/styles/` | - |
+| Component Selection | `ui-style/components/` | `ui-style-patterns/components/` (if exists) |
+| Page Layout | `ui-style/layouts/` | `ui-style-patterns/layouts/` (if exists) |
+| Page Type Pattern | `ui-style/page-types/` | `ui-style-patterns/page-types/` (if exists) |
 
 ---
 
