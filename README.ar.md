@@ -7,6 +7,12 @@
   <a href="./README.es.md">Español</a>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/v/speccrew.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/dm/speccrew.svg" alt="npm downloads"></a>
+  <a href="https://github.com/charlesmu99/speccrew/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/speccrew.svg" alt="license"></a>
+</p>
+
 > فريق تطوير افتراضي بالذكاء الاصطناعي يتيح التنفيذ الهندسي السريع لأي مشروع برمجي
 
 ## ما هو SpecCrew؟
@@ -93,7 +99,7 @@ graph LR
     B --> C[API Contract<br/>عقد الواجهة]
     C --> D[Design<br/>التصميم التفصيلي]
     D --> E[Dev<br/>التنفيذ]
-    E --> F[Test<br/>الاختبار]
+    E --> F[System Test<br/>اختبار النظام]
     F --> G[Archive<br/>الأرشفة]
     
     H[Knowledge<br/>المستودع] -.-> A
@@ -113,7 +119,7 @@ graph LR
 | Solution | Planner | PRD | الحل التقني + عقد API | ✅ مطلوب |
 | Design | Designer | Solution | مستندات التصميم الأمامي/الخلفي | ✅ مطلوب |
 | Dev | Dev | Design | الكود + سجلات المهام | ✅ مطلوب |
-| Test | Test | مخرجات Dev + معايير قبول PRD | تقرير الاختبار | ✅ مطلوب |
+| System Test | Test Manager | مخرجات Dev + Feature Spec | حالات الاختبار + كود الاختبار + تقرير الاختبار + تقرير الأخطاء | ✅ مطلوب |
 
 ---
 
@@ -134,100 +140,53 @@ graph LR
 
 ## البدء السريع
 
+### المتطلبات المسبقة
+
+- Node.js >= 16.0.0
+- IDEs المدعومة: [Qoder](https://qoder.com/)، Cursor
+
 ### 1. تثبيت SpecCrew
 
-**الطريقة 1: سكريبت التثبيت بنقرة واحدة (موصى به، Qoder IDE فقط)**
-
 ```bash
-# macOS / Linux / WSL - التثبيت من GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
-
-# macOS / Linux / WSL - التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
-```
-
-```powershell
-# Windows - التثبيت من GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
-
-# Windows - التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
-```
-
-> **ملاحظة**: سكريبت التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط. للـ IDEs الأخرى (VS Code, Cursor, إلخ)، يرجى استخدام طريقة النسخ اليدوي أدناه.
-
-**الطريقة 2: النسخ اليدوي (عالمي لجميع IDEs)**
-
-```bash
-# استنساخ المستودع والنسخ إلى مشروع موجود
-git clone https://github.com/charlesmu99/SpecCrew.git
-# أو: git clone https://gitee.com/amutek/SpecCrew.git
-
-# نسخ إلى المشروع الهدف (تعديل حسب دليل تكوين IDE الخاص بك)
-cp -r SpecCrew/.speccrew /path/to/your-project/
-cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
-
-# لـ Qoder IDE، انسخ أيضًا إلى دليل .qoder/
-cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
-cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
+npm install -g speccrew
 ```
 
 ### 2. تهيئة المشروع
 
+انتقل إلى الدليل الجذر لمشروعك وقم بتشغيل أمر التهيئة:
+
 ```bash
-# تشغيل مهارة التهيئة لإنشاء قاعدة المعرفة وهيكل المشروع تلقائياً
-# يتم تنفيذها تلقائياً بواسطة مهارة SpecCrew-project-init
+cd /path/to/your-project
+speccrew init --ide qoder    # أو --ide cursor
 ```
+
+بعد التهيئة، سيتم إنشاء ما يلي في مشروعك:
+- `.qoder/agents/` — 7 تعريفات أدوار Agent
+- `.qoder/skills/` — 38 سير عمل Skill
+- `speccrew-workspace/` — مساحة العمل (أدلة التكرار، قاعدة المعرفة، قوالب المستندات)
+- `.speccrewrc` — ملف تكوين SpecCrew
 
 ### 3. بدء سير عمل التطوير
 
-```bash
-# 1. إنشاء PRD
-# 2. إنشاء Solution
-# 3. تأكيد عقد API
-# 4. التصميم التفصيلي
-# 5. تنفيذ التطوير
-# 6. الاختبار
-```
+اتبع سير عمل الهندسة القياسي خطوة بخطوة:
 
-### 4. إلغاء تثبيت SpecCrew
+1. **PRD**: يقوم Product Manager Agent بتحليل المتطلبات وإنشاء وثيقة متطلبات المنتج
+2. **Feature Design**: يقوم Feature Designer Agent بإنشاء وثيقة تصميم الميزات + عقد API
+3. **System Design**: يقوم System Designer Agent بإنشاء مستندات تصميم النظام حسب المنصة (واجهة/خلفية/محمول/سطح مكتب)
+4. **Dev**: يقوم System Developer Agent بتنفيذ التطوير حسب المنصة بالتوازي
+5. **System Test**: يقوم Test Manager Agent بتنسيق اختبار ثلاثي المراحل (تصميم الحالات → توليد الكود → تقرير التنفيذ)
+6. **Archive**: أرشفة التكرار
 
-**الطريقة 1: سكريبت إلغاء التثبيت بنقرة واحدة (موصى به، Qoder IDE فقط)**
+> تتطلب مخرجات كل مرحلة تأكيداً بشرياً قبل الانتقال إلى المرحلة التالية.
 
-```bash
-# macOS / Linux / WSL - إلغاء التثبيت من GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
-
-# macOS / Linux / WSL - إلغاء التثبيت من Gitee (مرآة الصين)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
-```
-
-```powershell
-# Windows - إلغاء التثبيت من GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
-
-# Windows - إلغاء التثبيت من Gitee (مرآة الصين)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
-```
-
-> **ملاحظة**: سكريبت إلغاء التثبيت بنقرة واحدة يدعم حالياً Qoder IDE فقط.
-
-**الطريقة 2: إلغاء التثبيت اليدوي (عالمي لجميع IDEs)**
+### 4. أوامر CLI الأخرى
 
 ```bash
-# حذف دليل SpecCrew-workspace
-rm -rf SpecCrew-workspace/
-
-# حذف الملفات ببادئة SpecCrew- في .speccrew/ (الحفاظ على المحتوى المخصص)
-rm -rf .speccrew/agents/SpecCrew-*.md
-rm -rf .speccrew/skills/SpecCrew-*/
-
-# لـ Qoder IDE، نظف أيضًا دليل .qoder/
-rm -rf .qoder/agents/SpecCrew-*.md
-rm -rf .qoder/skills/SpecCrew-*/
+speccrew list       # عرض قائمة agents و skills المثبتة
+speccrew doctor     # تشخيص البيئة وحالة التثبيت
+speccrew update     # تحديث agents و skills إلى أحدث إصدار
+speccrew uninstall  # إلغاء تثبيت SpecCrew (--all يحذف أيضاً مساحة العمل)
 ```
-
-> **ملاحظة**: سيؤدي إلغاء التثبيت إلى الحفاظ على ملفات المصدر والمحتوى المخصص في `.speccrew/`. لإزالة تكوينات IDE بالكامل، احذف دليل التكوين المقابل يدوياً (مثل `.qoder/`).
 
 ---
 
@@ -235,40 +194,51 @@ rm -rf .qoder/skills/SpecCrew-*/
 
 ```
 your-project/
-├── .speccrew/                       # ملفات مصدر SpecCrew (قابلة للتحكم في الإصدار)
-├── .qoder/                          # تكوين Qoder IDE (وقت التشغيل)
-│   ├── agents/                      # 6 وكلاء الأدوار
-│   └── skills/                      # 16 مهارة
+├── .qoder/                          # دليل تكوين IDE (مثال Qoder)
+│   ├── agents/                      # 7 وكلاء أدوار
+│   │   ├── speccrew-team-leader.md       # قائد الفريق: الجدولة العامة وإدارة التكرار
+│   │   ├── speccrew-product-manager.md   # مدير المنتج: تحليل المتطلبات و PRD
+│   │   ├── speccrew-feature-designer.md  # مصمم الميزات: Feature Design + عقد API
+│   │   ├── speccrew-system-designer.md   # مصمم النظام: تصميم النظام حسب المنصة
+│   │   ├── speccrew-system-developer.md  # مطور النظام: التطوير المتوازي حسب المنصة
+│   │   ├── speccrew-test-manager.md      # مدير الاختبار: تنسيق الاختبار ثلاثي المراحل
+│   │   └── speccrew-task-worker.md       # عامل المهام: تنفيذ المهام الفرعية المتوازية
+│   └── skills/                      # 38 مهارة (مجمعة حسب الوظيفة)
+│       ├── speccrew-pm-*/                # إدارة المنتج (تحليل المتطلبات، التقييم)
+│       ├── speccrew-fd-*/                # تصميم الميزات (Feature Design، عقد API)
+│       ├── speccrew-sd-*/                # تصميم النظام (واجهة/خلفية/محمول/سطح مكتب)
+│       ├── speccrew-dev-*/               # التطوير (واجهة/خلفية/محمول/سطح مكتب)
+│       ├── speccrew-test-*/              # الاختبار (تصميم الحالات/توليد الكود/تقرير التنفيذ)
+│       ├── speccrew-knowledge-bizs-*/    # معرفة الأعمال (تحليل API/تحليل UI/تصنيف الوحدات، إلخ)
+│       ├── speccrew-knowledge-techs-*/   # المعرفة التقنية (توليد المكدس/الاتفاقيات/الفهرس، إلخ)
+│       ├── speccrew-knowledge-graph-*/   # رسم المعرفة (قراءة/كتابة/استعلام)
+│       └── speccrew-*/                   # الأدوات (التشخيص/الطوابع الزمنية/سير العمل، إلخ)
 │
-└── SpecCrew-workspace/              # مساحة العمل (يتم إنشاؤها أثناء التهيئة)
+└── speccrew-workspace/              # مساحة العمل (تُنشأ أثناء التهيئة)
     ├── docs/                        # المستندات الإدارية
+    │   ├── configs/                 # ملفات التكوين (تعيين المنصة، تعيين المكدس التقني، إلخ)
     │   ├── rules/                   # تكوينات القواعد
     │   └── solutions/               # مستندات الحلول
-    │       └── agent-knowledge-map.md
     │
-    ├── iterations/                  # مشاريع التكرار (يتم إنشاؤها ديناميكياً)
-    │   └── {رقم}-{نوع}-{اسم}/       # مثال: 001-feature-order
+    ├── iterations/                  # مشاريع التكرار (تُنشأ ديناميكياً)
+    │   └── {رقم}-{نوع}-{اسم}/
     │       ├── 00.docs/             # المتطلبات الأصلية
     │       ├── 01.product-requirement/ # متطلبات المنتج
     │       ├── 02.feature-design/   # تصميم الميزات
     │       ├── 03.system-design/    # تصميم النظام
     │       ├── 04.development/      # مرحلة التطوير
-    │       ├── 05.test/             # مرحلة الاختبار
+    │       ├── 05.system-test/      # اختبار النظام
     │       └── 06.delivery/         # مرحلة التسليم
     │
     ├── iteration-archives/          # أرشيف التكرار
-    │   └── {رقم}-{نوع}-{اسم}-{تاريخ}/
     │
     └── knowledges/                  # قاعدة المعرفة
-        ├── base/                    # البيانات الوصفية الأساسية
+        ├── base/                    # الأساس/البيانات الوصفية
         │   ├── diagnosis-reports/   # تقارير التشخيص
         │   ├── sync-state/          # حالة المزامنة
         │   └── tech-debts/          # الديون التقنية
-        │
-        ├── bizs/                    # المعرفة التجارية
-        │   └── {نوع-المنصة}/
-        │       └── {اسم-الوحدة}/
-        │
+        ├── bizs/                    # معرفة الأعمال
+        │   └── {نوع-المنصة}/{اسم-الوحدة}/
         └── techs/                   # المعرفة التقنية
             └── {معرف-المنصة}/
 ```
@@ -304,9 +274,10 @@ your-project/
 
 ## مزيد من المعلومات
 
-- **خريطة معرفة الوكيل**: [SpecCrew-workspace/docs/agent-knowledge-map.md](./SpecCrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/charlesmu99/SpecCrew
-- **Gitee**: https://gitee.com/amutek/SpecCrew
+- **خريطة معرفة الوكيل**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **npm**: https://www.npmjs.com/package/speccrew
+- **GitHub**: https://github.com/charlesmu99/speccrew
+- **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/
 
 ---

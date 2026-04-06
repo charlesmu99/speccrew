@@ -140,100 +140,53 @@ graph LR
 
 ## 快速开始
 
+### 前置条件
+
+- Node.js >= 16.0.0
+- 支持的 IDE：[Qoder](https://qoder.com/)、Cursor
+
 ### 1. 安装 SpecCrew
 
-**方式一：一键安装脚本（推荐，仅适用于 Qoder IDE）**
-
 ```bash
-# macOS / Linux / WSL - 从 GitHub 安装
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
-
-# macOS / Linux / WSL - 从 Gitee 安装（中国镜像）
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
-```
-
-```powershell
-# Windows - 从 GitHub 安装
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
-
-# Windows - 从 Gitee 安装（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
-```
-
-> **注意**：一键安装脚本目前仅支持 Qoder IDE。对于其他 IDE（如 VS Code、Cursor 等），请使用下方手动复制方式。
-
-**方式二：手动复制（适用于所有 IDE）**
-
-```bash
-# 克隆仓库后复制到现有项目
-git clone https://github.com/charlesmu99/SpecCrew.git
-# 或：git clone https://gitee.com/amutek/SpecCrew.git
-
-# 复制到目标项目（根据你的 IDE 配置目录调整）
-cp -r SpecCrew/.speccrew /path/to/your-project/
-cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
-
-# 对于 Qoder IDE，还需复制到 .qoder/ 目录
-cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
-cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
+npm install -g speccrew
 ```
 
 ### 2. 初始化项目
 
+进入你的项目根目录，运行初始化命令：
+
 ```bash
-# 运行初始化 Skill，自动生成知识库和项目结构
-# 由 speccrew-project-init Skill 自动执行
+cd /path/to/your-project
+speccrew init --ide qoder    # 或 --ide cursor
 ```
+
+初始化完成后，项目中会生成：
+- `.qoder/agents/` — 7 个 Agent 角色定义
+- `.qoder/skills/` — 38 个 Skill 工作流
+- `speccrew-workspace/` — 工作区（迭代目录、知识库、文档模板）
+- `.speccrewrc` — SpecCrew 配置文件
 
 ### 3. 开始开发流程
 
-```bash
-# 1. 创建 PRD
-# 2. 生成 Solution
-# 3. 确认 API Contract
-# 4. 详细设计
-# 5. 开发实现
-# 6. 测试验证
-```
+按照标准工程流程逐步推进：
 
-### 4. 卸载 SpecCrew
+1. **PRD**：由产品经理 Agent 分析需求，生成产品需求文档
+2. **Feature Design**：由功能设计师 Agent 生成功能设计文档 + API 契约
+3. **System Design**：由系统设计师 Agent 按端（前端/后端/移动端/桌面端）生成系统设计文档
+4. **Dev**：由系统开发者 Agent 按端并行实现开发
+5. **System Test**：由测试管理员 Agent 协调三阶段测试（用例设计 → 代码生成 → 执行报告）
+6. **Archive**：归档迭代
 
-**方式一：一键卸载脚本（推荐，仅适用于 Qoder IDE）**
+> 每个阶段产出物需人工确认后方可进入下一阶段。
 
-```bash
-# macOS / Linux / WSL - 从 GitHub 卸载
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
-
-# macOS / Linux / WSL - 从 Gitee 卸载（中国镜像）
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
-```
-
-```powershell
-# Windows - 从 GitHub 卸载
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
-
-# Windows - 从 Gitee 卸载（中国镜像）
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
-```
-
-> **注意**：一键卸载脚本目前仅支持 Qoder IDE。
-
-**方式二：手动卸载（适用于所有 IDE）**
+### 4. 其他 CLI 命令
 
 ```bash
-# 删除 speccrew-workspace 目录
-rm -rf speccrew-workspace/
-
-# 删除 .speccrew/ 中的 SpecCrew 前缀文件（保留自定义内容）
-rm -rf .speccrew/agents/SpecCrew-*.md
-rm -rf .speccrew/skills/SpecCrew-*/
-
-# 对于 Qoder IDE，还需清理 .qoder/ 目录
-rm -rf .qoder/agents/SpecCrew-*.md
-rm -rf .qoder/skills/SpecCrew-*/
+speccrew list       # 列出已安装的 agents 和 skills
+speccrew doctor     # 诊断环境和安装状态
+speccrew update     # 更新 agents 和 skills 到最新版本
+speccrew uninstall  # 卸载 SpecCrew（--all 同时删除工作区）
 ```
-
-> **注意**：卸载会保留你在 `.speccrew/` 目录中的源文件和自定义内容。如需完全删除 IDE 配置，请手动删除对应的 IDE 配置目录（如 `.qoder/`）。
 
 ---
 
@@ -241,64 +194,51 @@ rm -rf .qoder/skills/SpecCrew-*/
 
 ```
 your-project/
-├── .speccrew/                       # SpecCrew 源文件（可版本控制）
-├── .qoder/                          # Qoder IDE 配置（运行时）
-│   ├── agents/                      # 6 个角色 Agent
-│   │   ├── speccrew-pm.md
-│   │   ├── speccrew-planner.md
-│   │   ├── speccrew-system-designer.md
-│   │   ├── speccrew-dev-[framework].md
-│   │   └── speccrew-test-[framework].md
-│   └── skills/                      # 16 个 Skill
-│       ├── speccrew-pm-requirement-analysis/
-│       ├── speccrew-fd-feature-design/
-│       ├── speccrew-fd-api-contract/
-│       ├── speccrew-sd-frontend/
-│       ├── speccrew-sd-backend/
-│       ├── speccrew-sd-mobile/
-│       ├── speccrew-sd-desktop/
-│       ├── speccrew-dev-frontend/             # System Developer: frontend dev
-│       ├── speccrew-dev-backend/              # System Developer: backend dev
-│       ├── speccrew-dev-mobile/               # System Developer: mobile dev
-│       ├── speccrew-dev-desktop/              # System Developer: desktop dev
-│       ├── speccrew-test-report/
-│       ├── speccrew-knowledge-dispatch/
-│       ├── speccrew-knowledge-bizs-init/
-│       ├── speccrew-knowledge-bizs-sync/
-│       ├── speccrew-workflow-diagnose/
-│       ├── speccrew-create-se-infrastructure/
-│       ├── speccrew-skill-develop/
-│       └── speccrew-agent-optimize/
+├── .qoder/                          # IDE 配置目录（Qoder 示例）
+│   ├── agents/                      # 7 个角色 Agent
+│   │   ├── speccrew-team-leader.md       # 团队领导：全局调度与迭代管理
+│   │   ├── speccrew-product-manager.md   # 产品经理：需求分析与 PRD
+│   │   ├── speccrew-feature-designer.md  # 功能设计师：Feature Design + API 契约
+│   │   ├── speccrew-system-designer.md   # 系统设计师：按端生成系统设计
+│   │   ├── speccrew-system-developer.md  # 系统开发者：按端并行开发
+│   │   ├── speccrew-test-manager.md      # 测试管理员：三阶段测试协调
+│   │   └── speccrew-task-worker.md       # 任务工人：并行子任务执行
+│   └── skills/                      # 38 个 Skill（按职能分组）
+│       ├── speccrew-pm-*/                # 产品管理（需求分析、需求评估）
+│       ├── speccrew-fd-*/                # 功能设计（Feature Design、API 契约）
+│       ├── speccrew-sd-*/                # 系统设计（前端/后端/移动端/桌面端）
+│       ├── speccrew-dev-*/               # 开发实现（前端/后端/移动端/桌面端）
+│       ├── speccrew-test-*/              # 测试（用例设计/代码生成/执行报告）
+│       ├── speccrew-knowledge-bizs-*/    # 业务知识库（API分析/UI分析/模块分类等）
+│       ├── speccrew-knowledge-techs-*/   # 技术知识库（技术栈生成/规约/索引等）
+│       ├── speccrew-knowledge-graph-*/   # 知识图谱（读写查询）
+│       └── speccrew-*/                   # 工具类（诊断/时间戳/工作流等）
 │
 └── speccrew-workspace/              # 工作区（初始化时生成）
     ├── docs/                        # 管理性文档
+    │   ├── configs/                 # 配置文件（平台映射、技术栈映射等）
     │   ├── rules/                   # 规则配置
     │   └── solutions/               # 解决方案文档
-    │       └── agent-knowledge-map.md
     │
     ├── iterations/                  # 迭代项目（动态生成）
-    │   └── {序号}-{类型}-{名称}/     # 如 001-feature-order
+    │   └── {序号}-{类型}-{名称}/
     │       ├── 00.docs/             # 原始需求文档
     │       ├── 01.product-requirement/ # 产品需求文档
-    │       ├── 02.feature-design/   # 特性设计
+    │       ├── 02.feature-design/   # 功能设计
     │       ├── 03.system-design/    # 系统设计
     │       ├── 04.development/      # 开发阶段
-    │       ├── 05.test/             # 测试阶段
+    │       ├── 05.system-test/      # 系统测试
     │       └── 06.delivery/         # 交付阶段
     │
     ├── iteration-archives/          # 迭代归档
-    │   └── {序号}-{类型}-{名称}-{日期}/
     │
     └── knowledges/                  # 知识库
         ├── base/                    # 基础/元数据
         │   ├── diagnosis-reports/   # 诊断报告
         │   ├── sync-state/          # 同步状态
         │   └── tech-debts/          # 技术债
-        │
         ├── bizs/                    # 业务知识
-        │   └── {platform-type}/
-        │       └── {module-name}/
-        │
+        │   └── {platform-type}/{module-name}/
         └── techs/                   # 技术知识
             └── {platform-id}/
 ```
@@ -337,6 +277,7 @@ your-project/
 ## 更多信息
 
 - **Agent 知识地图**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **npm**: https://www.npmjs.com/package/speccrew
 - **GitHub**: https://github.com/charlesmu99/speccrew
 - **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/

@@ -7,6 +7,12 @@
   <a href="./README.es.md">Español</a>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/v/speccrew.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/dm/speccrew.svg" alt="npm downloads"></a>
+  <a href="https://github.com/charlesmu99/speccrew/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/speccrew.svg" alt="license"></a>
+</p>
+
 > Un equipo de desarrollo virtual de IA que permite la implementación de ingeniería rápida para cualquier proyecto de software
 
 ## ¿Qué es SpecCrew?
@@ -93,7 +99,7 @@ graph LR
     B --> C[API Contract<br/>Contrato de Interfaz]
     C --> D[Design<br/>Diseño Detallado]
     D --> E[Dev<br/>Implementación]
-    E --> F[Test<br/>Pruebas]
+    E --> F[System Test<br/>Pruebas del Sistema]
     F --> G[Archive<br/>Archivado]
     
     H[Knowledge<br/>Repositorio] -.-> A
@@ -113,7 +119,7 @@ graph LR
 | Solution | Planner | PRD | Solución Técnica + Contrato API | ✅ Requerido |
 | Design | Designer | Solution | Documentos de Diseño Frontend/Backend | ✅ Requerido |
 | Dev | Dev | Design | Código + Registros de Tareas | ✅ Requerido |
-| Test | Test | Salida Dev + Criterios de Aceptación PRD | Reporte de Pruebas | ✅ Requerido |
+| System Test | Test Manager | Salida Dev + Feature Spec | Casos de Prueba + Código de Prueba + Reporte de Pruebas + Reporte de Bugs | ✅ Requerido |
 
 ---
 
@@ -134,100 +140,53 @@ graph LR
 
 ## Inicio Rápido
 
+### Requisitos Previos
+
+- Node.js >= 16.0.0
+- IDEs compatibles: [Qoder](https://qoder.com/), Cursor
+
 ### 1. Instalar SpecCrew
 
-**Método 1: Script de Instalación con Un Clic (Recomendado, solo Qoder IDE)**
-
 ```bash
-# macOS / Linux / WSL - Instalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
-
-# macOS / Linux / WSL - Instalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
-```
-
-```powershell
-# Windows - Instalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
-
-# Windows - Instalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
-```
-
-> **Nota**: El script de instalación con un clic actualmente solo soporta Qoder IDE. Para otros IDEs (VS Code, Cursor, etc.), use el método de copia manual a continuación.
-
-**Método 2: Copia Manual (Universal para todos los IDEs)**
-
-```bash
-# Clonar repositorio y copiar a proyecto existente
-git clone https://github.com/charlesmu99/SpecCrew.git
-# o: git clone https://gitee.com/amutek/SpecCrew.git
-
-# Copiar al proyecto destino (ajustar según el directorio de configuración de su IDE)
-cp -r SpecCrew/.speccrew /path/to/your-project/
-cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
-
-# Para Qoder IDE, también copiar al directorio .qoder/
-cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
-cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
+npm install -g speccrew
 ```
 
 ### 2. Inicializar Proyecto
 
+Navegue al directorio raíz de su proyecto y ejecute el comando de inicialización:
+
 ```bash
-# Ejecutar Skill de inicialización para generar automáticamente base de conocimiento y estructura del proyecto
-# Ejecutado automáticamente por el Skill SpecCrew-project-init
+cd /ruta/a/su-proyecto
+speccrew init --ide qoder    # o --ide cursor
 ```
+
+Después de la inicialización, se generarán en su proyecto:
+- `.qoder/agents/` — 7 definiciones de roles Agent
+- `.qoder/skills/` — 38 flujos de trabajo Skill
+- `speccrew-workspace/` — Espacio de trabajo (directorios de iteración, base de conocimientos, plantillas de documentos)
+- `.speccrewrc` — Archivo de configuración de SpecCrew
 
 ### 3. Iniciar Flujo de Trabajo de Desarrollo
 
-```bash
-# 1. Crear PRD
-# 2. Generar Solution
-# 3. Confirmar Contrato API
-# 4. Diseño Detallado
-# 5. Implementación de Desarrollo
-# 6. Pruebas
-```
+Siga el flujo de trabajo de ingeniería estándar paso a paso:
 
-### 4. Desinstalar SpecCrew
+1. **PRD**: El Agent Product Manager analiza los requisitos y genera el documento de requisitos del producto
+2. **Feature Design**: El Agent Feature Designer genera el documento de diseño de funcionalidades + contrato API
+3. **System Design**: El Agent System Designer genera documentos de diseño del sistema por plataforma (frontend/backend/móvil/escritorio)
+4. **Dev**: El Agent System Developer implementa el desarrollo por plataforma en paralelo
+5. **System Test**: El Agent Test Manager coordina las pruebas de tres fases (diseño de casos → generación de código → reporte de ejecución)
+6. **Archive**: Archivar iteración
 
-**Método 1: Script de Desinstalación con Un Clic (Recomendado, solo Qoder IDE)**
+> Los entregables de cada fase requieren confirmación humana antes de proceder a la siguiente fase.
 
-```bash
-# macOS / Linux / WSL - Desinstalar desde GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
-
-# macOS / Linux / WSL - Desinstalar desde Gitee (Espejo de China)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
-```
-
-```powershell
-# Windows - Desinstalar desde GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
-
-# Windows - Desinstalar desde Gitee (Espejo de China)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
-```
-
-> **Nota**: El script de desinstalación con un clic actualmente solo soporta Qoder IDE.
-
-**Método 2: Desinstalación Manual (Universal para todos los IDEs)**
+### 4. Otros Comandos CLI
 
 ```bash
-# Eliminar directorio SpecCrew-workspace
-rm -rf SpecCrew-workspace/
-
-# Eliminar archivos con prefijo SpecCrew- en .speccrew/ (preservar contenido personalizado)
-rm -rf .speccrew/agents/SpecCrew-*.md
-rm -rf .speccrew/skills/SpecCrew-*/
-
-# Para Qoder IDE, también limpiar el directorio .qoder/
-rm -rf .qoder/agents/SpecCrew-*.md
-rm -rf .qoder/skills/SpecCrew-*/
+speccrew list       # Listar agents y skills instalados
+speccrew doctor     # Diagnosticar entorno y estado de instalación
+speccrew update     # Actualizar agents y skills a la última versión
+speccrew uninstall  # Desinstalar SpecCrew (--all también elimina el workspace)
 ```
-
-> **Nota**: La desinstalación preservará los archivos fuente y contenido personalizado en `.speccrew/`. Para eliminar completamente las configuraciones del IDE, elimina manualmente el directorio de configuración correspondiente (ej., `.qoder/`).
 
 ---
 
@@ -235,40 +194,51 @@ rm -rf .qoder/skills/SpecCrew-*/
 
 ```
 your-project/
-├── .speccrew/                       # Archivos fuente SpecCrew (controlables por versión)
-├── .qoder/                          # Configuración Qoder IDE (tiempo de ejecución)
-│   ├── agents/                      # 6 Agentes de rol
-│   └── skills/                      # 16 Skills
+├── .qoder/                          # Directorio de configuración IDE (ejemplo Qoder)
+│   ├── agents/                      # 7 Agents de roles
+│   │   ├── speccrew-team-leader.md       # Líder de Equipo: Programación global y gestión de iteraciones
+│   │   ├── speccrew-product-manager.md   # Product Manager: Análisis de requisitos y PRD
+│   │   ├── speccrew-feature-designer.md  # Feature Designer: Feature Design + Contrato API
+│   │   ├── speccrew-system-designer.md   # System Designer: Diseño de sistema por plataforma
+│   │   ├── speccrew-system-developer.md  # System Developer: Desarrollo paralelo por plataforma
+│   │   ├── speccrew-test-manager.md      # Test Manager: Coordinación de pruebas de tres fases
+│   │   └── speccrew-task-worker.md       # Task Worker: Ejecución paralela de subtareas
+│   └── skills/                      # 38 Skills (agrupados por función)
+│       ├── speccrew-pm-*/                # Gestión de Producto (análisis de requisitos, evaluación)
+│       ├── speccrew-fd-*/                # Feature Design (Feature Design, Contrato API)
+│       ├── speccrew-sd-*/                # System Design (frontend/backend/móvil/escritorio)
+│       ├── speccrew-dev-*/               # Desarrollo (frontend/backend/móvil/escritorio)
+│       ├── speccrew-test-*/              # Pruebas (diseño de casos/generación de código/reporte de ejecución)
+│       ├── speccrew-knowledge-bizs-*/    # Conocimiento de Negocio (análisis API/análisis UI/clasificación de módulos, etc.)
+│       ├── speccrew-knowledge-techs-*/   # Conocimiento Técnico (generación de stack/convenciones/índice, etc.)
+│       ├── speccrew-knowledge-graph-*/   # Grafo de Conocimiento (leer/escribir/consultar)
+│       └── speccrew-*/                   # Utilidades (diagnósticos/marcas de tiempo/flujo de trabajo, etc.)
 │
-└── SpecCrew-workspace/              # Espacio de trabajo (generado durante inicialización)
+└── speccrew-workspace/              # Espacio de trabajo (generado durante inicialización)
     ├── docs/                        # Documentos administrativos
+    │   ├── configs/                 # Archivos de configuración (mapeo de plataforma, mapeo de stack técnico, etc.)
     │   ├── rules/                   # Configuraciones de reglas
     │   └── solutions/               # Documentos de soluciones
-    │       └── agent-knowledge-map.md
     │
     ├── iterations/                  # Proyectos de iteración (generados dinámicamente)
-    │   └── {número}-{tipo}-{nombre}/ # ej., 001-feature-order
+    │   └── {número}-{tipo}-{nombre}/
     │       ├── 00.docs/             # Requisitos originales
     │       ├── 01.product-requirement/ # Requisitos del producto
     │       ├── 02.feature-design/   # Diseño de características
     │       ├── 03.system-design/    # Diseño del sistema
     │       ├── 04.development/      # Fase de desarrollo
-    │       ├── 05.test/             # Fase de pruebas
+    │       ├── 05.system-test/      # Pruebas del sistema
     │       └── 06.delivery/         # Fase de entrega
     │
     ├── iteration-archives/          # Archivos de iteración
-    │   └── {número}-{tipo}-{nombre}-{fecha}/
     │
     └── knowledges/                  # Base de conocimiento
-        ├── base/                    # Metadatos base
+        ├── base/                    # Base/metadatos
         │   ├── diagnosis-reports/   # Informes de diagnóstico
         │   ├── sync-state/          # Estado de sincronización
         │   └── tech-debts/          # Deudas técnicas
-        │
         ├── bizs/                    # Conocimiento de negocio
-        │   └── {tipo-de-plataforma}/
-        │       └── {nombre-del-módulo}/
-        │
+        │   └── {tipo-de-plataforma}/{nombre-del-módulo}/
         └── techs/                   # Conocimiento técnico
             └── {id-de-plataforma}/
 ```
@@ -304,9 +274,10 @@ your-project/
 
 ## Más Información
 
-- **Mapa de Conocimiento del Agente**: [SpecCrew-workspace/docs/agent-knowledge-map.md](./SpecCrew-workspace/docs/agent-knowledge-map.md)
-- **GitHub**: https://github.com/charlesmu99/SpecCrew
-- **Gitee**: https://gitee.com/amutek/SpecCrew
+- **Mapa de Conocimiento del Agente**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **npm**: https://www.npmjs.com/package/speccrew
+- **GitHub**: https://github.com/charlesmu99/speccrew
+- **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/
 
 ---

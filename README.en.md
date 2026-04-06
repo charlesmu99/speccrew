@@ -7,6 +7,12 @@
   <a href="./README.es.md">Español</a>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/v/speccrew.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/dm/speccrew.svg" alt="npm downloads"></a>
+  <a href="https://github.com/charlesmu99/speccrew/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/speccrew.svg" alt="license"></a>
+</p>
+
 > A virtual AI development team that enables rapid engineering implementation for any software project
 
 ## What is SpecCrew?
@@ -93,7 +99,7 @@ graph LR
     B --> C[API Contract<br/>Interface Contract]
     C --> D[Design<br/>Detailed Design]
     D --> E[Dev<br/>Implementation]
-    E --> F[Test<br/>Testing]
+    E --> F[System Test<br/>Testing]
     F --> G[Archive<br/>Archiving]
     
     H[Knowledge<br/>Repository] -.-> A
@@ -113,7 +119,7 @@ graph LR
 | Solution | Planner | PRD | Technical Solution + API Contract | ✅ Required |
 | Design | Designer | Solution | Frontend/Backend Design Documents | ✅ Required |
 | Dev | Dev | Design | Code + Task Records | ✅ Required |
-| Test | Test | Dev Output + PRD Acceptance Criteria | Test Report | ✅ Required |
+| System Test | Test Manager | Dev Output + Feature Spec | Test Cases + Test Code + Test Report + Bug Report | ✅ Required |
 
 ---
 
@@ -134,100 +140,53 @@ graph LR
 
 ## Quick Start
 
+### Prerequisites
+
+- Node.js >= 16.0.0
+- Supported IDEs: [Qoder](https://qoder.com/), Cursor
+
 ### 1. Install SpecCrew
 
-**Method 1: One-click Install Script (Recommended, Qoder IDE only)**
-
 ```bash
-# macOS / Linux / WSL - Install from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.sh | bash
-
-# macOS / Linux / WSL - Install from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.sh | bash
-```
-
-```powershell
-# Windows - Install from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/install-qoder.ps1").Content
-
-# Windows - Install from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/install-qoder.ps1").Content
-```
-
-> **Note**: One-click installation script currently only supports Qoder IDE. For other IDEs (VS Code, Cursor, etc.), please use manual copy method below.
-
-**Method 2: Manual Copy (Universal for all IDEs)**
-
-```bash
-# Clone repository and copy to existing project
-git clone https://github.com/charlesmu99/speccrew.git
-# or: git clone https://gitee.com/amutek/speccrew.git
-
-# Copy to target project (adjust based on your IDE config directory)
-cp -r SpecCrew/.speccrew /path/to/your-project/
-cp -r SpecCrew/SpecCrew-workspace /path/to/your-project/
-
-# For Qoder IDE, also copy to .qoder/ directory
-cp -r SpecCrew/.speccrew/agents/* /path/to/your-project/.qoder/agents/
-cp -r SpecCrew/.speccrew/skills/* /path/to/your-project/.qoder/skills/
+npm install -g speccrew
 ```
 
 ### 2. Initialize Project
 
+Navigate to your project root directory and run the initialization command:
+
 ```bash
-# Run initialization Skill to automatically generate knowledge base and project structure
-# Executed automatically by speccrew-project-init Skill
+cd /path/to/your-project
+speccrew init --ide qoder    # or --ide cursor
 ```
+
+After initialization, the following will be generated in your project:
+- `.qoder/agents/` — 7 Agent role definitions
+- `.qoder/skills/` — 38 Skill workflows
+- `speccrew-workspace/` — Workspace (iteration directories, knowledge base, document templates)
+- `.speccrewrc` — SpecCrew configuration file
 
 ### 3. Start Development Workflow
 
-```bash
-# 1. Create PRD
-# 2. Generate Solution
-# 3. Confirm API Contract
-# 4. Detailed Design
-# 5. Development Implementation
-# 6. Testing
-```
+Follow the standard engineering workflow step by step:
 
-### 4. Uninstall SpecCrew
+1. **PRD**: Product Manager Agent analyzes requirements and generates product requirements document
+2. **Feature Design**: Feature Designer Agent generates feature design document + API contract
+3. **System Design**: System Designer Agent generates system design documents by platform (frontend/backend/mobile/desktop)
+4. **Dev**: System Developer Agent implements development by platform in parallel
+5. **System Test**: Test Manager Agent coordinates three-phase testing (case design → code generation → execution report)
+6. **Archive**: Archive iteration
 
-**Method 1: One-Click Uninstall Script (Recommended, Qoder IDE only)**
+> Each phase's deliverables require human confirmation before proceeding to the next phase.
 
-```bash
-# macOS / Linux / WSL - Uninstall from GitHub
-curl -fsSL https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.sh | bash
-
-# macOS / Linux / WSL - Uninstall from Gitee (China Mirror)
-curl -fsSL https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.sh | bash
-```
-
-```powershell
-# Windows - Uninstall from GitHub
-Invoke-Expression (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/charlesmu99/SpecCrew/main/scripts/uninstall-qoder.ps1").Content
-
-# Windows - Uninstall from Gitee (China Mirror)
-Invoke-Expression (Invoke-WebRequest -Uri "https://gitee.com/amutek/speccrew/raw/main/scripts/uninstall-qoder.ps1").Content
-```
-
-> **Note**: One-click uninstall script currently only supports Qoder IDE.
-
-**Method 2: Manual Uninstall (Universal for all IDEs)**
+### 4. Other CLI Commands
 
 ```bash
-# Remove speccrew-workspace directory
-rm -rf speccrew-workspace/
-
-# Remove SpecCrew-prefixed files in .speccrew/ (preserve custom content)
-rm -rf .speccrew/agents/SpecCrew-*.md
-rm -rf .speccrew/skills/SpecCrew-*/
-
-# For Qoder IDE, also clean up .qoder/ directory
-rm -rf .qoder/agents/SpecCrew-*.md
-rm -rf .qoder/skills/SpecCrew-*/
+speccrew list       # List installed agents and skills
+speccrew doctor     # Diagnose environment and installation status
+speccrew update     # Update agents and skills to latest version
+speccrew uninstall  # Uninstall SpecCrew (--all also removes workspace)
 ```
-
-> **Note**: Uninstallation will preserve source files and custom content in `.speccrew/`. To completely remove IDE configurations, manually delete the corresponding IDE config directory (e.g., `.qoder/`).
 
 ---
 
@@ -235,40 +194,51 @@ rm -rf .qoder/skills/SpecCrew-*/
 
 ```
 your-project/
-├── .speccrew/                       # SpecCrew source files (version controllable)
-├── .qoder/                          # Qoder IDE configuration (runtime)
-│   ├── agents/                      # 6 role Agents
-│   └── skills/                      # 16 Skills
+├── .qoder/                          # IDE configuration directory (Qoder example)
+│   ├── agents/                      # 7 role Agents
+│   │   ├── speccrew-team-leader.md       # Team Leader: Global scheduling and iteration management
+│   │   ├── speccrew-product-manager.md   # Product Manager: Requirements analysis and PRD
+│   │   ├── speccrew-feature-designer.md  # Feature Designer: Feature Design + API Contract
+│   │   ├── speccrew-system-designer.md   # System Designer: System design by platform
+│   │   ├── speccrew-system-developer.md  # System Developer: Parallel development by platform
+│   │   ├── speccrew-test-manager.md      # Test Manager: Three-phase testing coordination
+│   │   └── speccrew-task-worker.md       # Task Worker: Parallel subtask execution
+│   └── skills/                      # 38 Skills (grouped by function)
+│       ├── speccrew-pm-*/                # Product Management (requirements analysis, evaluation)
+│       ├── speccrew-fd-*/                # Feature Design (Feature Design, API Contract)
+│       ├── speccrew-sd-*/                # System Design (frontend/backend/mobile/desktop)
+│       ├── speccrew-dev-*/               # Development (frontend/backend/mobile/desktop)
+│       ├── speccrew-test-*/              # Testing (case design/code generation/execution report)
+│       ├── speccrew-knowledge-bizs-*/    # Business Knowledge (API analysis/UI analysis/module classification, etc.)
+│       ├── speccrew-knowledge-techs-*/   # Technical Knowledge (tech stack generation/conventions/index, etc.)
+│       ├── speccrew-knowledge-graph-*/   # Knowledge Graph (read/write/query)
+│       └── speccrew-*/                   # Utilities (diagnostics/timestamps/workflow, etc.)
 │
 └── speccrew-workspace/              # Workspace (generated during initialization)
     ├── docs/                        # Management documents
+    │   ├── configs/                 # Configuration files (platform mapping, tech stack mapping, etc.)
     │   ├── rules/                   # Rule configurations
     │   └── solutions/               # Solution documents
-    │       └── agent-knowledge-map.md
     │
     ├── iterations/                  # Iteration projects (dynamically generated)
-    │   └── {number}-{type}-{name}/  # e.g., 001-feature-order
+    │   └── {number}-{type}-{name}/
     │       ├── 00.docs/             # Original requirements
     │       ├── 01.product-requirement/ # Product requirements
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Development phase
-    │       ├── 05.test/             # Testing phase
+    │       ├── 05.system-test/      # System testing
     │       └── 06.delivery/         # Delivery phase
     │
     ├── iteration-archives/          # Iteration archives
-    │   └── {number}-{type}-{name}-{date}/
     │
     └── knowledges/                  # Knowledge base
-        ├── base/                    # Base metadata
+        ├── base/                    # Base/metadata
         │   ├── diagnosis-reports/   # Diagnosis reports
         │   ├── sync-state/          # Sync state
         │   └── tech-debts/          # Technical debts
-        │
         ├── bizs/                    # Business knowledge
-        │   └── {platform-type}/
-        │       └── {module-name}/
-        │
+        │   └── {platform-type}/{module-name}/
         └── techs/                   # Technical knowledge
             └── {platform-id}/
 ```
@@ -305,6 +275,7 @@ your-project/
 ## More Information
 
 - **Agent Knowledge Map**: [speccrew-workspace/docs/agent-knowledge-map.md](./speccrew-workspace/docs/agent-knowledge-map.md)
+- **npm**: https://www.npmjs.com/package/speccrew
 - **GitHub**: https://github.com/charlesmu99/speccrew
 - **Gitee**: https://gitee.com/amutek/speccrew
 - **Qoder IDE**: https://qoder.com/
