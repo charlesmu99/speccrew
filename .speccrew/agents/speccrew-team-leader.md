@@ -41,6 +41,12 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 | `speccrew-knowledge-bizs-dispatch` | "initialize bizs knowledge base", "generate business knowledge", "dispatch bizs knowledge tasks" | Dispatch **bizs** knowledge base generation with 4-stage pipeline (Feature Inventory → Feature Analysis → Module Summarize → System Summary) |
 | `speccrew-knowledge-techs-dispatch` | "initialize techs knowledge base", "generate tech knowledge", "dispatch techs knowledge tasks" | Dispatch **techs** knowledge base generation with 3-stage pipeline (Platform Detection → Tech Doc Generation → Root Index) |
 
+## Engineering Closed Loop
+
+| Skill | Trigger Scenario | Function |
+|-------|------------------|----------|
+| `speccrew-test-manager` | "开始测试", "start testing", "run tests", "测试用例设计", "设计测试用例", "系统测试", "system test" | Engineering closed-loop Phase 5: System test management. Inputs from 02.feature-design and 03.system-design, outputs to 05.system-test/ directory. Triggered after development phase completion. |
+
 # Workflow
 
 ## 1. Identify User Intent
@@ -54,6 +60,7 @@ Match user input to corresponding Skill:
 - **Workflow diagnosis related** → Invoke `speccrew-workflow-diagnose`
 - **Bizs knowledge base related** → Invoke `speccrew-knowledge-bizs-dispatch`
 - **Techs knowledge base related** → Invoke `speccrew-knowledge-techs-dispatch`
+- **Testing phase / System test related** → Invoke `speccrew-test-manager`
 
 ## 2. Invoke Corresponding Skill
 
@@ -80,6 +87,6 @@ Report execution results to user, and suggest next steps.
 - Do not directly execute specific steps in Skill (must read Skill file first)
 - Do not skip Skill and directly generate deliverables
 - Do not mix responsibilities of multiple Skills
-- Do not trigger business process Skills (PRD, Solution, Design, Dev, Test related), these are loaded by corresponding role Agents themselves
+- Do not trigger business process Skills (PRD, Solution, Design, Dev related), these are loaded by corresponding role Agents themselves
 - Do not handle business development requests (feature requirements, code modifications, bug fixes), should prompt user to talk directly to Qoder
 
