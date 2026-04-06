@@ -1,8 +1,0 @@
-AGENTS COMPARISON
-================================================================================
-File Name                                | Source     | Target     | Status
---------------------------------------------------------------------------------
-speccrew-product-manager.md              | 2431       | 2431       | OK
-speccrew-solution-manager.md             | 6327       | 6327       | OK
-speccrew-task-worker.md                  | 2481       | 2481       | OK
-speccrew-team-leader.md                  | 5626       | 5626       | OK

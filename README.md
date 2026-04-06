@@ -7,6 +7,12 @@
   <a href="./README.es.md">Español</a>
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/v/speccrew.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/speccrew"><img src="https://img.shields.io/npm/dm/speccrew.svg" alt="npm downloads"></a>
+  <a href="https://github.com/charlesmu99/speccrew/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/speccrew.svg" alt="license"></a>
+</p>
+
 > 让任何软件项目快速实现工程化落地的虚拟 AI 开发团队
 
 ## 什么是 SpecCrew？
@@ -93,7 +99,7 @@ graph LR
     B --> C[API Contract<br/>接口契约]
     C --> D[System Design<br/>系统设计]
     D --> E[Dev<br/>开发实现]
-    E --> F[Test<br/>测试验证]
+    E --> F[System Test<br/>系统测试]
     F --> G[Archive<br/>归档]
     
     H[Knowledge<br/>知识库] -.-> A
@@ -113,7 +119,7 @@ graph LR
 | Feature Design | Feature Designer | PRD | 功能设计文档 + 接口契约 | ✅ 必需 |
 | System Design | System Designer | Feature Spec | 前端/后端设计文档 | ✅ 必需 |
 | Dev | Dev | Design | 代码 + 任务记录 | ✅ 必需 |
-| Test | Test | Dev 产出 + PRD 验收标准 | 测试报告 | ✅ 必需 |
+| System Test | Test Manager | Dev 产出 + Feature Spec | 测试用例 + 测试代码 + 测试报告 + Bug 报告 | ✅ 必需 |
 
 ---
 
