@@ -28,5 +28,8 @@ spec-kit
 OpenSpec/
 spec-kit/
 
+# Target projects (runtime only, not tracked)
+ruoyi-vue-pro/
+
 # Test folder
 test/
