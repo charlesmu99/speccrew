@@ -98,37 +98,34 @@ See [templates/techs-manifest-EXAMPLE.json](templates/techs-manifest-EXAMPLE.jso
   - `output_path`: Output directory for platform docs (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
   - `language`: User's language — **REQUIRED**
 
-**Parallel Tasks**:
-```yaml
-# Worker 1 - Generate web-react tech docs
-subagent_type: "speccrew-task-worker"
-description: "Generate web-react technology documents"
-prompt: |
-  skill_path: speccrew-knowledge-techs-generate/SKILL.md
-  context:
-    platform_id: web-react
-    platform_type: web
-    framework: react
-    source_path: src/web
-    config_files: ["src/web/package.json", "src/web/tsconfig.json", "src/web/vite.config.ts"]
-    convention_files: ["src/web/.eslintrc.js", "src/web/.prettierrc"]
-    output_path: speccrew-workspace/knowledges/techs/web-react/
-    language: zh
+**Parallel Execution Logic**:
 
-# Worker 2 - Generate backend-nestjs tech docs
-subagent_type: "speccrew-task-worker"
-description: "Generate backend-nestjs technology documents"
-prompt: |
-  skill_path: speccrew-knowledge-techs-generate/SKILL.md
-  context:
-    platform_id: backend-nestjs
-    platform_type: backend
-    framework: nestjs
-    source_path: src/server
-    config_files: ["src/server/package.json", "src/server/nest-cli.json", "src/server/tsconfig.json"]
-    convention_files: ["src/server/.eslintrc.js"]
-    output_path: speccrew-workspace/knowledges/techs/backend-nestjs/
-    language: zh
+```
+FOR each platform IN manifest.platforms:
+  worker_id = "worker-" + platform.platform_id
+  
+  INVOKE speccrew-task-worker WITH:
+    - skill_path: "speccrew-knowledge-techs-generate/SKILL.md"
+    - context:
+        platform_id: platform.platform_id
+        platform_type: platform.platform_type
+        framework: platform.framework
+        source_path: platform.source_path
+        config_files: platform.config_files
+        convention_files: platform.convention_files
+        output_path: "speccrew-workspace/knowledges/techs/{platform.platform_id}/"
+        language: language
+    
+  WAIT_ALL workers complete
+  
+  FOR each worker_result IN worker_results:
+    IF worker_result.status == "success":
+      Mark platform as "completed"
+      Record generated documents
+    ELSE IF worker_result.status == "failed":
+      Mark platform as "failed"
+      Log error: "Platform {platform_id} failed: {worker_result.error}"
+      NO RETRY (fail fast, record in stage2-status.json)
 ```
 
 **Output per Platform**:
@@ -330,11 +327,34 @@ Write to `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-s
 
 ## Error Handling
 
+### Error Handling Strategy
+
+```
+ON Worker Failure:
+  1. Capture error message from worker_result.error
+  2. Mark platform status as "failed" in stage2-status.json
+  3. Record failed platform_id and error details
+  4. Continue processing other platforms (no retry, fail fast)
+  5. After all workers complete, evaluate overall status:
+     - IF all platforms failed → ABORT pipeline
+     - IF some platforms succeeded → CONTINUE to Stage 3 with successful platforms only
+```
+
+### Stage-Level Failure Handling
+
 | Stage | Failure Handling |
 |-------|-----------------|
 | Stage 1 | Abort pipeline, report error |
 | Stage 2 | Continue with successful platforms, report failed ones |
 | Stage 3 | Abort if Stage 2 had critical failures |
+
+### Worker Failure Details
+
+**When a Worker Agent fails:**
+- **No automatic retry**: Worker failures are recorded as-is
+- **Partial success accepted**: Pipeline continues if at least one platform succeeds
+- **Error propagation**: Failed platform details are included in stage2-status.json
+- **Stage 3 decision**: Only platforms with status "complete" are included in root INDEX.md
 
 ---
 

@@ -34,26 +34,18 @@ Any Agent or script requiring timestamp generation
 
 ## Usage
 
-### Method 1: Direct Script Execution
+### Method 1: Direct Script Execution (Node.js - Cross Platform)
 
 ```bash
-# Windows PowerShell
-powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1 -Format "YYYY-MM-DD-HHmm"
-
-# Linux/macOS/Git Bash
-bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmm"
-
-# Python (cross-platform)
-python scripts/get-timestamp.py --format "YYYY-MM-DD-HHmm"
+# Node.js (cross-platform, recommended)
+node scripts/get-timestamp.js "YYYY-MM-DD-HHmmss"
 ```
 
 ### Method 2: Default Format (YYYY-MM-DD-HHmmss)
 
 ```bash
 # Without format parameter, returns YYYY-MM-DD-HHmmss
-powershell -ExecutionPolicy Bypass -File scripts/get-timestamp.ps1
-bash scripts/get-timestamp.sh
-python scripts/get-timestamp.py
+node scripts/get-timestamp.js
 ```
 
 ## Integration Examples
@@ -61,7 +53,7 @@ python scripts/get-timestamp.py
 ### For Report Filenames
 
 ```bash
-TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD-HHmmss")
+TIMESTAMP=$(node scripts/get-timestamp.js "YYYY-MM-DD-HHmmss")
 FILENAME="diagnosis-report-${TIMESTAMP}.md"
 # Result: diagnosis-report-2026-03-17-132645.md
 ```
@@ -69,7 +61,7 @@ FILENAME="diagnosis-report-${TIMESTAMP}.md"
 ### For Archive Naming
 
 ```bash
-TIMESTAMP=$(bash scripts/get-timestamp.sh "YYYY-MM-DD")
+TIMESTAMP=$(node scripts/get-timestamp.js "YYYY-MM-DD")
 ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
 # Result: tech-debt-archived-2026-03-17.md
 ```
@@ -78,13 +70,11 @@ ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
 
 When filling `{{generated_at}}` in templates:
 ```bash
-generated_at=$(bash scripts/get-timestamp.sh "ISO")
+generated_at=$(node scripts/get-timestamp.js "ISO")
 # Result: 2026-03-17T13:26:45+08:00
 ```
 
-## Script Locations
+## Script Location
 
-- **PowerShell**: `scripts/get-timestamp.ps1`
-- **Bash**: `scripts/get-timestamp.sh`
-- **Python**: `scripts/get-timestamp.py`
+- **Node.js**: `scripts/get-timestamp.js` (cross-platform, unified implementation)
 
