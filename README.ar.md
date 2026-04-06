@@ -143,7 +143,7 @@ graph LR
 ### المتطلبات المسبقة
 
 - Node.js >= 16.0.0
-- IDEs المدعومة: [Qoder](https://qoder.com/)، Cursor
+- IDEs المدعومة: [Qoder](https://qoder.com/)
 
 ### 1. تثبيت SpecCrew
 
@@ -157,7 +157,7 @@ npm install -g speccrew
 
 ```bash
 cd /path/to/your-project
-speccrew init --ide qoder    # أو --ide cursor
+speccrew init --ide qoder
 ```
 
 بعد التهيئة، سيتم إنشاء ما يلي في مشروعك:

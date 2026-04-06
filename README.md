@@ -143,7 +143,7 @@ graph LR
 ### 前置条件
 
 - Node.js >= 16.0.0
-- 支持的 IDE：[Qoder](https://qoder.com/)、Cursor
+- 支持的 IDE：[Qoder](https://qoder.com/)
 
 ### 1. 安装 SpecCrew
 
@@ -157,7 +157,7 @@ npm install -g speccrew
 
 ```bash
 cd /path/to/your-project
-speccrew init --ide qoder    # 或 --ide cursor
+speccrew init --ide qoder
 ```
 
 初始化完成后，项目中会生成：
