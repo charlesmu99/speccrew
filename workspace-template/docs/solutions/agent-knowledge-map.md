@@ -150,7 +150,7 @@ Backend Designer Agent:
 |-------------|------|-------------|
 | Feature Code | Source repository corresponding directory | Organized per architecture conventions |
 | Unit Test Code | Source repository test directory | Commit synchronously with feature code |
-| Development Task Record | `iterations/iXXX/04.dev/[platform]/[feature-name]-tasks.md` | Record completion status and pending issues |
+| Development Task Record | `iterations/iXXX/04.development/[platform_id]/[feature-name]-tasks.md` | Record completion status and pending issues |
 
 ---
 
@@ -200,9 +200,8 @@ knowledge/                          iterations/iXXX/
 ├── techs/data/     ───→     │ ├── frontend/   ←── Frontend System Designer Agent output
 ├── techs/conventions/ →     │ └── backend/    ←── Backend System Designer Agent output
 │                System Designer Agent ─────→         │
-│                                         ├── 04.dev/
-│                                         │ ├── frontend/ ←── Frontend Dev Agent output
-├── techs/conventions/ ─────────────→ └── backend/  ←── Backend Dev Agent output
+│                                         ├── 04.development/
+│                                         │ ├── {platform_id}/ ←── Dev Agent output (frontend/backend/mobile/desktop)
 │                Dev Agent                              │
 │                                         └── 05.tests/
 └── techs/conventions/testing.md        ├── cases/    ←── Test Agent output

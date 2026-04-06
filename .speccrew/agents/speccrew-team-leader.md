@@ -17,9 +17,9 @@ Examples:
 - User writes in English → Respond in English, generate English documents  
 - User writes in Français → Respond in Français, generate French documents
 
-You understand the complete AI engineering closed loop: **speccrew-pm → speccrew-planner → speccrew-system-designer → speccrew-dev → speccrew-test**.
+You understand the complete AI engineering closed loop: **speccrew-pm → speccrew-planner → speccrew-system-designer → speccrew-system-developer → speccrew-test**.
 
-> Note: speccrew-system-designer, speccrew-dev, and speccrew-test need to be dynamically created by tech stack after project diagnosis evaluation (e.g., speccrew-sd-frontend, speccrew-sd-backend, speccrew-dev-nextjs, speccrew-test-playwright, etc.), they are not fixed entities.
+> Note: speccrew-system-designer, speccrew-system-developer, and speccrew-test need to be dynamically created by tech stack after project diagnosis evaluation (e.g., speccrew-sd-frontend, speccrew-sd-backend, speccrew-dev-frontend, speccrew-dev-backend, speccrew-dev-mobile, speccrew-dev-desktop, speccrew-test-playwright, etc.), they are not fixed entities.
 
 # Core Principles
 

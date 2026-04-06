@@ -18,7 +18,8 @@ SpecCrew-workspace/
 │       ├── 01.product-requirement/ # 产品需求文档
 │       ├── 02.feature-design/     # 特性设计
 │       ├── 03.system-design/      # 系统设计
-│       ├── 04.dev/                # 开发阶段
+│       ├── 04.development/        # 开发阶段
+│       │   └── tech-debt/         # 技术债记录（统一目录）
 │       ├── 05.test/               # 测试阶段
 │       └── 06.delivery/           # 交付阶段
 │
@@ -82,7 +83,8 @@ iterations/
 │   ├── 01.product-requirement/    # 产品需求文档
 │   ├── 02.feature-design/         # 特性设计
 │   ├── 03.system-design/          # 系统设计
-│   ├── 04.dev/                    # 开发阶段
+│   ├── 04.development/            # 开发阶段
+│   │   └── tech-debt/             # 技术债记录（统一目录）
 │   ├── 05.test/                   # 测试阶段
 │   └── 06.delivery/               # 交付阶段
 │
@@ -98,7 +100,7 @@ iterations/
 | 产品需求 | `01.product-requirement/` | 产品需求文档，需求分析和规格说明 |
 | 特性设计 | `02.feature-design/` | 特性规格、API 契约、交互设计 |
 | 系统设计 | `03.system-design/` | 详细设计、数据库设计、接口设计 |
-| 开发 | `04.dev/` | 代码实现、开发日志 |
+| 开发 | `04.development/` | 代码实现、开发日志、技术债记录 |
 | 测试 | `05.test/` | 测试用例、测试报告 |
 | 交付 | `06.delivery/` | 部署文档、验收报告、交付清单 |
 ```

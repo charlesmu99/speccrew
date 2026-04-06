@@ -565,6 +565,63 @@
         "platforms": ["web", "mobile", "backend", "desktop", "api"]
       },
       "output_pattern": "conventions-data.md"
+    },
+    "dev_task_frontend": {
+      "name": "DEV-TASK-FRONTEND-TEMPLATE",
+      "file_name": "DEV-TASK-FRONTEND-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/DEV-TASK-FRONTEND-TEMPLATE.md",
+      "description": "Template for frontend development task records",
+      "used_by": ["speccrew-dev-frontend"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["web", "desktop"]
+      },
+      "dir": "ITERATION_DOCS_DIR/04.development",
+      "filename": "{feature-name}-tasks.md"
+    },
+    "dev_task_backend": {
+      "name": "DEV-TASK-BACKEND-TEMPLATE",
+      "file_name": "DEV-TASK-BACKEND-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/DEV-TASK-BACKEND-TEMPLATE.md",
+      "description": "Template for backend development task records",
+      "used_by": ["speccrew-dev-backend"],
+      "applies_to": {
+        "system_types": ["api"],
+        "platforms": ["backend", "api"]
+      },
+      "dir": "ITERATION_DOCS_DIR/04.development",
+      "filename": "{feature-name}-tasks.md"
+    },
+    "dev_task_mobile": {
+      "name": "DEV-TASK-MOBILE-TEMPLATE",
+      "file_name": "DEV-TASK-MOBILE-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/DEV-TASK-MOBILE-TEMPLATE.md",
+      "description": "Template for mobile development task records",
+      "used_by": ["speccrew-dev-mobile"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["mobile"]
+      },
+      "dir": "ITERATION_DOCS_DIR/04.development",
+      "filename": "{feature-name}-tasks.md"
+    },
+    "dev_task_desktop": {
+      "name": "DEV-TASK-DESKTOP-TEMPLATE",
+      "file_name": "DEV-TASK-DESKTOP-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/DEV-TASK-DESKTOP-TEMPLATE.md",
+      "description": "Template for desktop development task records",
+      "used_by": ["speccrew-dev-desktop"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["desktop"]
+      },
+      "dir": "ITERATION_DOCS_DIR/04.development",
+      "filename": "{feature-name}-tasks.md"
+    },
+    "tech_debt": {
+      "id": "tech_debt",
+      "dir": "ITERATION_DOCS_DIR/tech-debt",
+      "filename": "{debt-id}.md"
     }
   },
   "template_rules": {

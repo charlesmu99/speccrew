@@ -252,7 +252,7 @@ your-project/
     │       ├── 01.product-requirement/ # Product requirements
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
-    │       ├── 04.dev/              # Development phase
+    │       ├── 04.development/      # Development phase
     │       ├── 05.test/             # Testing phase
     │       └── 06.delivery/         # Delivery phase
     │

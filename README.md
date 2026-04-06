@@ -251,7 +251,10 @@ your-project/
 │       ├── speccrew-sd-backend/
 │       ├── speccrew-sd-mobile/
 │       ├── speccrew-sd-desktop/
-│       ├── speccrew-dev-task/
+│       ├── speccrew-dev-frontend/             # System Developer: frontend dev
+│       ├── speccrew-dev-backend/              # System Developer: backend dev
+│       ├── speccrew-dev-mobile/               # System Developer: mobile dev
+│       ├── speccrew-dev-desktop/              # System Developer: desktop dev
 │       ├── speccrew-test-report/
 │       ├── speccrew-knowledge-dispatch/
 │       ├── speccrew-knowledge-bizs-init/
@@ -273,7 +276,7 @@ your-project/
     │       ├── 01.product-requirement/ # 产品需求文档
     │       ├── 02.feature-design/   # 特性设计
     │       ├── 03.system-design/    # 系统设计
-    │       ├── 04.dev/              # 开发阶段
+    │       ├── 04.development/      # 开发阶段
     │       ├── 05.test/             # 测试阶段
     │       └── 06.delivery/         # 交付阶段
     │
