@@ -263,6 +263,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 ├── conventions-design.md      # Required
 ├── conventions-dev.md         # Required
 ├── conventions-unit-test.md        # Required
+├── conventions-system-test.md      # Required
 ├── conventions-build.md       # Required
 ├── conventions-data.md        # Optional — platform-specific
 └── ui-style/                  # Optional — frontend only (web/mobile/desktop)
@@ -374,7 +375,8 @@ For each platform, verify the following required documents exist:
 - architecture.md
 - conventions-design.md
 - conventions-dev.md
-- conventions-test.md
+- conventions-unit-test.md
+- conventions-system-test.md
 - conventions-build.md
 - conventions-data.md (optional - only for backend or platforms with detected data layer)
 
@@ -383,7 +385,7 @@ For each platform directory at `speccrew-workspace/knowledges/techs/{platform_id
 1. List all .md files present
 2. Check against required document list
 3. Record status per platform:
-   - "complete": all 7 required documents present
+   - "complete": all 8 required documents present
    - "incomplete": one or more required documents missing (list which)
    - "failed": INDEX.md missing (platform will be skipped in Stage 3)
 
@@ -654,7 +656,7 @@ ON Worker Failure:
 - [ ] Stage 3: `stage3-status.json` generated with index info
 
 ### Document Completeness Verification
-- [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md
+- [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md
 - [ ] `conventions-data.md` exists only for appropriate platforms (backend required, others optional)
 - [ ] All documents include `<cite>` reference blocks
 - [ ] All documents include AI-TAG and AI-CONTEXT comments

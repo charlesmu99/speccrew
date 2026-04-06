@@ -70,6 +70,24 @@ speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_
 | Exception Handling | Error handling mechanisms |
 | State Transitions | State flow if applicable |
 
+## Step 3.5: Read Testing Conventions (Optional)
+
+If available, read the system testing conventions for the platform:
+
+**Path Pattern:**
+```
+speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
+```
+
+**Extract Testing Conventions:**
+
+| Item | What to Extract |
+|------|-----------------|
+| E2E Framework | End-to-end testing framework (Cypress, Playwright, etc.) |
+| Integration Test Patterns | How integration tests are structured |
+| Test Data Management | Fixtures, seeding, mock strategies |
+| API Contract Testing | Contract testing conventions if applicable |
+
 ## Step 4: Analyze Test Dimensions
 
 Systematically analyze test dimensions to ensure comprehensive coverage:

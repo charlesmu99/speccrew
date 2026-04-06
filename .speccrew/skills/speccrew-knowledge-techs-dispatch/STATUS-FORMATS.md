@@ -114,6 +114,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "conventions-design.md",
         "conventions-dev.md",
         "conventions-unit-test.md",
+        "conventions-system-test.md",
         "conventions-build.md"
       ],
       "documents_missing": [],
@@ -160,6 +161,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "conventions-design.md",
         "conventions-dev.md",
         "conventions-unit-test.md",
+        "conventions-system-test.md",
         "conventions-build.md"
       ],
       "documents_missing": [],
@@ -204,6 +206,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
         "conventions-design.md",
         "conventions-dev.md",
         "conventions-unit-test.md",
+        "conventions-system-test.md",
         "conventions-build.md",
         "conventions-data.md"
       ],
@@ -277,7 +280,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
 | `failed` | number | Platforms with missing INDEX.md (Stage 2) |
 | `language` | string | Language code used for document generation |
 | `quality_checks` | object | Quality verification results from Stage 2.5 |
-| `quality_checks.all_required_docs_present` | boolean | Whether all platforms have 7 required documents |
+| `quality_checks.all_required_docs_present` | boolean | Whether all platforms have 8 required documents |
 | `quality_checks.language_consistent` | boolean | Whether all documents match the target language |
 | `quality_checks.traceability_verified` | boolean | Whether source traceability (<cite> blocks) verified |
 | `quality_checks.ui_analyzer_results` | object | UI style analysis level per platform category |
@@ -330,7 +333,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
 
 ## Document Classification
 
-### Required Documents (7)
+### Required Documents (8)
 All platforms MUST generate these documents:
 
 1. `INDEX.md` - Platform overview and navigation
@@ -339,7 +342,8 @@ All platforms MUST generate these documents:
 4. `conventions-design.md` - Design conventions and patterns
 5. `conventions-dev.md` - Development conventions and coding standards
 6. `conventions-unit-test.md` - Unit testing conventions and practices
-7. `conventions-build.md` - Build configuration and deployment conventions
+7. `conventions-system-test.md` - System testing conventions (E2E, integration, API contract)
+8. `conventions-build.md` - Build configuration and deployment conventions
 
 ### Optional Documents (1)
 Generated conditionally based on platform type and data layer detection:
@@ -376,7 +380,8 @@ Created by conventions Worker after completing conventions document generation.
     "architecture.md",
     "conventions-design.md",
     "conventions-dev.md",
-    "conventions-test.md",
+    "conventions-unit-test.md",
+    "conventions-system-test.md",
     "conventions-build.md",
     "conventions-data.md"
   ],

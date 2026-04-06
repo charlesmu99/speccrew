@@ -554,6 +554,18 @@
       },
       "output_pattern": "conventions-unit-test.md"
     },
+    "conventions_system_test": {
+      "name": "CONVENTIONS-SYSTEM-TEST-TEMPLATE",
+      "file_name": "CONVENTIONS-SYSTEM-TEST-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/CONVENTIONS-SYSTEM-TEST-TEMPLATE.md",
+      "description": "Template for documenting system testing conventions (E2E, integration, API contract testing)",
+      "used_by": ["speccrew-knowledge-techs-generate"],
+      "applies_to": {
+        "system_types": ["ui", "api"],
+        "platforms": ["web", "mobile", "backend", "desktop", "api"]
+      },
+      "output_pattern": "conventions-system-test.md"
+    },
     "conventions_data": {
       "name": "CONVENTIONS-DATA-TEMPLATE",
       "file_name": "CONVENTIONS-DATA-TEMPLATE.md",

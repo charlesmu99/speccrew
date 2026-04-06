@@ -58,6 +58,7 @@ Generate the following documents in `{output_path}/`:
 ├── conventions-design.md      # Design conventions (Required)
 ├── conventions-dev.md         # Development conventions (Required)
 ├── conventions-unit-test.md        # Unit testing conventions (Required)
+├── conventions-system-test.md      # System testing conventions (Required)
 ├── conventions-build.md       # Build & Deployment conventions (Required)
 ├── conventions-data.md        # Data conventions (Optional)
 └── ui-style/                  # UI style analysis (Optional, frontend platforms only)
@@ -72,11 +73,11 @@ Generate the following documents in `{output_path}/`:
 
 | Platform Type | Required Documents | Optional Documents | Generate conventions-data.md? |
 |---------------|-------------------|-------------------|------------------------------|
-| `backend` | All 7 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
-| `web` | All 7 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
-| `mobile` | All 7 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `desktop` | All 7 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `api` | All 7 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
+| `backend` | All 8 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
+| `web` | All 8 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
+| `mobile` | All 8 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `desktop` | All 8 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
+| `api` | All 8 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
 
 ### Decision Logic for conventions-data.md
 
@@ -135,6 +136,7 @@ Before processing, read all template files to understand the required content st
 - **Read**: `templates/CONVENTIONS-DESIGN-TEMPLATE.md` - Design principles and patterns structure
 - **Read**: `templates/CONVENTIONS-DEV-TEMPLATE.md` - Development conventions structure
 - **Read**: `templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` - Unit testing conventions structure
+- **Read**: `templates/CONVENTIONS-SYSTEM-TEST-TEMPLATE.md` - System testing conventions structure
 - **Read**: `templates/CONVENTIONS-BUILD-TEMPLATE.md` - Build and deployment conventions structure
 - **Read**: `templates/CONVENTIONS-DATA-TEMPLATE.md` - Data layer conventions structure (if applicable)
 - **Purpose**: Understand each template's chapters and example content requirements
@@ -453,6 +455,7 @@ Analysis completeness: {ui_style_analysis_level}
      - `templates/CONVENTIONS-DESIGN-TEMPLATE.md` → `{output_path}/conventions-design.md`
      - `templates/CONVENTIONS-DEV-TEMPLATE.md` → `{output_path}/conventions-dev.md`
      - `templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` → `{output_path}/conventions-unit-test.md`
+     - `templates/CONVENTIONS-SYSTEM-TEST-TEMPLATE.md` → `{output_path}/conventions-system-test.md`
      - `templates/CONVENTIONS-BUILD-TEMPLATE.md` → `{output_path}/conventions-build.md`
      - `templates/CONVENTIONS-DATA-TEMPLATE.md` → `{output_path}/conventions-data.md` (if applicable)
 
@@ -469,7 +472,7 @@ Analysis completeness: {ui_style_analysis_level}
    - Preserve all template section headers and structure
 
 2. **Document Generation Order**:
-   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md, conventions-data.md (if applicable)
+   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md, conventions-data.md (if applicable)
 
 ### Step 6: Write Output Files
 
@@ -554,7 +557,8 @@ Platform Technology Documents Generated: {{platform_id}}
 - architecture.md: ✓
 - conventions-design.md: ✓
 - conventions-dev.md: ✓
-- conventions-test.md: ✓
+- conventions-unit-test.md: ✓
+- conventions-system-test.md: ✓
 - conventions-build.md: ✓
 - conventions-data.md: ✓ (or skipped if not applicable)
 - ui-style-guide.md: ✓ (frontend platforms only, analysis level: {{ui_style_analysis_level}})
@@ -1049,7 +1053,8 @@ Wherever possible, include concrete examples:
 - [ ] architecture.md generated with platform-specific patterns
 - [ ] conventions-design.md generated with design principles
 - [ ] conventions-dev.md generated with naming and style rules
-- [ ] conventions-unit-test.md generated with testing requirements
+- [ ] conventions-unit-test.md generated with unit testing requirements
+- [ ] conventions-system-test.md generated with system testing requirements
 - [ ] conventions-build.md generated with build and deployment conventions
 
 ### Optional Document
@@ -1076,7 +1081,7 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
-- [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md)
+- [ ] **Document completeness**: Verify all 8 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md)
 - [ ] **Analysis Coverage Report**: `{platform_id}.analysis.json` generated with all topics tracked
 - [ ] Results reported with conventions-data.md and ui-style-guide.md generation status (including ui_style_analysis_level)
 

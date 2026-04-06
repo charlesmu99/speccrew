@@ -165,6 +165,7 @@ Backend Designer Agent:
 | Frontend/Backend Detailed Design | `iterations/iXXX/03.system-design/[platform]/[feature-name]-design.md` | Required, load first | Basis for generating test cases |
 | Feature Specification Document | `iterations/iXXX/02.feature-design/[feature-name]-feature-spec.md` | Required | Basis for acceptance test cases |
 | Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test case format, coverage requirements |
+| System Testing Conventions | `knowledge/techs/{platform}/conventions-system-test.md` | Required | E2E, integration, API contract testing conventions |
 | PRD Document | `iterations/iXXX/01.product-requirement/[feature-name]-prd.md` | On-demand | Trace back when acceptance criteria is disputed |
 
 #### Loading Strategy

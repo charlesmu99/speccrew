@@ -35,12 +35,20 @@ Load platform testing conventions to understand the target test framework:
 ### 2.1 Primary Convention Path
 
 ```
+speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
+```
+
+### 2.2 Secondary Convention Path (Fallback for Unit Testing)
+
+If `conventions-system-test.md` does not exist or for unit test specifics, read:
+
+```
 speccrew-workspace/knowledges/techs/{platform_id}/conventions-unit-test.md
 ```
 
-### 2.2 Fallback Convention Path
+### 2.3 Fallback Convention Path (Last Resort)
 
-If `conventions-unit-test.md` does not exist, read `conventions-dev.md` and infer:
+If neither conventions file exists, read `conventions-dev.md` and infer:
 
 | Convention File | Inference Strategy |
 |-----------------|-------------------|

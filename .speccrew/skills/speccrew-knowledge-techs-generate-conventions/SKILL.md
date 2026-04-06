@@ -52,6 +52,7 @@ Generate the following documents in `{output_path}/`:
 ├── conventions-design.md      # Design conventions (Required)
 ├── conventions-dev.md         # Development conventions (Required)
 ├── conventions-unit-test.md        # Unit testing conventions (Required)
+├── conventions-system-test.md      # System testing conventions (Required)
 ├── conventions-build.md       # Build & Deployment conventions (Required)
 └── conventions-data.md        # Data conventions (Optional)
 ```
@@ -60,11 +61,11 @@ Generate the following documents in `{output_path}/`:
 
 | Platform Type | Required Documents | Optional Documents | Generate conventions-data.md? |
 |---------------|-------------------|-------------------|------------------------------|
-| `backend` | All 7 docs | - | **Must Generate** - Contains ORM, data modeling, caching strategy |
-| `web` | All 7 docs | conventions-data.md | **Conditional** - Only when using ORM/data layer (Prisma, TypeORM, Sequelize, etc.) |
-| `mobile` | All 7 docs | conventions-data.md | **Default No** - Based on actual tech stack |
-| `desktop` | All 7 docs | conventions-data.md | **Default No** - Based on actual tech stack |
-| `api` | All 7 docs | conventions-data.md | **Conditional** - Based on whether data layer exists |
+| `backend` | All 8 docs | - | **Must Generate** - Contains ORM, data modeling, caching strategy |
+| `web` | All 8 docs | conventions-data.md | **Conditional** - Only when using ORM/data layer (Prisma, TypeORM, Sequelize, etc.) |
+| `mobile` | All 8 docs | conventions-data.md | **Default No** - Based on actual tech stack |
+| `desktop` | All 8 docs | conventions-data.md | **Default No** - Based on actual tech stack |
+| `api` | All 8 docs | conventions-data.md | **Conditional** - Based on whether data layer exists |
 
 ### Decision Logic for conventions-data.md
 
@@ -122,6 +123,7 @@ Before processing, read all template files to understand the required content st
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` - Design principles and patterns structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` - Development conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` - Unit testing conventions structure
+- **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-SYSTEM-TEST-TEMPLATE.md` - System testing conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-BUILD-TEMPLATE.md` - Build and deployment conventions structure
 - **Read**: `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` - Data layer conventions structure (if applicable)
 - **Purpose**: Understand each template's chapters and example content requirements
@@ -286,6 +288,7 @@ This tracking data will be used in Step 6 to generate the analysis coverage repo
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DESIGN-TEMPLATE.md` → `{output_path}/conventions-design.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DEV-TEMPLATE.md` → `{output_path}/conventions-dev.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-UNIT-TEST-TEMPLATE.md` → `{output_path}/conventions-unit-test.md`
+     - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-SYSTEM-TEST-TEMPLATE.md` → `{output_path}/conventions-system-test.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-BUILD-TEMPLATE.md` → `{output_path}/conventions-build.md`
      - `../speccrew-knowledge-techs-generate/templates/CONVENTIONS-DATA-TEMPLATE.md` → `{output_path}/conventions-data.md` (if applicable)
 
@@ -302,7 +305,7 @@ This tracking data will be used in Step 6 to generate the analysis coverage repo
    - Preserve all template section headers and structure
 
 2. **Document Generation Order**:
-   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md, conventions-data.md (if applicable)
+   - Generate: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md, conventions-data.md (if applicable)
 
 3. **UI Design Conventions Reference in conventions-design.md**:
    In conventions-design.md, ALWAYS include UI reference section:
@@ -397,7 +400,8 @@ Platform Convention Documents Generated: {{platform_id}}
 - architecture.md: ✓
 - conventions-design.md: ✓
 - conventions-dev.md: ✓
-- conventions-test.md: ✓
+- conventions-unit-test.md: ✓
+- conventions-system-test.md: ✓
 - conventions-build.md: ✓
 - conventions-data.md: ✓ (or skipped if not applicable)
 - {{platform_id}}.analysis-conventions.json: ✓ (analysis coverage report)
@@ -413,7 +417,7 @@ Create a done file to signal completion:
   "platform_id": "{platform_id}",
   "worker_type": "conventions",
   "status": "completed",
-  "documents_generated": ["INDEX.md", "tech-stack.md", "architecture.md", "conventions-design.md", "conventions-dev.md", "conventions-test.md", "conventions-build.md"],
+  "documents_generated": ["INDEX.md", "tech-stack.md", "architecture.md", "conventions-design.md", "conventions-dev.md", "conventions-unit-test.md", "conventions-system-test.md", "conventions-build.md"],
   "analysis_file": "{platform_id}.analysis-conventions.json",
   "completed_at": "{ISO timestamp}"
 }
@@ -606,7 +610,8 @@ Wherever possible, include concrete examples:
 - [ ] architecture.md generated with platform-specific patterns
 - [ ] conventions-design.md generated with design principles
 - [ ] conventions-dev.md generated with naming and style rules
-- [ ] conventions-unit-test.md generated with testing requirements
+- [ ] conventions-unit-test.md generated with unit testing requirements
+- [ ] conventions-system-test.md generated with system testing requirements
 - [ ] conventions-build.md generated with build and deployment conventions
 
 ### Optional Document
@@ -618,6 +623,6 @@ Wherever possible, include concrete examples:
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs
-- [ ] **Document completeness**: Verify all 7 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-build.md)
+- [ ] **Document completeness**: Verify all 8 required documents exist (INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md)
 - [ ] **Analysis Coverage Report**: `{platform_id}.analysis-conventions.json` generated with all topics tracked
 - [ ] Results reported with conventions-data.md generation status
