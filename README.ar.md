@@ -143,7 +143,9 @@ graph LR
 ### المتطلبات المسبقة
 
 - Node.js >= 16.0.0
-- IDEs المدعومة: [Qoder](https://qoder.com/)
+- IDEs المدعومة: Qoder (افتراضي)، Cursor، Claude Code
+
+> **ملاحظة**: لم يتم اختبار محولات Cursor و Claude Code في بيئات IDE الفعلية (تم تنفيذها على مستوى الكود والتحقق منها من خلال اختبارات E2E، ولكن لم يتم اختبارها بعد في Cursor/Claude Code الحقيقي).
 
 ### 1. تثبيت SpecCrew
 
@@ -157,14 +159,28 @@ npm install -g speccrew
 
 ```bash
 cd /path/to/your-project
+
+# الافتراضي يستخدم Qoder
+speccrew init
+
+# أو تحديد IDE
 speccrew init --ide qoder
+speccrew init --ide cursor
+speccrew init --ide claude
 ```
 
 بعد التهيئة، سيتم إنشاء ما يلي في مشروعك:
-- `.qoder/agents/` — 7 تعريفات أدوار Agent
-- `.qoder/skills/` — 38 سير عمل Skill
+- `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 تعريفات أدوار Agent
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 سير عمل Skill
 - `speccrew-workspace/` — مساحة العمل (أدلة التكرار، قاعدة المعرفة، قوالب المستندات)
 - `.speccrewrc` — ملف تكوين SpecCrew
+
+لتحديث Agents و Skills لـ IDE معين لاحقاً:
+
+```bash
+speccrew update --ide cursor
+speccrew update --ide claude
+```
 
 ### 3. بدء سير عمل التطوير
 
@@ -187,6 +203,8 @@ speccrew doctor     # تشخيص البيئة وحالة التثبيت
 speccrew update     # تحديث agents و skills إلى أحدث إصدار
 speccrew uninstall  # إلغاء تثبيت SpecCrew (--all يحذف أيضاً مساحة العمل)
 ```
+
+📖 **دليل تفصيلي**: بعد التثبيت، راجع [دليل البدء السريع](docs/GETTING-STARTED.ar.md) للاطلاع على سير العمل الكامل ودليل المحادثة مع الوكلاء.
 
 ---
 

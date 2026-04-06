@@ -143,7 +143,9 @@ graph LR
 ### Prerequisites
 
 - Node.js >= 16.0.0
-- Supported IDEs: [Qoder](https://qoder.com/)
+- Supported IDEs: Qoder (default), Cursor, Claude Code
+
+> **Note**: The adapters for Cursor and Claude Code have not been tested in actual IDE environments (implemented at the code level and verified through E2E tests, but not yet tested in real Cursor/Claude Code).
 
 ### 1. Install SpecCrew
 
@@ -157,14 +159,28 @@ Navigate to your project root directory and run the initialization command:
 
 ```bash
 cd /path/to/your-project
+
+# Default uses Qoder
+speccrew init
+
+# Or specify IDE
 speccrew init --ide qoder
+speccrew init --ide cursor
+speccrew init --ide claude
 ```
 
 After initialization, the following will be generated in your project:
-- `.qoder/agents/` — 7 Agent role definitions
-- `.qoder/skills/` — 38 Skill workflows
+- `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 Agent role definitions
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 Skill workflows
 - `speccrew-workspace/` — Workspace (iteration directories, knowledge base, document templates)
 - `.speccrewrc` — SpecCrew configuration file
+
+To update Agents and Skills for a specific IDE later:
+
+```bash
+speccrew update --ide cursor
+speccrew update --ide claude
+```
 
 ### 3. Start Development Workflow
 
@@ -187,6 +203,8 @@ speccrew doctor     # Diagnose environment and installation status
 speccrew update     # Update agents and skills to latest version
 speccrew uninstall  # Uninstall SpecCrew (--all also removes workspace)
 ```
+
+📖 **Detailed Guide**: After installation, check the [Getting Started Guide](docs/GETTING-STARTED.en.md) for the complete workflow and agent conversation guide.
 
 ---
 

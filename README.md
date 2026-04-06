@@ -143,7 +143,9 @@ graph LR
 ### 前置条件
 
 - Node.js >= 16.0.0
-- 支持的 IDE：[Qoder](https://qoder.com/)
+- 支持的 IDE：Qoder（默认）、Cursor、Claude Code
+
+> **注意**：Cursor 和 Claude Code 的适配尚未在实际 IDE 环境中测试（代码层面已实现并通过 E2E 验证，但未在真实 Cursor/Claude Code 中实测）。
 
 ### 1. 安装 SpecCrew
 
@@ -157,14 +159,28 @@ npm install -g speccrew
 
 ```bash
 cd /path/to/your-project
+
+# 默认使用 Qoder
+speccrew init
+
+# 或指定 IDE
 speccrew init --ide qoder
+speccrew init --ide cursor
+speccrew init --ide claude
 ```
 
 初始化完成后，项目中会生成：
-- `.qoder/agents/` — 7 个 Agent 角色定义
-- `.qoder/skills/` — 38 个 Skill 工作流
+- `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 个 Agent 角色定义
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 个 Skill 工作流
 - `speccrew-workspace/` — 工作区（迭代目录、知识库、文档模板）
 - `.speccrewrc` — SpecCrew 配置文件
+
+后续如需更新指定 IDE 的 Agents 和 Skills：
+
+```bash
+speccrew update --ide cursor
+speccrew update --ide claude
+```
 
 ### 3. 开始开发流程
 
@@ -187,6 +203,8 @@ speccrew doctor     # 诊断环境和安装状态
 speccrew update     # 更新 agents 和 skills 到最新版本
 speccrew uninstall  # 卸载 SpecCrew（--all 同时删除工作区）
 ```
+
+📖 **详细使用指南**：安装完成后，查看 [快速开始文档](docs/GETTING-STARTED.md) 了解完整的工作流程和各 Agent 对话指南。
 
 ---
 

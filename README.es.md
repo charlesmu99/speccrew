@@ -143,7 +143,9 @@ graph LR
 ### Requisitos Previos
 
 - Node.js >= 16.0.0
-- IDEs compatibles: [Qoder](https://qoder.com/)
+- IDEs compatibles: Qoder (predeterminado), Cursor, Claude Code
+
+> **Nota**: Los adaptadores para Cursor y Claude Code aún no han sido probados en entornos IDE reales (implementados a nivel de código y verificados mediante pruebas E2E, pero aún no probados en Cursor/Claude Code real).
 
 ### 1. Instalar SpecCrew
 
@@ -157,14 +159,28 @@ Navegue al directorio raíz de su proyecto y ejecute el comando de inicializaci�
 
 ```bash
 cd /ruta/a/su-proyecto
+
+# Predeterminado usa Qoder
+speccrew init
+
+# O especificar IDE
 speccrew init --ide qoder
+speccrew init --ide cursor
+speccrew init --ide claude
 ```
 
 Después de la inicialización, se generarán en su proyecto:
-- `.qoder/agents/` — 7 definiciones de roles Agent
-- `.qoder/skills/` — 38 flujos de trabajo Skill
+- `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 definiciones de roles Agent
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 flujos de trabajo Skill
 - `speccrew-workspace/` — Espacio de trabajo (directorios de iteración, base de conocimientos, plantillas de documentos)
 - `.speccrewrc` — Archivo de configuración de SpecCrew
+
+Para actualizar Agents y Skills para un IDE específico más tarde:
+
+```bash
+speccrew update --ide cursor
+speccrew update --ide claude
+```
 
 ### 3. Iniciar Flujo de Trabajo de Desarrollo
 
@@ -187,6 +203,8 @@ speccrew doctor     # Diagnosticar entorno y estado de instalación
 speccrew update     # Actualizar agents y skills a la última versión
 speccrew uninstall  # Desinstalar SpecCrew (--all también elimina el workspace)
 ```
+
+📖 **Guía Detallada**: Después de la instalación, consulta la [Guía de Inicio Rápido](docs/GETTING-STARTED.es.md) para el flujo de trabajo completo y la guía de conversación con agentes.
 
 ---
 
