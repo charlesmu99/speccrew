@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-bizs-api-analyze
 description: Analyze a single API controller from source code to extract business features and generate API documentation. Used by Worker Agent in parallel execution during knowledge base initialization Stage 2. Each worker analyzes one API controller file.
-tools: Read, Write, Glob, Grep, SearchCodebase, Bash
+tools: Read, Write, SearchReplace, Glob, Grep, SearchCodebase, Bash
 ---
 
 # API Feature Analysis - Single Controller

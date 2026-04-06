@@ -1,7 +1,7 @@
 ---
 name: speccrew-knowledge-bizs-ui-analyze
 description: Analyze a single UI feature from source code to extract business functionality and generate feature documentation. Used by Worker Agent in parallel execution during knowledge base initialization Stage 2. Each worker analyzes one feature (e.g., one Vue/React page component).
-tools: Read, Write, Glob, Grep, SearchCodebase, Bash
+tools: Read, Write, SearchReplace, Glob, Grep, SearchCodebase, Bash
 ---
 
 # UI Feature Analysis - Single Feature
