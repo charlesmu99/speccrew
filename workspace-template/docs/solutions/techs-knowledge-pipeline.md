@@ -440,10 +440,10 @@ Generated Documents:
 - [Other platforms...]
 
 Agent Mapping:
-- speccrew-designer-web-react → speccrew-workspace/knowledges/techs/web-react/
+- speccrew-sd-web-react → speccrew-workspace/knowledges/techs/web-react/
 - speccrew-dev-web-react → speccrew-workspace/knowledges/techs/web-react/
 - speccrew-test-web-react → speccrew-workspace/knowledges/techs/web-react/
-- speccrew-designer-backend-nestjs → speccrew-workspace/knowledges/techs/backend-nestjs/
+- speccrew-sd-backend-nestjs → speccrew-workspace/knowledges/techs/backend-nestjs/
 - [Other mappings...]
 
 Next Steps:
@@ -679,10 +679,10 @@ Based on generated techs-manifest.json, Agents are dynamically created and mappe
 
 | Agent Type | Platform ID | Documentation Path |
 |------------|-------------|-------------------|
-| speccrew-designer-{platform-id} | web-react | speccrew-workspace/knowledges/techs/web-react/ |
+| speccrew-sd-{platform-id} | web-react | speccrew-workspace/knowledges/techs/web-react/ |
 | speccrew-dev-{platform-id} | web-react | speccrew-workspace/knowledges/techs/web-react/ |
 | speccrew-test-{platform-id} | web-react | speccrew-workspace/knowledges/techs/web-react/ |
-| speccrew-designer-{platform-id} | backend-nestjs | speccrew-workspace/knowledges/techs/backend-nestjs/ |
+| speccrew-sd-{platform-id} | backend-nestjs | speccrew-workspace/knowledges/techs/backend-nestjs/ |
 | speccrew-dev-{platform-id} | backend-nestjs | speccrew-workspace/knowledges/techs/backend-nestjs/ |
 | speccrew-test-{platform-id} | backend-nestjs | speccrew-workspace/knowledges/techs/backend-nestjs/ |
 

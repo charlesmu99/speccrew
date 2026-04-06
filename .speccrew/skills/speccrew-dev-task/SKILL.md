@@ -13,8 +13,8 @@ tools: Read, Write, Glob, Grep
 
 ## 步骤一：读取输入
 
-1. 详细设计文档：`projects/pXXX/03.designs/[frontend|backend]/[功能名]-design.md`
-2. 接口契约：`projects/pXXX/02.solutions/[功能名]-api-contract.md`
+1. 详细设计文档：`speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/[功能名]-design.md`
+2. 接口契约：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[功能名]-api-contract.md`
 3. 开发规范：`speccrew-workspace/knowledge/architecture/conventions/conventions.md`
 4. 任务记录模板：`speccrew-dev-task/templates/TASK-[FRONTEND|BACKEND]-TEMPLATE.md`
 
@@ -22,7 +22,7 @@ tools: Read, Write, Glob, Grep
 
 在开始编码前，先创建任务记录：
 
-路径：`projects/pXXX/04.tasks/[frontend|backend]/[功能名]-task.md`
+路径：`speccrew-workspace/iterations/{number}-{type}-{name}/04.tasks/{platform_id}/[功能名]-task.md`
 
 从设计文档中提取所有需要实现的文件，列成任务清单：
 
@@ -118,7 +118,7 @@ tools: Read, Write, Glob, Grep
 - 已实现：[X] 个任务
 - 偏差记录：[Y] 条（详见任务文件）
 - 技术债记录：[Z] 条（详见 tech-debt/[功能名]-tech-debt.md）
-- 任务记录：projects/pXXX/04.tasks/[frontend|backend]/[功能名]-task.md
+- 任务记录：speccrew-workspace/iterations/{number}-{type}-{name}/04.tasks/{platform_id}/[功能名]-task.md
 
 可启动测试 Agent 进行验收测试。
 ```
@@ -131,6 +131,6 @@ tools: Read, Write, Glob, Grep
 - [ ] 代码遵循架构分层规范
 - [ ] 命名符合规范
 - [ ] 所有偏差已记录
-- [ ] 如有技术债，已写入 `projects/pXXX/tech-debt/[功能名]-tech-debt.md`（基于模板 `speccrew-dev-task/templates/TECH-DEBT-TEMPLATE.md`）
+- [ ] 如有技术债，已写入 `speccrew-workspace/iterations/{number}-{type}-{name}/tech-debt/[功能名]-tech-debt.md`（基于模板 `speccrew-dev-task/templates/TECH-DEBT-TEMPLATE.md`）
 - [ ] 任务记录状态已更新为完成
 

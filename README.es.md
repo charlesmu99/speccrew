@@ -11,7 +11,7 @@
 
 ## ¿Qué es SpecCrew?
 
-SpecCrew es un framework de equipo de desarrollo virtual de IA integrado. Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Solution → Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD), especialmente adecuado para proyectos existentes.
+SpecCrew es un framework de equipo de desarrollo virtual de IA integrado. Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Feature Design → System Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD), especialmente adecuado para proyectos existentes.
 
 Al integrar Agentes y Skills en proyectos existentes, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
@@ -122,7 +122,7 @@ graph LR
 | Dimensión | Vibe Coding | Ralph Loop | **SpecCrew** |
 |-----------|-------------|------------|-------------|
 | Dependencia de Documentos | Ignora documentos existentes | Depende de AGENTS.md | **Base de conocimiento estructurada** |
-| Transferencia de Requisitos | Codificación directa | PRD → Code | **PRD → Solution → Design → Code** |
+| Transferencia de Requisitos | Codificación directa | PRD → Code | **PRD → Feature Design → System Design → Code** |
 | Participación Humana | Mínima | Al inicio | **En cada fase** |
 | Completitud del Proceso | Débil | Media | **Flujo de trabajo de ingeniería completo** |
 | Colaboración en Equipo | Difícil de compartir | Eficiencia personal | **Compartir conocimiento en equipo** |
@@ -249,9 +249,9 @@ your-project/
     ├── iterations/                  # Proyectos de iteración (generados dinámicamente)
     │   └── {número}-{tipo}-{nombre}/ # ej., 001-feature-order
     │       ├── 00.docs/             # Requisitos originales
-    │       ├── 01.prd/              # Requisitos del producto
-    │       ├── 02.solution/         # Diseño de solución
-    │       ├── 03.design/           # Documentos de diseño
+    │       ├── 01.product-requirement/ # Requisitos del producto
+    │       ├── 02.feature-design/   # Diseño de características
+    │       ├── 03.system-design/    # Diseño del sistema
     │       ├── 04.dev/              # Fase de desarrollo
     │       ├── 05.test/             # Fase de pruebas
     │       └── 06.delivery/         # Fase de entrega

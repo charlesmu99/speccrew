@@ -195,7 +195,7 @@ Ask: "Here are the core functions (Must have) and deferred functions. Is the MVP
   - No `direction` keyword
   - No `style` definitions
   - No special characters in node text
-- Save modeling document to: `iterations/{number}/01.prd/{feature-name}-bizs-modeling.md`
+- Save modeling document to: `iterations/{number}/01.product-requirement/{feature-name}-bizs-modeling.md`
 
 **ISA-95 Quick Reference:**
 
@@ -267,7 +267,7 @@ Before writing, determine the PRD structure based on requirement complexity:
 
 **Master-Sub Structure:**
 ```
-01.prd/
+01.product-requirement/
 ├── [feature-name]-prd.md            # Master PRD
 ├── [feature-name]-sub-[module1].md   # Sub-PRD: Module 1
 ├── [feature-name]-sub-[module2].md   # Sub-PRD: Module 2
@@ -355,12 +355,12 @@ Ask the user for the current iteration number and determine the file path:
 
 ### Single PRD Structure
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md
+speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md
 ```
 
 ### Master-Sub PRD Structure
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/
+speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/
 ├── [feature-name]-prd.md
 ├── [feature-name]-sub-[module1].md
 ├── [feature-name]-sub-[module2].md
@@ -375,18 +375,18 @@ After writing files, show summary and request user confirmation:
 
 ### Simple PRD Output
 ```
-PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
+PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
 ```
 
 ### Complex PRD Output (with modeling)
 ```
-Business Modeling generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-bizs-modeling.md
-PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
+Business Modeling generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-bizs-modeling.md
+PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
 ```
 
 ### Master-Sub PRD Output
 ```
-Master PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.prd/[feature-name]-prd.md
+Master PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
 Sub-PRDs generated:
   - [feature-name]-sub-[module1].md
   - [feature-name]-sub-[module2].md

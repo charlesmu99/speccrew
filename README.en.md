@@ -11,7 +11,7 @@
 
 ## What is SpecCrew?
 
-SpecCrew is an embedded virtual AI development team framework. It transforms professional software engineering workflows (PRD → Solution → Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD), especially suitable for existing projects.
+SpecCrew is an embedded virtual AI development team framework. It transforms professional software engineering workflows (PRD → Feature Design → System Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD), especially suitable for existing projects.
 
 By integrating Agents and Skills into existing projects, teams can quickly initialize project documentation systems and virtual software teams, implementing new features and modifications following standard engineering workflows.
 
@@ -122,7 +122,7 @@ graph LR
 | Dimension | Vibe Coding | Ralph Loop | **SpecCrew** |
 |-----------|-------------|------------|-------------|
 | Document Dependency | Ignores existing docs | Relies on AGENTS.md | **Structured Knowledge Base** |
-| Requirement Transfer | Direct coding | PRD → Code | **PRD → Solution → Design → Code** |
+| Requirement Transfer | Direct coding | PRD → Code | **PRD → Feature Design → System Design → Code** |
 | Human Involvement | Minimal | At startup | **At every phase** |
 | Process Completeness | Weak | Medium | **Complete engineering workflow** |
 | Team Collaboration | Hard to share | Personal efficiency | **Team knowledge sharing** |
@@ -249,9 +249,9 @@ your-project/
     ├── iterations/                  # Iteration projects (dynamically generated)
     │   └── {number}-{type}-{name}/  # e.g., 001-feature-order
     │       ├── 00.docs/             # Original requirements
-    │       ├── 01.prd/              # Product requirements
-    │       ├── 02.solution/         # Solution design
-    │       ├── 03.design/           # Design documents
+    │       ├── 01.product-requirement/ # Product requirements
+    │       ├── 02.feature-design/   # Feature design
+    │       ├── 03.system-design/    # System design
     │       ├── 04.dev/              # Development phase
     │       ├── 05.test/             # Testing phase
     │       └── 06.delivery/         # Delivery phase

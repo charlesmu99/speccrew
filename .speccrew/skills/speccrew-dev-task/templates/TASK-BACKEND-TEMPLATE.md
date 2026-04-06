@@ -1,6 +1,6 @@
 # 后端开发任务 - [功能名称]
 
-> 基于设计文档：[链接到 03.designs/backend/[功能名]-design.md]
+> 基于设计文档：[链接到 03.system-design/{platform_id}/[功能名]-design.md]
 
 ## 任务拆分
 

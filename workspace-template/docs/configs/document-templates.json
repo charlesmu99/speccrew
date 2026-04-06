@@ -209,12 +209,12 @@
         "system_types": ["ui", "api"],
         "platforms": ["web", "mobile", "backend", "desktop", "api"]
       },
-      "output_pattern": "{solution-name}.md",
+      "output_pattern": "{feature-name}-feature-spec.md",
       "sections": [
         {
-          "name": "Solution Overview",
+          "name": "Feature Overview",
           "required": true,
-          "description": "Solution name, description, and scope"
+          "description": "Feature name, description, and scope"
         },
         {
           "name": "Problem Statement",
@@ -222,14 +222,14 @@
           "description": "Problem being solved"
         },
         {
-          "name": "Solution Design",
+          "name": "Feature Design",
           "required": true,
-          "description": "Detailed solution design"
+          "description": "Detailed feature design"
         },
         {
           "name": "Implementation Plan",
           "required": true,
-          "description": "Steps to implement the solution"
+          "description": "Steps to implement the feature"
         },
         {
           "name": "Related Knowledge",
@@ -238,11 +238,103 @@
         }
       ],
       "placeholders": [
-        "{{SolutionName}}",
+        "{{FeatureName}}",
         "{{ProblemStatement}}",
-        "{{SolutionDesign}}",
+        "{{FeatureDesign}}",
         "{{ImplementationPlan}}",
         "{{RelatedKnowledge}}"
+      ]
+    },
+    "system_design_frontend": {
+      "name": "SD-FRONTEND-TEMPLATE",
+      "file_name": "SD-FRONTEND-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SD-FRONTEND-TEMPLATE.md",
+      "description": "Template for system designer to create frontend detailed design documents",
+      "used_by": ["speccrew-system-designer"],
+      "applies_to": {
+        "system_types": ["ui"],
+        "platforms": ["web", "mobile", "desktop"]
+      },
+      "output_pattern": "{feature-name}-frontend-design.md",
+      "sections": [
+        {
+          "name": "Design Overview",
+          "required": true,
+          "description": "Frontend design overview and scope"
+        },
+        {
+          "name": "Component Architecture",
+          "required": true,
+          "description": "Component structure and hierarchy"
+        },
+        {
+          "name": "State Management",
+          "required": true,
+          "description": "State flow and management patterns"
+        },
+        {
+          "name": "API Integration",
+          "required": true,
+          "description": "API calls and data handling"
+        },
+        {
+          "name": "UI Specifications",
+          "required": false,
+          "description": "Styling, theming, and responsive design"
+        }
+      ],
+      "placeholders": [
+        "{{FeatureName}}",
+        "{{ComponentArchitecture}}",
+        "{{StateManagement}}",
+        "{{APIIntegration}}",
+        "{{UISpecifications}}"
+      ]
+    },
+    "system_design_backend": {
+      "name": "SD-BACKEND-TEMPLATE",
+      "file_name": "SD-BACKEND-TEMPLATE.md",
+      "path": "speccrew-workspace/docs/templates/SD-BACKEND-TEMPLATE.md",
+      "description": "Template for system designer to create backend detailed design documents",
+      "used_by": ["speccrew-system-designer"],
+      "applies_to": {
+        "system_types": ["api"],
+        "platforms": ["backend", "api"]
+      },
+      "output_pattern": "{feature-name}-backend-design.md",
+      "sections": [
+        {
+          "name": "Design Overview",
+          "required": true,
+          "description": "Backend design overview and scope"
+        },
+        {
+          "name": "Service Architecture",
+          "required": true,
+          "description": "Service layering and structure"
+        },
+        {
+          "name": "API Endpoints",
+          "required": true,
+          "description": "API endpoint definitions"
+        },
+        {
+          "name": "Data Model",
+          "required": true,
+          "description": "Database schema and data access"
+        },
+        {
+          "name": "Integration Points",
+          "required": false,
+          "description": "External service integrations"
+        }
+      ],
+      "placeholders": [
+        "{{FeatureName}}",
+        "{{ServiceArchitecture}}",
+        "{{APIEndpoints}}",
+        "{{DataModel}}",
+        "{{IntegrationPoints}}"
       ]
     },
     "techs_index": {

@@ -16,7 +16,7 @@ tools: Read, Write, Glob, Grep
 
 Read in order:
 
-1. **Current iteration PRD**: `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md`
+1. **Current iteration PRD**: `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md`
 2. **Feature spec template**: `speccrew-fd-feature-design/templates/FEATURE-SPEC-TEMPLATE.md`
 
 **[Master-Sub PRD structure]** If master PRD exists, also read all sub PRDs:
@@ -87,7 +87,7 @@ Based on PRD structure, determine feature spec output structure:
 ### Master Feature Spec Structure
 
 ```
-02.solution/
+02.feature-design/
 ├── [feature-name]-feature-spec.md          # Master Feature Spec (overview + cross-module)
 ├── [feature-name]-sub-[module1]-spec.md    # Sub Feature Spec: Module 1
 ├── [feature-name]-sub-[module2]-spec.md    # Sub Feature Spec: Module 2
@@ -318,12 +318,12 @@ Data Entities: {count} new, {count} modified
 
 **Single Feature Spec:**
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-feature-spec.md
+speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
 ```
 
 **Master-Sub Feature Specs:**
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/
+speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/
 ├── [feature-name]-feature-spec.md
 ├── [feature-name]-sub-[module1]-spec.md
 ├── [feature-name]-sub-[module2]-spec.md

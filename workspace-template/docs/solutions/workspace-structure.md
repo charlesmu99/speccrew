@@ -15,9 +15,9 @@ SpecCrew-workspace/
 ├── iterations/                    # 迭代工作目录
 │   └── {序号}-{类型}-{名称}/      # 如 001-feature-order
 │       ├── 00.docs/               # 原始需求文档
-│       ├── 01.prd/                # 产品需求文档
-│       ├── 02.solution/           # 解决方案
-│       ├── 03.design/             # 设计文档
+│       ├── 01.product-requirement/ # 产品需求文档
+│       ├── 02.feature-design/     # 特性设计
+│       ├── 03.system-design/      # 系统设计
 │       ├── 04.dev/                # 开发阶段
 │       ├── 05.test/               # 测试阶段
 │       └── 06.delivery/           # 交付阶段
@@ -79,9 +79,9 @@ docs/
 iterations/
 ├── 001-feature-order/             # 订单功能迭代
 │   ├── 00.docs/                   # 用户需求原始文档
-│   ├── 01.prd/                    # 产品需求文档
-│   ├── 02.solution/               # 解决方案
-│   ├── 03.design/                 # 设计文档
+│   ├── 01.product-requirement/    # 产品需求文档
+│   ├── 02.feature-design/         # 特性设计
+│   ├── 03.system-design/          # 系统设计
 │   ├── 04.dev/                    # 开发阶段
 │   ├── 05.test/                   # 测试阶段
 │   └── 06.delivery/               # 交付阶段
@@ -95,9 +95,9 @@ iterations/
 | 阶段 | 目录 | 说明 |
 |------|------|------|
 | 原始需求 | `00.docs/` | 用户需求的原始文档，保持原样 |
-| PRD | `01.prd/` | 产品需求文档，需求分析和规格说明 |
-| 解决方案 | `02.solution/` | 技术方案、API 契约、架构设计 |
-| 设计 | `03.design/` | 详细设计、数据库设计、接口设计 |
+| 产品需求 | `01.product-requirement/` | 产品需求文档，需求分析和规格说明 |
+| 特性设计 | `02.feature-design/` | 特性规格、API 契约、交互设计 |
+| 系统设计 | `03.system-design/` | 详细设计、数据库设计、接口设计 |
 | 开发 | `04.dev/` | 代码实现、开发日志 |
 | 测试 | `05.test/` | 测试用例、测试报告 |
 | 交付 | `06.delivery/` | 部署文档、验收报告、交付清单 |

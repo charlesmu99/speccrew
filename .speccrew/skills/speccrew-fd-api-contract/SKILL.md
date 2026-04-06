@@ -13,7 +13,7 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read Input
 
-1. Feature spec document: `speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-feature-spec.md`
+1. Feature spec document: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md`
 2. API Contract template: `speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md`
 3. System architecture (API specification part): Refer to project tech-stack-mappings.json for API naming conventions
 
@@ -40,7 +40,7 @@ Complete definition for each API:
 
 ## Step 4: Write to File
 
-Write path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-api-contract.md`
+Write path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
 
 ## Step 5: Joint Confirmation
 
@@ -48,8 +48,8 @@ After both documents (Feature Spec + API Contract) are ready, request confirmati
 
 ```
 Feature design phase deliverables are ready:
-- Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-feature-spec.md
-- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.solution/[feature-name]-api-contract.md
+- Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
+- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md
 
 Please confirm the following key points:
 1. Is the overall technical solution feasible?

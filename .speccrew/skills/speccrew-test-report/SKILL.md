@@ -13,14 +13,14 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read Inputs
 
-1. PRD Acceptance Criteria: `projects/pXXX/01.prds/[feature-name]-prd.md` (focus on "Acceptance Criteria" section)
-2. API Contract: `projects/pXXX/02.solutions/[feature-name]-api-contract.md`
-3. Development Task Records: `projects/pXXX/04.tasks/[frontend|backend]/[feature-name]-task.md` (understand deviations)
+1. PRD Acceptance Criteria: `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` (focus on "Acceptance Criteria" section)
+2. API Contract: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+3. Development Task Records: `speccrew-workspace/iterations/{number}-{type}-{name}/04.tasks/{platform_id}/[feature-name]-task.md` (understand deviations)
 4. Testing Conventions: `speccrew-workspace/knowledge/architecture/conventions/testing.md`
 
 ## Step 2: Prepare Test Cases
 
-Check if test case file exists: `projects/pXXX/05.tests/cases/[feature-name]-test-cases.md`
+Check if test case file exists: `speccrew-workspace/iterations/{number}-{type}-{name}/05.tests/cases/[feature-name]-test-cases.md`
 
 **If not, create one**, read template:
 ```
@@ -53,7 +53,7 @@ Execute test cases one by one, record actual results:
 
 ## Step 4: Drift Detection (Implementation vs Design)
 
-Read detailed design document: `projects/pXXX/03.designs/[frontend|backend]/[feature-name]-design.md`
+Read detailed design document: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/[feature-name]-design.md`
 
 Compare with actual code implementation, check for **unreported deviations**:
 
@@ -78,7 +78,7 @@ Fill in test report, including:
 - Defect list (complete description of each defect)
 - Outstanding issues explanation (which defects will not be fixed this time and reasons)
 
-Write path: `projects/pXXX/05.tests/reports/[feature-name]-test-report.md`
+Write path: `speccrew-workspace/iterations/{number}-{type}-{name}/05.tests/reports/[feature-name]-test-report.md`
 
 ## Step 6: Handle Failed Cases
 
@@ -94,7 +94,7 @@ After all tests pass (or outstanding issues have clear resolution plans):
 
 ```
 Testing Complete
-- Test Report: projects/pXXX/05.tests/reports/[feature-name]-test-report.md
+- Test Report: speccrew-workspace/iterations/{number}-{type}-{name}/05.tests/reports/[feature-name]-test-report.md
 - Pass Rate: [X/Y] ([XX%])
 - Remaining Defects: [N]
 

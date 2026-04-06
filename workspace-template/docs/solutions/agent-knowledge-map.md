@@ -15,7 +15,7 @@ Agent knowledge sources are organized in three layers:
 |-------|-----------|---------|------------------|
 | **L1 System Knowledge** | `SpecCrew-workspace/knowledge/` | Current system technology, business functions, development conventions | Low frequency, evolves with system |
 | **L2 Domain Knowledge** | `SpecCrew-workspace/knowledge/domain/` | Industry standards, business terminology, QA experience | Irregular supplementation |
-| **L3 Iteration Deliverables** | `SpecCrew-workspace/iterations/iXXX/` | Current iteration PRD, Solution, design documents | Produced each iteration |
+| **L3 Iteration Deliverables** | `SpecCrew-workspace/iterations/iXXX/` | Current iteration PRD, Feature Design, System Design documents | Produced each iteration |
 
 ---
 
@@ -49,20 +49,20 @@ Agent knowledge sources are organized in three layers:
 
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
-| PRD Document | `iterations/iXXX/01.prds/[feature-name]-prd.md` | Per template | Can only proceed after user confirmation |
-| Feature PRD Documents | `iterations/iXXX/01.prds/[module-name]/[feature-name]-prd.md` | Per template | For complex requirements, organized by module |
+| PRD Document | `iterations/iXXX/01.product-requirement/[feature-name]-prd.md` | Per template | Can only proceed after user confirmation |
+| Feature PRD Documents | `iterations/iXXX/01.product-requirement/[module-name]/[feature-name]-prd.md` | Per template | For complex requirements, organized by module |
 
 ---
 
-### Solution Agent (Solution Planning)
+### Feature Designer Agent (Feature Specification)
 
-**Responsibility**: Output business process solution based on PRD, describing frontend, backend, and database operations to implement business requirements
+**Responsibility**: Output feature specification based on PRD, describing frontend prototypes, interaction flows, backend interface logic, and data model design
 
 #### Input Knowledge
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
-| PRD Document | `iterations/iXXX/01.prds/[feature-name]-prd.md` | Required, load first | Core input |
+| PRD Document | `iterations/iXXX/01.product-requirement/[feature-name]-prd.md` | Required, load first | Core input |
 | System Business Overview | `knowledge/bizs/system-overview.md` | Required | Understand system modules and their relationships |
 | Module Business Details | `knowledge/bizs/{platform}/{module}/{module}-overview.md` | On-demand | Understand specific module features, entities, and business rules |
 
@@ -71,28 +71,28 @@ Agent knowledge sources are organized in three layers:
 ```
 1. Must load: PRD + System Business Overview
 2. On-demand load: Load specific module overview files when requirement involves existing modules
-3. Do not load: System architecture, technical details, development conventions (Solution focuses on business solution only)
+3. Do not load: System architecture, technical details, development conventions (Feature Designer focuses on business specification only)
 ```
 
 #### Deliverables
 
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
-| Solution Document | `iterations/iXXX/02.solutions/[feature-name]-solution.md` | Per template (with Mermaid sequence/ER diagrams) | Can only proceed after user confirmation |
-| Feature Solution Documents | `iterations/iXXX/02.solutions/[module-name]/[feature-name]-solution.md` | Per template | For complex requirements, organized by module |
-| API Contract Document | `iterations/iXXX/02.solutions/[feature-name]-api-contract.md` | Structured table | Frontend-backend shared boundary, read-only during design/development |
+| Feature Specification | `iterations/iXXX/02.feature-design/[feature-name]-feature-spec.md` | Per template (with Mermaid sequence/ER diagrams) | Can only proceed after user confirmation |
+| Sub Feature Specifications | `iterations/iXXX/02.feature-design/[module-name]/[feature-name]-feature-spec.md` | Per template | For complex requirements, organized by module |
+| API Contract Document | `iterations/iXXX/02.feature-design/[feature-name]-api-contract.md` | Structured table | Frontend-backend shared boundary, read-only during design/development |
 
 ---
 
-### Designer Agent (Frontend/Backend)
+### System Designer Agent (Frontend/Backend)
 
-**Responsibility**: Output pseudo-code level detailed design based on Solution
+**Responsibility**: Output pseudo-code level detailed design based on Feature Specification
 
 #### Input Knowledge
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
-| Solution Document | `iterations/iXXX/02.solutions/[feature-name]-solution.md` | Required, load first | Core input |
+| Feature Specification | `iterations/iXXX/02.feature-design/[feature-name]-feature-spec.md` | Required, load first | Core input |
 | Frontend Architecture Details | `knowledge/techs/frontend/` | Required for frontend design | Component conventions, state management agreements |
 | Backend Architecture Details | `knowledge/techs/backend/` | Required for backend design | Service layering conventions, DI agreements |
 | Data Architecture Details | `knowledge/techs/data/` | On-demand | When involving database operations |
@@ -103,11 +103,11 @@ Agent knowledge sources are organized in three layers:
 
 ```
 Frontend Designer Agent:
-1. Must load: Solution + Frontend Architecture Details + Development Conventions (frontend part)
+1. Must load: Feature Specification + Frontend Architecture Details + Development Conventions (frontend part)
 2. On-demand load: Reference existing implementations of similar components
 
 Backend Designer Agent:
-1. Must load: Solution + Backend Architecture Details + Development Conventions (backend part)
+1. Must load: Feature Specification + Backend Architecture Details + Development Conventions (backend part)
 2. On-demand load: Load architecture/data/ when involving database
 ```
 
@@ -115,10 +115,10 @@ Backend Designer Agent:
 
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
-| Frontend Detailed Design | `iterations/iXXX/03.designs/frontend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
-| Backend Detailed Design | `iterations/iXXX/03.designs/backend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
+| Frontend Detailed Design | `iterations/iXXX/03.system-design/frontend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
+| Backend Detailed Design | `iterations/iXXX/03.system-design/backend/[feature-name]-design.md` | Per template | Pseudo-code level, no actual code |
 
-> API contract documents are output by Solution Agent, path is `02.solutions/[feature-name]-api-contract.md`, **read-only reference during design phase, do not modify**. If contract changes are needed, escalate to Solution Agent for correction.
+> API contract documents are output by Feature Designer Agent, path is `02.feature-design/[feature-name]-api-contract.md`, **read-only reference during design phase, do not modify**. If contract changes are needed, escalate to Feature Designer Agent for correction.
 
 ---
 
@@ -130,7 +130,7 @@ Backend Designer Agent:
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
-| Frontend/Backend Detailed Design | `iterations/iXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Core input |
+| Frontend/Backend Detailed Design | `iterations/iXXX/03.system-design/[platform]/[feature-name]-design.md` | Required, load first | Core input |
 | Development Conventions | `knowledge/techs/conventions/` | Required | Code conventions, commit conventions |
 | Frontend/Backend Architecture Details | `knowledge/techs/[platform]/` | On-demand | Reference when design document is ambiguous |
 | Unit Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test writing conventions |
@@ -162,15 +162,15 @@ Backend Designer Agent:
 
 | Knowledge Type | Path | Loading Timing | Purpose |
 |----------------|------|----------------|---------|
-| Frontend/Backend Detailed Design | `iterations/iXXX/03.designs/[platform]/[feature-name]-design.md` | Required, load first | Basis for generating test cases |
-| Solution Document | `iterations/iXXX/02.solutions/[feature-name]-solution.md` | Required | Basis for acceptance test cases |
+| Frontend/Backend Detailed Design | `iterations/iXXX/03.system-design/[platform]/[feature-name]-design.md` | Required, load first | Basis for generating test cases |
+| Feature Specification Document | `iterations/iXXX/02.feature-design/[feature-name]-feature-spec.md` | Required | Basis for acceptance test cases |
 | Testing Conventions | `knowledge/techs/conventions/testing.md` | Required | Test case format, coverage requirements |
-| PRD Document | `iterations/iXXX/01.prds/[feature-name]-prd.md` | On-demand | Trace back when acceptance criteria is disputed |
+| PRD Document | `iterations/iXXX/01.product-requirement/[feature-name]-prd.md` | On-demand | Trace back when acceptance criteria is disputed |
 
 #### Loading Strategy
 
 ```
-1. Must load: Detailed design + Solution + Testing conventions
+1. Must load: Detailed design + Feature Specification + Testing conventions
 2. On-demand load: Load PRD to trace back when acceptance criteria is ambiguous
 3. Do not load: Architecture documents, development conventions (testing doesn't care about implementation)
 ```
@@ -188,18 +188,18 @@ Backend Designer Agent:
 
 ```
 knowledge/                          iterations/iXXX/
-├── bizs/system-overview.md ───→   ├── 01.prds/          ←── PM Agent output
-├── bizs/{platform}/{module}/ ──→  │                        (user confirmed)
-├── domain/standards/ ───────→     │                            │
-├── domain/glossary/  ───────→     ├── 02.solutions/     ←── Solution Agent output
+├── bizs/system-overview.md ───→   ├── 01.product-requirement/  ←── PM Agent output
+├── bizs/{platform}/{module}/ ──→  │                               (user confirmed)
+├── domain/standards/ ───────→     │                                   │
+├── domain/glossary/  ───────→     ├── 02.feature-design/      ←── Feature Designer Agent output
 │                  PM Agent ───────→ (user confirmed)
 │                                         │
-├── techs/system/   ─────────── Solution Agent
+├── techs/system/   ─────────── Feature Designer Agent
 ├── techs/frontend/ ───→
-├── techs/backend/  ───→     ├── 03.designs/
-├── techs/data/     ───→     │ ├── frontend/   ←── Frontend Designer Agent output
-├── techs/conventions/ →     │ └── backend/    ←── Backend Designer Agent output
-│                Designer Agent ─────→         │
+├── techs/backend/  ───→     ├── 03.system-design/
+├── techs/data/     ───→     │ ├── frontend/   ←── Frontend System Designer Agent output
+├── techs/conventions/ →     │ └── backend/    ←── Backend System Designer Agent output
+│                System Designer Agent ─────→         │
 │                                         ├── 04.dev/
 │                                         │ ├── frontend/ ←── Frontend Dev Agent output
 ├── techs/conventions/ ─────────────→ └── backend/  ←── Backend Dev Agent output
@@ -218,8 +218,8 @@ When downstream discovers issues, escalate and correct along the following path:
 ```
 Test Failure
   └→ Dev Agent fixes code
-       └→ If design issue → Designer Agent corrects detailed design
-            └→ If solution issue → Solution Agent corrects Solution
+       └→ If design issue → System Designer Agent corrects detailed design
+            └→ If specification issue → Feature Designer Agent corrects Feature Specification
                  └→ If requirement issue → PM Agent + user confirmation
 ```
 
@@ -231,8 +231,8 @@ Test Failure
 
 | Node | Trigger Condition | Description |
 |------|-------------------|-------------|
-| PRD Confirmation | PM Agent completes PRD draft | User confirms requirement boundaries are correct before starting Solution phase |
-| Solution Confirmation | Solution Agent completes solution | User confirms overall solution (UI/API/data model) is correct before starting design phase |
-| Detailed Design Confirmation | Designer Agent completes frontend/backend detailed design | User confirms design solution is correct before starting development phase |
+| PRD Confirmation | PM Agent completes PRD draft | User confirms requirement boundaries are correct before starting Feature Design phase |
+| Feature Spec Confirmation | Feature Designer Agent completes feature specification | User confirms overall specification (UI/API/data model) is correct before starting design phase |
+| Detailed Design Confirmation | System Designer Agent completes frontend/backend detailed design | User confirms design solution is correct before starting development phase |
 | Launch Confirmation | Test Agent completes test report | User confirms tests pass, no pending defects before launch |
 
