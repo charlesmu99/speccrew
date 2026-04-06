@@ -63,7 +63,7 @@ graph TB
 | `#` | Markdown headers | Spell out or omit |
 | `<` `>` | Generics (`List<String>`) | Use parentheses: `List(String)` |
 | `&` | HTML entities | Spell out: `and` |
-| `[` `]` | Array index (`arr[0]`) | Use parentheses or omit: `arr(0)` or `arr0` |
+| `[` `]` | Array index (`arr[0]`) | Use parentheses or omit: `arr(0)` or `arr0`. **NEVER nest brackets in node text** |
 | `/` | File paths (`/pages/index`) | Remove leading `/` or use parentheses: `pages/index` |
 | `(` `)` | Function calls (`handleQuery()`) | Remove parentheses: `handleQuery` |
 
