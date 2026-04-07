@@ -154,6 +154,14 @@ function isDataObjectFile(fileName, extension, excludeSuffixes) {
   return false;
 }
 
+// Check if file name matches exact exclusion list (e.g., package-info)
+function isExcludedFileName(fileName, excludeFileNames) {
+  if (!excludeFileNames || excludeFileNames.length === 0) {
+    return false;
+  }
+  return excludeFileNames.includes(fileName);
+}
+
 // Get module name (first non-excluded directory level)
 function getModuleName(dirPath, excludeDirs, fallbackModuleName) {
   const parts = normalizePath(dirPath).split('/').filter(p => p && p !== '.');
@@ -225,11 +233,12 @@ function loadTechStackConfig(platformType, framework, projectRoot) {
     const techConfig = config.tech_stacks[platformType][framework];
     return {
       extensions: techConfig.extensions || [],
-      exclude_file_suffixes: techConfig.exclude_file_suffixes || []
+      exclude_file_suffixes: techConfig.exclude_file_suffixes || [],
+      exclude_file_names: techConfig.exclude_file_names || []
     };
   }
   
-  return { extensions: [], exclude_file_suffixes: [] };
+  return { extensions: [], exclude_file_suffixes: [], exclude_file_names: [] };
 }
 
 /**
@@ -380,7 +389,7 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
   
   // Load tech stack config for extensions and exclude_file_suffixes
   const techConfig = loadTechStackConfig(platformType, framework, projectRoot);
-  const { extensions, exclude_file_suffixes } = techConfig;
+  const { extensions, exclude_file_suffixes, exclude_file_names } = techConfig;
   
   if (extensions.length === 0) {
     console.error(`Error: No extensions found for ${platformType}/${framework} in tech-stack-mappings.json`);
@@ -425,6 +434,11 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
       for (const file of files) {
         // Apply exclude_file_suffixes filter
         if (isDataObjectFile(file.fileName, file.extension, exclude_file_suffixes)) {
+          continue;
+        }
+        
+        // Apply exclude_file_names filter (e.g., package-info)
+        if (isExcludedFileName(file.fileName, exclude_file_names)) {
           continue;
         }
         
@@ -649,6 +663,7 @@ function main() {
 
   // If excludeDirs not provided or empty, try to read from tech-stack-mappings.json
   let excludeFileSuffixes = [];
+  let excludeFileNames = [];
   if (!excludeDirsStr || excludeDirsStr === '[]') {
     try {
       const configPath = path.join(projectRoot, 'speccrew-workspace', 'docs', 'configs', 'tech-stack-mappings.json');
@@ -681,6 +696,17 @@ function main() {
           excludeFileSuffixes = config.tech_stacks[platformType][techIdentifier].exclude_file_suffixes;
           if (excludeFileSuffixes.length > 0) {
             console.log(`Loaded exclude_file_suffixes from tech-stack-mappings.json: ${excludeFileSuffixes.join(', ')}`);
+          }
+        }
+        
+        // Load tech-stack-specific exclude_file_names
+        if (config.tech_stacks && 
+            config.tech_stacks[platformType] && 
+            config.tech_stacks[platformType][techIdentifier] &&
+            config.tech_stacks[platformType][techIdentifier].exclude_file_names) {
+          excludeFileNames = config.tech_stacks[platformType][techIdentifier].exclude_file_names;
+          if (excludeFileNames.length > 0) {
+            console.log(`Loaded exclude_file_names from tech-stack-mappings.json: ${excludeFileNames.join(', ')}`);
           }
         }
       }
@@ -749,9 +775,20 @@ function main() {
     excludedDataObjectsCount = filesBeforeFilter - files.length;
   }
 
+  // Filter out files with excluded names (e.g., package-info)
+  let excludedFileNamesCount = 0;
+  if (excludeFileNames.length > 0) {
+    const filesBeforeFilter = files.length;
+    files = files.filter(file => !isExcludedFileName(file.fileName, excludeFileNames));
+    excludedFileNamesCount = filesBeforeFilter - files.length;
+  }
+
   console.log(`Found ${allFiles.length} total files, ${files.length} after excluding components directories`);
   if (excludedDataObjectsCount > 0) {
     console.log(`Excluded: ${excludedDataObjectsCount} data objects (VO/DTO/DO/Entity/Convert)`);
+  }
+  if (excludedFileNamesCount > 0) {
+    console.log(`Excluded: ${excludedFileNamesCount} files by name (${excludeFileNames.join(', ')})`);
   }
 
   // Build flat feature list - each file is a feature

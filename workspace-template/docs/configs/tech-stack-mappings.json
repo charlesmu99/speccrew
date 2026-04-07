@@ -132,6 +132,7 @@
         "extensions": [".java", ".kt"],
         "exclude_dirs": ["controller", "controllers", "admin", "app", "api", "service", "services", "repository", "repositories", "dao", "dal", "mysql", "redis", "dataobject", "entity", "entities", "model", "models", "dto", "dtos", "vo", "vos", "mapper", "mappers", "convert", "converter", "converters", "config", "configs", "util", "utils", "common", "exception", "exceptions", "enums", "framework", "job", "mq", "listener", "listeners", "producer", "consumer"],
         "exclude_file_suffixes": ["VO", "DTO", "DO", "Entity", "Convert", "Converter"],
+        "exclude_file_names": ["package-info"],
         "entry_patterns": ["**/*Controller.java", "**/*Controller.kt", "**/*Service.java"],
         "api_patterns": {
           "controller": ["@Controller", "@RestController", "@RequestMapping"],
