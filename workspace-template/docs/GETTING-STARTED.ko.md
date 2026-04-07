@@ -1,5 +1,19 @@
 # SpecCrew 빠른 시작 가이드
 
+<p align="center">
+  <a href="./GETTING-STARTED.md">简体中文</a> |
+  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
+  <a href="./GETTING-STARTED.en.md">English</a> |
+  <a href="./GETTING-STARTED.ko.md">한국어</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.it.md">Italiano</a> |
+  <a href="./GETTING-STARTED.da.md">Dansk</a> |
+  <a href="./GETTING-STARTED.ja.md">日本語</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a>
+</p>
+
 이 문서는 SpecCrew의 Agent 팀을 사용하여 표준 엔지니어링 프로세스에 따라 요구사항에서 전달까지 전체 개발 주기를 완료하는 방법을 빠르게 이해하는 데 도움을 줍니다.
 
 ---

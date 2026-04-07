@@ -1,5 +1,19 @@
 # Guía de Inicio Rápido de SpecCrew
 
+<p align="center">
+  <a href="./GETTING-STARTED.md">简体中文</a> |
+  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
+  <a href="./GETTING-STARTED.en.md">English</a> |
+  <a href="./GETTING-STARTED.ko.md">한국어</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.it.md">Italiano</a> |
+  <a href="./GETTING-STARTED.da.md">Dansk</a> |
+  <a href="./GETTING-STARTED.ja.md">日本語</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a>
+</p>
+
 Este documento le ayuda a comprender rápidamente cómo usar el equipo de Agentes de SpecCrew para completar el ciclo completo de desarrollo desde los requisitos hasta la entrega siguiendo procesos de ingeniería estándar.
 
 ---
