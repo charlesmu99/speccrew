@@ -40,7 +40,11 @@ switch (command) {
     require('../lib/commands/doctor').run(projectRoot, args);
     break;
   case 'uninstall':
-    require('../lib/commands/uninstall').run(projectRoot, args);
+    require('../lib/commands/uninstall').run(projectRoot, args).then((result) => {
+      if (!result) {
+        process.exit(1);
+      }
+    });
     break;
   case 'list':
     require('../lib/commands/list').run(projectRoot, args);

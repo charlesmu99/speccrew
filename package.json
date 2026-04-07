@@ -1,6 +1,6 @@
 {
   "name": "speccrew",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Spec-Driven Development toolkit for AI-powered IDEs",
   "author": "charlesmu99",
   "repository": {
@@ -18,8 +18,13 @@
     "bin/",
     "lib/",
     ".speccrew/",
-    "workspace-template/"
+    "workspace-template/",
+    "docs/",
+    "README*.md"
   ],
+  "scripts": {
+    "postinstall": "node bin/postinstall.js"
+  },
   "engines": {
     "node": ">=16.0.0"
   },
