@@ -60,7 +60,8 @@ flowchart TB
     S0[Pre-processing: Platform Root Detection] --> S0a[Stage 0: Platform Detection]
     S0a --> S1a[Stage 1a: Entry Directory Recognition]
     S1a --> S1b[Stage 1b: Feature Inventory]
-    S1b --> S2[Stage 2: Feature Analysis + Graph Write]
+    S1b --> S1c[Stage 1c: Feature Merge - Incremental]
+    S1c --> S2[Stage 2: Feature Analysis + Graph Write]
     S2 --> S3[Stage 3: Module Summarize]
     S3 --> S3_5[Stage 3.5: UI Style Pattern Extract]
     S3_5 --> S4[Stage 4: System Summary]
@@ -275,6 +276,51 @@ After generating the entry-dirs JSON:
 ```
 
 **Error handling**: If the script exits with non-zero code, STOP and report the error. Do NOT create workaround scripts.
+
+---
+
+## Stage 1c: Feature Merge (Incremental)
+
+**Goal**: If incremental inventory files (`features-*.new.json`) are detected, merge them with existing `features-*.json` files. Identifies added/removed/changed features, resets changed features for re-analysis, and cleans up artifacts for removed features.
+
+> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)** via `run_in_terminal`. NOT delegated to a Worker Agent.
+
+**Prerequisite**: Stage 1b completed.
+
+**Skip condition**: If no `features-*.new.json` files exist in `{sync_state_path}/knowledge-bizs/`, skip this Stage entirely and proceed to Stage 2.
+
+**Action** (dispatch executes directly via `run_in_terminal`):
+
+1. **Locate the merge script**: Find `merge-features.js` in the `speccrew-knowledge-bizs-dispatch` skill's scripts directory:
+   - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js`
+
+2. **Execute merge script**:
+   ```
+   node "{path_to_merge_features_js}" --syncStatePath "{sync_state_path}/knowledge-bizs" --completedDir "{completed_dir}" --projectRoot "{project_root}"
+   ```
+
+3. **Read output JSON** from stdout and report merge results:
+   - Added features: new source files discovered
+   - Removed features: source files no longer exist (documents and markers cleaned up)
+   - Changed features: source files modified since last analysis (reset to `analyzed: false`)
+   - Unchanged features: source files not modified (analysis state preserved)
+
+**Merge Logic**:
+
+| Situation | Condition | Action |
+|-----------|-----------|--------|
+| Added | In new scan but not in existing features | Add with `analyzed: false` |
+| Removed | In existing features but not in new scan | Remove from list, delete `.md` doc + `.done.json` + `.graph.json` markers |
+| Changed | Both exist, `lastModified > completedAt` | Reset `analyzed: false` for re-analysis |
+| Unchanged | Both exist, `lastModified <= completedAt` | Preserve existing analysis state |
+
+**Output**: Updated `features-{platform}.json` files where:
+- New features: `analyzed: false`
+- Source-modified features: `analyzed: false`  
+- Unmodified features: preserved original `analyzed` status
+- Deleted features: removed from list, associated documents and markers cleaned up
+
+**Error handling**: If the merge script exits with non-zero code, STOP and report the error. Do NOT proceed to Stage 2 until merge is resolved.
 
 ---
 

@@ -366,7 +366,8 @@ function findFilesInDir(dir, extensions, baseDir) {
           relativePath,
           fileName: path.basename(item, ext),
           extension: ext,
-          directory: path.dirname(relativePath)
+          directory: path.dirname(relativePath),
+          lastModified: stat.mtime.toISOString()
         });
       }
     }
@@ -459,6 +460,7 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
           sourcePath: relativeFilePath,
           documentPath: docPath,
           module: moduleName,
+          lastModified: file.lastModified,
           analyzed: false,
           startedAt: null,
           completedAt: null,
@@ -498,16 +500,25 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
   // Write output file
   const outputFileName = `features-${platformId}.json`;
   const outputPath = path.join(outputDir, outputFileName);
-  
+
+  // Incremental: if features file already exists, write to *.new.json
+  const actualOutputPath = fs.existsSync(outputPath)
+    ? outputPath.replace(/\.json$/, '.new.json')
+    : outputPath;
+
   // Ensure output directory exists
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
-  
-  fs.writeFileSync(outputPath, JSON.stringify(inventory, null, 2), 'utf8');
-  
-  console.log(`Generated ${outputFileName} with ${features.length} features`);
-  console.log(`Output: ${outputPath}`);
+
+  fs.writeFileSync(actualOutputPath, JSON.stringify(inventory, null, 2), 'utf8');
+
+  if (actualOutputPath !== outputPath) {
+    console.log(`Incremental: Generated ${path.basename(actualOutputPath)} (existing features detected)`);
+  } else {
+    console.log(`Full: Generated ${path.basename(actualOutputPath)} with ${features.length} features`);
+  }
+  console.log(`Output: ${actualOutputPath}`);
   
   return true;
 }
@@ -536,7 +547,8 @@ function findFiles(dir, extensions, excludeDirs, baseDir) {
           relativePath,
           fileName: path.basename(item, ext),
           extension: ext,
-          directory: path.dirname(relativePath)
+          directory: path.dirname(relativePath),
+          lastModified: stat.mtime.toISOString()
         });
       }
     }
@@ -853,6 +865,7 @@ function main() {
       sourcePath: relativeFilePath,
       documentPath: docPath,
       module: moduleName,
+      lastModified: file.lastModified,
       analyzed: false,
       startedAt: null,
       completedAt: null,
@@ -894,11 +907,20 @@ function main() {
     fs.mkdirSync(syncStateDir, { recursive: true });
   }
 
-  // Write JSON output
-  fs.writeFileSync(outputPath, JSON.stringify(inventory, null, 2), 'utf8');
+  // Incremental: if features file already exists, write to *.new.json
+  const actualOutputPath = fs.existsSync(outputPath)
+    ? outputPath.replace(/\.json$/, '.new.json')
+    : outputPath;
 
-  console.log(`Generated features.json with ${files.length} features`);
-  console.log(`Ready for analysis: ${outputPath}`);
+  // Write JSON output
+  fs.writeFileSync(actualOutputPath, JSON.stringify(inventory, null, 2), 'utf8');
+
+  if (actualOutputPath !== outputPath) {
+    console.log(`Incremental: Generated ${path.basename(actualOutputPath)} (existing features detected)`);
+  } else {
+    console.log(`Full: Generated features.json with ${files.length} features`);
+  }
+  console.log(`Output: ${actualOutputPath}`);
 }
 
 main();
