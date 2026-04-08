@@ -128,11 +128,10 @@ Based on platform types in techs-manifest:
 - `desktop-*` → dispatch `speccrew-sd-desktop`
 - `backend-*` → dispatch `speccrew-sd-backend`
 
-### 5.2 Single Feature Spec
+### 5.2 Single Feature Spec + Single Platform
 
-Call skill directly with parameters:
-- Frontend skill path: `speccrew-sd-frontend/SKILL.md`
-- Backend skill path: `speccrew-sd-backend/SKILL.md`
+When there is only one Feature Spec and one platform, call skill directly with parameters:
+- Skill path: determined by platform type mapping (see 5.1)
 - Pass context:
   - `platform_id`: Platform identifier from techs-manifest
   - `feature_spec_path`: Path to Feature Spec document
@@ -140,29 +139,37 @@ Call skill directly with parameters:
   - `techs_paths`: Relevant techs knowledge paths
   - `framework_decisions`: Framework decisions from Phase 3
 
-### 5.3 Multiple Platforms (Parallel Execution)
+### 5.3 Parallel Execution (Feature × Platform)
 
-When multiple platforms are identified in techs-manifest, invoke `speccrew-task-worker` agents in parallel:
-- Each worker handles one platform's system design end-to-end
-- Each worker receives:
-  - `skill_name`: Per-platform design skill based on platform type:
-    - `web-*` → `speccrew-sd-frontend`
-    - `backend-*` → `speccrew-sd-backend`
-    - `mobile-*` → `speccrew-sd-mobile`
-    - `desktop-*` → `speccrew-sd-desktop`
-  - `context`:
-    - `platform_id`: Platform identifier from techs-manifest
-    - `feature_spec_paths`: All Feature Spec document paths
-    - `api_contract_path`: API Contract document path
-    - `techs_knowledge_paths`: Techs knowledge paths for this platform
-    - `framework_decisions`: Framework decisions from Phase 3
-    - `output_base_path`: Path to `03.system-design/` directory
-- Parallel execution pattern:
-  - Worker 1: speccrew-sd-frontend for web-vue → 03.system-design/web-vue/
-  - Worker 2: speccrew-sd-backend for backend-springboot → 03.system-design/backend-springboot/
-  - Worker N: platform-specific skill for {platform_id} → 03.system-design/{platform_id}/
-- All workers execute simultaneously to maximize efficiency
-- Wait for all workers to complete before proceeding to Phase 6
+When multiple Feature Specs and/or multiple platforms exist, create a worker matrix of **Feature × Platform** and invoke `speccrew-task-worker` agents in parallel:
+
+**Worker Matrix:**
+
+| | Platform 1 (web-vue) | Platform 2 (backend-spring) | Platform 3 (mobile-uniapp) |
+|---|---|---|---|
+| Feature Spec A | Worker 1 | Worker 2 | Worker 3 |
+| Feature Spec B | Worker 4 | Worker 5 | Worker 6 |
+
+Each worker receives:
+- `skill_name`: Per-platform design skill based on platform type (see 5.1)
+- `context`:
+  - `platform_id`: Platform identifier from techs-manifest
+  - `feature_spec_path`: Path to ONE Feature Spec document (not all)
+  - `api_contract_path`: API Contract document path
+  - `techs_knowledge_paths`: Techs knowledge paths for this platform
+  - `framework_decisions`: Framework decisions from Phase 3
+  - `output_base_path`: Path to `03.system-design/` directory
+
+**Parallel execution example** (2 features × 3 platforms = 6 workers):
+- Worker 1: speccrew-sd-frontend for Feature A on web-vue → 03.system-design/web-vue/
+- Worker 2: speccrew-sd-backend for Feature A on backend-spring → 03.system-design/backend-spring/
+- Worker 3: speccrew-sd-mobile for Feature A on mobile-uniapp → 03.system-design/mobile-uniapp/
+- Worker 4: speccrew-sd-frontend for Feature B on web-vue → 03.system-design/web-vue/
+- Worker 5: speccrew-sd-backend for Feature B on backend-spring → 03.system-design/backend-spring/
+- Worker 6: speccrew-sd-mobile for Feature B on mobile-uniapp → 03.system-design/mobile-uniapp/
+
+All workers execute simultaneously to maximize efficiency.
+Wait for all workers to complete before proceeding to Phase 6.
 
 ## Phase 6: Joint Confirmation
 
