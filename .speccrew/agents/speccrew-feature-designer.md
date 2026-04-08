@@ -50,6 +50,14 @@ Read all confirmed PRD documents specified by the user. PRD documents contain:
 - Business process flows
 - Acceptance criteria
 
+### Discover Frontend Platforms
+
+Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to identify all frontend platforms:
+- Look for platform entries with type starting with `web-` or `mobile-`
+- If multiple frontend platforms exist (e.g., web-vue + mobile-uniapp), frontend design MUST cover each platform separately
+- If only one frontend platform exists, design for that single platform
+- Pass discovered platform list to the design phase
+
 ### Read on Demand
 When involving related business domains, read `speccrew-workspace/knowledges/bizs/system-overview.md` first, then follow the links within it to navigate to:
 - Related module business knowledge documents
@@ -70,6 +78,7 @@ Invoke Skill directly with parameters:
 - Parameters:
   - `prd_path`: Path to the PRD document
   - `output_path`: Path for the feature specification document
+  - `frontend_platforms`: List of frontend platforms from techs-manifest (e.g., `["web-vue", "mobile-uniapp"]`)
 
 ### Multiple PRD Documents (Master + Sub PRDs)
 Invoke `speccrew-task-worker` agents in parallel:
@@ -79,6 +88,7 @@ Invoke `speccrew-task-worker` agents in parallel:
     - `master_prd_path`: Path to the Master PRD document (for overall context)
     - `sub_prd_path`: Path to one Sub PRD document
     - `output_path`: Path for the feature specification document
+    - `frontend_platforms`: List of frontend platforms from techs-manifest
 - Parallel execution pattern:
   - Worker 1: Master PRD + Sub PRD 1 → Sub Feature Spec 1
   - Worker 2: Master PRD + Sub PRD 2 → Sub Feature Spec 2
@@ -131,9 +141,10 @@ The Feature Detail Design Document should include the following:
 - Feature design scope list
 
 ## 2. Core Interface Prototype (ASCII Wireframe)
-- List page prototype + interface element description
-- Form page prototype + form field description
-- Modal/dialog page prototype (if applicable)
+- **Per frontend platform** (e.g., Web, Mobile): separate wireframes reflecting platform-specific layout
+- Web: List page prototype + Form page prototype + Modal/dialog
+- Mobile: Card list / Bottom navigation / Drawer / Action sheet patterns
+- Interface element description per platform
 
 ## 3. Interaction Flow Description
 - Core operation flow (Mermaid sequence diagram)

@@ -44,6 +44,8 @@
 
 #### 2.1.1 Frontend Prototype
 
+<!-- AI-NOTE: If the project has multiple frontend platforms (e.g., web + mobile), create separate Frontend Prototype sub-sections for each platform. Use headers like "#### 2.1.1 Frontend Prototype - Web" and "#### 2.1.1b Frontend Prototype - Mobile". Each platform should have its own wireframes and element descriptions tailored to the platform's interaction patterns. -->
+
 <!-- AI-NOTE: Use ASCII wireframes to show the UI layout. Choose the appropriate pattern below based on the interface type. -->
 
 **Pattern A: List Page**
@@ -110,6 +112,75 @@
 │ │            [Cancel]        [Confirm]                     │ │
 │ └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
+```
+
+**Pattern M-A: Mobile Card List**
+
+<!-- AI-NOTE: Use this pattern instead of Pattern A when designing for mobile platforms -->
+
+```
++----------------------------------+
+|  < Back     Title       [+ Add]  |
++----------------------------------+
+|  [Search...]            [Filter] |
++----------------------------------+
+|  +----------------------------+  |
+|  | Title          Status Tag  |  |
+|  | Subtitle / Key info        |  |
+|  | Detail line      [Action]  |  |
+|  +----------------------------+  |
+|  +----------------------------+  |
+|  | Title          Status Tag  |  |
+|  | Subtitle / Key info        |  |
+|  | Detail line      [Action]  |  |
+|  +----------------------------+  |
+|                                  |
+|  [Load More / Pull to Refresh]   |
++----------------------------------+
+|  [Tab1] [Tab2] [Tab3] [Tab4]    |
++----------------------------------+
+```
+
+**Pattern M-B: Mobile Form**
+
+<!-- AI-NOTE: Use this pattern instead of Pattern B when designing for mobile platforms -->
+
+```
++----------------------------------+
+|  < Back     Title       [Save]   |
++----------------------------------+
+|  Label                           |
+|  [Full-width input          ]    |
+|                                  |
+|  Label                           |
+|  [Full-width input          ]    |
+|                                  |
+|  Label                           |
+|  [Picker / Selector         >]   |
+|                                  |
+|  Label                           |
+|  [Switch toggle            O ]   |
++----------------------------------+
+```
+
+**Pattern M-C: Action Sheet**
+
+<!-- AI-NOTE: Use this pattern instead of Pattern C when designing for mobile platforms -->
+
+```
++----------------------------------+
+| (dimmed background)              |
+|                                  |
+|  +----------------------------+  |
+|  | Action Sheet Title         |  |
+|  +----------------------------+  |
+|  | Option 1                   |  |
+|  +----------------------------+  |
+|  | Option 2                   |  |
+|  +----------------------------+  |
+|  | Cancel                     |  |
+|  +----------------------------+  |
++----------------------------------+
 ```
 
 **Interface Element Description:**
@@ -232,7 +303,9 @@ flowchart TD
 
 #### 2.2.1 Frontend Prototype
 
-{ASCII wireframe and element description}
+<!-- AI-NOTE: If multi-platform, create separate wireframes per platform (Web + Mobile) -->
+
+{ASCII wireframe and element description per platform}
 
 #### 2.2.2 Interaction Flow
 

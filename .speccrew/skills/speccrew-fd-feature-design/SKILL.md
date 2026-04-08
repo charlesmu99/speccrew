@@ -39,6 +39,19 @@ Based on PRD content, identify related modules and read their overview files:
 speccrew-workspace/knowledges/bizs/{module-name}/{module-name}-overview.md
 ```
 
+### 2.2b Discover Frontend Platforms
+
+Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to identify frontend platforms:
+
+| Platform Type | Examples | Design Implications |
+|---------------|----------|---------------------|
+| `web-*` | web-vue, web-react | Desktop-width layouts, tables, modals, sidebars |
+| `mobile-*` | mobile-uniapp, mobile-flutter | Compact layouts, card lists, bottom nav, swipe actions |
+
+- If `frontend_platforms` parameter is provided by the agent, use that list
+- Otherwise, read techs-manifest.json directly
+- Store the platform list for use in Step 5
+
 ### 2.3 Query Knowledge Graph (Optional)
 
 If cross-module relationships need analysis, use `speccrew-knowledge-graph-query` skill:
@@ -108,6 +121,69 @@ Based on PRD structure, determine feature spec output structure:
 - Interface contracts with other modules
 
 ## Step 5: Frontend Design (Per Function)
+
+**Multi-Platform Rule**: If multiple frontend platforms are identified, repeat the frontend design (5.1 UI Prototype + 5.2 Interface Elements + 5.3 Interaction Flow) for EACH platform. Use platform-specific section headers:
+
+| Platforms | Section Structure |
+|-----------|-------------------|
+| Single platform | `#### 2.N.1 Frontend Prototype` (as-is) |
+| Multiple platforms | `#### 2.N.1 Frontend Prototype - Web` + `#### 2.N.1b Frontend Prototype - Mobile` |
+
+**Mobile-specific wireframe patterns:**
+
+```
+Pattern M-A: Card List (replaces PC table list)
++----------------------------------+
+|  [Search...]            [Filter] |
++----------------------------------+
+|  +----------------------------+  |
+|  | Title          Status Tag  |  |
+|  | Subtitle / Key info        |  |
+|  | Detail line      [Action]  |  |
+|  +----------------------------+  |
+|  +----------------------------+  |
+|  | Title          Status Tag  |  |
+|  | Subtitle / Key info        |  |
+|  | Detail line      [Action]  |  |
+|  +----------------------------+  |
+|                                  |
+|  [Load More / Pull to Refresh]   |
++----------------------------------+
+|  [Tab1] [Tab2] [Tab3] [Tab4]    |
++----------------------------------+
+
+Pattern M-B: Mobile Form (replaces PC wide form)
++----------------------------------+
+|  < Back     Title       [Save]   |
++----------------------------------+
+|  Label                           |
+|  [Full-width input          ]    |
+|                                  |
+|  Label                           |
+|  [Full-width input          ]    |
+|                                  |
+|  Label                           |
+|  [Picker / Selector         >]   |
+|                                  |
+|  Label                           |
+|  [Switch toggle            O ]   |
++----------------------------------+
+
+Pattern M-C: Action Sheet (replaces PC modal)
++----------------------------------+
+| (dimmed background)              |
+|                                  |
+|  +----------------------------+  |
+|  | Action Sheet Title         |  |
+|  +----------------------------+  |
+|  | Option 1                   |  |
+|  +----------------------------+  |
+|  | Option 2                   |  |
+|  +----------------------------+  |
+|  | Cancel                     |  |
+|  +----------------------------+  |
++----------------------------------+
+```
 
 For each function requiring frontend changes:
 
@@ -383,6 +459,7 @@ After feature spec documents are complete, call `speccrew-fd-api-contract/SKILL.
 - [ ] Checkpoint A passed: function breakdown confirmed with user
 - [ ] Output structure determined (single vs master-sub)
 - [ ] Frontend design includes ASCII wireframes and interaction flows
+- [ ] **[Multi-platform]** Each frontend platform has separate wireframes and interaction flows
 - [ ] Backend design includes interface list and logic flows
 - [ ] Data model includes new entities and modifications to existing
 - [ ] Business rules and constraints documented
