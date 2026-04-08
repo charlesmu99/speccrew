@@ -213,7 +213,22 @@ Standart mühendislik iş akışını adım adım takip edin:
 
 > Her aşamanın teslim edilebilirleri bir sonraki aşamaya geçmeden önce insan onayı gerektirir.
 
-### 4. Diğer CLI Komutları
+### 4. SpecCrew'ü Güncelle
+
+SpecCrew'un yeni bir sürümü yayınlandığında, güncellemeyi iki adımda tamamlayın:
+
+```bash
+# Step 1: Update the global CLI tool to the latest version
+npm install -g speccrew@latest
+
+# Step 2: Sync Agents and Skills in your project to the latest version
+cd /path/to/your-project
+speccrew update
+```
+
+> **Not**: `npm install -g speccrew@latest` CLI aracının kendisini güncellerken, `speccrew update` projenizdeki Agent ve Skill tanım dosyalarını günceller. Tam bir güncelleme için her iki adım da gereklidir.
+
+### 5. Diğer CLI Komutları
 
 ```bash
 speccrew list       # Yüklü agent'ları ve skill'leri listele

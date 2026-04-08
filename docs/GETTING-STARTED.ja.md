@@ -388,8 +388,22 @@ iterations/
 
 ### Q4: SpecCrewのバージョンを更新するには？
 
-- **グローバル更新**：`npm update -g speccrew`
-- **プロジェクト更新**：プロジェクトディレクトリで`speccrew update`を実行
+更新は2つのステップで行います：
+
+```bash
+# ステップ1：グローバルCLIツールを更新
+npm install -g speccrew@latest
+
+# ステップ2：プロジェクトディレクトリでAgentsとSkillsを同期
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`：CLIツール自体を更新（新バージョンには新しいAgent/Skill定義、バグ修正などが含まれる場合があります）
+- `speccrew update`：プロジェクトのAgentおよびSkill定義ファイルを最新バージョンに同期
+- `speccrew update --ide cursor`：指定したIDEの設定のみを更新
+
+> **注意**：両方のステップを実行する必要があります。`speccrew update`のみを実行してもCLIツール自体は更新されません；`npm install`のみを実行してもプロジェクト内のファイルは更新されません。
 
 ### Q5: 過去のイテレーションを表示するには？
 

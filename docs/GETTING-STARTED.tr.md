@@ -389,8 +389,22 @@ Her iterasyon tamamen izole edilmiştir ve diğerlerini etkilemez.
 
 ### S4: SpecCrew sürümünü nasıl güncellerim?
 
-- **Genel Güncelleme**: `npm update -g speccrew`
-- **Proje Güncellemesi**: Proje dizininde `speccrew update` çalıştırın
+Güncelleme iki adım gerektirir:
+
+```bash
+# Adım 1: Global CLI aracını güncelle
+npm install -g speccrew@latest
+
+# Adım 2: Proje dizininizdeki Ajan ve Becerileri senkronize et
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: CLI aracının kendisini günceller (yeni sürümler yeni Ajan/Beceri tanımları, hata düzeltmeleri vb. içerebilir)
+- `speccrew update`: Projenizdeki Ajan ve Beceri tanım dosyalarını en son sürüme senkronize eder
+- `speccrew update --ide cursor`: Yalnızca belirli bir IDE için yapılandırmayı günceller
+
+> **Not**: Her iki adım da gereklidir. Yalnızca `speccrew update` çalıştırmak CLI aracının kendisini güncellemez; yalnızca `npm install` çalıştırmak proje dosyalarını güncellemez.
 
 ### S5: Geçmiş iterasyonları nasıl görüntülerim?
 

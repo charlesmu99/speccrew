@@ -213,7 +213,22 @@ Suivez le flux de travail d'ingénierie standard étape par étape :
 
 > Les livrables de chaque phase nécessitent une confirmation humaine avant de passer à la phase suivante.
 
-### 4. Autres Commandes CLI
+### 4. Mettre à Jour SpecCrew
+
+Lorsque SpecCrew publie une nouvelle version, deux étapes sont nécessaires pour terminer la mise à jour :
+
+```bash
+# Step 1: 更新全局 CLI 工具到最新版本
+npm install -g speccrew@latest
+
+# Step 2: 同步项目中的 Agents 和 Skills 到最新版本
+cd /path/to/your-project
+speccrew update
+```
+
+> **Note** : `npm install -g speccrew@latest` met à jour l'outil CLI lui-même, tandis que `speccrew update` met à jour les fichiers de définition des Agents et Skills dans le projet. Les deux étapes doivent être exécutées pour terminer la mise à jour complète.
+
+### 5. Autres Commandes CLI
 
 ```bash
 speccrew list       # Lister les agents et skills installés

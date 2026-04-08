@@ -389,8 +389,22 @@ iterations/
 
 ### প্র৪: SpecCrew সংস্করণ কীভাবে আপডেট করবেন?
 
-- **গ্লোবাল আপডেট**: `npm update -g speccrew`
-- **প্রজেক্ট আপডেট**: প্রজেক্ট ডিরেক্টরিতে `speccrew update` চালান
+আপডেট দুটি ধাপে সম্পন্ন হয়:
+
+```bash
+# ধাপ ১: গ্লোবাল CLI টুল আপডেট করুন
+npm install -g speccrew@latest
+
+# ধাপ ২: প্রজেক্ট ডিরেক্টরিতে Agents এবং Skills সিঙ্ক করুন
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: CLI টুল নিজেই আপডেট করে (নতুন সংস্করণে নতুন Agent/Skill সংজ্ঞা, বাগ ফিক্স ইত্যাদি থাকতে পারে)
+- `speccrew update`: প্রজেক্টের Agent এবং Skill সংজ্ঞা ফাইলগুলি সর্বশেষ সংস্করণে সিঙ্ক করে
+- `speccrew update --ide cursor`: শুধুমাত্র নির্দিষ্ট IDE এর কনফিগারেশন আপডেট করে
+
+> **নোট**: উভয় ধাপই সম্পাদন করতে হবে। শুধুমাত্র `speccrew update` চালালে CLI টুল আপডেট হবে না; শুধুমাত্র `npm install` চালালে প্রজেক্টের ফাইলগুলি আপডেট হবে না।
 
 ### প্র৫: ঐতিহাসিক ইটারেশন কীভাবে দেখবেন?
 

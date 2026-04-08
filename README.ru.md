@@ -213,7 +213,22 @@ speccrew update --ide claude
 
 > Результаты каждой фазы требуют человеческого подтверждения перед переходом к следующей фазе.
 
-### 4. Другие команды CLI
+### 4. Обновить SpecCrew
+
+Когда выходит новая версия SpecCrew, выполните обновление в два шага:
+
+```bash
+# Step 1: Update the global CLI tool to the latest version
+npm install -g speccrew@latest
+
+# Step 2: Sync Agents and Skills in your project to the latest version
+cd /path/to/your-project
+speccrew update
+```
+
+> **Примечание**: `npm install -g speccrew@latest` обновляет сам инструмент CLI, а `speccrew update` обновляет файлы определений Агентов и Навыков в вашем проекте. Для полного обновления необходимы оба шага.
+
+### 5. Другие команды CLI
 
 ```bash
 speccrew list       # Список установленных агентов и навыков

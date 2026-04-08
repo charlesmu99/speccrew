@@ -213,7 +213,22 @@ speccrew update --ide claude
 
 > تتطلب مخرجات كل مرحلة تأكيداً بشرياً قبل الانتقال إلى المرحلة التالية.
 
-### 4. أوامر CLI الأخرى
+### 4. تحديث SpecCrew
+
+عندما يتم إصدار نسخة جديدة من SpecCrew، يتطلب الأمر خطوتين لإكمال التحديث:
+
+```bash
+# Step 1: 更新全局 CLI 工具到最新版本
+npm install -g speccrew@latest
+
+# Step 2: 同步项目中的 Agents 和 Skills 到最新版本
+cd /path/to/your-project
+speccrew update
+```
+
+> **ملاحظة**: يقوم الأمر `npm install -g speccrew@latest` بتحديث أداة CLI نفسها، بينما يقوم الأمر `speccrew update` بتحديث ملفات تعريف Agent و Skill في المشروع. يجب تنفيذ الخطوتين لإكمال التحديث الكامل.
+
+### 5. أوامر CLI الأخرى
 
 ```bash
 speccrew list       # عرض قائمة agents و skills المثبتة

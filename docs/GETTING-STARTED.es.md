@@ -388,8 +388,22 @@ Cada iteración está completamente aislada y no afecta a las demás.
 
 ### P4: ¿Cómo actualizar la versión de SpecCrew?
 
-- **Actualización Global**: `npm update -g speccrew`
-- **Actualización de Proyecto**: Ejecute `speccrew update` en el directorio del proyecto
+La actualización se realiza en dos pasos:
+
+```bash
+# Paso 1: Actualizar la herramienta CLI global
+npm install -g speccrew@latest
+
+# Paso 2: Sincronizar Agents y Skills en el directorio del proyecto
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: Actualiza la herramienta CLI en sí (la nueva versión puede contener nuevas definiciones de Agent/Skill, correcciones de errores, etc.)
+- `speccrew update`: Sincroniza los archivos de definición de Agent y Skill en el proyecto a la última versión
+- `speccrew update --ide cursor`: Actualiza solo la configuración del IDE especificado
+
+> **Nota**: Ambos pasos deben ejecutarse. Ejecutar solo `speccrew update` no actualizará la herramienta CLI en sí; ejecutar solo `npm install` no actualizará los archivos en el proyecto.
 
 ### P5: ¿Cómo ver iteraciones históricas?
 

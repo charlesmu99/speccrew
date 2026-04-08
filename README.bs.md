@@ -213,7 +213,22 @@ Prati standardni inženjerski tok rada korak po korak:
 
 > Rezultati svake faze zahtijevaju ljudsku potvrdu prije prelaska na sljedeću fazu.
 
-### 4. Druge CLI komande
+### 4. Ažuriranje SpecCrew-a
+
+Kada SpecCrew objavi novu verziju, potrebne su dvije koraka za dovršetak ažuriranja:
+
+```bash
+# Step 1: 更新全局 CLI 工具到最新版本
+npm install -g speccrew@latest
+
+# Step 2: 同步项目中的 Agents 和 Skills 到最新版本
+cd /path/to/your-project
+speccrew update
+```
+
+> **Napomena**: `npm install -g speccrew@latest` ažurira sam CLI alat, dok `speccrew update` ažurira datoteke definicija Agenta i Skillova u projektu. Oba koraka su potrebna za potpuno ažuriranje.
+
+### 5. Druge CLI komande
 
 ```bash
 speccrew list       # Izlistaj instalirane agente i vještine

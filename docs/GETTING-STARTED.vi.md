@@ -389,8 +389,22 @@ Mỗi iteration được cô lập hoàn toàn và không ảnh hưởng đến 
 
 ### H4: Làm thế nào để cập nhật phiên bản SpecCrew?
 
-- **Cập Nhật Toàn Cầu**: `npm update -g speccrew`
-- **Cập Nhật Dự Án**: Chạy `speccrew update` trong thư mục dự án
+Cập nhật yêu cầu hai bước:
+
+```bash
+# Bước 1: Cập nhật công cụ CLI toàn cục
+npm install -g speccrew@latest
+
+# Bước 2: Đồng bộ Agent và Skill trong thư mục dự án của bạn
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: Cập nhật chính công cụ CLI (phiên bản mới có thể bao gồm định nghĩa Agent/Skill mới, sửa lỗi, v.v.)
+- `speccrew update`: Đồng bộ các tệp định nghĩa Agent và Skill trong dự án của bạn lên phiên bản mới nhất
+- `speccrew update --ide cursor`: Cập nhật cấu hình chỉ cho một IDE cụ thể
+
+> **Lưu ý**: Cả hai bước đều cần thiết. Chỉ chạy `speccrew update` sẽ không cập nhật chính công cụ CLI; chỉ chạy `npm install` sẽ không cập nhật các tệp dự án.
 
 ### H5: Làm thế nào để xem các iteration lịch sử?
 

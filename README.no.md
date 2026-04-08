@@ -213,7 +213,22 @@ Følg standard ingeniørarbeidsflyt trinn for trinn:
 
 > Hver fases leveranser krever menneskelig bekreftelse før fortsettelse til neste fase.
 
-### 4. Andre CLI-kommandoer
+### 4. Oppdater SpecCrew
+
+Når en ny versjon av SpecCrew slippes, fullfør oppdateringen i to trinn:
+
+```bash
+# Step 1: Update the global CLI tool to the latest version
+npm install -g speccrew@latest
+
+# Step 2: Sync Agents and Skills in your project to the latest version
+cd /path/to/your-project
+speccrew update
+```
+
+> **Merk**: `npm install -g speccrew@latest` oppdaterer selve CLI-verktøyet, mens `speccrew update` oppdaterer Agent- og Skill-definisjonsfilene i prosjektet ditt. Begge trinnene er nødvendige for en fullstendig oppdatering.
+
+### 5. Andre CLI-kommandoer
 
 ```bash
 speccrew list       # List opp installerte agenter og skills

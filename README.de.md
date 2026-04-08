@@ -213,7 +213,22 @@ Folgen Sie dem Standard-Engineering-Workflow Schritt für Schritt:
 
 > Die Liefergegenstände jeder Phase erfordern menschliche Bestätigung vor dem Fortfahren zur nächsten Phase.
 
-### 4. Andere CLI-Befehle
+### 4. SpecCrew Aktualisieren
+
+Wenn SpecCrew eine neue Version veröffentlicht, sind zwei Schritte erforderlich, um das Update abzuschließen:
+
+```bash
+# Step 1: 更新全局 CLI 工具到最新版本
+npm install -g speccrew@latest
+
+# Step 2: 同步项目中的 Agents 和 Skills 到最新版本
+cd /path/to/your-project
+speccrew update
+```
+
+> **Hinweis**: `npm install -g speccrew@latest` aktualisiert das CLI-Tool selbst, während `speccrew update` die Agent- und Skill-Definitionsdateien im Projekt aktualisiert. Beide Schritte müssen ausgeführt werden, um das vollständige Update abzuschließen.
+
+### 5. Andere CLI-Befehle
 
 ```bash
 speccrew list       # Installierte Agents und Skills auflisten

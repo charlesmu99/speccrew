@@ -390,8 +390,22 @@ iterations/
 
 ### س4: كيفية تحديث إصدار SpecCrew؟
 
-- **التحديث العالمي**: `npm update -g speccrew`
-- **تحديث المشروع**: قم بتشغيل `speccrew update` في دليل المشروع
+يتم التحديث على خطوتين:
+
+```bash
+# الخطوة 1: تحديث أداة CLI العامة
+npm install -g speccrew@latest
+
+# الخطوة 2: مزامنة Agents و Skills في دليل المشروع
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: تحديث أداة CLI نفسها (قد تحتوي النسخة الجديدة على تعريفات Agent/Skill جديدة، إصلاحات أخطاء، إلخ)
+- `speccrew update`: مزامنة ملفات تعريف Agent و Skill في المشروع إلى أحدث إصدار
+- `speccrew update --ide cursor`: تحديث تكوين IDE المحدد فقط
+
+> **ملاحظة**: يجب تنفيذ الخطوتين. تنفيذ `speccrew update` فقط لن يحدث أداة CLI نفسها؛ وتنفيذ `npm install` فقط لن يحدث الملفات في المشروع.
 
 ### س5: كيفية عرض التكرارات التاريخية؟
 

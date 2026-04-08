@@ -213,7 +213,22 @@ speccrew update --ide claude
 
 > 每個階段產出物需人工確認後方可進入下一階段。
 
-### 4. 其他 CLI 命令
+### 4. 更新 SpecCrew
+
+當 SpecCrew 發布新版本時，請分兩步完成更新：
+
+```bash
+# Step 1: Update the global CLI tool to the latest version
+npm install -g speccrew@latest
+
+# Step 2: Sync Agents and Skills in your project to the latest version
+cd /path/to/your-project
+speccrew update
+```
+
+> **注意**：`npm install -g speccrew@latest` 更新 CLI 工具本身，而 `speccrew update` 更新專案中的 Agent 和 Skill 定義檔案。完整更新需要兩個步驟都執行。
+
+### 5. 其他 CLI 命令
 
 ```bash
 speccrew list       # 列出已安裝的 agents 和 skills

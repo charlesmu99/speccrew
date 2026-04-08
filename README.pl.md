@@ -213,7 +213,22 @@ Podążaj za standardowym workflow inżynieryjnym krok po kroku:
 
 > Deliverable każdej fazy wymaga ludzkiego potwierdzenia przed przejściem do następnej fazy.
 
-### 4. Inne Komendy CLI
+### 4. Zaktualizuj SpecCrew
+
+Gdy zostanie wydana nowa wersja SpecCrew, ukończ aktualizację w dwóch krokach:
+
+```bash
+# Step 1: Update the global CLI tool to the latest version
+npm install -g speccrew@latest
+
+# Step 2: Sync Agents and Skills in your project to the latest version
+cd /path/to/your-project
+speccrew update
+```
+
+> **Uwaga**: `npm install -g speccrew@latest` aktualizuje samo narzędzie CLI, podczas gdy `speccrew update` aktualizuje pliki definicji Agentów i Skilli w Twoim projekcie. Oba kroki są wymagane dla pełnej aktualizacji.
+
+### 5. Inne Komendy CLI
 
 ```bash
 speccrew list       # Wylistuj zainstalowane agenty i skille

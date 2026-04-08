@@ -389,8 +389,22 @@ Svaka iteracija je potpuno izolirana i ne utiče na druge.
 
 ### P4: Kako ažurirati verziju SpecCrew?
 
-- **Globalno Ažuriranje**: `npm update -g speccrew`
-- **Ažuriranje Projekta**: Pokrenite `speccrew update` u direktoriju projekta
+Ažuriranje se vrši u dva koraka:
+
+```bash
+# Korak 1: Ažurirajte globalni CLI alat
+npm install -g speccrew@latest
+
+# Korak 2: Sinhronizirajte Agente i Skill-ove u direktoriju projekta
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`: Ažurira sam CLI alat (nova verzija može sadržavati nove definicije Agent/Skill, ispravke bugova, itd.)
+- `speccrew update`: Sinhronizira datoteke definicija Agenta i Skilla u projektu na najnoviju verziju
+- `speccrew update --ide cursor`: Ažurira samo konfiguraciju navedenog IDE-a
+
+> **Napomena**: Obje korake treba izvršiti. Samo izvršavanje `speccrew update` neće ažurirati sam CLI alat; samo izvršavanje `npm install` neće ažurirati datoteke u projektu.
 
 ### P5: Kako pogledati historijske iteracije?
 

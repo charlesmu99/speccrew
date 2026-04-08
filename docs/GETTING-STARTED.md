@@ -388,8 +388,22 @@ iterations/
 
 ### Q4: 如何更新 SpecCrew 版本？
 
-- **全局更新**：`npm update -g speccrew`
-- **项目更新**：在项目目录执行 `speccrew update`
+更新分为两步：
+
+```bash
+# Step 1: 更新全局 CLI 工具
+npm install -g speccrew@latest
+
+# Step 2: 在项目目录中同步 Agents 和 Skills
+cd /path/to/your-project
+speccrew update
+```
+
+- `npm install -g speccrew@latest`：更新 CLI 工具本身（新版本可能包含新的 Agent/Skill 定义、Bug 修复等）
+- `speccrew update`：将项目中的 Agent 和 Skill 定义文件同步到最新版本
+- `speccrew update --ide cursor`：仅更新指定 IDE 的配置
+
+> **注意**：两步都需要执行。仅执行 `speccrew update` 不会更新 CLI 工具本身；仅执行 `npm install` 不会更新项目中的文件。
 
 ### Q5: 如何查看历史迭代？
 
