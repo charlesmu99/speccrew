@@ -26,10 +26,12 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 ## Step 1: Read Design Documents
 
+Input: `design_doc_path` — Path to a single module design document (passed by upstream system-developer agent).
+
 Read in order:
 
 1. **Platform INDEX**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
-2. **Module design documents**: All `*-design.md` files listed in INDEX
+2. **Module Design Document**: The `design_doc_path` provided (single module's design)
 3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/*-api-contract.md`
 4. **Task record template**: `speccrew-dev-frontend/templates/TASK-RECORD-TEMPLATE.md`
 
@@ -49,9 +51,9 @@ Read platform-specific techs knowledge:
 
 From design documents, extract ALL implementation items into a task checklist.
 
-### 3.1 Parse Module Designs
+### 3.1 Parse Module Design
 
-For each module design document, identify:
+From the module design document, identify:
 
 | Item Type | Markers | Example |
 |-----------|---------|---------|

@@ -26,9 +26,11 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 ## Step 1: Read Design Documents
 
+Input: `design_doc_path` — Path to a single module design document (passed by upstream system-developer agent).
+
 Read in order:
 
-1. **Backend Design Documents**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/*-design.md`
+1. **Module Design Document**: The `design_doc_path` provided (single module's design)
 2. **Platform INDEX**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
 3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
 4. **Techs Knowledge** (from agent context):

@@ -141,7 +141,9 @@ When there is only one Feature Spec and one platform, call skill directly with p
 
 ### 5.3 Parallel Execution (Feature × Platform)
 
-When multiple Feature Specs and/or multiple platforms exist, create a worker matrix of **Feature × Platform** and invoke `speccrew-task-worker` agents in parallel:
+> **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each design skill.
+
+When multiple Feature Specs and/or multiple platforms exist, create a matrix of **Feature × Platform** and use the **Skill tool** to invoke per-platform design skills in parallel:
 
 **Worker Matrix:**
 
@@ -160,16 +162,16 @@ Each worker receives:
   - `framework_decisions`: Framework decisions from Phase 3
   - `output_base_path`: Path to `03.system-design/` directory
 
-**Parallel execution example** (2 features × 3 platforms = 6 workers):
-- Worker 1: speccrew-sd-frontend for Feature A on web-vue → 03.system-design/web-vue/
-- Worker 2: speccrew-sd-backend for Feature A on backend-spring → 03.system-design/backend-spring/
-- Worker 3: speccrew-sd-mobile for Feature A on mobile-uniapp → 03.system-design/mobile-uniapp/
-- Worker 4: speccrew-sd-frontend for Feature B on web-vue → 03.system-design/web-vue/
-- Worker 5: speccrew-sd-backend for Feature B on backend-spring → 03.system-design/backend-spring/
-- Worker 6: speccrew-sd-mobile for Feature B on mobile-uniapp → 03.system-design/mobile-uniapp/
+**Parallel execution example** (2 features × 3 platforms = 6 skill invocations):
+- Skill 1: speccrew-sd-frontend for Feature A on web-vue → 03.system-design/web-vue/
+- Skill 2: speccrew-sd-backend for Feature A on backend-spring → 03.system-design/backend-spring/
+- Skill 3: speccrew-sd-mobile for Feature A on mobile-uniapp → 03.system-design/mobile-uniapp/
+- Skill 4: speccrew-sd-frontend for Feature B on web-vue → 03.system-design/web-vue/
+- Skill 5: speccrew-sd-backend for Feature B on backend-spring → 03.system-design/backend-spring/
+- Skill 6: speccrew-sd-mobile for Feature B on mobile-uniapp → 03.system-design/mobile-uniapp/
 
-All workers execute simultaneously to maximize efficiency.
-Wait for all workers to complete before proceeding to Phase 6.
+All skills execute simultaneously to maximize efficiency.
+Wait for all skills to complete before proceeding to Phase 6.
 
 ## Phase 6: Joint Confirmation
 

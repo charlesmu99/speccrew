@@ -95,50 +95,83 @@ If any pre-check fails:
 3. Wait for user to resolve before proceeding
 4. Re-run pre-check after user confirms resolution
 
-## Step 4: Dispatch Per-Platform Dev Skills
+## Step 4: Dispatch Per-Module Dev Skills
+
+> **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each dev skill.
 
 ### 4.1 Determine Skill for Each Platform
 
 Platform type mapping:
 
 | Platform prefix | Skill to invoke |
-|-----------------|-----------------|
+|-----------------|------------------|
 | `web-*` | `speccrew-dev-frontend` |
 | `backend-*` | `speccrew-dev-backend` |
 | `mobile-*` | `speccrew-dev-mobile` |
 | `desktop-*` | `speccrew-dev-desktop` |
 
-### 4.2 Dispatch Parameters
+### 4.2 Build Module Task List
 
-For each platform, pass the following context:
-- `platform_id`: Platform identifier from design overview
-- `iteration_path`: Path to current iteration directory
-- `design_doc_paths`: List of module design documents for this platform
-- `techs_knowledge_paths`: Relevant techs knowledge file paths
+From Step 1.3, flatten all module design documents into a unified task list:
 
-### 4.3 Multi-Platform Parallel Execution
+```
+task_list = []
+for each platform_id:
+  read INDEX.md → get module design file list
+  for each module_design_doc:
+    task_list.append({
+      platform_id,
+      skill_name: determined by platform prefix (see 4.1),
+      module_design_path: 03.system-design/{platform_id}/{module}-design.md,
+      techs_knowledge_paths: relevant techs knowledge for this platform,
+      api_contract_path: API Contract path,
+      iteration_path: current iteration directory
+    })
+```
 
-When multiple platforms are identified in DESIGN-OVERVIEW.md, invoke `speccrew-task-worker` agents in parallel:
-- Each worker handles one platform's development end-to-end
-- Each worker receives:
-  - `skill_name`: Per-platform dev skill based on platform type:
-    - `web-*` → `speccrew-dev-frontend`
-    - `backend-*` → `speccrew-dev-backend`
-    - `mobile-*` → `speccrew-dev-mobile`
-    - `desktop-*` → `speccrew-dev-desktop`
-  - `context`:
-    - `platform_id`: Platform identifier from design overview
-    - `iteration_path`: Path to current iteration directory
-    - `design_doc_paths`: List of module design documents for this platform (from `03.system-design/{platform_id}/`)
-    - `api_contract_path`: Path to API Contract document
-    - `techs_knowledge_paths`: Relevant techs knowledge file paths for this platform
-- Parallel execution pattern:
-  - Worker 1: speccrew-dev-frontend for web-vue → implements frontend code
-  - Worker 2: speccrew-dev-backend for backend-springboot → implements backend code
-  - Worker N: platform-specific skill for {platform_id} → implements platform code
-- All workers execute simultaneously to maximize efficiency
-- Track all dispatched workers and their completion status
-- Wait for all workers to complete before proceeding to Step 5 (Integration Check)
+**Example** (3 platforms × ~11 modules each = ~33 tasks):
+- Task 1: `speccrew-dev-backend` for `backend-spring/crm-design.md`
+- Task 2: `speccrew-dev-backend` for `backend-spring/member-design.md`
+- ...
+- Task 12: `speccrew-dev-frontend` for `web-vue/crm-design.md`
+- ...
+- Task 23: `speccrew-dev-mobile` for `mobile-uniapp/crm-design.md`
+- ...
+
+### 4.3 Parallel Execution with Concurrency Limit
+
+**Max concurrent skill invocations: 10**
+
+Process `task_list` in batches:
+
+```
+MAX_CONCURRENT = 10
+pending = [...task_list]
+completed = []
+
+while pending is not empty:
+  batch = pending.take(min(MAX_CONCURRENT, pending.length))
+  for each task in batch:
+    invoke Skill tool with:
+      - skill_name: task.skill_name
+      - context:
+        - platform_id: task.platform_id
+        - iteration_path: task.iteration_path
+        - design_doc_path: task.module_design_path  (single module design doc)
+        - api_contract_path: task.api_contract_path
+        - techs_knowledge_paths: task.techs_knowledge_paths
+  wait for all batch skills to complete
+  move completed tasks to completed[]
+```
+
+**Dispatch rules:**
+- Each skill invocation handles **one module** on **one platform** (not all modules)
+- Pass `design_doc_path` (singular) pointing to ONE module design document
+- Up to 10 skills execute simultaneously per batch
+- Wait for current batch to complete before starting next batch
+- Track all dispatched skills: completed / failed / blocked
+- If a skill fails, log the failure and continue with remaining tasks
+- Wait for all batches to complete before proceeding to Step 5 (Integration Check)
 
 ## Step 5: Integration Check
 

@@ -26,12 +26,13 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 ## Step 1: Read Design Documents
 
+**Input**: Single module design document path `design_doc_path` (provided by upstream system-developer agent).
+
 Read in order:
 
-1. **INDEX.md**: `speccrew-workspace/iterations/{iteration}/03.system-design/{platform_id}/INDEX.md`
-2. **Module design documents**: `speccrew-workspace/iterations/{iteration}/03.system-design/{platform_id}/{module}-design.md`
-3. **API Contract**: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-name}-api-contract.md`
-4. **Task record template**: `speccrew-dev-mobile/templates/TASK-RECORD-TEMPLATE.md`
+1. **Module design document**: `design_doc_path` (single module design document)
+2. **API Contract**: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-name}-api-contract.md`
+3. **Task record template**: `speccrew-dev-mobile/templates/TASK-RECORD-TEMPLATE.md`
 
 ## Step 2: Read Techs Knowledge
 
@@ -213,7 +214,7 @@ Ready for QA Agent acceptance testing.
 
 # Checklist
 
-- [ ] Design documents loaded (INDEX.md + module designs)
+- [ ] Design document loaded (single module design_doc_path)
 - [ ] Techs knowledge loaded (conventions-dev, architecture, tech-stack)
 - [ ] Task record file created
 - [ ] All design tasks extracted to checklist

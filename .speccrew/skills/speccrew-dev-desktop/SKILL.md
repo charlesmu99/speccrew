@@ -26,12 +26,13 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 ## Step 1: Read Design Documents
 
+**Input**: Single module design document path `design_doc_path` (provided by upstream system-developer agent).
+
 Read in order:
 
-1. **INDEX.md**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
-2. **Module Design Documents**: All `*-design.md` files from same directory
-3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
-4. **Techs Knowledge** (paths from agent context):
+1. **Module design document**: `design_doc_path` (single module design document)
+2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+3. **Techs Knowledge** (paths from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/conventions-design.md`
@@ -267,11 +268,11 @@ Task Record: speccrew-workspace/iterations/{number}-{type}-{name}/04.development
 
 # Checklist
 
-- [ ] All design documents loaded before implementation
+- [ ] Design document loaded before implementation (single module design_doc_path)
 - [ ] Existing code structure analyzed via Glob/Grep
 - [ ] Task record created with complete checklist
 - [ ] Checkpoint A passed: task extraction confirmed with user
-- [ ] Every design document module covered in task list
+- [ ] All modules in the design document covered in task list
 - [ ] All IPC channels from design implemented
 - [ ] Context isolation enabled for all windows
 - [ ] Preload scripts expose only necessary APIs

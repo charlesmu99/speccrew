@@ -93,7 +93,7 @@ Design test cases based on loaded knowledge:
 
 After reading `DESIGN-OVERVIEW.md`:
 - **Single Platform**: Invoke Skill directly
-- **Multiple Platforms**: Dispatch via `speccrew-task-worker` agents in parallel
+- **Multiple Platforms**: Use **Skill tool** to invoke per-platform skills in parallel
 
 ### 3.2 Single Platform Execution
 
@@ -107,7 +107,9 @@ Invoke Skill directly with parameters:
 
 ### 3.3 Multi-Platform Parallel Execution
 
-Invoke `speccrew-task-worker` agents in parallel:
+> **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each test skill.
+
+Use the **Skill tool** to invoke `speccrew-test-case-design` for each platform in parallel:
 - Each worker receives:
   - `skill_name`: `speccrew-test-case-design`
   - `context`:
@@ -163,9 +165,7 @@ Invoke Skill directly:
 
 ### 4.3 Multi-Platform Parallel Execution
 
-Invoke `speccrew-task-worker` agents in parallel:
-- Each worker receives:
-  - `skill_name`: `speccrew-test-code-gen`
+Use the **Skill tool** to invoke `speccrew-test-code-gen` for each platform in parallel:
   - `context`:
     - `test_cases_path`: Path to the platform-specific test cases document
     - `system_design_path`: Path to the platform system design document
@@ -214,9 +214,7 @@ Invoke Skill directly:
 
 ### 5.3 Multi-Platform Parallel Execution
 
-Invoke `speccrew-task-worker` agents in parallel:
-- Each worker receives:
-  - `skill_name`: `speccrew-test-execute`
+Use the **Skill tool** to invoke `speccrew-test-execute` for each platform in parallel:
   - `context`:
     - `test_code_path`: Path to the platform test code directory
     - `platform_id`: Platform identifier
@@ -299,7 +297,7 @@ Provide clear recommendation:
 **Must do:**
 - Execute three phases in strict order: test case design → code generation → test execution
 - Each phase must have a Checkpoint with user confirmation before proceeding
-- Multi-platform scenarios must be dispatched via `speccrew-task-worker` for parallel execution
+- Multi-platform scenarios must use the **Skill tool** to invoke per-platform skills in parallel
 - Test cases must be traceable to Feature Spec requirements
 - Bug reports must reference specific test case IDs
 - Use platform_id from design overview as directory names
