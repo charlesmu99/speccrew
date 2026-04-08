@@ -41,6 +41,51 @@ Integracijom Agenata i Vještina u postojeće projekte, timovi mogu brzo inicija
 
 ---
 
+## ✨ Ključne Karakteristike
+
+### 🏭 Virtuelni Softverski Tim
+Jednoklik generisanje **7 profesionalnih uloga Agenata** + **38 tokova rada Vještina**, izgradnja kompletnog virtuelnog softverskog tima:
+- **Team Leader** - Globalno planiranje i upravljanje iteracijama
+- **Product Manager** - Analiza zahtjeva i PRD output
+- **Feature Designer** - Dizajn funkcionalnosti + API ugovori
+- **System Designer** - Dizajn sistema Frontend/Backend/Mobilni/Desktop
+- **System Developer** - Multiplatformski paralelni razvoj
+- **Test Manager** - Koordinacija testiranja u tri faze
+- **Task Worker** - Paralelno izvršavanje podzadataka
+
+### 📐 ISA-95 Šestostepeno Modeliranje
+Bazirano na međunarodnoj metodologiji modeliranja **ISA-95**, standardizacija transformacije poslovnih zahtjeva u softverske sisteme:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Svaki stepen odgovara specifičnim UML dijagramima (use case, sequence, class diagrams)
+- Poslovni zahtjevi se "pročišćavaju korak po korak", bez gubitka informacija
+- Rezultati su direktno upotrebljivi za razvoj
+
+### 📚 Sistem Baze Znanja
+Troslojna arhitektura baze znanja koja osigurava da AI uvijek radi bazirano na "jednom izvoru istine":
+
+| Sloj | Direktorij | Sadržaj | Svrha |
+|------|------------|---------|-------|
+| L1 Sistemsko Znanje | `knowledge/techs/` | Tech stack, arhitektura, konvencije | AI razumije tehničke granice projekta |
+| L2 Poslovno Znanje | `knowledge/bizs/` | Funkcionalnosti modula, poslovni tokovi, entiteti | AI razumije poslovnu logiku |
+| L3 Artefakti Iteracija | `iterations/iXXX/` | PRD, dizajn dokumenti, test izvještaji | Kompletni lanac praćenja za trenutne zahtjeve |
+
+### 🔄 Četvorostepeni Pipeline Znanja
+**Automatizovana arhitektura generisanja znanja**, automatsko generisanje poslovne/tehničke dokumentacije iz izvornog koda:
+```
+Stepen 1: Skeniranje izvornog koda → Generisanje liste modula
+Stepen 2: Paralelna analiza → Ekstrakcija funkcionalnosti (multi-Worker paralelno)
+Stepen 3: Paralelno sažimanje → Dopuna pregleda modula (multi-Worker paralelno)
+Stepen 4: Sistemska agregacija → Generisanje panorame sistema
+```
+- Podržava **potpunu sinhronizaciju** i **inkrementalnu sinhronizaciju** (bazirano na Git diff)
+- Jedna osoba optimizira, tim dijeli
+
+---
+
 ## Rješavanje 8 ključnih problema
 
 ### 1. AI ignoriše postojeću dokumentaciju projekta (jaz u znanju)

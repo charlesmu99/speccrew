@@ -41,6 +41,51 @@ Ved at integrere Agents og Skills i eksisterende projekter kan teams hurtigt ini
 
 ---
 
+## ✨ Nøglefunktioner
+
+### 🏭 Virtuelt Softwareteam
+Et-kliks generering af **7 professionelle Agent-roller** + **38 Skill-workflows**, opbygning af et komplet virtuelt softwareteam:
+- **Team Leader** - Global planlægning og iterationshåndtering
+- **Product Manager** - Kravanalyse og PRD-output
+- **Feature Designer** - Feature-design + API-kontrakter
+- **System Designer** - Frontend/Backend/Mobil/Desktop-systemdesign
+- **System Developer** - Multiplatform-paralleludvikling
+- **Test Manager** - Trefaset-testkoordinering
+- **Task Worker** - Parallel underopgaveudførelse
+
+### 📐 ISA-95 Sekstrins Modellering
+Baseret på international **ISA-95** modelleringsmetodik, standardisering af transformationen fra forretningskrav til softwaresystemer:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Hvert trin svarer til specifikke UML-diagrammer (use case, sekvens, klassediagrammer)
+- Forretningskrav "forfines trin for trin" uden informationstab
+- Outputs er direkte brugbare til udvikling
+
+### 📚 Videnbase-system
+Trenivå videnbase-arkitektur, der sikrer, at AI altid arbejder baseret på "den eneste sandhedskilde":
+
+| Niveau | Bibliotek | Indhold | Formål |
+|--------|-----------|---------|--------|
+| L1 Systemviden | `knowledge/techs/` | Tech-stack, arkitektur, konventioner | AI forstår projektets tekniske grænser |
+| L2 Forretningsviden | `knowledge/bizs/` | Modulfunktioner, forretningsflows, enheder | AI forstår forretningslogik |
+| L3 Iterationsartefakter | `iterations/iXXX/` | PRD, designdokumenter, testrapporter | Komplet sporbarhedskæde for aktuelle krav |
+
+### 🔄 Firetrins Videnspipeline
+**Automatiseret vidensgenereringsarkitektur**, automatisk generering af forretnings/teknisk dokumentation fra kildekode:
+```
+Trin 1: Scan kildekode → Generer modulliste
+Trin 2: Parallel analyse → Uddrag features (multi-Worker-parallel)
+Trin 3: Parallel opsummering → Færdiggør moduloversigter (multi-Worker-parallel)
+Trin 4: Systemaggregering → Generer systempanorama
+```
+- Understøtter **fuld synkronisering** og **inkrementel synkronisering** (baseret på Git diff)
+- En person optimerer, team deler
+
+---
+
 ## 8 Kerne-problemer Løst
 
 ### 1. AI Ignorerer Eksisterende Projektdokumentation (Videnskløft)

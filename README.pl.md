@@ -41,6 +41,51 @@ Poprzez integrację Agentów i Skilli z istniejącymi projektami, zespoły mogą
 
 ---
 
+## ✨ Kluczowe Cechy
+
+### 🏭 Wirtualny Zespół Software'owy
+Jednoklikowe generowanie **7 profesjonalnych ról Agentów** + **38 workflowów Skilli**, budowanie kompletnego wirtualnego zespołu software'owego:
+- **Team Leader** - Globalne planowanie i zarządzanie iteracjami
+- **Product Manager** - Analiza wymagań i generowanie PRD
+- **Feature Designer** - Projektowanie funkcji + kontrakty API
+- **System Designer** - Projektowanie systemów Frontend/Backend/Mobilny/Desktop
+- **System Developer** - Równoległy rozwój multiplatformowy
+- **Test Manager** - Koordynacja testów w trzech fazach
+- **Task Worker** - Równoległe wykonywanie podzadań
+
+### 📐 Modelowanie ISA-95 Sześciostopniowe
+Oparte na międzynarodowej metodyce modelowania **ISA-95**, standaryzacja transformacji wymagań biznesowych w systemy software'owe:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Każdy stopień odpowiada określonym diagramom UML (przypadki użycia, sekwencje, diagramy klas)
+- Wymagania biznesowe są "udokładniane krok po kroku", bez utraty informacji
+- Wyniki są bezpośrednio użyteczne do rozwoju
+
+### 📚 System Bazy Wiedzy
+Trójpoziomowa architektura bazy wiedzy zapewniająca, że AI zawsze pracuje w oparciu o "pojedyncze źródło prawdy":
+
+| Poziom | Katalog | Zawartość | Cel |
+|--------|---------|-----------|------|
+| L1 Wiedza Systemowa | `knowledge/techs/` | Stack technologiczny, architektura, konwencje | AI rozumie granice techniczne projektu |
+| L2 Wiedza Biznesowa | `knowledge/bizs/` | Funkcje modułów, przepływy biznesowe, encje | AI rozumie logikę biznesową |
+| L3 Artefakty Iteracji | `iterations/iXXX/` | PRD, dokumenty projektowe, raporty testowe | Pełny łańcuch śledzenia dla bieżących wymagań |
+
+### 🔄 Czterostopniowy Pipeline Wiedzy
+**Zautomatyzowana architektura generowania wiedzy**, automatyczne generowanie dokumentacji biznesowej/technicznej z kodu źródłowego:
+```
+Stopień 1: Skanowanie kodu źródłowego → Generowanie listy modułów
+Stopień 2: Analiza równoległa → Ekstrakcja funkcji (wielu Workerów równolegle)
+Stopień 3: Podsumowanie równoległe → Uzupełnienie przeglądów modułów (wielu Workerów równolegle)
+Stopień 4: Agregacja systemu → Generowanie panoramy systemu
+```
+- Obsługuje **pełną synchronizację** i **synchronizację inkrementalną** (opartą na Git diff)
+- Jedna osoba optymalizuje, zespół dzieli się
+
+---
+
 ## 8 Rozwiązanych Problemów Rdzeniowych
 
 ### 1. AI Ignoruje Istniejącą Dokumentację Projektu (Luka Wiedzy)

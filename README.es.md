@@ -41,6 +41,51 @@ Al integrar Agentes y Skills en proyectos existentes, los equipos pueden inicial
 
 ---
 
+## ✨ Características Principales
+
+### 🏭 Equipo de Software Virtual
+Generación con un clic de **7 roles de Agentes profesionales** + **38 flujos de trabajo de Skills**, construyendo un equipo de software virtual completo:
+- **Team Leader** - Planificación global y gestión de iteraciones
+- **Product Manager** - Análisis de requisitos y generación de PRD
+- **Feature Designer** - Diseño de funciones + contratos API
+- **System Designer** - Diseño de sistemas Frontend/Backend/Móvil/Escritorio
+- **System Developer** - Desarrollo paralelo multiplataforma
+- **Test Manager** - Coordinación de pruebas en tres fases
+- **Task Worker** - Ejecución paralela de subtareas
+
+### 📐 Modelado ISA-95 de Seis Etapas
+Basado en la metodología de modelado **ISA-95** estándar internacional, estandarizando la transformación de requisitos de negocio a sistemas de software:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Cada etapa corresponde a diagramas UML específicos (casos de uso, secuencia, clases)
+- Los requisitos de negocio se "refinan paso a paso", sin pérdida de información
+- Los resultados son directamente utilizables para el desarrollo
+
+### 📚 Sistema de Base de Conocimientos
+Arquitectura de base de conocimientos de tres niveles que asegura que la IA siempre trabaje basada en la "fuente única de verdad":
+
+| Nivel | Directorio | Contenido | Propósito |
+|-------|------------|-----------|-----------|
+| L1 Conocimiento del Sistema | `knowledge/techs/` | Stack tecnológico, arquitectura, convenciones | IA entiende límites técnicos del proyecto |
+| L2 Conocimiento de Negocio | `knowledge/bizs/` | Funciones de módulos, flujos de negocio, entidades | IA entiende lógica de negocio |
+| L3 Artefactos de Iteración | `iterations/iXXX/` | PRD, documentos de diseño, informes de prueba | Cadena completa de trazabilidad para requisitos actuales |
+
+### 🔄 Pipeline de Conocimientos de Cuatro Etapas
+**Arquitectura de generación automatizada de conocimientos**, generando automáticamente documentación de negocio/técnica desde código fuente:
+```
+Etapa 1: Escanear código fuente → Generar lista de módulos
+Etapa 2: Análisis paralelo → Extraer funciones (multi-Worker paralelo)
+Etapa 3: Resumen paralelo → Completar vistas de módulos (multi-Worker paralelo)
+Etapa 4: Agregación del sistema → Generar panorama del sistema
+```
+- Soporta **sincronización completa** e **sincronización incremental** (basado en Git diff)
+- Una persona optimiza, el equipo comparte
+
+---
+
 ## 8 Problemas Principales Resueltos
 
 ### 1. La IA Ignora la Documentación Existente del Proyecto (Brecha de Conocimiento)

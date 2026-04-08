@@ -41,6 +41,51 @@ Integrando Agent e Skill nei progetti esistenti, i team possono rapidamente iniz
 
 ---
 
+## ✨ Caratteristiche Principali
+
+### 🏭 Team Software Virtuale
+Generazione con un clic di **7 ruoli di Agent professionali** + **38 workflow di Skill**, costruendo un team software virtuale completo:
+- **Team Leader** - Pianificazione globale e gestione iterazioni
+- **Product Manager** - Analisi requisiti e generazione PRD
+- **Feature Designer** - Design funzionalità + contratti API
+- **System Designer** - Design sistemi Frontend/Backend/Mobile/Desktop
+- **System Developer** - Sviluppo parallelo multi-piattaforma
+- **Test Manager** - Coordinamento test in tre fasi
+- **Task Worker** - Esecuzione parallela sotto-attività
+
+### 📐 Modellazione ISA-95 a Sei Fasi
+Basato sulla metodologia di modellazione **ISA-95** standard internazionale, standardizzando la trasformazione dei requisiti di business in sistemi software:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Ogni fase corrisponde a diagrammi UML specifici (casi d'uso, sequenza, classi)
+- I requisiti di business sono "raffinati passo dopo passo", senza perdita di informazioni
+- Gli output sono direttamente utilizzabili per lo sviluppo
+
+### 📚 Sistema di Knowledge Base
+Architettura di knowledge base a tre livelli che assicura che l'IA lavori sempre basata sulla "singola fonte di verità":
+
+| Livello | Directory | Contenuto | Scopo |
+|---------|-----------|-----------|-------|
+| L1 Conoscenza Sistema | `knowledge/techs/` | Stack tecnologico, architettura, convenzioni | IA comprende confini tecnici del progetto |
+| L2 Conoscenza Business | `knowledge/bizs/` | Funzionalità moduli, flussi business, entità | IA comprende logica business |
+| L3 Artefatti Iterazione | `iterations/iXXX/` | PRD, documenti design, report test | Catena completa di tracciabilità per requisiti attuali |
+
+### 🔄 Pipeline di Conoscenze a Quattro Fasi
+**Architettura di generazione automatizzata delle conoscenze**, generazione automatica di documentazione business/tecnica dal codice sorgente:
+```
+Fase 1: Scansione codice sorgente → Genera lista moduli
+Fase 2: Analisi parallela → Estrai funzionalità (multi-Worker parallelo)
+Fase 3: Riepilogo parallelo → Completa panoramica moduli (multi-Worker parallelo)
+Fase 4: Aggregazione sistema → Genera panorama sistema
+```
+- Supporta **sincronizzazione completa** e **sincronizzazione incrementale** (basato su Git diff)
+- Una persona ottimizza, il team condivide
+
+---
+
 ## 8 Problemi Principali Risolti
 
 ### 1. L'IA Ignora la Documentazione del Progetto Esistente (Lacuna di Conoscenza)

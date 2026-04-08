@@ -41,6 +41,51 @@ Ved å integrere Agenter og Skills i eksisterende prosjekter, kan team raskt ini
 
 ---
 
+## ✨ Nøkkelfunksjoner
+
+### 🏭 Virtuelt Programvareteam
+Ett-klikks generering av **7 profesjonelle Agent-roller** + **38 Skill-arbeidsflyter**, bygging av et komplett virtuelt programvareteam:
+- **Team Leader** - Global planlegging og iterasjonshåndtering
+- **Product Manager** - Kravanalyse og PRD-utdata
+- **Feature Designer** - Funksjonsdesign + API-kontrakter
+- **System Designer** - Systemdesign for Frontend/Backend/Mobil/Desktop
+- **System Developer** - Multiplattform parallellutvikling
+- **Test Manager** - Trefaset testkoordinering
+- **Task Worker** - Parallell underoppgaveutførelse
+
+### 📐 ISA-95 Sekstrinns Modellering
+Basert på internasjonal **ISA-95** modelleringsmetodikk, standardisering av transformasjonen fra forretningskrav til programvaresystemer:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Hvert trinn tilsvarer spesifikke UML-diagrammer (use case, sekvens, klassediagrammer)
+- Forretningskrav "foredles trinn for trinn" uten informasjonstap
+- Uttak er direkte brukbar for utvikling
+
+### 📚 Kunnskapsbasesystem
+Trenivå kunnskapsbasearkitektur som sikrer at AI alltid jobber basert på "den eneste sannhetskilden":
+
+| Nivå | Katalog | Innhold | Formål |
+|------|---------|---------|--------|
+| L1 Systemkunnskap | `knowledge/techs/` | Tech-stack, arkitektur, konvensjoner | AI forstår prosjektets tekniske grenser |
+| L2 Forretningskunnskap | `knowledge/bizs/` | Modulfunksjoner, forretningsflyter, enheter | AI forstår forretningslogikk |
+| L3 Iterasjonsartefakter | `iterations/iXXX/` | PRD, designdokumenter, testrapporter | Full sporbarhetskjede for gjeldende krav |
+
+### 🔄 Firetrinns Kunnskapspipeline
+**Automatisert kunnskapsproduksjonsarkitektur**, automatisk generering av forretnings/teknisk dokumentasjon fra kildekode:
+```
+Trinn 1: Skann kildekode → Generer modulliste
+Trinn 2: Parallell analyse → Trekk ut funksjoner (multi-Worker parallelt)
+Trinn 3: Parallell oppsummering → Fullfør moduloversikter (multi-Worker parallelt)
+Trinn 4: Systemaggregering → Generer systempanorama
+```
+- Støtter **full synkronisering** og **inkrementell synkronisering** (basert på Git diff)
+- En person optimaliserer, team deler
+
+---
+
 ## 8 Kjerne-problemer Løst
 
 ### 1. AI Ignorerer Eksisterende Prosjektdokumentasjon (Kunnskapshull)

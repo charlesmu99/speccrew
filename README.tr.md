@@ -41,6 +41,51 @@ Mevcut projelere Agent'ları ve Skill'leri entegre ederek, ekipler proje doküma
 
 ---
 
+## ✨ Ana Özellikler
+
+### 🏭 Sanal Yazılım Ekibi
+Tek tıkla **7 profesyonel Agent rolü** + **38 Skill iş akışı** oluşturma, eksiksiz bir sanal yazılım ekibi oluşturma:
+- **Team Leader** - Global planlama ve iterasyon yönetimi
+- **Product Manager** - Gereksinim analizi ve PRD çıktısı
+- **Feature Designer** - Özellik tasarımı + API sözleşmeleri
+- **System Designer** - Frontend/Backend/Mobil/Desktop sistem tasarımı
+- **System Developer** - Çoklu platform paralel geliştirme
+- **Test Manager** - Üç aşamalı test koordinasyonu
+- **Task Worker** - Alt görev paralel yürütme
+
+### 📐 ISA-95 Altı Aşamalı Modelleme
+Uluslararası **ISA-95** modelleme metodolojisine dayalı, iş gereksinimlerinden yazılım sistemlerine dönüşümün standartlaştırılması:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Her aşama belirli UML diyagramlarına karşılık gelir (use case, sequence, class)
+- İş gereksinimleri "adım adım rafine edilir", bilgi kaybı olmadan
+- Çıktılar geliştirme için doğrudan kullanılabilir
+
+### 📚 Bilgi Tabanı Sistemi
+AI'nın her zaman "tek gerçek kaynağına" dayanarak çalışmasını sağlayan üç katmanlı bilgi tabanı mimarisi:
+
+| Katman | Dizin | İçerik | Amaç |
+|--------|-------|--------|------|
+| L1 Sistem Bilgisi | `knowledge/techs/` | Tech stack, mimari, sözleşmeler | AI projenin teknik sınırlarını anlar |
+| L2 İş Bilgisi | `knowledge/bizs/` | Modül işlevleri, iş akışları, varlıklar | AI iş mantığını anlar |
+| L3 İterasyon Eserleri | `iterations/iXXX/` | PRD, tasarım belgeleri, test raporları | Mevcut gereksinimler için eksiksiz izlenebilirlik zinciri |
+
+### 🔄 Dört Aşamalı Bilgi Hattı
+**Otomatik bilgi üretimi mimarisi**, kaynak koddan iş/teknik dokümantasyonun otomatik olarak oluşturulması:
+```
+Aşama 1: Kaynak kod tarama → Modül listesi oluşturma
+Aşama 2: Paralel analiz → Özellik çıkarma (çoklu Worker paralel)
+Aşama 3: Paralel özetleme → Modül görünümlerini tamamlama (çoklu Worker paralel)
+Aşama 4: Sistem agregasyonu → Sistem panoraması oluşturma
+```
+- **Tam senkronizasyon** ve **artımlı senkronizasyon** destekler (Git diff tabanlı)
+- Bir kişi optimize eder, ekip paylaşır
+
+---
+
 ## Çözülen 8 Temel Sorun
 
 ### 1. AI Mevcut Proje Dokümantasyonunu Görmezden Gelir (Bilgi Boşluğu)

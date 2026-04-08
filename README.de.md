@@ -41,6 +41,51 @@ Durch die Integration von Agents und Skills in bestehende Projekte können Teams
 
 ---
 
+## ✨ Hauptmerkmale
+
+### 🏭 Virtuelles Softwareteam
+Ein-Klick-Generierung von **7 professionellen Agent-Rollen** + **38 Skill-Workflows**, Aufbau eines vollständigen virtuellen Softwareteams:
+- **Team Leader** - Globale Planung und Iterationsmanagement
+- **Product Manager** - Anforderungsanalyse und PRD-Erstellung
+- **Feature Designer** - Feature-Design + API-Verträge
+- **System Designer** - Frontend/Backend/Mobile/Desktop-Systemdesign
+- **System Developer** - Multiplattform-Parallelentwicklung
+- **Test Manager** - Dreiphasen-Testkoordination
+- **Task Worker** - Parallele Unteraufgabenausführung
+
+### 📐 ISA-95 Sechs-Stufen-Modellierung
+Basierend auf der internationalen **ISA-95** Modellierungsmethodik, Standardisierung der Transformation von Geschäftsanforderungen zu Softwaresystemen:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Jede Stufe entspricht bestimmten UML-Diagrammen (Anwendungsfälle, Sequenz, Klassendiagramme)
+- Geschäftsanforderungen werden "schrittweise verfeinert", ohne Informationsverlust
+- Ausgaben sind direkt für die Entwicklung verwendbar
+
+### 📚 Wissensdatenbank-System
+Dreischichtige Wissensdatenbank-Architektur, die sicherstellt, dass KI immer basierend auf der "einzigen Wahrheitsquelle" arbeitet:
+
+| Ebene | Verzeichnis | Inhalt | Zweck |
+|-------|-------------|---------|----------|
+| L1 Systemwissen | `knowledge/techs/` | Tech-Stack, Architektur, Konventionen | KI versteht technische Projektgrenzen |
+| L2 Geschäftswissen | `knowledge/bizs/` | Modulfeatures, Geschäftsabläufe, Entitäten | KI versteht Geschäftslogik |
+| L3 Iterationsartefakte | `iterations/iXXX/` | PRD, Design-Dokumente, Testberichte | Vollständige Rückverfolgbarkeitskette für aktuelle Anforderungen |
+
+### 🔄 Vier-Stufen-Wissenspipeline
+**Automatisierte Wissensgenerierungsarchitektur**, automatische Generierung von Geschäfts-/Technikdokumentation aus Quellcode:
+```
+Stufe 1: Quellcode scannen → Modulliste generieren
+Stufe 2: Parallele Analyse → Features extrahieren (Multi-Worker-parallel)
+Stufe 3: Parallele Zusammenfassung → Modulübersichten vervollständigen (Multi-Worker-parallel)
+Stufe 4: Systemaggregation → Systempanorama generieren
+```
+- Unterstützt **Voll-Synchronisierung** und **Inkrementelle Synchronisierung** (basierend auf Git diff)
+- Eine Person optimiert, Team teilt
+
+---
+
 ## 8 Kernprobleme gelöst
 
 ### 1. KI ignoriert bestehende Projektdokumentation (Wissenslücke)

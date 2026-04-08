@@ -41,6 +41,51 @@ En intégrant des Agents et des Skills dans des projets existants, les équipes 
 
 ---
 
+## ✨ Caractéristiques Principales
+
+### 🏭 Équipe Logicielle Virtuelle
+Génération en un clic de **7 rôles d'Agents professionnels** + **38 flux de travail de Skills**, construisant une équipe logicielle virtuelle complète :
+- **Team Leader** - Planification globale et gestion des itérations
+- **Product Manager** - Analyse des exigences et génération de PRD
+- **Feature Designer** - Conception de fonctionnalités + contrats API
+- **System Designer** - Conception de systèmes Frontend/Backend/Mobile/Desktop
+- **System Developer** - Développement parallèle multi-plateforme
+- **Test Manager** - Coordination des tests en trois phases
+- **Task Worker** - Exécution parallèle de sous-tâches
+
+### 📐 Modélisation ISA-95 en Six Étapes
+Basé sur la méthodologie de modélisation **ISA-95** standard international, standardisant la transformation des exigences métier en systèmes logiciels :
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Chaque étape correspond à des diagrammes UML spécifiques (cas d'utilisation, séquence, classes)
+- Les exigences métier sont "affinées étape par étape", sans perte d'information
+- Les sorties sont directement utilisables pour le développement
+
+### 📚 Système de Base de Connaissances
+Architecture de base de connaissances à trois niveaux garantissant que l'IA travaille toujours basée sur la "source unique de vérité" :
+
+| Niveau | Répertoire | Contenu | Objectif |
+|--------|------------|---------|----------|
+| L1 Connaissance Système | `knowledge/techs/` | Stack technique, architecture, conventions | L'IA comprend les limites techniques du projet |
+| L2 Connaissance Métier | `knowledge/bizs/` | Fonctionnalités des modules, flux métier, entités | L'IA comprend la logique métier |
+| L3 Artefacts d'Itération | `iterations/iXXX/` | PRD, documents de conception, rapports de test | Chaîne complète de traçabilité pour les exigences actuelles |
+
+### 🔄 Pipeline de Connaissances en Quatre Étapes
+**Architecture de génération automatisée de connaissances**, générant automatiquement la documentation métier/technique à partir du code source :
+```
+Étape 1 : Analyser le code source → Générer la liste des modules
+Étape 2 : Analyse parallèle → Extraire les fonctionnalités (multi-Worker parallèle)
+Étape 3 : Résumé parallèle → Compléter les aperçus des modules (multi-Worker parallèle)
+Étape 4 : Agrégation système → Générer le panorama du système
+```
+- Supporte **synchronisation complète** et **synchronisation incrémentielle** (basé sur Git diff)
+- Une personne optimise, l'équipe partage
+
+---
+
 ## 8 Problèmes Principaux Résolus
 
 ### 1. L'IA Ignore la Documentation de Projet Existante (Lacune de Connaissances)

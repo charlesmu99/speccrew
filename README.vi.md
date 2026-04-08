@@ -41,6 +41,51 @@ Bằng cách tích hợp các Agent và Skill vào các dự án hiện có, cá
 
 ---
 
+## ✨ Điểm Nổi Bật Chính
+
+### 🏭 Đội Phần Mềm Ảo
+Tạo bằng một cú nhấp chuột **7 vai trò Agent chuyên nghiệp** + **38 quy trình Skill**, xây dựng đội phần mềm ảo hoàn chỉnh:
+- **Team Leader** - Lập kế hoạch toàn cầu và quản lý lặp lại
+- **Product Manager** - Phân tích yêu cầu và xuất PRD
+- **Feature Designer** - Thiết kế tính năng + hợp đồng API
+- **System Designer** - Thiết kế hệ thống Frontend/Backend/Mobile/Desktop
+- **System Developer** - Phát triển song song đa nền tảng
+- **Test Manager** - Điều phối kiểm thử ba giai đoạn
+- **Task Worker** - Thực thi tác vụ phụ song song
+
+### 📐 Mô hình hóa ISA-95 Sáu Giai đoạn
+Dựa trên phương pháp luận mô hình hóa quốc tế **ISA-95**, chuẩn hóa chuyển đổi yêu cầu nghiệp vụ thành hệ thống phần mềm:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Mỗi giai đoạn tương ứng với biểu đồ UML cụ thể (use case, sequence, class)
+- Yêu cầu nghiệp vụ được "tinh chế từng bước", không mất thông tin
+- Đầu ra có thể sử dụng trực tiếp cho phát triển
+
+### 📚 Hệ thống Cơ sở Kiến thức
+Kiến trúc cơ sở kiến thức ba tầng đảm bảo AI luôn làm việc dựa trên "nguồn sự thật duy nhất":
+
+| Tầng | Thư mục | Nội dung | Mục đích |
+|------|---------|----------|----------|
+| L1 Kiến thức Hệ thống | `knowledge/techs/` | Stack công nghệ, kiến trúc, quy ước | AI hiểu ranh giới kỹ thuật của dự án |
+| L2 Kiến thức Nghiệp vụ | `knowledge/bizs/` | Chức năng module, luồng nghiệp vụ, thực thể | AI hiểu logic nghiệp vụ |
+| L3 Tạo phẩm Lặp | `iterations/iXXX/` | PRD, tài liệu thiết kế, báo cáo kiểm thử | Chuỗi truy xuất đầy đủ cho yêu cầu hiện tại |
+
+### 🔄 Pipeline Kiến thức Bốn Giai đoạn
+**Kiến trúc tạo kiến thức tự động**, tự động tạo tài liệu nghiệp vụ/kỹ thuật từ mã nguồn:
+```
+Giai đoạn 1: Quét mã nguồn → Tạo danh sách module
+Giai đoạn 2: Phân tích song song → Trích xuất tính năng (nhiều Worker song song)
+Giai đoạn 3: Tóm tắt song song → Hoàn thành tổng quan module (nhiều Worker song song)
+Giai đoạn 4: Tổng hợp hệ thống → Tạo toàn cảnh hệ thống
+```
+- Hỗ trợ **đồng bộ hóa đầy đủ** và **đồng bộ hóa tăng dần** (dựa trên Git diff)
+- Một người tối ưu hóa, cả đội chia sẻ
+
+---
+
 ## Giải quyết 8 Vấn đề Cốt lõi
 
 ### 1. AI Bỏ qua Tài liệu Dự án Hiện có (Khoảng trống Kiến thức)

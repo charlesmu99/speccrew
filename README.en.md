@@ -41,6 +41,51 @@ By integrating Agents and Skills into existing projects, teams can quickly initi
 
 ---
 
+## ✨ Key Highlights
+
+### 🏭 Virtual Software Team
+One-click generation of **7 professional Agent roles** + **38 Skill workflows**, building a complete virtual software team:
+- **Team Leader** - Global scheduling and iteration management
+- **Product Manager** - Requirements analysis and PRD output
+- **Feature Designer** - Feature design + API contracts
+- **System Designer** - Frontend/Backend/Mobile/Desktop system design
+- **System Developer** - Multi-platform parallel development
+- **Test Manager** - Three-phase test coordination
+- **Task Worker** - Parallel sub-task execution
+
+### 📐 ISA-95 Six-Stage Modeling
+Based on international **ISA-95** modeling methodology, standardizing the transformation from business requirements to software systems:
+```
+Domain Descriptions → Functions in Domains → Functions of Interest
+     ↓                       ↓                      ↓
+Information Flows → Categories of Information → Information Descriptions
+```
+- Each stage corresponds to specific UML diagrams (use case, sequence, class diagrams)
+- Business requirements are "refined step by step" with no information loss
+- Outputs are directly usable for development
+
+### 📚 Knowledge Base System
+Three-tier knowledge base architecture ensuring AI always works based on the "single source of truth":
+
+| Layer | Directory | Content | Purpose |
+|-------|-----------|---------|----------|
+| L1 System Knowledge | `knowledge/techs/` | Tech stack, architecture, conventions | AI understands project technical boundaries |
+| L2 Business Knowledge | `knowledge/bizs/` | Module features, business flows, entities | AI understands business logic |
+| L3 Iteration Artifacts | `iterations/iXXX/` | PRD, design docs, test reports | Complete traceability chain for current requirements |
+
+### 🔄 Four-Stage Knowledge Pipeline
+**Automated knowledge generation architecture**, auto-generating business/technical documentation from source code:
+```
+Stage 1: Scan source code → Generate module list
+Stage 2: Parallel analysis → Extract features (multi-Worker parallel)
+Stage 3: Parallel summarization → Complete module overviews (multi-Worker parallel)
+Stage 4: System aggregation → Generate system panorama
+```
+- Supports **full sync** and **incremental sync** (based on Git diff)
+- One person optimizes, team shares
+
+---
+
 ## 8 Core Problems Solved
 
 ### 1. AI Ignores Existing Project Documentation (Knowledge Gap)
