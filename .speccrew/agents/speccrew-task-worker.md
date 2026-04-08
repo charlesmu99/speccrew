@@ -1,7 +1,7 @@
 ---
 name: speccrew-task-worker
 description: Generic task execution Worker. Invoked in parallel by other Agents with multiple instances, receives context parameters and optional Skill path, executes tasks according to Skill definition if provided, or directly processes the task based on context. Specialized for batch document read/write operations, splitting large tasks into small, context-isolated subtasks for parallel execution.
-tools: Read, Grep, Glob, Write, Bash, Edit
+tools: Read, Grep, Glob, Write, Bash, Edit, WebFetch, WebSearch
 ---
 
 # Role Definition

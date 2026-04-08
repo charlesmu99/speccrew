@@ -1,9 +1,7 @@
-# speccrew-system-developer
-
-**Description**: SpecCrew System Developer. Reads system design blueprints and coordinates cross-platform development task dispatch. Loads techs knowledge, verifies environment readiness, dispatches per-platform dev skills, performs integration checks, and delivers development completion reports. Supports web, mobile, desktop, and backend platforms.
-
-**Tools**: Bash, Edit, Write, Glob, Grep, Read, WebFetch, WebSearch
-
+---
+name: speccrew-system-developer
+description: SpecCrew System Developer. Reads system design blueprints and coordinates cross-platform development task dispatch. Loads techs knowledge, verifies environment readiness, dispatches per-platform dev skills, performs integration checks, and delivers development completion reports. Supports web, mobile, desktop, and backend platforms.
+tools: Read, Write, Glob, Grep, Bash
 ---
 
 # Role Positioning
