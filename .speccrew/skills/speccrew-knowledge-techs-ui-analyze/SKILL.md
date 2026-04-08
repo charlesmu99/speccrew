@@ -74,6 +74,16 @@ Generate the following documents in `{output_path}/`:
 
 ## Workflow
 
+### Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for analysis documents** — NEVER use `create_file` to write any UI analysis document. Each document MUST be created by copying the appropriate template then filling sections with `search_replace`. `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — For every output document, the corresponding template MUST be copied to the target path first, then sections filled with `search_replace`. Skipping copy and writing content directly is FORBIDDEN.
+
 ### Step 0: Read All Templates
 
 Before analysis, read all template files to understand document structures and required content:
@@ -187,6 +197,16 @@ For each identified page type, extract according to `PAGE-TYPE-INDIVIDUAL-TEMPLA
 
 **Generate**: `page-types/[type]-pages.md` for each discovered type
 
+#### Document Generation (per document)
+
+**For `page-types/page-type-summary.md`:**
+1. Copy template `templates/PAGE-TYPE-SUMMARY-TEMPLATE.md` → `{output_path}/page-types/page-type-summary.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For each `page-types/[type]-pages.md`:**
+1. Copy template `templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md` → `{output_path}/page-types/[type]-pages.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
 ### Step 3: Extract Component Usage
 
 **Purpose**: Generate component documentation in `components/` directory
@@ -242,6 +262,20 @@ Analyze component imports and usage:
 - Business component list by domain
 - Props and event definitions
 - Business logic integration patterns
+
+#### Document Generation (per document)
+
+**For `components/component-library.md`:**
+1. Copy template `templates/COMPONENT-LIBRARY-TEMPLATE.md` → `{output_path}/components/component-library.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For `components/common-components.md`:**
+1. Copy template `templates/COMMON-COMPONENTS-TEMPLATE.md` → `{output_path}/components/common-components.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For `components/business-components.md`:**
+1. Copy template `templates/BUSINESS-COMPONENTS-TEMPLATE.md` → `{output_path}/components/business-components.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
 
 #### Generate Individual Component Documents
 
@@ -328,6 +362,16 @@ Identify common layout patterns:
 - Route configuration conventions
 - Navigation state management
 
+#### Document Generation (per document)
+
+**For `layouts/page-layouts.md`:**
+1. Copy template `templates/LAYOUT-PATTERNS-TEMPLATE.md` → `{output_path}/layouts/page-layouts.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For `layouts/navigation-patterns.md`:**
+1. Copy template `templates/NAVIGATION-PATTERNS-TEMPLATE.md` → `{output_path}/layouts/navigation-patterns.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
 #### Generate Individual Layout Documents
 
 For each distinct layout pattern discovered:
@@ -403,6 +447,20 @@ Analyze style files to extract:
 - Container and breakpoint definitions
 - Spacing application guidelines
 
+#### Document Generation (per document)
+
+**For `styles/color-system.md`:**
+1. Copy template `templates/STYLE-SYSTEM-TEMPLATE.md` → `{output_path}/styles/color-system.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For `styles/typography.md`:**
+1. Copy template `templates/TYPOGRAPHY-TEMPLATE.md` → `{output_path}/styles/typography.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
+**For `styles/spacing-system.md`:**
+1. Copy template `templates/SPACING-TEMPLATE.md` → `{output_path}/styles/spacing-system.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
+
 ### Step 6: Generate Documentation
 
 **Purpose**: Create all documentation files using extracted data and templates
@@ -411,11 +469,18 @@ Analyze style files to extract:
 
 For each document, follow this process:
 
-1. **Read the corresponding template** from `templates/` directory
+1. **Copy the corresponding template** from `templates/` directory to target path
 2. **Review extracted data** from Steps 1-5
-3. **Map data to template sections** - ensure all template placeholders are filled
-4. **Generate document** with actual values
-5. **Write output** to `{output_path}/`
+3. **Fill template sections** using `search_replace` - map data to template placeholders
+4. **Verify** all template placeholders are filled
+
+**Note**: NEVER use `create_file` to generate documents. Always copy template first, then use `search_replace` to fill sections.
+
+#### Document Generation (per document)
+
+**For `ui-style-guide.md`:**
+1. Copy template `templates/UI-STYLE-GUIDE-TEMPLATE.md` → `{output_path}/ui-style-guide.md`
+2. Fill each section using `search_replace` (FORBIDDEN: `create_file` rewrite)
 
 #### Document Generation Order and Dependencies
 

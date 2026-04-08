@@ -12,6 +12,16 @@ tools: Read, Write, Glob, Grep
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to ALL steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write design documents or INDEX. Documents MUST be created by copying the template (Step 4.2a / Step 5.2a) then filling sections with `search_replace` (Step 4.2b / Step 5.2b). `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before fill sections. Skipping copy and writing content directly is FORBIDDEN.
+
 ## Step 1: Read Inputs
 
 Read in order:
@@ -74,9 +84,25 @@ For each function (or logical group of closely related functions = one module):
 
 Read `SD-MOBILE-TEMPLATE.md` for document structure.
 
-### 4.2 Fill Technology-Specific Details
+### 4.2a Copy Template to Document Path
 
-Fill each section with technology-specific implementation details:
+1. **Read the design template**: `templates/SD-MOBILE-TEMPLATE.md`
+2. **Replace top-level placeholders** with known variables:
+   - Module name, feature name, platform ID, etc.
+3. **Create the document file** using `create_file`:
+   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
+   - Content: Template with top-level placeholders replaced
+4. **Verify**: Document should have complete section structure ready for filling
+
+### 4.2b Fill Each Section Using search_replace
+
+Fill each section with technology-specific implementation details.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template structure
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles and numbering MUST be preserved**
+> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
 
 | Section | Technology-Specific Content |
 |---------|----------------------------|
@@ -89,15 +115,18 @@ Fill each section with technology-specific implementation details:
 | Platform features | Actual plugin APIs (camera, geolocator, local_notifications, etc.) |
 | Pseudo-code | MUST use actual framework syntax from techs knowledge |
 
-### 4.3 Write Module Design
-
-Write to: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
-
 **Key Rules for Pseudo-code**:
 - MUST use actual framework API syntax from techs knowledge
 - NOT generic pseudo-code
 - Include actual import statements
 - Use actual state management/API patterns from conventions
+
+### 4.3 Verify Output
+
+Verify the completed design document:
+- All sections filled with actual content (no remaining placeholders)
+- Mermaid diagrams render correctly
+- Pseudo-code uses actual framework syntax from techs knowledge
 
 ## Step 5: Generate Platform INDEX.md
 
@@ -107,7 +136,20 @@ After all module designs are complete:
 
 Read `INDEX-TEMPLATE.md` for document structure.
 
-### 5.2 Fill Platform-Level Summary
+### 5.2a Copy Index Template to Document Path
+
+1. **Read the index template**: `templates/INDEX-TEMPLATE.md`
+2. **Replace top-level placeholders** (platform name, feature name, etc.)
+3. **Create the document file** using `create_file`:
+   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
+   - Content: Template with top-level placeholders replaced
+
+### 5.2b Fill Index Sections Using search_replace
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template structure
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles and numbering MUST be preserved**
 
 | Section | Content Source |
 |---------|---------------|
@@ -124,9 +166,12 @@ Read `INDEX-TEMPLATE.md` for document structure.
 
 Create table with links to each module design document.
 
-### 5.4 Write INDEX
+### 5.4 Verify Output
 
-Write to: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
+Verify the completed INDEX.md:
+- All sections filled with actual content (no remaining placeholders)
+- All module design documents are correctly linked
+- Platform-level summary is complete
 
 ## Step 6: Present Summary
 

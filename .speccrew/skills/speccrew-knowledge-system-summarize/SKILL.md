@@ -40,6 +40,16 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
+### Absolute Constraints
+
+> **These rules apply to ALL steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the system overview document. It MUST be created by copying the template (Step 7a) then filling sections with `search_replace` (Step 7b). `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Step 7a (copy template) MUST execute before Step 7b (fill sections). Skipping Step 7a and writing content directly is FORBIDDEN.
+
 ### Prerequisites
 
 Before starting, verify:
@@ -219,8 +229,21 @@ Create flow-module mapping matrix:
    - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no parameters needed, uses default format `YYYY-MM-DD-HHmmss`, returns timestamp string e.g. `2026-03-17-132645`)
    - Use the returned timestamp as generation timestamp in document
 
-3. **Use template `templates/SYSTEM-OVERVIEW-TEMPLATE.md`, fill all sections**:
-   - Follow [Mermaid Diagram Guide](#mermaid-diagram-guide) for diagram generation
+4. **Copy template to document path (Step 7a)**:
+   - Read template: `templates/SYSTEM-OVERVIEW-TEMPLATE.md` (already loaded in Step 0)
+   - Replace top-level placeholders (system name, generation timestamp, tech stack info)
+   - Create document using `create_file` at: `output_path/system-overview.md`
+   - Verify: Document has complete section structure ready for filling
+
+5. **Fill each section using search_replace (Step 7b)**:
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template structure
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
+> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
+
+**Fill via `search_replace`:**
 
 **Section: Index and Overview** (NEW)
 - Generation timestamp (from get-timestamp skill)
@@ -228,11 +251,15 @@ Create flow-module mapping matrix:
 - Statistics: module count, entity count, API count, flow count
 - Module quick index table
 
+**Fill via `search_replace`:**
+
 **Section 1: System Overview**
 - System name from project config
 - Core positioning
 - Target users
 - Deployment type
+
+**Fill via `search_replace`:**
 
 **Section 2: Module Topology**
 - Business domain diagram
@@ -240,14 +267,20 @@ Create flow-module mapping matrix:
 - Module dependency diagram
 - Module index table (from Step 3)
 
+**Fill via `search_replace`:**
+
 **Section 3: End-to-End Business Flows**
 - Core business process list
 - Flow-module mapping matrix (from Step 6)
 - Typical flow diagrams
 
+**Fill via `search_replace`:**
+
 **Section 4: System Boundaries and Integration**
 - External system integration diagram
 - Integration interface list
+
+**Fill via `search_replace`:**
 
 **Section 5: Requirement Assessment Guide**
 - Reference to `speccrew-pm-requirement-assess` skill

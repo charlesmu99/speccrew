@@ -12,6 +12,16 @@ tools: Read, Write, Glob, Grep, Terminal
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write test reports or bug reports. Documents MUST be created by copying the template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections.
+
 ## Step 1: Read Inputs
 
 Read the following documents in order:
@@ -179,43 +189,33 @@ For each deviation, analyze:
 
 Read template: `speccrew-test-execute/templates/TEST-REPORT-TEMPLATE.md`
 
-### 6.2 Fill Report Content
+### 6.2 Copy Template to Report Path
 
-Generate comprehensive test report including:
+1. **Read template** from Step 6.1
+2. **Replace top-level placeholders** (feature name, platform, execution date, etc.)
+3. **Create the document** using `create_file` at: `{output_dir}/{feature}-test-report.md`
+4. **Verify**: Document has complete section structure
 
-**Execution Summary**:
-- Feature name and platform
-- Test framework and version
-- Execution date and duration
-- Overall pass rate
+### 6.3 Fill Each Section Using search_replace
 
-**Results Overview**:
-- Counts and percentages for all result types
-- Visual pass/fail indication
+Fill each section with test execution data.
 
-**Results by Test Dimension**:
-- Breakdown by test type (happy path, boundary, exception, etc.)
-- Pass rate per dimension
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
 
-**Failed Test Details**:
-- Table of all failed tests
-- Links to corresponding bug reports
+**Section Filling Guide:**
 
-**Coverage Status**:
-- Requirement-to-test-case mapping
-- Status per requirement
-
-**Environment Information**:
-- OS, runtime, framework versions
-- Key dependencies
-
-**Recommendations**:
-- Priority fixes needed
-- Suggested next steps
-
-### 6.3 Write Report
-
-Output path: `{output_dir}/{feature}-test-report.md`
+| Section | Content |
+|---------|---------|
+| **Execution Summary** | Feature name and platform, test framework and version, execution date and duration, overall pass rate |
+| **Results Overview** | Counts and percentages for all result types, visual pass/fail indication |
+| **Results by Test Dimension** | Breakdown by test type (happy path, boundary, exception, etc.), pass rate per dimension |
+| **Failed Test Details** | Table of all failed tests, links to corresponding bug reports |
+| **Coverage Status** | Requirement-to-test-case mapping, status per requirement |
+| **Environment Information** | OS, runtime, framework versions, key dependencies |
+| **Recommendations** | Priority fixes needed, suggested next steps |
 
 ## Step 7: Generate Bug Reports
 
@@ -223,9 +223,22 @@ Output path: `{output_dir}/{feature}-test-report.md`
 
 Read template: `speccrew-test-execute/templates/BUG-REPORT-TEMPLATE.md`
 
-### 7.2 Create Individual Bug Reports
+### 7.2 Copy Template for Each Bug Report
 
 For each FAIL type failure:
+1. **Read template** from Step 7.1: `templates/BUG-REPORT-TEMPLATE.md`
+2. **Replace top-level placeholders** (Bug ID, feature name, TC ID)
+3. **Create document** using `create_file` at: `{output_dir}/bugs/{feature}-bug-{seq}.md`
+
+### 7.3 Fill Each Bug Report Using search_replace
+
+For each bug report created in 7.2, fill sections using `search_replace`:
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+
+**Section Filling Guide:**
 
 1. **Assign Bug ID**: `BUG-{feature}-{seq}` (sequential numbering)
 
@@ -246,10 +259,7 @@ For each FAIL type failure:
    - Relevant error log excerpt
    - Suggested fix direction
 
-4. **Write Individual File**:
-   Output path: `{output_dir}/bugs/{feature}-bug-{seq}.md`
-
-### 7.3 Bug Report Quality Checklist
+### 7.4 Bug Report Quality Checklist
 
 Each bug report must include:
 - [ ] Unique Bug ID

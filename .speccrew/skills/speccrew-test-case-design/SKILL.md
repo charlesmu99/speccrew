@@ -12,6 +12,16 @@ tools: Read, Write, Glob, Grep
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the test case design document. It MUST be created by copying the template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections. Skipping copy and writing content directly is FORBIDDEN.
+
 ## Step 1: Read Feature Spec
 
 Read the feature spec document specified by `feature_spec_path`:
@@ -243,21 +253,31 @@ Read the template file:
 speccrew-test-case-design/templates/TEST-CASE-DESIGN-TEMPLATE.md
 ```
 
-### 7.3 Fill Template
+### 7.3 Copy Template to Document Path
 
-Fill in the template with:
+1. **Read the template file**: `templates/TEST-CASE-DESIGN-TEMPLATE.md` (loaded in 7.2)
+2. **Replace top-level placeholders** (feature name, module, date, etc.)
+3. **Create the document** using `create_file` at the path from Step 7.1
+4. **Verify**: Document has complete section structure ready for filling
 
-| Section | Content |
-|---------|---------|
-| Test Overview | Feature name, module, scope, related documents |
-| Test Case Matrix | All test cases organized by category |
-| Test Data Definition | Normal, boundary, and exception data sets |
-| Coverage Traceability | Requirement-to-test-case mapping |
-| Notes | Additional information and assumptions |
+### 7.4 Fill Each Section Using search_replace
 
-### 7.4 Write Document
+Fill each section with test case data using `search_replace`.
 
-Write the completed test case design document to the output path.
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
+
+**Section Filling Order:**
+
+| Section | Content Source |
+|---------|---------------|
+| **Test Overview** | Feature name, module, scope, related documents |
+| **Test Case Matrix** | All test cases organized by category from Step 5 |
+| **Test Data Definition** | Normal, boundary, and exception data sets |
+| **Coverage Traceability** | Requirement-to-test-case mapping from Step 6 |
+| **Notes** | Additional information and assumptions |
 
 # Key Rules
 

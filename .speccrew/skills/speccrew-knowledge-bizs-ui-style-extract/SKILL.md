@@ -56,6 +56,16 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
     └── ...
 ```
 
+## Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for pattern documents** — NEVER use `create_file` to write pattern documents. Each document MUST be created by copying the appropriate template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections for every pattern document.
+
 ## Workflow Overview
 
 ```mermaid
@@ -156,23 +166,34 @@ graph TB
 
 ## Step 5: Generate Pattern Documents
 
-**Goal**: Create pattern documents for each identified pattern.
+**Goal**: Create pattern documents for each identified pattern using template-fill workflow.
 
-**Action**:
-- For each identified pattern, generate a `.md` document using the appropriate template
-- Place documents in corresponding subdirectories:
-  - Page types → `{output_path}/page-types/`
-  - Component patterns → `{output_path}/components/`
-  - Layout patterns → `{output_path}/layouts/`
+### 5.1 Template Selection
+
+| Pattern Category | Template File | Output Directory |
+|-----------------|---------------|------------------|
+| Page types | `templates/PAGE-TYPE-TEMPLATE.md` | `{output_path}/page-types/` |
+| Component patterns | `templates/COMPONENT-PATTERN-TEMPLATE.md` | `{output_path}/components/` |
+| Layout patterns | `templates/LAYOUT-PATTERN-TEMPLATE.md` | `{output_path}/layouts/` |
 
 **File Naming Convention**:
 - Use `kebab-case` for pattern names
 - Examples: `list-page.md`, `search-filter-bar.md`, `sidebar-content.md`
 
-**Template Application**:
-- Use `PAGE-TYPE-TEMPLATE.md` for page type patterns
-- Use `COMPONENT-PATTERN-TEMPLATE.md` for component patterns
-- Use `LAYOUT-PATTERN-TEMPLATE.md` for layout patterns
+### 5.2 For Each Pattern: Copy Template to Document Path
+
+For each identified pattern:
+1. **Select the appropriate template** based on pattern category
+2. **Replace top-level placeholders** (pattern name, category, etc.)
+3. **Create the document** using `create_file` at the corresponding output path
+4. **Verify**: Document has complete section structure ready for filling
+
+### 5.3 For Each Pattern: Fill Sections Using search_replace
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
 
 **Content Requirements**:
 1. **ASCII wireframes**: Must be generalized versions (not direct copies from specific features)

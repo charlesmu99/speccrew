@@ -31,6 +31,16 @@ tools: Read, Glob, Grep, List, ReadFile, Search
 - **Template**: [templates/DIAGNOSIS-REPORT-TEMPLATE.md](templates/DIAGNOSIS-REPORT-TEMPLATE.md)
 - **Naming Convention**: Date-time suffix using 24-hour format `HHmm` (e.g., `diagnosis-report-2026-03-15-1326.md` for 13:26), supports multiple diagnoses on the same day
 
+## Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the diagnosis report. It MUST be created by copying the template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections. Skipping copy and writing content directly is FORBIDDEN.
+
 ## Get Current Timestamp
 
 To ensure consistent timestamp format, use the `speccrew-get-timestamp` skill:
@@ -141,9 +151,24 @@ diagnosis-report-{timestamp}.md
 
 Example: If script returns `2026-03-17-1326`, filename is `diagnosis-report-2026-03-17-1326.md`
 
-### 4.3 Fill Report Content
+### 4.3 Copy Template to Report Path
 
-Based on template `templates/DIAGNOSIS-REPORT-TEMPLATE.md`, generate the diagnosis report.
+1. **Read the template**: `templates/DIAGNOSIS-REPORT-TEMPLATE.md`
+2. **Replace top-level placeholders** (project name, timestamp from 4.2, etc.)
+3. **Create the document** using `create_file`:
+   - Target path: `speccrew-workspace/docs/diagnosis-reports/diagnosis-report-{timestamp}.md`
+   - Content: Template with top-level placeholders replaced
+4. **Verify**: Document has complete section structure ready for filling
+
+### 4.4 Fill Each Section Using search_replace
+
+Fill each section with diagnosis data using `search_replace`.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
+> - If a section has no applicable data, keep title and fill with "To be confirmed"
 
 **Dynamic Content Filling Rules**:
 

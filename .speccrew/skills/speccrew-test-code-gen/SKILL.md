@@ -12,6 +12,18 @@ tools: Read, Write, Glob, Grep
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to document generation steps (Step 7). Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for plan document** — NEVER use `create_file` to write the test code plan document. It MUST be created by copying the template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections.
+
+4. **CLARIFICATION: Test source code is NOT template-filled** — Actual test code files in Step 6 are written directly. The template-fill workflow applies ONLY to the Code Plan document in Step 7.
+
 ## Step 1: Read Test Cases
 
 Read the confirmed test case document specified by `test_cases_path`:
@@ -273,7 +285,32 @@ Generate files in dependency order:
 
 Output the code plan document for traceability:
 
-**Path**: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+### 7.1 Copy Template to Document Path
+
+1. **Read the template**: `templates/TEST-CODE-PLAN-TEMPLATE.md`
+2. **Replace top-level placeholders** (feature name, platform, date, etc.)
+3. **Create the document** using `create_file`:
+   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+   - Content: Template with top-level placeholders replaced
+4. **Verify**: Document has complete section structure
+
+### 7.2 Fill Each Section Using search_replace
+
+Fill each section with code plan data from Step 4.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
+
+**Section Filling Guide:**
+
+| Section | Content Source |
+|---------|---------------|
+| **File-to-TestCase Mapping** | From Step 4.4 |
+| **Mock Strategy** | From Step 4.3 |
+| **Shared Resources** | From Step 4.2 |
+| **Test File Structure** | From Step 4.1 |
 
 ### Document Purpose
 
@@ -281,10 +318,6 @@ Output the code plan document for traceability:
 - Documents mock strategy decisions
 - Provides reference for future test maintenance
 - Enables traceability from test code to test cases
-
-### Template Reference
-
-Use: `speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md`
 
 # Key Rules
 

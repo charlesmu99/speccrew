@@ -13,6 +13,16 @@ tools: Read, Write, Glob, Grep
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to ALL document generation steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write PRD or modeling documents. Documents MUST be created by copying the template then filling sections with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections. Skipping copy and writing content directly is FORBIDDEN.
+
 ## Step 1: Requirements Clarification (Progressive Multi-Round)
 
 Use progressive questioning to clarify requirements. Do NOT ask all questions at once.
@@ -195,7 +205,16 @@ Ask: "Here are the core functions (Must have) and deferred functions. Is the MVP
   - No `direction` keyword
   - No `style` definitions
   - No special characters in node text
-- Save modeling document to: `iterations/{number}/01.product-requirement/{feature-name}-bizs-modeling.md`
+- **Write modeling document using template-fill workflow:**
+
+  **5.7a Copy Template to Document Path:**
+  1. Read `templates/BIZS-MODELING-TEMPLATE.md`
+  2. Replace top-level placeholders (feature name, domain name, etc.)
+  3. Create document using `create_file` at: `iterations/{number}-{type}-{name}/01.product-requirement/{feature-name}-bizs-modeling.md`
+
+  **5.7b Fill Each Section Using search_replace:**
+  Fill each modeling stage section with results from Stages 1-6 above, using `search_replace` per section.
+  > ⚠️ FORBIDDEN: `create_file` to rewrite entire document. MUST use `search_replace` per section.
 
 **ISA-95 Quick Reference:**
 
@@ -369,7 +388,29 @@ speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/
 
 If the iteration directory does not exist, refer to the `000-sample` directory structure to create it.
 
-## Step 12: Write File and Request Confirmation
+## Step 12: Write Files Using Template-Fill Workflow
+
+### 12a Copy Template to Document Path
+
+For each document to write (PRD, and optionally Sub-PRDs):
+
+1. **Read the template**: `templates/PRD-TEMPLATE.md` (already loaded in Step 7)
+2. **Replace top-level placeholders** (feature name, iteration, date)
+3. **Create the document** using `create_file` at the path determined in Step 11
+4. **Verify**: Document has complete section structure
+
+### 12b Fill Each Section Using search_replace
+
+Fill each section with content prepared in Step 9, using `search_replace` per section.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
+
+For Master-Sub structure, repeat 12a + 12b for each Sub-PRD document.
+
+### 12c Request Confirmation
 
 After writing files, show summary and request user confirmation:
 

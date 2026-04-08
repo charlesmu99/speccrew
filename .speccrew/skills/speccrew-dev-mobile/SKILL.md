@@ -12,6 +12,18 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to Task Record document generation. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for Task Record** — NEVER use `create_file` to write the Task Record document. It MUST be created by copying the template then filling sections with `search_replace`. `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire Task Record content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Copy template MUST execute before fill sections. Skipping copy and writing content directly is FORBIDDEN.
+
+4. **CLARIFICATION: Source code is NOT template-filled** — Actual source code files are written directly based on design blueprints. The template-fill workflow applies ONLY to the Task Record document.
+
 ## Step 1: Read Design Documents
 
 Read in order:
@@ -81,11 +93,27 @@ Use `MB-001`, `MB-002`, etc. for mobile tasks.
 
 ## Step 4: Create Task Record File
 
-Before writing code, create task record file:
+Before writing code, create task record file using template-fill workflow:
 
 **Path**: `speccrew-workspace/iterations/{iteration}/04.development/{platform_id}/{module}-task.md`
 
-Use `TASK-RECORD-TEMPLATE.md` for structure.
+### 4a Copy Template to Task Record Path
+
+1. **Read the template file**: `speccrew-dev-mobile/templates/TASK-RECORD-TEMPLATE.md`
+2. **Replace top-level placeholders** (module name, feature name, platform ID, iteration info)
+3. **Create the document** using `create_file`:
+   - Target path: `speccrew-workspace/iterations/{iteration}/04.development/{platform_id}/{module}-task.md`
+   - Content: Template with top-level placeholders replaced
+4. **Verify**: Document has complete section structure ready for filling
+
+### 4b Fill Task Record Sections Using search_replace
+
+Fill each section with task checklist and design metadata extracted from input documents.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document**
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles MUST be preserved**
 
 ## Step 5: Execute Task by Task
 

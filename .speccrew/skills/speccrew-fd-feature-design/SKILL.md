@@ -12,6 +12,16 @@ tools: Read, Write, Glob, Grep
 
 # Workflow
 
+## Absolute Constraints
+
+> **These rules apply to ALL steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the feature spec document. Documents MUST be created by copying the template (Step 10.2a) then filling sections with `search_replace` (Step 10.2b). `create_file` produces truncated output on large files.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Step 10.2a (copy template) MUST execute before Step 10.2b (fill sections). Skipping Step 10.2a and writing content directly is FORBIDDEN.
+
 ## Step 1: Read PRD Input
 
 Read in order:
@@ -408,16 +418,42 @@ speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/
 
 If the iteration directory does not exist, refer to the `000-sample` directory structure to create it.
 
-### 10.2 Write Feature Spec Documents
+### 10.2a Copy Template to Document Path
 
-Fill in according to template structure, requirements:
-- **Feature Overview**: One paragraph explaining what this feature does
-- **Function Breakdown**: All functions with [EXISTING]/[MODIFIED]/[NEW] markers
-- **Frontend Design**: ASCII wireframes, interaction flows, API mapping
-- **Backend Design**: Interface list, logic flows, data access schemes
-- **Data Model**: Entity definitions, relationships, modifications
-- **Business Rules**: Permissions, validation, business logic rules
-- **Cross-Module Interactions**: **[If applicable]** Interface contracts between modules
+1. **Read the template file**: `templates/FEATURE-SPEC-TEMPLATE.md`
+2. **Replace top-level placeholders** in the template content:
+   - `{Feature Name}` → actual feature name
+   - Other top-level identifiers from PRD input
+3. **Create the document file** using `create_file`:
+   - Target path: determined in Step 10.1
+   - Content: Template with top-level placeholders replaced
+4. **Verify**: Document should have complete section structure ready for filling
+
+### 10.2b Fill Each Section Using search_replace
+
+Fill each section of the document with actual data from analysis steps.
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template structure
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles and numbering MUST be preserved** — do not delete or renumber
+> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
+
+**Section Filling Order:**
+
+Fill sections sequentially using `search_replace` for each content block:
+
+| Section | Content Source |
+|---------|---------------|
+| **Feature Overview** | One paragraph explaining what this feature does |
+| **Function Breakdown** | All functions with [EXISTING]/[MODIFIED]/[NEW] markers |
+| **Frontend Design** | ASCII wireframes, interaction flows, API mapping |
+| **Backend Design** | Interface list, logic flows, data access schemes |
+| **Data Model** | Entity definitions, relationships, modifications |
+| **Business Rules** | Permissions, validation, business logic rules |
+| **Cross-Module Interactions** | **[If applicable]** Interface contracts between modules |
+
+For Master-Sub specs, repeat Step 10.2a + 10.2b for each sub-spec document.
 
 ### 10.3 Mermaid Diagram Requirements
 

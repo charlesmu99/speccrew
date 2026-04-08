@@ -49,6 +49,16 @@ flowchart TD
     Step6 --> End([End])
 ```
 
+### Absolute Constraints
+
+> **These rules apply to ALL steps. Violation = task failure.**
+
+1. **FORBIDDEN: `create_file` for overview document** — NEVER use `create_file` to write the module overview document. If the initial skeleton exists, use `search_replace` to fill sections. If no skeleton exists, copy the template first then fill with `search_replace`.
+
+2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+
+3. **MANDATORY: Template-first workflow** — Template (or existing skeleton) MUST be in place before filling sections. Writing content without a template base is FORBIDDEN.
+
 ### Step 1: Read Prerequisites
 
 Before processing, read all required files:
@@ -129,15 +139,34 @@ Collect all business rules from feature details:
 1. **Read Configuration**:
    - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
 
-2. **Use template `templates/MODULE-OVERVIEW-TEMPLATE.md`, fill all sections**:
-   - Follow [Mermaid Diagram Guide](#mermaid-diagram-guide) for diagram generation
+2. **Prepare document file (if not already exists)**:
+   - If the initial skeleton from Step 1 exists at `module_path/module_name-overview.md`:
+     - Use the existing file as the base (sections 1-2 already populated)
+   - If no skeleton exists:
+     - **Read template**: `templates/MODULE-OVERVIEW-TEMPLATE.md`
+     - **Replace top-level placeholders** (module name, language, etc.)
+     - **Create document** using `create_file` at `module_path/module_name-overview.md`
+
+3. **Fill each section using search_replace**:
+
+> ⚠️ **CRITICAL CONSTRAINTS:**
+> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template/skeleton structure
+> - **MUST use `search_replace` to fill each section individually**
+> - **All section titles and numbering MUST be preserved**
+> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
+
+**Locate and fill via `search_replace`:**
 
 **Section 1: Module Basic Info** (from initial version)
 - Keep existing information
 
+**Locate and fill via `search_replace`:**
+
 **Section 2: Feature List** (from initial version)
 - Keep feature list table
 - Ensure all links to {{feature_name}}.md are correct
+
+**Locate and fill via `search_replace`:**
 
 **Section 3: Business Entities** (NEW)
 
@@ -154,6 +183,8 @@ Collect all business rules from feature details:
 
 Include ER diagram based on entity relationships.
 
+**Locate and fill via `search_replace`:**
+
 **Section 4: Dependencies** (NEW)
 
 **Backend example:**
@@ -167,6 +198,8 @@ Include ER diagram based on entity relationships.
 | Imports | UserStore | Get user state | Store injection |
 | Imports | UserCard | Display user info | Component import |
 
+**Locate and fill via `search_replace`:**
+
 **Section 5: Core Business Flows** (NEW)
 
 Based on feature interactions, identify core flows:
@@ -176,6 +209,8 @@ Create Order: Validate params → Calculate amount → Save to DB → Notify dow
 
 **Frontend example:**
 Order List: Load data → Display list → User selects → Load detail → Display detail → Edit → Submit → Update state
+
+**Locate and fill via `search_replace`:**
 
 **Section 6: Business Rules** (NEW)
 
