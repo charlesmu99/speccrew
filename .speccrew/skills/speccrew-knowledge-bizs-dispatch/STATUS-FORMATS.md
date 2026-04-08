@@ -6,6 +6,32 @@ This document defines the status tracking formats for the bizs pipeline.
 
 ---
 
+## Marker File Naming Convention
+
+Marker files (`.done.json` and `.graph.json`) use a composite naming pattern to prevent conflicts between same-named source files.
+
+**Format:** `{module}-{subpath}-{fileName}.{type}.json`
+
+**Components:**
+- **module**: Business module name (e.g., `system`, `ai`, `bpm`, `trade`)
+- **subpath**: Middle path extracted from sourcePath, with `/` replaced by `-` (e.g., `notify-message`, `controller-admin-user`)
+- **fileName**: Source file name without extension (e.g., `index`, `UserController`)
+- **type**: `done` or `graph`
+
+**Examples:**
+
+| Source File | Marker Filename |
+|-------------|-----------------|
+| `yudao-ui/.../views/system/notify/message/index.vue` | `system-notify-message-index.done.json` |
+| `yudao-ui/.../views/system/user/index.vue` | `system-user-index.done.json` |
+| `yudao-module-system/.../controller/admin/user/UserController.java` | `system-controller-admin-user-UserController.done.json` |
+
+**Special Case:** If subpath is empty (file at module root), use format: `{module}-{fileName}.{type}.json`
+
+**Legacy Format Support:** The processing scripts support both new format (`{module}-{subpath}-{fileName}`) and legacy format (`{fileName}`) for backward compatibility.
+
+---
+
 ## Feature Status Tracking (Stage 2)
 
 Feature analysis status is tracked directly in `features-{platform}.json` files located at:
@@ -61,11 +87,10 @@ Module summarization status is determined by aggregating feature statuses from `
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `features[].id` | string | Unique feature identifier (used for marker file naming) |
-| `features[].fileName` | string | Feature file name |
-| `features[].sourcePath` | string | Source code file path |
+| `features[].fileName` | string | Feature file name (without extension) - used as part of marker file naming |
+| `features[].sourcePath` | string | Source code file path - used to extract subpath for marker file naming |
 | `features[].documentPath` | string | Generated documentation path |
-| `features[].module` | string | Module code_name |
+| `features[].module` | string | Module code_name - used as prefix for marker file naming |
 | `features[].analyzed` | boolean | Whether feature has been analyzed |
 | `features[].status` | string | `pending`, `in_progress`, `completed`, `failed` |
 | `features[].startedAt` | string | ISO timestamp when analysis started |

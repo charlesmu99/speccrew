@@ -76,8 +76,8 @@ This skill operates in **strict sequential execution mode**:
 
 **Generated Files:**
 1. `{{documentPath}}` - Controller documentation file
-2. `{{completed_dir}}/{{fileName}}.done.json` - Completion status marker
-3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
+2. `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json` - Completion status marker
+3. `{{completed_dir}}/{module}-{subpath}-{fileName}.graph.json` - Graph data marker
 
 **Return Value:**
 ```json
@@ -856,7 +856,7 @@ Or in case of failure:
 > **ASSUMPTION**: The `completed_dir` directory already exists (pre-created by dispatch Stage 2). If write fails, report error — do NOT attempt to create directories.
 
 ### Pre-write Checklist (VERIFY before writing each file):
-- [ ] Filename follows `{fileName}` pattern (Java class name only)
+- [ ] Filename follows `{module}-{subpath}-{fileName}` pattern (see naming convention below)
 - [ ] File content is valid JSON (not empty)
 - [ ] All required fields are present and non-empty
 - [ ] File is written with UTF-8 encoding
@@ -875,30 +875,57 @@ Or in case of failure:
 
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{fileName}.done.json     ← Completion status marker (JSON format)
-{completed_dir}/{fileName}.graph.json    ← Graph data marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
+**Naming Rule Explanation:**
+
+The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{fileName}` to prevent conflicts between same-named source files.
+
+**How to Extract Each Component from `{{sourcePath}}`:**
+
+1. **module**: Use `{{module}}` input variable directly (e.g., `system`, `trade`, `ai`)
+
+2. **subpath**: Extract the middle path between the module package root and the controller file:
+   - For Java: Remove package prefix up to the business layer (e.g., `controller/admin/`, `controller/app/`)
+   - Remove the file name at the end
+   - Replace path separators (`/`) with hyphens (`-`)
+   - If the file is at the module root directory, subpath will be empty → omit from filename
+
+3. **fileName**: Use `{{fileName}}` input variable (Java class name WITHOUT `.java` extension)
+
 **Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
+
+| sourcePath | module | subpath | fileName | Marker Filename |
+|------------|--------|---------|----------|-----------------|
+| `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/notify/NotifyMessageController.java` | `system` | `controller-admin-notify` | `NotifyMessageController` | `system-controller-admin-notify-NotifyMessageController.done.json` |
+| `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java` | `system` | `controller-admin-user` | `UserController` | `system-controller-admin-user-UserController.done.json` |
+| `yudao-module-ai/yudao-module-ai-biz/src/main/java/cn/iocoder/yudao/module/ai/controller/admin/chat/ChatConversationController.java` | `ai` | `controller-admin-chat` | `ChatConversationController` | `ai-controller-admin-chat-ChatConversationController.done.json` |
+
+**Special Case - Empty subpath:**
+- If the controller is directly in the controller root directory (no subpath), use format: `{module}-{fileName}.done.json`
+- Example: `.../controller/admin/SystemController.java` → `system-SystemController.done.json`
+
+**Full Path Examples:**
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-controller-admin-notify-NotifyMessageController.done.json`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/ai-controller-admin-chat-ChatConversationController.graph.json`
 
 **❌ WRONG Format - NEVER USE:**
 ```
-{fileName}.completed.json    ← WRONG extension
-{fileName}.done              ← WRONG extension (missing .json)
-{fileName}.done.txt          ← WRONG extension
-{fileName}_done.json         ← WRONG separator and extension
-{fileName}-completed.json    ← WRONG separator and extension
+{fileName}.done.json              ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
+{module}-{fileName}.done.json     ← WRONG: missing subpath (may still conflict)
+{fileName}.completed.json         ← WRONG extension
+{fileName}.done                   ← WRONG extension (missing .json)
+{fileName}_done.json              ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
+- `UserController.done.json` - WRONG: missing module and subpath (conflicts with other `UserController.java` files)
+- `system-UserController.done.json` - WRONG: missing subpath (if file is in `controller/admin/user/`)
 - `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
-- `UserController.done` - WRONG: uses `.done` instead of `.done.json`
-- `UserController.done.txt` - WRONG: uses `.done.txt` instead of `.done.json`
 - `UserController_done.json` - WRONG: uses underscore and wrong extension
-- `dict-UserController.done.json` - WRONG: has module prefix
-- `system-UserController.done.json` - WRONG: has module prefix
 
 ---
 
@@ -959,9 +986,9 @@ Or in case of failure:
 > {"fileName": "UserController", "status": "success", ...}
 > ```
 
-Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done.json`:
+Use the Write tool to create file at `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json`:
 
-**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
+**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-controller-admin-user-UserController.done.json`
 
 **Complete JSON Template (ALL fields required):**
 ```json
@@ -998,12 +1025,13 @@ Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done.json`:
 
 > **⚠️ CRITICAL**: The `documentPath` field is MANDATORY. It MUST match the `{{documentPath}}` variable from Step 5a. This is used to verify the document was created successfully.
 
-⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done.json`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
-- ✅ CORRECT: `UserController.done.json` (using Java class name directly)
-- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.done.json` (using Java class name directly)
+⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{module}-{subpath}-{fileName}.done.json` to prevent conflicts between same-named files.
+- ✅ CORRECT: `system-controller-admin-user-UserController.done.json` (full composite naming)
+- ✅ CORRECT: `ai-controller-admin-chat-ChatConversationController.done.json` (full composite naming)
+- ✅ CORRECT: `system-SystemController.done.json` (when subpath is empty, controller at root)
+- ❌ WRONG: `UserController.done.json` (missing module and subpath - will conflict)
 - ❌ WRONG: `UserController.done` (missing .json extension)
-- ❌ WRONG: `dict-UserController.done.json` (using old featureId format)
-- ❌ WRONG: `system-UserController.done.json` (using module prefix)
+- ❌ WRONG: `system-UserController.done.json` (missing subpath when controller is in nested package)
 
 ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -1011,9 +1039,9 @@ Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done.json`:
 
 > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and **MUST include the root-level `module` field**. Do NOT rely on scripts to infer the module from `.done` file - the `module` field MUST be explicitly present at the root level of `.graph.json`.
 
-Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`:
+Use the Write tool to create file at `{{completed_dir}}/{module}-{subpath}-{fileName}.graph.json`:
 
-**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
+**Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-controller-admin-user-UserController.graph.json`
 
 ```json
 {
@@ -1045,11 +1073,13 @@ Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`
 > - Do NOT assume scripts will fall back to reading from `.done` file
 > - Missing `module` field will cause the graph merge pipeline to reject this file
 
-⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.graph.json`, where `fileName` is the Java class name (e.g., `UserController`, `AiKnowledgeDocumentCreateListReqVO`).
-- ✅ CORRECT: `UserController.graph.json` (using Java class name directly)
-- ✅ CORRECT: `AiKnowledgeDocumentCreateListReqVO.graph.json` (using Java class name directly)
+⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{module}-{subpath}-{fileName}.graph.json` to prevent conflicts between same-named files.
+- ✅ CORRECT: `system-controller-admin-user-UserController.graph.json` (full composite naming)
+- ✅ CORRECT: `ai-controller-admin-chat-ChatConversationController.graph.json` (full composite naming)
+- ✅ CORRECT: `system-SystemController.graph.json` (when subpath is empty, controller at root)
+- ❌ WRONG: `UserController.graph.json` (missing module and subpath - will conflict)
 - ❌ WRONG: `dict-UserController.graph.json` (using old featureId format)
-- ❌ WRONG: `system-UserController.graph.json` (using module prefix)
+- ❌ WRONG: `system-UserController.graph.json` (missing subpath when controller is in nested package)
 
 ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 

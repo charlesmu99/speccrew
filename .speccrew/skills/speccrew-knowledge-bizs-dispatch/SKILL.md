@@ -426,30 +426,52 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{fileName}.done.json     ← Completion status marker (JSON format)
-{completed_dir}/{fileName}.graph.json    ← Graph data marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
+**Naming Rule Explanation:**
+
+The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{fileName}` to prevent conflicts between same-named source files.
+
+**How Workers Generate the Filename:**
+
+1. **module**: Use the `{{module}}` input variable directly
+
+2. **subpath**: Extract from `{{sourcePath}}`:
+   - For UI (Vue/React): Middle path between `views/` or `pages/` and the file name
+   - For API (Java): Middle path between controller root and the file name
+   - Replace path separators (`/`) with hyphens (`-`)
+   - Omit if file is at module root (empty subpath)
+
+3. **fileName**: Use `{{fileName}}` input variable (file name WITHOUT extension)
+
 **Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.done.json`
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/UserController.graph.json`
+
+| Source File | module | subpath | fileName | Marker Filename |
+|-------------|--------|---------|----------|-----------------|
+| `yudao-ui/.../views/system/notify/message/index.vue` | `system` | `notify-message` | `index` | `system-notify-message-index.done.json` |
+| `yudao-ui/.../views/system/user/index.vue` | `system` | `user` | `index` | `system-user-index.done.json` |
+| `yudao-module-system/.../controller/admin/user/UserController.java` | `system` | `controller-admin-user` | `UserController` | `system-controller-admin-user-UserController.done.json` |
+
+**Full Path Examples:**
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-notify-message-index.done.json`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-controller-admin-user-UserController.graph.json`
 
 **❌ WRONG Format - NEVER USE:**
 ```
-{fileName}.completed.json    ← WRONG extension
-{fileName}.done              ← WRONG extension (missing .json)
-{fileName}.done.txt          ← WRONG extension
-{fileName}_done.json         ← WRONG separator and extension
-{fileName}-completed.json    ← WRONG separator and extension
+{fileName}.done.json              ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.completed.json         ← WRONG extension
+{fileName}.done                   ← WRONG extension (missing .json)
+{fileName}_done.json              ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
+- `index.done.json` - WRONG: missing module and subpath (conflicts with other `index.vue` files)
+- `UserController.done.json` - WRONG: missing module and subpath (conflicts with other controllers)
 - `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
-- `UserController.done` - WRONG: uses `.done` instead of `.done.json`
-- `UserController.done.txt` - WRONG: uses `.done.txt` instead of `.done.json`
 - `UserController_done.json` - WRONG: uses underscore and wrong extension
-- `dict-UserController.done.json` - WRONG: has module prefix
-- `system-UserController.done.json` - WRONG: has module prefix
 
 ---
 
@@ -508,8 +530,8 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 | Marker Type | File Name Format | Example |
 |-------------|------------------|---------|
-| Completion marker | `{fileName}.done.json` | `index.done.json`, `UserController.done.json`, `AiKnowledgeDocumentCreateListReqVO.done.json` |
-| Graph data | `{fileName}.graph.json` | `index.graph.json`, `UserController.graph.json`, `AiKnowledgeDocumentCreateListReqVO.graph.json` |
+| Completion marker | `{module}-{subpath}-{fileName}.done.json` | `system-notify-message-index.done.json`, `system-controller-admin-user-UserController.done.json` |
+| Graph data | `{module}-{subpath}-{fileName}.graph.json` | `system-notify-message-index.graph.json`, `system-controller-admin-user-UserController.graph.json` |
 
 **Worker Completion Requirements:**
 

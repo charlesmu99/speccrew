@@ -11,6 +11,53 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
+// Helper: Parse marker filename to extract components
+// New format: {module}-{subpath}-{fileName}.done.json
+// Legacy format: {fileName}.done.json
+function parseMarkerFilename(markerFile, fileType) {
+    // fileType: 'done' or 'graph'
+    const ext = `.${fileType}.json`;
+    if (!markerFile.endsWith(ext)) {
+        return null;
+    }
+    
+    const baseName = markerFile.slice(0, -ext.length);
+    const parts = baseName.split('-');
+    
+    // New format: must have at least 3 parts (module-subpath-fileName)
+    // But subpath can be empty, so minimum is 2 parts (module-fileName)
+    if (parts.length >= 2) {
+        // Try to identify if this is new format or legacy format
+        // New format has module prefix (known modules are usually short names like 'system', 'ai', 'bpm', 'trade')
+        // Legacy format is just fileName (e.g., 'index', 'UserController')
+        
+        // Heuristic: if first part is a known module-like name and there are more parts,
+        // treat it as new format
+        // For now, we'll return both possible interpretations and let the caller decide
+        return {
+            baseName: baseName,
+            parts: parts,
+            // For new format: fileName is the last part
+            newFormatFileName: parts[parts.length - 1],
+            // For new format: module is the first part
+            newFormatModule: parts[0],
+            // For new format: subpath is everything in between
+            newFormatSubpath: parts.length > 2 ? parts.slice(1, -1).join('-') : '',
+            // For legacy format: fileName is the entire baseName
+            legacyFileName: baseName,
+            // Detect likely format based on pattern
+            isLikelyNewFormat: parts.length > 1 && parts[0].length < 20 // module names are usually short
+        };
+    }
+    
+    return {
+        baseName: baseName,
+        parts: parts,
+        legacyFileName: baseName,
+        isLikelyNewFormat: false
+    };
+}
+
 // Helper: Validate and normalize .done.json file content
 function validateAndNormalizeDoneContent(content, doneFile) {
     // Strip file extensions from fileName if present
@@ -371,12 +418,16 @@ function main() {
 
     // Fallback: recover minimal info from filename and context when .done.json is non-JSON
     function recoverDoneFileFromContext(doneFile, completedDir, syncStatePath) {
-        const fileName = doneFile.replace(/\.done\.json$/, '');
+        const parseResult = parseMarkerFilename(doneFile, 'done');
+        
+        // Determine fileName: prefer content from .done.json, fall back to filename parsing
+        let fileName = parseResult ? parseResult.legacyFileName : doneFile.replace(/\.done\.json$/, '');
+        
         console.warn(`[WARN] .done.json file is not valid JSON: ${doneFile}. Attempting recovery from filename...`);
-
+        
         // Try to get module from same-named .graph.json
         let module = 'unknown';
-        const graphFilePath = path.join(completedDir, fileName + '.graph.json');
+        const graphFilePath = path.join(completedDir, doneFile.replace('.done.json', '.graph.json'));
         if (fs.existsSync(graphFilePath)) {
             try {
                 const graphContent = JSON.parse(fs.readFileSync(graphFilePath, 'utf8'));
@@ -386,6 +437,11 @@ function main() {
             } catch (e) {
                 // Ignore parse errors
             }
+        }
+        
+        // If module is still unknown, try to extract from new-format filename
+        if (module === 'unknown' && parseResult && parseResult.isLikelyNewFormat) {
+            module = parseResult.newFormatModule;
         }
 
         // Try to match sourceFile from features-*.json files
@@ -399,7 +455,18 @@ function main() {
                 try {
                     const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
                     if (content.features && Array.isArray(content.features)) {
-                        const found = content.features.find(feat => feat.fileName === fileName);
+                        // Try both new format and legacy format matching
+                        let found = content.features.find(feat => feat.fileName === fileName);
+                        
+                        // If not found with legacy fileName and we have new format info,
+                        // try matching with newFormatFileName
+                        if (!found && parseResult && parseResult.isLikelyNewFormat) {
+                            found = content.features.find(feat => feat.fileName === parseResult.newFormatFileName);
+                            if (found) {
+                                fileName = parseResult.newFormatFileName;
+                            }
+                        }
+                        
                         if (found) {
                             sourceFile = f;
                             break;

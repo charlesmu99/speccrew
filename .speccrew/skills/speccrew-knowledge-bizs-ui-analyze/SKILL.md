@@ -71,8 +71,8 @@ Analyze one specific UI feature from source code, extract business functionality
 
 **Generated Files (MANDATORY - Task is NOT complete until all files are written):**
 1. `{{documentPath}}` - Feature documentation file
-2. `{{completed_dir}}/{{fileName}}.done.json` - Completion status marker
-3. `{{completed_dir}}/{{fileName}}.graph.json` - Graph data marker
+2. `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json` - Completion status marker
+3. `{{completed_dir}}/{module}-{subpath}-{fileName}.graph.json` - Graph data marker
 
 **Return Value (JSON format):**
 ```json
@@ -808,7 +808,7 @@ After analysis is complete, write the results to marker files for dispatch to pr
 > **ASSUMPTION**: The `completed_dir` directory already exists (pre-created by dispatch Stage 2). If write fails, report error — do NOT attempt to create directories.
 
 ### Pre-write Checklist (VERIFY before writing each file):
-- [ ] Filename follows `{fileName}` pattern (file name only)
+- [ ] Filename follows `{module}-{subpath}-{fileName}` pattern (see naming convention below)
 - [ ] File content is valid JSON (not empty)
 - [ ] All required fields are present and non-empty
 - [ ] File is written with UTF-8 encoding
@@ -829,30 +829,57 @@ After analysis is complete, write the results to marker files for dispatch to pr
 
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{fileName}.done.json     ← Completion status marker (JSON format)
-{completed_dir}/{fileName}.graph.json    ← Graph data marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
+**Naming Rule Explanation:**
+
+The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{fileName}` to prevent conflicts between same-named source files.
+
+**How to Extract Each Component from `{{sourcePath}}`:**
+
+1. **module**: Use `{{module}}` input variable directly (e.g., `system`, `trade`, `bpm`)
+
+2. **subpath**: Extract the middle path between the platform source root and the file name:
+   - Remove the top-level directory prefix (e.g., `yudao-ui/yudao-ui-admin-vue3/src/views/`)
+   - Remove the file name at the end
+   - Replace path separators (`/`) with hyphens (`-`)
+   - If the file is at the module root directory, subpath will be empty → omit from filename
+
+3. **fileName**: Use `{{fileName}}` input variable (file name WITHOUT extension)
+
 **Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.done.json`
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.graph.json`
+
+| sourcePath | module | subpath | fileName | Marker Filename |
+|------------|--------|---------|----------|-----------------|
+| `yudao-ui/yudao-ui-admin-vue3/src/views/system/notify/message/index.vue` | `system` | `notify-message` | `index` | `system-notify-message-index.done.json` |
+| `yudao-ui/yudao-ui-admin-vue3/src/views/system/user/index.vue` | `system` | `user` | `index` | `system-user-index.done.json` |
+| `yudao-ui/yudao-ui-admin-vue3/src/views/bpm/process-instance/index.vue` | `bpm` | `process-instance` | `index` | `bpm-process-instance-index.done.json` |
+
+**Special Case - Empty subpath:**
+- If the file is directly in the module root directory (no subpath), use format: `{module}-{fileName}.done.json`
+- Example: `yudao-ui/yudao-ui-admin-vue3/src/views/system/index.vue` → `system-index.done.json`
+
+**Full Path Examples:**
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-notify-message-index.done.json`
+- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-user-index.graph.json`
 
 **❌ WRONG Format - NEVER USE:**
 ```
-{fileName}.completed.json    ← WRONG extension
-{fileName}.done              ← WRONG extension (missing .json)
-{fileName}.done.txt          ← WRONG extension
-{fileName}_done.json         ← WRONG separator and extension
-{fileName}-completed.json    ← WRONG separator and extension
+{fileName}.done.json              ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
+{module}-{fileName}.done.json     ← WRONG: missing subpath (may still conflict)
+{fileName}.completed.json         ← WRONG extension
+{fileName}.done                   ← WRONG extension (missing .json)
+{fileName}_done.json              ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
+- `index.done.json` - WRONG: missing module and subpath (conflicts with other `index.vue` files)
+- `system-index.done.json` - WRONG: missing subpath (if file is in `system/notify/message/`)
 - `index.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
-- `index.done` - WRONG: uses `.done` instead of `.done.json`
-- `index.done.txt` - WRONG: uses `.done.txt` instead of `.done.json`
 - `index_done.json` - WRONG: uses underscore and wrong extension
-- `dict-index.done.json` - WRONG: has module prefix
-- `system-index.done.json` - WRONG: has module prefix
 
 ---
 
@@ -942,9 +969,9 @@ After analysis is complete, write the results to marker files for dispatch to pr
    > {"fileName": "index", "status": "success", ...}
    > ```
 
-   Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.done.json`:
+   Use the Write tool to create file at `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json`:
    
-   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.done.json`
+   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-notify-message-index.done.json`
 
    **Complete JSON Template (ALL fields required):**
    ```json
@@ -981,12 +1008,13 @@ After analysis is complete, write the results to marker files for dispatch to pr
 
    > **⚠️ CRITICAL**: The `documentPath` field is MANDATORY. It MUST match the `{{documentPath}}` variable from Step 5a. This is used to verify the document was created successfully.
 
-   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.done.json`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
-   - ✅ CORRECT: `index.done.json` (using file name directly)
-   - ✅ CORRECT: `UserForm.done.json` (using file name directly)
+   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{module}-{subpath}-{fileName}.done.json` to prevent conflicts between same-named files.
+   - ✅ CORRECT: `system-notify-message-index.done.json` (full composite naming)
+   - ✅ CORRECT: `system-user-index.done.json` (full composite naming)
+   - ✅ CORRECT: `bpm-index.done.json` (when subpath is empty, file at module root)
+   - ❌ WRONG: `index.done.json` (missing module and subpath - will conflict)
    - ❌ WRONG: `index.done` (missing .json extension)
-   - ❌ WRONG: `dict-index.done.json` (using old featureId format)
-   - ❌ WRONG: `system-index.done.json` (using module prefix)
+   - ❌ WRONG: `system-index.done.json` (missing subpath when file is in nested directory)
 
    ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -994,9 +1022,9 @@ After analysis is complete, write the results to marker files for dispatch to pr
 
    > **⚠️ CRITICAL FORMAT REQUIREMENT**: The `.graph.json` file MUST be valid JSON and **MUST include the root-level `module` field**. Do NOT rely on scripts to infer the module from `.done` file - the `module` field MUST be explicitly present at the root level of `.graph.json`.
 
-   Use the Write tool to create file at `{{completed_dir}}/{{fileName}}.graph.json`:
+   Use the Write tool to create file at `{{completed_dir}}/{module}-{subpath}-{fileName}.graph.json`:
    
-   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/index.graph.json`
+   **Full path example:** `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-notify-message-index.graph.json`
 
    ```json
    {
@@ -1031,11 +1059,13 @@ After analysis is complete, write the results to marker files for dispatch to pr
    > - Do NOT assume scripts will fall back to reading from `.done` file
    > - Missing `module` field will cause the graph merge pipeline to reject this file
 
-   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{fileName}.graph.json`, where `fileName` is the feature file name (e.g., `index`, `UserForm`, `AiKnowledgeDocumentCreateListReqVO`).
-   - ✅ CORRECT: `index.graph.json` (using file name directly)
-   - ✅ CORRECT: `UserForm.graph.json` (using file name directly)
+   ⚠️ **CRITICAL NAMING RULE:** Filename MUST be `{module}-{subpath}-{fileName}.graph.json` to prevent conflicts between same-named files.
+   - ✅ CORRECT: `system-notify-message-index.graph.json` (full composite naming)
+   - ✅ CORRECT: `system-user-index.graph.json` (full composite naming)
+   - ✅ CORRECT: `bpm-index.graph.json` (when subpath is empty, file at module root)
+   - ❌ WRONG: `index.graph.json` (missing module and subpath - will conflict)
    - ❌ WRONG: `dict-index.graph.json` (using old featureId format)
-   - ❌ WRONG: `system-index.graph.json` (using module prefix)
+   - ❌ WRONG: `system-index.graph.json` (missing subpath when file is in nested directory)
 
    ⚠️ **CRITICAL:** The file MUST contain valid JSON content. Empty files or files with only whitespace will cause processing failures.
 
@@ -1047,7 +1077,7 @@ After analysis is complete, write the results to marker files for dispatch to pr
    - [ ] Each `calls` edge has proper metadata with trigger information
    - [ ] No API import is left without a corresponding edge
 
-**Output:** "Step 7 Status: ✅ COMPLETED - Marker files written ({{completed_dir}}/{{fileName}}.done, .graph.json)"
+**Output:** "Step 7 Status: ✅ COMPLETED - Marker files written ({{completed_dir}}/{module}-{subpath}-{fileName}.done.json, .graph.json)"
 
 **On Failure:** "Step 7 Status: ⚠️ PARTIAL - Marker file write failed, but analysis completed"
 
