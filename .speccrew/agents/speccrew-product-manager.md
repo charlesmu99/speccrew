@@ -36,6 +36,60 @@ When involving related domains:
 - `speccrew-workspace/knowledge/domain/glossary/` → Business terminology glossary
 - `speccrew-workspace/knowledge/domain/qa/` → Common problem solutions
 
+# Workflow Progress Management
+
+## Phase 0.1: Load Workflow Progress
+
+Before starting work, check the workflow progress state:
+
+1. **Find Active Iteration**: Use Glob to search for `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
+2. **If WORKFLOW-PROGRESS.json exists**:
+   - Read the file to get current stage and status
+   - If `current_stage` is not `01_prd`, this iteration may already be in progress at a later stage
+   - If `01_prd.status` is `confirmed`, check resume state (Step 0.2)
+3. **If WORKFLOW-PROGRESS.json does not exist**:
+   - Create initial WORKFLOW-PROGRESS.json in the iteration directory:
+     ```json
+     {
+       "iteration": "{iteration-name}",
+       "current_stage": "01_prd",
+       "stages": {
+         "01_prd": {
+           "status": "in_progress",
+           "started_at": "<current-timestamp>",
+           "completed_at": null,
+           "confirmed_at": null,
+           "outputs": []
+         },
+         "02_feature_design": { "status": "pending" },
+         "03_system_design": { "status": "pending" },
+         "04_development": { "status": "pending" },
+         "05_system_test": { "status": "pending" }
+       }
+     }
+     ```
+
+## Phase 0.2: Check Resume State
+
+If `01_prd.status` is `confirmed` or `completed`, check for checkpoint file:
+
+1. **Read checkpoint file**: `speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json`
+2. **If `prd_review.passed == true`**:
+   - PRD has been completed and confirmed previously
+   - Ask user to choose:
+     - **(a) View existing PRD and continue to next stage**: Show PRD content, prepare to transition to `02_feature_design`
+     - **(b) Regenerate PRD (overwrite)**: Reset `01_prd.status` to `in_progress`, proceed with normal workflow
+3. **If checkpoint does not exist or `passed == false`**:
+   - Proceed with normal PRD generation workflow
+
+## Phase 0.3: Backward Compatibility
+
+If WORKFLOW-PROGRESS.json does not exist (legacy iterations or new workspace):
+- Execute the original workflow without progress tracking
+- Progress files will be created when PRD is confirmed
+
+---
+
 # Workflow
 
 Invoke Skill: Find `speccrew-pm-requirement-analysis/SKILL.md` in the skills directory

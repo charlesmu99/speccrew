@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Często zadawane pytania (FAQ)
+## 6. Zarządzanie Postępem Przepływu Pracy
+
+Wirtualny zespół SpecCrew stosuje ścisły mechanizm bramek fazowych, gdzie każda faza musi zostać potwierdzona przez użytkownika przed przejściem do następnej. Obsługuje również wznawialne wykonywanie — po ponownym uruchomieniu po przerwaniu, automatycznie kontynuuje od miejsca przerwania.
+
+### 6.1 Trójwarstwowe Pliki Postępu
+
+Przepływ pracy automatycznie utrzymuje trzy typy plików postępu JSON, zlokalizowanych w katalogu iteracji:
+
+| Plik | Lokalizacja | Cel |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Rejestruje status każdego etapu pipeline |
+| `.checkpoints.json` | Pod każdym katalogiem fazy | Rejestruje status potwierdzenia punktów kontrolnych użytkownika |
+| `DISPATCH-PROGRESS.json` | Pod każdym katalogiem fazy | Rejestruje postęp punkt po punkcie dla zadań równoległych (wieloplatformowych/wielomodułowych) |
+
+### 6.2 Przebieg Statusu Fazy
+
+Każda faza podąża za tym przebiegiem statusu:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Jeszcze nie rozpoczęte
+- **in_progress**: Obecnie wykonywane
+- **completed**: Wykonanie Agenta zakończone, oczekiwanie na potwierdzenie użytkownika
+- **confirmed**: Użytkownik potwierdził przez końcowy punkt kontrolny, następna faza może się rozpocząć
+
+### 6.3 Wznawialne Wykonywanie
+
+Podczas ponownego uruchamiania Agenta dla fazy:
+
+1. **Automatyczna kontrola upstream**: Weryfikuje czy poprzednia faza jest potwierdzona, blokuje i informuje jeśli nie
+2. **Odzyskiwanie punktów kontrolnych**: Odczytuje `.checkpoints.json`, pomija przekroczone punkty kontrolne, kontynuuje od ostatniego punktu przerwania
+3. **Odzyskiwanie zadań równoległych**: Odczytuje `DISPATCH-PROGRESS.json`, ponownie wykonuje tylko zadania ze statusem `pending` lub `failed`, pomija zadania `completed`
+
+### 6.4 Wyświetlanie Bieżącego Postępu
+
+Wyświetl status panoramy pipeline przez Agenta Team Leader:
+
+```
+@speccrew-team-leader wyświetl bieżący postęp iteracji
+```
+
+Team Leader odczyta pliki postępu i wyświetli podsumowanie statusu podobne do:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Potwierdzone
+  02 Feature Design: 🔄 W toku (Punkt kontrolny A przekroczony)
+  03 System Design:  ⏳ Oczekujące
+  04 Development:    ⏳ Oczekujące
+  05 System Test:    ⏳ Oczekujące
+```
+
+### 6.5 Wsteczna Kompatybilność
+
+Mechanizm plików postępu jest w pełni wstecznie kompatybilny — jeśli pliki postępu nie istnieją (np. w starszych projektach lub nowych iteracjach), wszyscy Agenci będą wykonywać normalnie zgodnie z oryginalną logiką.
+
+---
+
+## 7. Często zadawane pytania (FAQ)
 
 ### P1: Co zrobić, jeśli Agent nie działa zgodnie z oczekiwaniami?
 
@@ -419,7 +479,7 @@ Ponowna inicjalizacja jest wymagana w następujących sytuacjach:
 
 ---
 
-## 7. Szybka referencja
+## 8. Szybka referencja
 
 ### Szybka referencja uruchamiania Agentów
 

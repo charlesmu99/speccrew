@@ -98,6 +98,38 @@ For each function, identify:
 
 Ask: "Here is the function breakdown with [EXISTING]/[MODIFIED]/[NEW] markers. Does this align with your understanding of the requirements?"
 
+### Checkpoint A Progress Update
+
+After user confirms the function breakdown:
+
+1. **Write/Update `.checkpoints.json`**:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
+   - Content:
+     ```json
+     {
+       "stage": "02_feature_design",
+       "checkpoints": {
+         "function_decomposition": {
+           "passed": true,
+           "confirmed_at": "{current_timestamp}",
+           "description": "Function decomposition confirmed"
+         },
+         "feature_spec_review": {
+           "passed": false,
+           "confirmed_at": null
+         },
+         "api_contract_joint": {
+           "passed": false,
+           "confirmed_at": null
+         }
+       }
+     }
+     ```
+
+2. If the file already exists, merge with existing content (preserve other checkpoints)
+
+3. Log: "✅ Checkpoint A (function_decomposition) passed and recorded"
+
 ## Step 4: Determine Output Structure
 
 Based on PRD structure, determine feature spec output structure:
@@ -398,6 +430,38 @@ Data Entities: {count} new, {count} modified
 4. Are all business rules and constraints captured?
 5. **[Master-Sub]** Is the module breakdown appropriate?
 
+### Checkpoint B Progress Update
+
+After user confirms the complete feature spec:
+
+1. **Update `.checkpoints.json`**:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
+   - Update content:
+     ```json
+     {
+       "stage": "02_feature_design",
+       "checkpoints": {
+         "function_decomposition": {
+           "passed": true,
+           "confirmed_at": "..."
+         },
+         "feature_spec_review": {
+           "passed": true,
+           "confirmed_at": "{current_timestamp}",
+           "description": "Feature specification confirmed"
+         },
+         "api_contract_joint": {
+           "passed": false,
+           "confirmed_at": null
+         }
+       }
+     }
+     ```
+
+2. Preserve `function_decomposition` checkpoint status when updating
+
+3. Log: "✅ Checkpoint B (feature_spec_review) passed and recorded"
+
 ## Step 10: Write Files
 
 ### 10.1 Determine Output Paths
@@ -472,6 +536,100 @@ Key requirements:
 ### 10.4 Call API Contract Skill
 
 After feature spec documents are complete, call `speccrew-fd-api-contract/SKILL.md` to generate API contract document.
+
+### 10.5 Multi-Platform Dispatch Progress Management
+
+**For multi-platform feature design (multiple frontend platforms):**
+
+#### 10.5.1 Pre-Dispatch: Check Resume State
+
+Before dispatching to multiple platforms:
+
+1. **Read existing `DISPATCH-PROGRESS.json`**:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json`
+   - If exists, analyze task status:
+     ```json
+     {
+       "stage": "02_feature_design",
+       "total": 3,
+       "completed": 2,
+       "failed": 0,
+       "pending": 1,
+       "tasks": [
+         {
+           "id": "fd-web-vue",
+           "platform": "web-vue",
+           "skill": "speccrew-fd-feature-design",
+           "status": "completed",
+           "started_at": "...",
+           "completed_at": "...",
+           "output": "02.feature-design/[feature]-web-vue-feature-spec.md",
+           "error": null
+         }
+       ]
+     }
+     ```
+
+2. **Resume Strategy**:
+   - Skip tasks with `status == "completed"`
+   - Re-execute tasks with `status == "failed"`
+   - Execute tasks with `status == "pending"`
+
+#### 10.5.2 Initialize/Update Dispatch Progress
+
+Create or update `DISPATCH-PROGRESS.json` before starting dispatch:
+
+```json
+{
+  "stage": "02_feature_design",
+  "total": {count},
+  "completed": 0,
+  "failed": 0,
+  "pending": {count},
+  "tasks": [
+    {
+      "id": "fd-{platform}",
+      "platform": "{platform}",
+      "skill": "speccrew-fd-feature-design",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "output": null,
+      "error": null
+    }
+  ]
+}
+```
+
+#### 10.5.3 Update Task Status on Completion
+
+After each worker completes:
+
+1. **Read current `DISPATCH-PROGRESS.json`**
+
+2. **Update the corresponding task entry**:
+   - On success:
+     ```json
+     {
+       "status": "completed",
+       "completed_at": "{timestamp}",
+       "output": "{output_file_path}"
+     }
+     ```
+   - On failure:
+     ```json
+     {
+       "status": "failed",
+       "completed_at": "{timestamp}",
+       "error": "{error_message}"
+     }
+     ```
+
+3. **Update summary counters** (`completed`, `failed`, `pending`)
+
+4. **Write updated `DISPATCH-PROGRESS.json`**
+
+5. Log progress: "📊 Dispatch progress: {completed}/{total} completed, {failed} failed, {pending} pending"
 
 # Key Rules
 

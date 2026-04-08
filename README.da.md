@@ -44,7 +44,7 @@ Ved at integrere Agents og Skills i eksisterende projekter kan teams hurtigt ini
 ## ✨ Nøglefunktioner
 
 ### 🏭 Virtuelt Softwareteam
-Et-kliks generering af **7 professionelle Agent-roller** + **38 Skill-workflows**, opbygning af et komplet virtuelt softwareteam:
+Et-kliks generering af **7 professionelle Agent-roller** + **30+ Skill-workflows**, opbygning af et komplet virtuelt softwareteam:
 - **Team Leader** - Global planlægning og iterationshåndtering
 - **Product Manager** - Kravanalyse og PRD-output
 - **Feature Designer** - Feature-design + API-kontrakter
@@ -83,6 +83,13 @@ Trin 4: Systemaggregering → Generer systempanorama
 ```
 - Understøtter **fuld synkronisering** og **inkrementel synkronisering** (baseret på Git diff)
 - En person optimerer, team deler
+
+### 🔧 Harness Praktisk Implementeringsramme
+**Standardiseret eksekveringsramme**, sikrer præcis transformation af designdokumenter til eksekverbare udviklingsinstruktioner:
+- **Operationsmanual-princip**: Skill er SOP, trin er klare, kontinuerlige, selvstændige
+- **Input-output-kontrakt**: grænseflader tydeligt defineret, streng eksekvering som pseudokode
+- **Gradvis offentliggørelsesarkitektur**: information indlæses lag for lag, undgår engangskontekst-overbelastning
+- **Underagent-delegering**: komplekse opgaver opdeles automatisk, parallelt eksekvering sikrer kvalitet
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Efter initialisering vil følgende blive genereret i dit projekt:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 Agent-rolledefinitioner
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 Skill-workflows
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ Skill-workflows
 - `speccrew-workspace/` — Arbejdsområde (iterationsmapper, vidensbase, dokumentskabeloner)
 - `.speccrewrc` — SpecCrew-konfigurationsfil
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Parallelt udvikling pr. platform
 │   │   ├── speccrew-test-manager.md      # Test Manager: Tre-fase testkoordinering
 │   │   └── speccrew-task-worker.md       # Opgavemedarbejder: Parallelt underopgave-eksekvering
-│   └── skills/                      # 38 Skills (grupperet efter funktion)
+│   └── skills/                      # 30+ Skills (grupperet efter funktion)
 │       ├── speccrew-pm-*/                # Produktstyring (kravanalyse, evaluering)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, API Kontrakt)
 │       ├── speccrew-sd-*/                # System Design (frontend/backend/mobil/desktop)

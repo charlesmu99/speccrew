@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Često Postavljana Pitanja (FAQ)
+## 6. Upravljanje Napretkom Radnog Toka
+
+Virtuelni tim SpecCrew slijedi strog mehanizam faznih kapija, gdje svaka faza mora biti potvrđena od strane korisnika prije prelaska na sljedeću. Takođe podržava nastavljivu izvršnost — kada se ponovo pokrene nakon prekida, automatski nastavlja odakle je stao.
+
+### 6.1 Trostruki Fajlovi Napretka
+
+Radni tok automatski održava tri tipa JSON fajlova napretka, lociranih u direktoriju iteracije:
+
+| Fajl | Lokacija | Svrha |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Bilježi status svake faze pipeline-a |
+| `.checkpoints.json` | Ispod svakog direktorija faze | Bilježi status korisničke potvrde kontrolnih tačaka |
+| `DISPATCH-PROGRESS.json` | Ispod svakog direktorija faze | Bilježi napredak tačka-po-tačka za paralelne zadatke (multi-platforma/multi-modul) |
+
+### 6.2 Tok Statusa Faze
+
+Svaka faza slijedi ovaj tok statusa:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Još nije započeto
+- **in_progress**: Trenutno se izvršava
+- **completed**: Izvršavanje Agenta završeno, čeka se korisnička potvrda
+- **confirmed**: Korisnik potvrdio kroz konačnu kontrolnu tačku, sljedeća faza može započeti
+
+### 6.3 Nastavljiva Izvršnost
+
+Kada se Agent ponovo pokrene za fazu:
+
+1. **Automatska uzvodna provjera**: Verificira da li je prethodna faza potvrđena, blokira i obavještava ako nije
+2. **Oporavak kontrolnih tačaka**: Čita `.checkpoints.json`, preskače prođene kontrolne tačke, nastavlja od posljednje tačke prekida
+3. **Oporavak paralelnih zadataka**: Čita `DISPATCH-PROGRESS.json`, ponovo izvršava samo zadatke sa `pending` ili `failed` statusom, preskače `completed` zadatke
+
+### 6.4 Pregled Trenutnog Napretka
+
+Prikaži status panorame pipeline-a kroz Team Leader Agent:
+
+```
+@speccrew-team-leader prikaži trenutni napredak iteracije
+```
+
+Team Leader će pročitati fajlove napretka i prikazati pregled statusa sličan:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Potvrđeno
+  02 Feature Design: 🔄 U toku (Kontrolna tačka A prođena)
+  03 System Design:  ⏳ Na čekanju
+  04 Development:    ⏳ Na čekanju
+  05 System Test:    ⏳ Na čekanju
+```
+
+### 6.5 Unazad Kompatibilnost
+
+Mehanizam fajlova napretka je potpuno unazad kompatibilan — ako fajlovi napretka ne postoje (npr. u starijim projektima ili novim iteracijama), svi Agenti će se normalno izvršavati u skladu sa originalnom logikom.
+
+---
+
+## 7. Često Postavljana Pitanja (FAQ)
 
 ### P1: Šta uraditi ako Agent ne radi kako se očekuje?
 
@@ -419,7 +479,7 @@ Ponovna inicijalizacija je potrebna u sljedećim situacijama:
 
 ---
 
-## 7. Brza Referenca
+## 8. Brza Referenca
 
 ### Brza Referenca Pokretanja Agenata
 

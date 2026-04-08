@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. 자주 묻는 질문 (FAQ)
+## 6. 파이프라인 진도 관리
+
+SpecCrew 가상 팀은 엄격한 단계 게이트 메커니즘을 따륾며, 각 단계는 사용자 확인 후에야 다음 단계로 진행할 수 있습니다. 또한 중단점 재개를 지원 —— 중단 후 다시 시작하면 자동으로 마지막으로 중단된 위치에서 계속합니다.
+
+### 6.1 3계층 진도 파일
+
+워크플로우는 자동으로 3가지 유형의 JSON 진도 파일을 유지하며, 반복 디렉토리에 위치합니다:
+
+| 파일 | 위치 | 역할 |
+|---------|----------|------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | 전체 파이프라인의 각 단계 상태 기록 |
+| `.checkpoints.json` | 각 단계 디렉토리 하위 | 사용자 확인점(Checkpoint) 통과 상태 기록 |
+| `DISPATCH-PROGRESS.json` | 각 단계 디렉토리 하위 | 병렬 작업(다중 플랫폼/모듈)의 개별 진도 기록 |
+
+### 6.2 단계 상태 전환
+
+각 단계는 다음 상태 전환을 따릅니다:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: 아직 시작되지 않음
+- **in_progress**: 실행 중
+- **completed**: Agent 실행 완료, 사용자 확인 대기 중
+- **confirmed**: 사용자가 최종 Checkpoint 확인, 다음 단계 시작 가능
+
+### 6.3 중단점 재개
+
+특정 단계의 Agent를 다시 시작할 때:
+
+1. **상위 자동 확인**: 이전 단계가 confirmed되었는지 검증, 확인되지 않은 경우 차단하고 알림
+2. **Checkpoint 복원**: `.checkpoints.json`을 읽고, 통과한 확인점을 건ㄴ 뛰고, 마지막 중단 위치에서 계속
+3. **병렬 작업 복원**: `DISPATCH-PROGRESS.json`을 읽고, `pending` 또는 `failed` 상태의 작업만 다시 실행, 이미 `completed`된 작업은 건ㄴ 뛰기
+
+### 6.4 현재 진도 확인
+
+Team Leader Agent를 통해 파이프라인 전체 상태 확인:
+
+```
+@speccrew-team-leader 현재 반복 진도 확인
+```
+
+Team Leader는 진도 파일을 읽고 다음과 유사한 상태 요약을 표시합니다:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 하위 호환성
+
+진도 파일 메커니즘은 완전히 하위 호환 —— 진도 파일이 존재하지 않는 경우(예: 이전 프로젝트 또는 새로운 반복), 모든 Agent는 원래 로직에 따라 정상적으로 실행됩니다.
+
+---
+
+## 7. 자주 묻는 질문 (FAQ)
 
 ### Q1: Agent가 예상대로 작동하지 않으면 어떻게 하나요?
 
@@ -418,7 +478,7 @@ speccrew update
 
 ---
 
-## 7. 빠른 참조
+## 8. 빠른 참조
 
 ### Agent 시작 빠른 참조
 
@@ -455,7 +515,7 @@ speccrew update
 
 ---
 
-## 다음 단계
+## 9. 다음 단계
 
 1. `speccrew init --ide qoder`를 실행하여 프로젝트 초기화
 2. 0단계 실행: 프로젝트 진단 및 지식 기반 초기화

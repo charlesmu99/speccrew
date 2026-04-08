@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Häufig gestellte Fragen (FAQ)
+## 6. Workflow-Fortschrittsverwaltung
+
+Das virtuelle SpecCrew-Team folgt einem strengen Stufen-Validierungsmechanismus, bei dem jede Phase vom Benutzer bestätigt werden muss, bevor zur nächsten übergegangen wird. Es unterstützt auch wiederaufnehmbare Ausführung — beim Neustart nach Unterbrechung wird automatisch dort fortgefahren, wo aufgehört wurde.
+
+### 6.1 Drei-Ebenen-Fortschrittsdateien
+
+Der Workflow verwaltet automatisch drei Arten von JSON-Fortschrittsdateien, die im Iterationsverzeichnis liegen:
+
+| Datei | Speicherort | Zweck |
+|-------|-------------|-------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Erfasst den Status jeder Pipeline-Stufe |
+| `.checkpoints.json` | Unter jedem Phasenverzeichnis | Erfasst den Benutzer-Checkpoint-Bestätigungsstatus |
+| `DISPATCH-PROGRESS.json` | Unter jedem Phasenverzeichnis | Erfasst den elementweisen Fortschritt für parallele Aufgaben (Multi-Plattform/Multi-Modul) |
+
+### 6.2 Phasenstatus-Fluss
+
+Jede Phase folgt diesem Statusfluss:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Noch nicht gestartet
+- **in_progress**: Aktuell in Ausführung
+- **completed**: Agent-Ausführung abgeschlossen, wartet auf Benutzerbestätigung
+- **confirmed**: Vom Benutzer über finalen Checkpoint bestätigt, nächste Phase kann starten
+
+### 6.3 Wiederaufnehmbare Ausführung
+
+Beim Neustart eines Agents für eine Phase:
+
+1. **Automatische vorgelagerte Prüfung**: Überprüft, ob die vorherige Phase bestätigt ist, blockiert und informiert bei Nichtbestätigung
+2. **Checkpoint-Wiederherstellung**: Liest `.checkpoints.json`, überspringt bestandene Checkpoints, fährt ab dem letzten Unterbrechungspunkt fort
+3. **Parallele Aufgaben-Wiederherstellung**: Liest `DISPATCH-PROGRESS.json`, führt nur Aufgaben mit Status `pending` oder `failed` erneut aus, überspringt `completed` Aufgaben
+
+### 6.4 Aktuellen Fortschritt Anzeigen
+
+Den Pipeline-Panorama-Status über den Team Leader Agent anzeigen:
+
+```
+@speccrew-team-leader aktuellen Iterationsfortschritt anzeigen
+```
+
+Der Team Leader liest die Fortschrittsdateien und zeigt eine Statusübersicht ähnlich wie:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Abwärtskompatibilität
+
+Der Fortschrittsdatei-Mechanismus ist vollständig abwärtskompatibel — wenn Fortschrittsdateien nicht existieren (z.B. in Legacy-Projekten oder neuen Iterationen), führen alle Agents normal gemäß der ursprünglichen Logik aus.
+
+---
+
+## 7. Häufig gestellte Fragen (FAQ)
 
 ### Q1: Was wenn der Agent nicht wie erwartet funktioniert?
 
@@ -418,7 +478,7 @@ Neuinitialisierung ist in folgenden Situationen erforderlich:
 
 ---
 
-## 7. Kurzreferenz
+## 8. Kurzreferenz
 
 ### Agent-Start-Kurzreferenz
 

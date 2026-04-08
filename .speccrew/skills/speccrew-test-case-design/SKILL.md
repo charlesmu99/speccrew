@@ -302,3 +302,36 @@ Fill each section with test case data using `search_replace`.
 - [ ] Preconditions are clearly stated for each test case
 - [ ] Steps are detailed enough for execution without ambiguity
 - [ ] Document written to correct output path
+
+---
+
+# Task Completion Report
+
+Upon completion (success or failure), output the following report format:
+
+## Success Report
+```
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: <from dispatch context, e.g., "test-case-web-vue">
+- **Platform**: <platform_id, e.g., "web-vue">
+- **Phase**: test_case_design
+- **Output Files**:
+  - `speccrew-workspace/iterations/{iteration}/05.system-test/cases/{platform_id}/[feature]-test-cases.md`
+- **Summary**: Test case design completed with {count} test cases covering {dimensions} dimensions
+```
+
+## Failure Report
+```
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: <from dispatch context>
+- **Platform**: <platform_id>
+- **Phase**: test_case_design
+- **Output Files**: None
+- **Summary**: Test case design failed during {step}
+- **Error**: <detailed error description>
+- **Error Category**: DEPENDENCY_MISSING | BUILD_FAILURE | VALIDATION_ERROR | RUNTIME_ERROR | BLOCKED
+- **Partial Outputs**: <list of partially generated files or "None">
+- **Recovery Hint**: <suggestion for recovery, e.g., "Check feature spec document exists at specified path">
+```

@@ -15,9 +15,52 @@ Your core task is: based on the Feature Spec (WHAT to build), design HOW to buil
 
 # Workflow
 
+## Phase 0: Workflow Progress Management
+
+### Step 0.1: Stage Gate — Verify Upstream Completion
+
+Before starting system design, verify that Feature Design stage is confirmed:
+
+1. **Read WORKFLOW-PROGRESS.json** from `speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json`
+2. **Validate upstream stage**: Check `stages.02_feature_design.status == "confirmed"`
+3. **If not confirmed**: STOP — "Feature Design stage has not been confirmed. Please complete Feature Design confirmation first."
+4. **If confirmed**: 
+   - Read `02_feature_design.outputs` to get Feature Spec and API Contract paths
+   - Update `03_system_design.status` to `in_progress`, record `started_at` timestamp
+
+### Step 0.2: Check Resume State (断点续传)
+
+Check if there's existing progress to resume:
+
+1. **Read .checkpoints.json** from `speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json` (if exists)
+2. **Determine resume point** based on passed checkpoints:
+   - `framework_evaluation.passed == true` → Skip Phase 3 (Framework Evaluation)
+   - `design_overview.passed == true` → Skip Phase 4 (DESIGN-OVERVIEW.md generation)
+   - `joint_confirmation.passed == true` → Entire stage completed, ask user if they want to redo
+3. **Present resume summary** to user if resuming from checkpoint
+
+### Step 0.3: Check Dispatch Resume (Feature×Platform Matrix)
+
+Check dispatch progress for parallel task execution:
+
+1. **Read DISPATCH-PROGRESS.json** from `speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json` (if exists)
+2. **List task statuses**:
+   - `completed`: Skip these tasks
+   - `failed`: Retry these tasks
+   - `pending`: Execute these tasks
+3. **Show resume summary** to user with counts: total/completed/failed/pending
+
+### Step 0.4: Backward Compatibility
+
+If WORKFLOW-PROGRESS.json does not exist:
+- Continue with existing logic (Phase 1 onwards)
+- Do not fail if progress files are missing
+
+---
+
 ## Phase 1: Preparation
 
-When user requests to start system design:
+When user requests to start system design (and Phase 0 gates are passed):
 
 ### 1.1 Identify Feature Spec and API Contract Documents
 
@@ -128,18 +171,55 @@ Based on platform types in techs-manifest:
 - `desktop-*` → dispatch `speccrew-sd-desktop`
 - `backend-*` → dispatch `speccrew-sd-backend`
 
-### 5.2 Single Feature Spec + Single Platform
+### 5.2 Initialize DISPATCH-PROGRESS.json
 
-When there is only one Feature Spec and one platform, call skill directly with parameters:
-- Skill path: determined by platform type mapping (see 5.1)
-- Pass context:
-  - `platform_id`: Platform identifier from techs-manifest
-  - `feature_spec_path`: Path to Feature Spec document
-  - `api_contract_path`: Path to API Contract document
-  - `techs_paths`: Relevant techs knowledge paths
-  - `framework_decisions`: Framework decisions from Phase 3
+Before dispatching, create or update dispatch tracking:
 
-### 5.3 Parallel Execution (Feature × Platform)
+1. **Create task entries** for each Feature × Platform combination:
+   ```json
+   {
+     "stage": "03_system_design",
+     "total": 6,
+     "completed": 0,
+     "failed": 0,
+     "pending": 6,
+     "tasks": [
+       {
+         "id": "sd-{platform_id}-{feature_name}",
+         "platform": "{platform_id}",
+         "feature": "{feature_name}",
+         "skill": "speccrew-sd-{type}",
+         "status": "pending",
+         "started_at": null,
+         "completed_at": null,
+         "output": null,
+         "error": null
+       }
+     ]
+   }
+   ```
+2. **Check existing progress** (from Step 0.3) — skip `completed` tasks
+3. **Update status** to `in_progress` for tasks being dispatched
+
+### 5.3 Single Feature Spec + Single Platform
+
+When there is only one Feature Spec and one platform:
+
+1. Update task status to `in_progress` with `started_at` timestamp
+2. Call skill directly with parameters:
+   - Skill path: determined by platform type mapping (see 5.1)
+   - Pass context:
+     - `task_id`: Task identifier for progress tracking
+     - `platform_id`: Platform identifier from techs-manifest
+     - `feature_spec_path`: Path to Feature Spec document
+     - `api_contract_path`: Path to API Contract document
+     - `techs_paths`: Relevant techs knowledge paths
+     - `framework_decisions`: Framework decisions from Phase 3
+3. **Parse Task Completion Report** from skill output:
+   - If `Status: SUCCESS` → Update task to `completed`, record `output` path
+   - If `Status: FAILED` → Update task to `failed`, record `error` details
+
+### 5.4 Parallel Execution (Feature × Platform)
 
 > **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each design skill.
 
@@ -155,12 +235,15 @@ When multiple Feature Specs and/or multiple platforms exist, create a matrix of 
 Each worker receives:
 - `skill_name`: Per-platform design skill based on platform type (see 5.1)
 - `context`:
+  - `task_id`: Unique task identifier (e.g., `sd-web-vue-feature-a`)
   - `platform_id`: Platform identifier from techs-manifest
   - `feature_spec_path`: Path to ONE Feature Spec document (not all)
   - `api_contract_path`: API Contract document path
   - `techs_knowledge_paths`: Techs knowledge paths for this platform
   - `framework_decisions`: Framework decisions from Phase 3
   - `output_base_path`: Path to `03.system-design/` directory
+
+**Before dispatch**: Update each task status to `in_progress` with `started_at` timestamp.
 
 **Parallel execution example** (2 features × 3 platforms = 6 skill invocations):
 - Skill 1: speccrew-sd-frontend for Feature A on web-vue → 03.system-design/web-vue/
@@ -171,6 +254,27 @@ Each worker receives:
 - Skill 6: speccrew-sd-mobile for Feature B on mobile-uniapp → 03.system-design/mobile-uniapp/
 
 All skills execute simultaneously to maximize efficiency.
+
+### 5.5 Update DISPATCH-PROGRESS.json
+
+After each skill completes, parse its **Task Completion Report** and update:
+
+```json
+{
+  "tasks": [
+    {
+      "id": "sd-web-vue-feature-a",
+      "status": "completed",
+      "completed_at": "2026-01-15T10:30:00Z",
+      "output": "03.system-design/web-vue/feature-a-design.md"
+    }
+  ],
+  "completed": 4,
+  "failed": 1,
+  "pending": 1
+}
+```
+
 Wait for all skills to complete before proceeding to Phase 6.
 
 ## Phase 6: Joint Confirmation
@@ -181,7 +285,39 @@ After all platform designs are complete:
 2. List all design documents with paths
 3. Highlight cross-platform integration points
 4. Request user confirmation
-5. After confirmation, designs become baseline for Dev phase
+
+### 6.1 Update Checkpoints on Confirmation
+
+After user confirms:
+
+1. **Write .checkpoints.json**:
+   ```json
+   {
+     "stage": "03_system_design",
+     "checkpoints": {
+       "framework_evaluation": { "passed": true, "confirmed_at": "..." },
+       "design_overview": { "passed": true, "confirmed_at": "..." },
+       "joint_confirmation": { "passed": true, "confirmed_at": "..." }
+     }
+   }
+   ```
+
+2. **Update WORKFLOW-PROGRESS.json**:
+   ```json
+   {
+     "current_stage": "04_development",
+     "stages": {
+       "03_system_design": {
+         "status": "confirmed",
+         "completed_at": "...",
+         "confirmed_at": "...",
+         "outputs": ["DESIGN-OVERVIEW.md", "platform-indexes", "module-designs"]
+       }
+     }
+   }
+   ```
+
+3. **Designs become baseline** for Dev phase
 
 # Deliverables
 

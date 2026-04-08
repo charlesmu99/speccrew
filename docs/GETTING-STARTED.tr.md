@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Sıkça Sorulan Sorular (SSS)
+## 6. İş Akışı İlerleme Yönetimi
+
+SpecCrew sanal ekibi, bir sonraki aşamaya geçmeden önce her aşamanın kullanıcı tarafından onaylanması gereken katı bir aşama-geçit mekanizması izler. Ayrıca devam ettirilebilir yürütme desteği sunar — kesinti sonrası yeniden başlatıldığında, kaldığı yerden otomatik olarak devam eder.
+
+### 6.1 Üç Katmanlı İlerleme Dosyaları
+
+İş akışı, iterasyon dizininde bulunan üç tür JSON ilerleme dosyasını otomatik olarak yönetir:
+
+| Dosya | Konum | Amaç |
+|-------|-------|------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Her boru hattı aşamasının durumunu kaydeder |
+| `.checkpoints.json` | Her aşama dizini altında | Kullanıcı kontrol noktası onay durumunu kaydeder |
+| `DISPATCH-PROGRESS.json` | Her aşama dizini altında | Paralel görevler için öğe bazında ilerlemeyi kaydeder (çoklu platform/çoklu modül) |
+
+### 6.2 Aşama Durum Akışı
+
+Her aşama bu durum akışını izler:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Henüz başlamadı
+- **in_progress**: Şu anda yürütülüyor
+- **completed**: Ajan yürütmesi tamamlandı, kullanıcı onayı bekleniyor
+- **confirmed**: Kullanıcı son kontrol noktası üzerinden onayladı, bir sonraki aşama başlayabilir
+
+### 6.3 Devam Ettirilebilir Yürütme
+
+Bir aşama için Ajan yeniden başlatıldığında:
+
+1. **Otomatik yukarı akış kontrolü**: Önceki aşamanın onaylanıp onaylanmadığını doğrular, değilse engeller ve uyarır
+2. **Kontrol noktası kurtarma**: `.checkpoints.json` dosyasını okur, geçilen kontrol noktalarını atlar, son kesinti noktasından devam eder
+3. **Paralel görev kurtarma**: `DISPATCH-PROGRESS.json` dosyasını okur, yalnızca `pending` veya `failed` durumundaki görevleri yeniden yürütür, `completed` görevleri atlar
+
+### 6.4 Mevcut İlerlemeyi Görüntüleme
+
+Takım Lideri Ajanı üzerinden boru hattı panoramik durumunu görüntüleyin:
+
+```
+@speccrew-team-leader mevcut iterasyon ilerlemesini görüntüle
+```
+
+Takım Lideri ilerleme dosyalarını okuyacak ve aşağıdakine benzer bir durum özeti görüntüleyecektir:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Geriye Dönük Uyumluluk
+
+İlerleme dosyası mekanizması tamamen geriye dönük uyumludur — ilerleme dosyaları mevcut değilse (örneğin, eski projelerde veya yeni iterasyonlarda), tüm Ajanlar orijinal mantığa göre normal şekilde yürütülecektir.
+
+---
+
+## 7. Sıkça Sorulan Sorular (SSS)
 
 ### S1: Ajan beklendiği gibi çalışmazsa ne yapmalıyım?
 
@@ -419,7 +479,7 @@ Aşağıdaki durumlarda yeniden başlatma gerekir:
 
 ---
 
-## 7. Hızlı Referans
+## 8. Hızlı Referans
 
 ### Ajan Başlatma Hızlı Referansı
 

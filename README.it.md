@@ -44,7 +44,7 @@ Integrando Agent e Skill nei progetti esistenti, i team possono rapidamente iniz
 ## ✨ Caratteristiche Principali
 
 ### 🏭 Team Software Virtuale
-Generazione con un clic di **7 ruoli di Agent professionali** + **38 workflow di Skill**, costruendo un team software virtuale completo:
+Generazione con un clic di **7 ruoli di Agent professionali** + **30+ workflow di Skill**, costruendo un team software virtuale completo:
 - **Team Leader** - Pianificazione globale e gestione iterazioni
 - **Product Manager** - Analisi requisiti e generazione PRD
 - **Feature Designer** - Design funzionalità + contratti API
@@ -83,6 +83,13 @@ Fase 4: Aggregazione sistema → Genera panorama sistema
 ```
 - Supporta **sincronizzazione completa** e **sincronizzazione incrementale** (basato su Git diff)
 - Una persona ottimizza, il team condivide
+
+### 🔧 Harness Framework di Implementazione Pratica
+**Framework di esecuzione standardizzato**, garantisce che i documenti di design si trasformino con precisione in istruzioni di sviluppo eseguibili:
+- **Principio del manuale di operazione**: Skill come SOP, passaggi chiari, continui e autocontenuti
+- **Contratto di input/output**: Definizione chiara delle interfacce, esecuzione rigorosa come pseudocodice
+- **Architettura di divulgazione progressiva**: Caricamento delle informazioni a livelli, evitare sovraccarico di contesto
+- **Delega di Sub-Agent**: Divisione automatica di attività complesse, esecuzione parallela per garantire qualità
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Dopo l'inizializzazione, saranno generati nel progetto:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 definizioni di ruoli Agent
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 workflow Skill
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ workflow Skill
 - `speccrew-workspace/` — Workspace (directory iterazione, base di conoscenza, template documenti)
 - `.speccrewrc` — File di configurazione SpecCrew
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Sviluppo parallelo per piattaforma
 │   │   ├── speccrew-test-manager.md      # Test Manager: Coordinamento testing in tre fasi
 │   │   └── speccrew-task-worker.md       # Task Worker: Esecuzione parallela sotto-attività
-│   └── skills/                      # 38 Skill (raggruppate per funzione)
+│   └── skills/                      # 30+ Skill (raggruppate per funzione)
 │       ├── speccrew-pm-*/                # Gestione Prodotto (analisi requisiti, valutazione)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, Contratto API)
 │       ├── speccrew-sd-*/                # System Design (frontend/backend/mobile/desktop)

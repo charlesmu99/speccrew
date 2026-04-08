@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Câu Hỏi Thường Gặp (FAQ)
+## 6. Quản Lý Tiến Độ Pipeline
+
+Nhóm ảo SpecCrew tuân thủ cơ chế kiểm soát pha nghiêm ngặt, mỗi pha phải được xác nhận bởi ngườ dùng trước khi có thể tiến hành sang pha tiếp theo. Đồng thờ hỗ trợ tiếp tục từ điểm dừng —— khi khởi động lại sau khi bị gián đoạn, hệ thống sẽ tự động tiếp tục từ vị trí dừng lần cuối.
+
+### 6.1 Ba Tệp Tiến Độ
+
+Workflow tự động duy trì ba loại tệp tiến độ JSON, nằm trong thư mục iteration:
+
+| Tệp | Vị trí | Vai trò |
+|------|----------|--------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Ghi lại trạng thái của từng pha trong toàn bộ pipeline |
+| `.checkpoints.json` | Trong thư mục từng pha | Ghi lại trạng thái vượt qua điểm kiểm tra (Checkpoint) của ngườ dùng |
+| `DISPATCH-PROGRESS.json` | Trong thư mục từng pha | Ghi lại tiến độ từng mục của tác vụ song song (đa nền tảng/module) |
+
+### 6.2 Chuyển Đổi Trạng Thái Pha
+
+Mỗi pha tuân thủ chuyển đổi trạng thái sau:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Chưa bắt đầu
+- **in_progress**: Đang thực hiện
+- **completed**: Agent thực hiện xong, chờ xác nhận từ ngườ dùng
+- **confirmed**: Ngườ dùng xác nhận Checkpoint cuối cùng, có thể bắt đầu pha tiếp theo
+
+### 6.3 Tiếp Tục Từ Điểm Dừng
+
+Khi khởi động lại Agent của một pha nào đó:
+
+1. **Tự động kiểm tra upstream**: Xác minh pha trước đã được confirmed chưa, nếu chưa sẽ bị chặn và cảnh báo
+2. **Khôi phục Checkpoint**: Đọc `.checkpoints.json`, bỏ qua các điểm kiểm tra đã vượt qua, và tiếp tục từ điểm dừng lần cuối
+3. **Khôi phục tác vụ song song**: Đọc `DISPATCH-PROGRESS.json`, chỉ thực thi lại các tác vụ có trạng thái `pending` hoặc `failed`, bỏ qua các tác vụ đã `completed`
+
+### 6.4 Xem Tiến Độ Hiện Tại
+
+Xem trạng thái toàn cảnh của pipeline thông qua Team Leader Agent:
+
+```
+@speccrew-team-leader xem tiến độ iteration hiện tại
+```
+
+Team Leader sẽ đọc các tệp tiến độ và hiển thị tóm tắt trạng thái tương tự như sau:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Tương Thích Ngược
+
+Cơ chế tệp tiến độ hoàn toàn tương thích ngược —— nếu tệp tiến độ không tồn tại (ví dụ: dự án cũ hoặc iteration mới), tất cả các Agent sẽ thực thi theo logic ban đầu như bình thường.
+
+---
+
+## 7. Câu Hỏi Thường Gặp (FAQ)
 
 ### H1: Phải làm gì nếu Agent không hoạt động như mong đợi?
 
@@ -419,7 +479,7 @@ Cần khởi tạo lại trong các tình huống sau:
 
 ---
 
-## 7. Tham Khảo Nhanh
+## 8. Tham Khảo Nhanh
 
 ### Tham Khảo Nhanh Khởi Động Agent
 
@@ -456,7 +516,7 @@ Cần khởi tạo lại trong các tình huống sau:
 
 ---
 
-## Bước Tiếp Theo
+## 9. Bước Tiếp Theo
 
 1. Chạy `speccrew init --ide qoder` để khởi tạo dự án của bạn
 2. Thực hiện Bước Không: Chẩn Đoán Dự Án và Khởi Tạo Cơ Sở Kiến Thức

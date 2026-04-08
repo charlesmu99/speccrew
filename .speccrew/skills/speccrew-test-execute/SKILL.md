@@ -291,3 +291,37 @@ Each bug report must include:
 - [ ] Bug severity is classified (Critical/High/Medium/Low)
 - [ ] All bug reports written to correct output path
 - [ ] Test report written to correct output path
+
+---
+
+# Task Completion Report
+
+Upon completion (success or failure), output the following report format:
+
+## Success Report
+```
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: <from dispatch context, e.g., "test-exec-web-vue">
+- **Platform**: <platform_id, e.g., "web-vue">
+- **Phase**: test_execution
+- **Output Files**:
+  - `speccrew-workspace/iterations/{iteration}/05.system-test/reports/[feature]-test-report.md`
+  - `speccrew-workspace/iterations/{iteration}/05.system-test/bugs/[feature]-bug-{seq}.md` (if any failures)
+- **Summary**: Test execution completed with {passed}/{total} passed, {failed} failed, {skipped} skipped
+```
+
+## Failure Report
+```
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: <from dispatch context>
+- **Platform**: <platform_id>
+- **Phase**: test_execution
+- **Output Files**: <list of partial outputs or "None">
+- **Summary**: Test execution failed during {step}
+- **Error**: <detailed error description>
+- **Error Category**: DEPENDENCY_MISSING | BUILD_FAILURE | VALIDATION_ERROR | RUNTIME_ERROR | BLOCKED
+- **Partial Outputs**: <list of partially generated files or "None">
+- **Recovery Hint**: <suggestion for recovery, e.g., "Check test dependencies are installed and test configuration is valid">
+```

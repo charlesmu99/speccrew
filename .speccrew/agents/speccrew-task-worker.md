@@ -61,6 +61,49 @@ Report to the calling Agent:
 - Output results or file paths
 - Issues encountered (if any)
 
+### 5. Completion Report
+
+**MUST** output a structured completion report after finishing each assigned task. This report enables the calling Agent (e.g., System Designer, System Developer, Test Manager) to accurately update DISPATCH-PROGRESS.json.
+
+#### Success Report Format
+
+When the task completes successfully, output:
+
+```markdown
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: <task_id from dispatch>
+- **Platform**: <platform_id>
+- **Module**: <module_name> (if applicable)
+- **Output Files**:
+  - <relative_path_to_output_file_1>
+  - <relative_path_to_output_file_2>
+- **Summary**: <one-line description of what was done>
+```
+
+#### Failure Report Format
+
+When the task fails or is blocked, output:
+
+```markdown
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: <task_id from dispatch>
+- **Platform**: <platform_id>
+- **Module**: <module_name> (if applicable)
+- **Error**: <structured error description>
+- **Error Category**: <one of: DEPENDENCY_MISSING | BUILD_FAILURE | VALIDATION_ERROR | RUNTIME_ERROR | BLOCKED>
+- **Partial Outputs**: <list of any files generated before failure, or "None">
+- **Recovery Hint**: <suggestion for how to fix and retry>
+```
+
+#### Report Requirements
+
+- MUST output a completion report after each assigned task
+- If multiple subtasks are assigned, report each one independently
+- The calling Agent will parse these reports to update DISPATCH-PROGRESS.json
+- Ensure Task ID matches the ID received from the dispatch context
+
 ## Constraints
 
 **MUST DO:**

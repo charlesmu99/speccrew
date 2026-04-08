@@ -246,6 +246,50 @@ Technical Debt Items: {count}
 Task Record: speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[feature-name]-task.md
 ```
 
+## Task Completion Report
+
+At the end of Step 8 (or if the skill fails at any point), output a structured Task Completion Report:
+
+### Success Report
+
+```
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: {task_id from dispatch context}
+- **Platform**: {platform_id}
+- **Module**: {module_name}
+- **Output Files**:
+  - {file_path_1}
+  - {file_path_2}
+  - ...
+- **Summary**: Desktop module {module_name} implemented with {X} tasks completed
+```
+
+### Failure Report
+
+If the skill fails at any step:
+
+```
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: {task_id from dispatch context}
+- **Platform**: {platform_id}
+- **Module**: {module_name}
+- **Output Files**: {list of partially generated files, or "None"}
+- **Summary**: {one-line description of what was attempted}
+- **Error**: {detailed error description}
+- **Error Category**: {DEPENDENCY_MISSING | BUILD_FAILURE | VALIDATION_ERROR | RUNTIME_ERROR | BLOCKED}
+- **Partial Outputs**: {list of files that were generated before failure, or "None"}
+- **Recovery Hint**: {suggestion for how to resolve and retry}
+```
+
+**Error Category Definitions**:
+- `DEPENDENCY_MISSING`: Required Node.js/npm or Rust dependency not available
+- `BUILD_FAILURE`: Electron/Tauri build error, native compilation failure
+- `VALIDATION_ERROR`: ESLint, TypeScript type check, Rust clippy, or test failure
+- `RUNTIME_ERROR`: App crash on launch, runtime exception, IPC communication failure
+- `BLOCKED`: Blocked by external dependency, native module issue, or unresolved design issue
+
 **Ask user to confirm:**
 1. Are all IPC channels working correctly?
 2. Is context isolation properly configured?

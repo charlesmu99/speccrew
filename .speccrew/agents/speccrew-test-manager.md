@@ -15,6 +15,76 @@ Your core task is: coordinate three-phase testing workflow (test case design →
 
 # Workflow
 
+## Phase 0: Workflow Progress Management
+
+### Step 0.1: Stage Gate — Verify Upstream Completion
+
+**Read `WORKFLOW-PROGRESS.json`** from workspace root:
+```
+speccrew-workspace/WORKFLOW-PROGRESS.json
+```
+
+**Validation Rules:**
+- Verify `stages.04_development.status == "confirmed"`
+- If not confirmed → **STOP** with message: "Development stage has not been confirmed. Please complete and confirm the development stage before starting system test."
+
+**Update Current Stage:**
+- Set `stages.05_system_test.status` to `"in_progress"`
+- Record `stages.05_system_test.started_at` with current timestamp
+- Write updated `WORKFLOW-PROGRESS.json`
+
+### Step 0.2: Check Resume State (断点续传)
+
+**Read Checkpoint File** (if exists):
+```
+speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json
+```
+
+**Resume Decision Matrix:**
+
+| Checkpoint State | Action |
+|-----------------|--------|
+| `test_case_coverage.passed == true` | Skip Phase 3 (test-case-design), proceed to Phase 4 (test-code-gen) |
+| `test_code_review.passed == true` | Skip Phase 3+4, proceed to Phase 5 (test-execution) |
+| `test_execution_report.passed == true` | Stage complete — ask user if they want to redo |
+| File does not exist | Proceed normally from Phase 1 |
+
+**User Confirmation for Resume:**
+- Display detected resume point to user
+- Ask: "Resume from [phase]? Or restart from beginning?"
+- Proceed based on user choice
+
+### Step 0.3: Check Dispatch Resume (多平台断点续传)
+
+**Read Dispatch Progress** (if exists):
+```
+speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json
+```
+
+**Parse Task Status by Phase:**
+- Group tasks by `phase` field (test_case_design, test_code_gen, test_execution)
+- For each phase, identify:
+  - `completed` tasks — skip
+  - `failed` tasks — retry
+  - `pending` tasks — execute
+
+**Display Progress Summary:**
+```
+Dispatch Resume Status:
+├── test_case_design: {completed}/{total} completed, {failed} failed, {pending} pending
+├── test_code_gen: {completed}/{total} completed, {failed} failed, {pending} pending
+└── test_execution: {completed}/{total} completed, {failed} failed, {pending} pending
+```
+
+### Step 0.4: Backward Compatibility
+
+If `WORKFLOW-PROGRESS.json` does not exist:
+- Proceed with existing workflow (Phase 1 onwards)
+- Skip all progress tracking steps
+- Maintain full compatibility with legacy projects
+
+---
+
 ## Phase 1: Preparation
 
 When user requests to start testing:
@@ -109,6 +179,37 @@ Invoke Skill directly with parameters:
 
 > **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each test skill.
 
+> **DISPATCH-PROGRESS Strategy**: Append mode — each test phase appends its tasks to the existing DISPATCH-PROGRESS.json with a distinct `phase` field. Previous phase records are preserved for full traceability.
+
+**Initialize Dispatch Progress File:**
+
+Before dispatching, create or update `DISPATCH-PROGRESS.json`:
+```json
+{
+  "stage": "05_system_test",
+  "phase": "test_case_design",
+  "total": {platform_count},
+  "completed": 0,
+  "failed": 0,
+  "pending": {platform_count},
+  "tasks": [
+    {
+      "id": "test-case-{platform_id}",
+      "platform": "{platform_id}",
+      "phase": "test_case_design",
+      "skill": "speccrew-test-case-design",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "output": null,
+      "error": null
+    }
+  ]
+}
+```
+
+**Dispatch Workers:**
+
 Use the **Skill tool** to invoke `speccrew-test-case-design` for each platform in parallel:
 - Each worker receives:
   - `skill_name`: `speccrew-test-case-design`
@@ -118,10 +219,18 @@ Use the **Skill tool** to invoke `speccrew-test-case-design` for each platform i
     - `api_contract_path`: Path to the API contract document (if exists)
     - `platform_id`: Platform identifier
     - `output_path`: Path for the platform-specific test cases document
+    - `task_id`: `test-case-{platform_id}` (for progress tracking)
 - Parallel execution pattern:
   - Worker 1: Master Feature Spec + Platform 1 Design → Platform 1 Test Cases
   - Worker 2: Master Feature Spec + Platform 2 Design → Platform 2 Test Cases
   - Worker N: Master Feature Spec + Platform N Design → Platform N Test Cases
+
+**Update Progress on Completion:**
+
+For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
+- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
+- On FAILED: Set `status` to `"failed"`, record `error`, set `recovery_hint` if available
+- Recalculate `completed`, `failed`, `pending` counts
 
 ### 3.4 Checkpoint A: Test Case Review
 
@@ -140,6 +249,22 @@ After test case design completes for all platforms:
 - Display the review summary
 - Wait for user to confirm test case coverage is adequate
 - Only proceed to code generation phase after user confirmation
+
+**Write Checkpoint File:**
+
+Create or update `.checkpoints.json`:
+```json
+{
+  "stage": "05_system_test",
+  "checkpoints": {
+    "test_case_coverage": {
+      "passed": true,
+      "confirmed_at": "{ISO8601_timestamp}",
+      "description": "Test case coverage review (Checkpoint A)"
+    }
+  }
+}
+```
 
 **Output Path:**
 - `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/cases/{platform_id}/[feature]-test-cases.md`
@@ -165,12 +290,51 @@ Invoke Skill directly:
 
 ### 4.3 Multi-Platform Parallel Execution
 
+> **DISPATCH-PROGRESS Strategy**: Append mode — each test phase appends its tasks to the existing DISPATCH-PROGRESS.json with a distinct `phase` field. Previous phase records are preserved for full traceability.
+
+**Initialize Dispatch Progress File:**
+
+Update `DISPATCH-PROGRESS.json` with new phase:
+```json
+{
+  "stage": "05_system_test",
+  "phase": "test_code_gen",
+  "total": {platform_count},
+  "completed": 0,
+  "failed": 0,
+  "pending": {platform_count},
+  "tasks": [
+    {
+      "id": "test-code-{platform_id}",
+      "platform": "{platform_id}",
+      "phase": "test_code_gen",
+      "skill": "speccrew-test-code-gen",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "output": null,
+      "error": null
+    }
+  ]
+}
+```
+
+**Dispatch Workers:**
+
 Use the **Skill tool** to invoke `speccrew-test-code-gen` for each platform in parallel:
   - `context`:
     - `test_cases_path`: Path to the platform-specific test cases document
     - `system_design_path`: Path to the platform system design document
     - `platform_id`: Platform identifier
     - `output_dir`: Directory for generated test code and plan
+    - `task_id`: `test-code-{platform_id}` (for progress tracking)
+
+**Update Progress on Completion:**
+
+For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
+- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
+- On FAILED: Set `status` to `"failed"`, record `error`
+- Recalculate `completed`, `failed`, `pending` counts
 
 ### 4.4 Checkpoint B: Code Review
 
@@ -189,6 +353,27 @@ After test code generation completes for all platforms:
 - Display the review summary
 - Wait for user to confirm test code is acceptable
 - Only proceed to execution phase after user confirmation
+
+**Update Checkpoint File:**
+
+Update `.checkpoints.json`:
+```json
+{
+  "stage": "05_system_test",
+  "checkpoints": {
+    "test_case_coverage": {
+      "passed": true,
+      "confirmed_at": "{timestamp}",
+      "description": "Test case coverage review (Checkpoint A)"
+    },
+    "test_code_review": {
+      "passed": true,
+      "confirmed_at": "{ISO8601_timestamp}",
+      "description": "Test code generation review (Checkpoint B)"
+    }
+  }
+}
+```
 
 **Output:**
 - Test code: Written to project source test directories
@@ -214,11 +399,50 @@ Invoke Skill directly:
 
 ### 5.3 Multi-Platform Parallel Execution
 
+> **DISPATCH-PROGRESS Strategy**: Append mode — each test phase appends its tasks to the existing DISPATCH-PROGRESS.json with a distinct `phase` field. Previous phase records are preserved for full traceability.
+
+**Initialize Dispatch Progress File:**
+
+Update `DISPATCH-PROGRESS.json` with new phase:
+```json
+{
+  "stage": "05_system_test",
+  "phase": "test_execution",
+  "total": {platform_count},
+  "completed": 0,
+  "failed": 0,
+  "pending": {platform_count},
+  "tasks": [
+    {
+      "id": "test-exec-{platform_id}",
+      "platform": "{platform_id}",
+      "phase": "test_execution",
+      "skill": "speccrew-test-execute",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "output": null,
+      "error": null
+    }
+  ]
+}
+```
+
+**Dispatch Workers:**
+
 Use the **Skill tool** to invoke `speccrew-test-execute` for each platform in parallel:
   - `context`:
     - `test_code_path`: Path to the platform test code directory
     - `platform_id`: Platform identifier
     - `output_dir`: Directory for reports
+    - `task_id`: `test-exec-{platform_id}` (for progress tracking)
+
+**Update Progress on Completion:**
+
+For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
+- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
+- On FAILED: Set `status` to `"failed"`, record `error`
+- Recalculate `completed`, `failed`, `pending` counts
 
 ### 5.4 Deviation Detection
 
@@ -276,6 +500,60 @@ Provide clear recommendation:
 **Prompt user for next action:**
 - Confirm to proceed to delivery phase, or
 - Return to development phase for bug fixes
+
+### 6.5 Finalize Progress Files
+
+**Update Checkpoint File:**
+
+Update `.checkpoints.json`:
+```json
+{
+  "stage": "05_system_test",
+  "checkpoints": {
+    "test_case_coverage": {
+      "passed": true,
+      "confirmed_at": "{timestamp}",
+      "description": "Test case coverage review (Checkpoint A)"
+    },
+    "test_code_review": {
+      "passed": true,
+      "confirmed_at": "{timestamp}",
+      "description": "Test code generation review (Checkpoint B)"
+    },
+    "test_execution_report": {
+      "passed": true,
+      "confirmed_at": "{ISO8601_timestamp}",
+      "description": "Test execution final report"
+    }
+  }
+}
+```
+
+**Update Workflow Progress:**
+
+Update `WORKFLOW-PROGRESS.json`:
+```json
+{
+  "iteration": "{iteration_name}",
+  "current_stage": "05_system_test",
+  "stages": {
+    "05_system_test": {
+      "status": "confirmed",
+      "started_at": "{timestamp}",
+      "completed_at": "{timestamp}",
+      "confirmed_at": "{ISO8601_timestamp}",
+      "outputs": [
+        "05.system-test/cases/",
+        "05.system-test/code/",
+        "05.system-test/reports/",
+        "05.system-test/bugs/"
+      ]
+    }
+  }
+}
+```
+
+> **Note**: `current_stage` does not advance — 05_system_test is the final stage of the pipeline.
 
 # Deliverables
 

@@ -15,6 +15,94 @@ Your core task is to **bridge requirements and implementation**: based on the us
 
 # Workflow
 
+## Phase 0: Workflow Progress Management
+
+> **Stage Gate & Resume Checkpoint System** — Ensures proper flow between pipeline stages and supports resuming from interruptions.
+
+### 0.1 Stage Gate — Verify Upstream Completion
+
+Before starting any feature design work:
+
+1. **Read `WORKFLOW-PROGRESS.json`** from:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
+   - If the file does not exist → Skip to Phase 1 (backward compatibility mode)
+
+2. **Verify PRD Stage Status**:
+   - Check: `stages.01_prd.status == "confirmed"`
+   - If **NOT confirmed**:
+     - **STOP** — Do not proceed
+     - Report to user: "❌ **PRD stage has not been confirmed.** Please complete PRD confirmation first using the Product Manager agent. Current status: `{status}`"
+   - If **confirmed**:
+     - Read `stages.01_prd.outputs` to get PRD file paths
+     - Proceed to Step 0.2
+
+3. **Update Stage Status**:
+   - Set `stages.02_feature_design.status = "in_progress"`
+   - Set `stages.02_feature_design.started_at = "{current_timestamp}"`
+   - Write the updated `WORKFLOW-PROGRESS.json`
+
+### 0.2 Check Resume State (Checkpoint Recovery)
+
+If resuming from an interrupted session:
+
+1. **Read `.checkpoints.json`** from:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
+   - If the file does not exist → Start from Phase 1 (no previous progress)
+
+2. **Evaluate Checkpoint Status**:
+
+| Checkpoint | If Passed | Resume Point |
+|------------|-----------|--------------|
+| `function_decomposition.passed == true` | Skip Checkpoint A | Start from Step 3 (Frontend Design) |
+| `feature_spec_review.passed == true` | Skip Checkpoint A & B | Start from Phase 4 (API Contract) |
+| `api_contract_joint.passed == true` | All checkpoints complete | Ask user: "Feature Design phase already completed. Do you want to redo?" |
+
+3. **Display Resume Summary**:
+   ```
+   📋 Resume Status:
+   ├── function_decomposition: ✅ Passed
+   ├── feature_spec_review: ✅ Passed
+   └── api_contract_joint: ⏳ Pending
+   
+   Resuming from: API Contract Generation phase
+   ```
+
+4. **User Confirmation**: Show resume point and ask "Continue from this checkpoint?"
+
+### 0.3 Check Dispatch Resume (Multi-Platform Recovery)
+
+If the feature involves multiple frontend platforms:
+
+1. **Read `DISPATCH-PROGRESS.json`** from:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json`
+   - If the file does not exist → No dispatch in progress, proceed normally
+
+2. **List Platform Task Status**:
+   ```
+   📊 Dispatch Status:
+   ├── fd-web-vue: ✅ Completed
+   ├── fd-mobile-uniapp: ⏳ Pending
+   └── fd-web-react: ❌ Failed (error message)
+   
+   Total: 3 | Completed: 1 | Failed: 1 | Pending: 1
+   ```
+
+3. **Resume Strategy**:
+   - Skip tasks with `status == "completed"`
+   - Re-execute tasks with `status == "failed"`
+   - Execute tasks with `status == "pending"`
+
+4. **User Confirmation**: Ask "Resume dispatch for pending/failed platforms?"
+
+### 0.4 Backward Compatibility
+
+If `WORKFLOW-PROGRESS.json` does not exist:
+- Log: "⚠️ No workflow progress file found. Running in legacy mode."
+- Proceed with Phase 1 normally without stage gate checks
+- This ensures compatibility with projects started before the workflow system was introduced
+
+---
+
 ## Phase 1: Preparation
 
 When user requests to start feature design:
@@ -124,6 +212,38 @@ After both Feature Spec and API Contract documents are ready, present summary to
 - List all API Contract documents with paths
 - Request user confirmation before proceeding to system design phase
 - After confirmation, API Contract becomes the read-only baseline for downstream stages
+
+### 4.4 Finalize Stage (Update Workflow Progress)
+
+After user confirms Joint Confirmation:
+
+1. **Update `WORKFLOW-PROGRESS.json`**:
+   ```json
+   {
+     "current_stage": "03_system_design",
+     "stages": {
+       "02_feature_design": {
+         "status": "confirmed",
+         "completed_at": "{timestamp}",
+         "confirmed_at": "{timestamp}",
+         "outputs": [
+           "02.feature-design/[feature-name]-feature-spec.md",
+           "02.feature-design/[feature-name]-api-contract.md"
+         ]
+       }
+     }
+   }
+   ```
+
+2. **Write Updated Progress File**:
+   - Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
+   - Set `current_stage` to `03_system_design` (ready for next stage)
+   - Set `02_feature_design.status` to `confirmed`
+   - Record all output file paths in `outputs` array
+
+3. **Confirm Transition**:
+   - Notify user: "✅ Feature Design phase completed and confirmed. Ready to start System Design phase."
+   - The next agent (speccrew-system-designer) will verify this confirmation via its Stage Gate
 
 # Deliverables
 

@@ -44,7 +44,7 @@ Poprzez integrację Agentów i Skilli z istniejącymi projektami, zespoły mogą
 ## ✨ Kluczowe Cechy
 
 ### 🏭 Wirtualny Zespół Software'owy
-Jednoklikowe generowanie **7 profesjonalnych ról Agentów** + **38 workflowów Skilli**, budowanie kompletnego wirtualnego zespołu software'owego:
+Jednoklikowe generowanie **7 profesjonalnych ról Agentów** + **30+ workflowów Skilli**, budowanie kompletnego wirtualnego zespołu software'owego:
 - **Team Leader** - Globalne planowanie i zarządzanie iteracjami
 - **Product Manager** - Analiza wymagań i generowanie PRD
 - **Feature Designer** - Projektowanie funkcji + kontrakty API
@@ -83,6 +83,13 @@ Stopień 4: Agregacja systemu → Generowanie panoramy systemu
 ```
 - Obsługuje **pełną synchronizację** i **synchronizację inkrementalną** (opartą na Git diff)
 - Jedna osoba optymalizuje, zespół dzieli się
+
+### 🔧 Harness Praktyczne Ramy Wdrożeniowe
+**Zestandaryzowane ramy wykonawcze**, zapewniające precyzyjną transformację dokumentów projektowych w wykonywalne instrukcje deweloperskie:
+- **Zasada podręcznika operacyjnego**: Skill to SOP, kroki są jasne, ciągłe i samowystarczalne
+- **Kontrakt wejścia-wyjścia**: Jasno zdefiniowane interfejsy, wykonywane tak rygorystycznie jak pseudokod
+- **Architektura progresywnego ujawniania**: Informacje ładowane warstwowo, unikanie jednorazowego przeciążenia kontekstu
+- **Delegowanie sub-Agentów**: Złożone zadania automatycznie podzielone, równoległe wykonanie zapewnia jakość
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Po inicjalizacji w projekcie zostaną wygenerowane:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 definicji ról Agentów
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 workflow Skilli
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ workflow Skilli
 - `speccrew-workspace/` — Przestrzeń robocza (katalogi iteracji, baza wiedzy, szablony dokumentów)
 - `.speccrewrc` — Plik konfiguracyjny SpecCrew
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Równoległy rozwój według platformy
 │   │   ├── speccrew-test-manager.md      # Test Manager: Koordynacja testów trójfazowych
 │   │   └── speccrew-task-worker.md       # Task Worker: Równoległa egzekucja podzadań
-│   └── skills/                      # 38 Skilli (zgrupowane według funkcji)
+│   └── skills/                      # 30+ Skilli (zgrupowane według funkcji)
 │       ├── speccrew-pm-*/                # Zarządzanie Produktem (analiza wymagań, ewaluacja)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, Kontrakt API)
 │       ├── speccrew-sd-*/                # System Design (frontend/backend/mobile/desktop)

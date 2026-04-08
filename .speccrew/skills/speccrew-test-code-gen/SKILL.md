@@ -344,3 +344,37 @@ Fill each section with code plan data from Step 4.
 - [ ] Shared fixtures and helpers are extracted properly
 - [ ] Arrange-Act-Assert structure maintained in tests
 - [ ] Code plan document written to correct path
+
+---
+
+# Task Completion Report
+
+Upon completion (success or failure), output the following report format:
+
+## Success Report
+```
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: <from dispatch context, e.g., "test-code-web-vue">
+- **Platform**: <platform_id, e.g., "web-vue">
+- **Phase**: test_code_gen
+- **Output Files**:
+  - `speccrew-workspace/iterations/{iteration}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+  - <list of generated test source files>
+- **Summary**: Test code generation completed with {file_count} files covering {case_count} test cases
+```
+
+## Failure Report
+```
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: <from dispatch context>
+- **Platform**: <platform_id>
+- **Phase**: test_code_gen
+- **Output Files**: <list of partial outputs or "None">
+- **Summary**: Test code generation failed during {step}
+- **Error**: <detailed error description>
+- **Error Category**: DEPENDENCY_MISSING | BUILD_FAILURE | VALIDATION_ERROR | RUNTIME_ERROR | BLOCKED
+- **Partial Outputs**: <list of partially generated files or "None">
+- **Recovery Hint**: <suggestion for recovery, e.g., "Verify test case document format is valid">
+```

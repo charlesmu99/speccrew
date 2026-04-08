@@ -44,7 +44,7 @@ Ao integrar Agents e Skills em projetos existentes, as equipes podem inicializar
 ## ✨ Destaques Principais
 
 ### 🏭 Equipe de Software Virtual
-Geração com um clique de **7 papéis de Agentes profissionais** + **38 fluxos de trabalho de Skills**, construindo uma equipe de software virtual completa:
+Geração com um clique de **7 papéis de Agentes profissionais** + **30+ fluxos de trabalho de Skills**, construindo uma equipe de software virtual completa:
 - **Team Leader** - Planejamento global e gerenciamento de iterações
 - **Product Manager** - Análise de requisitos e geração de PRD
 - **Feature Designer** - Design de funcionalidades + contratos API
@@ -83,6 +83,13 @@ Estágio 4: Agregação do sistema → Gerar panorama do sistema
 ```
 - Suporta **sincronização completa** e **sincronização incremental** (baseado em Git diff)
 - Uma pessoa otimiza, equipe compartilha
+
+### 🔧 Harness Framework de Implementação Prática
+**Framework de execução padronizado**, garantindo que documentos de design sejam transformados com precisão em instruções de desenvolvimento executáveis:
+- **Princípio do manual de operações**: Skill é SOP, etapas são claras, contínuas e autossuficientes
+- **Contrato de entrada-saída**: Interfaces claramente definidas, executadas com o rigor de pseudocódigo
+- **Arquitetura de revelação progressiva**: Informações carregadas em camadas, evitando sobrecarga de contexto única
+- **Delegação de sub-Agent**: Tarefas complexas divididas automaticamente, execução paralela garante qualidade
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Após a inicialização, os seguintes itens serão gerados no projeto:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 definições de papéis de Agent
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 fluxos de trabalho de Skill
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ fluxos de trabalho de Skill
 - `speccrew-workspace/` — Espaço de trabalho (diretórios de iteração, base de conhecimento, templates de documentos)
 - `.speccrewrc` — Arquivo de configuração do SpecCrew
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Desenvolvimento paralelo por plataforma
 │   │   ├── speccrew-test-manager.md      # Test Manager: Coordenação de testes em três fases
 │   │   └── speccrew-task-worker.md       # Task Worker: Execução paralela de subtarefas
-│   └── skills/                      # 38 Skills (agrupadas por função)
+│   └── skills/                      # 30+ Skills (agrupadas por função)
 │       ├── speccrew-pm-*/                # Gestão de Produto (análise de requisitos, avaliação)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, Contrato API)
 │       ├── speccrew-sd-*/                # System Design (frontend/backend/mobile/desktop)

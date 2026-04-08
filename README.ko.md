@@ -44,7 +44,7 @@ Agent와 Skill을 기존 프로젝트에 통합함으로써 프로젝트 문서 
 ## ✨ 주요 특징
 
 ### 🏭 가상 소프트웨어 팀
-**7개 전문 Agent 역할** + **38개 Skill 워크플로우**를 원클릭으로 생성하여 완전한 가상 소프트웨어 팀 구축:
+**7개 전문 Agent 역할** + **30+개 Skill 워크플로우**를 원클릭으로 생성하여 완전한 가상 소프트웨어 팀 구축:
 - **Team Leader** - 전역 스케줄링 및 이터레이션 관리
 - **Product Manager** - 요구사항 분석 및 PRD 출력
 - **Feature Designer** - 기능 설계 + API 계약
@@ -83,6 +83,13 @@ Stage 4: 시스템 집계 → 시스템 파노라마 생성
 ```
 - **전체 동기화** 및 **증분 동기화** 지원 (Git diff 기반)
 - 한 사람이 최적화하면 팀이 공유
+
+### 🔧 Harness 실전 적용 프레임워크
+**표준화된 실행 프레임워크**, 설계 문서가 실행 가능한 개발 지시사항으로 정확하게 변환되도록 보장:
+- **운영 매뉴얼 원칙**: Skill은 SOP, 단계가 명확하고 연속적이며 자체 포함
+- **입출력 계약**: 인터페이스를 명확히 정의, 의사코드처럼 엄격하게 실행
+- **단계별 공개 아키텍처**: 정보를 계층적으로 로드, 일회성 컨텍스트 과부하 방지
+- **하위 Agent 위임**: 복잡한 작업 자동 분할, 병렬 실행으로 품질 보장
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 초기화 후 프로젝트에 다음이 생성됩니다:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7개 Agent 역할 정의
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38개 Skill 워크플로우
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+개 Skill 워크플로우
 - `speccrew-workspace/` — 작업 공간 (반복 디렉토리, 지식 기반, 문서 템플릿)
 - `.speccrewrc` — SpecCrew 구성 파일
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # 시스템 개발자: 플랫폼별 병렬 개발
 │   │   ├── speccrew-test-manager.md      # 테스트 관리자: 3단계 테스트 조정
 │   │   └── speccrew-task-worker.md       # 작업자: 병렬 하위 작업 실행
-│   └── skills/                      # 38개 Skill (기능별 그룹화)
+│   └── skills/                      # 30+개 Skill (기능별 그룹화)
 │       ├── speccrew-pm-*/                # 제품 관리 (요구사항 분석, 평가)
 │       ├── speccrew-fd-*/                # 기능 설계 (Feature Design, API 계약)
 │       ├── speccrew-sd-*/                # 시스템 설계 (프론트엔드/백엔드/모바일/데스크톱)

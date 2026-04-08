@@ -442,6 +442,69 @@ Please confirm the following key points:
 
 After confirmation, you can start the Solution Agent for solution planning.
 
+## Step 13: Write Progress Files
+
+After user confirms the PRD, write progress tracking files:
+
+### 13a Write Checkpoint File
+
+Write or update the checkpoint file at:
+```
+speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json
+```
+
+Content:
+```json
+{
+  "stage": "01_prd",
+  "checkpoints": {
+    "prd_review": {
+      "passed": true,
+      "confirmed_at": "<current-ISO-timestamp>",
+      "description": "PRD review and confirmation"
+    }
+  }
+}
+```
+
+### 13b Update Workflow Progress
+
+Read and update the WORKFLOW-PROGRESS.json file:
+
+1. **Read**: `speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json`
+2. **Update the following fields**:
+   - `current_stage` = "02_feature_design"
+   - `01_prd.status` = "confirmed"
+   - `01_prd.completed_at` = `<current-ISO-timestamp>`
+   - `01_prd.confirmed_at` = `<current-ISO-timestamp>`
+   - `01_prd.outputs` = `["01.product-requirement/{feature-name}-prd.md"]`
+
+**Example updated stage entry**:
+```json
+{
+  "01_prd": {
+    "status": "confirmed",
+    "started_at": "2026-04-08T10:00:00Z",
+    "completed_at": "2026-04-08T11:30:00Z",
+    "confirmed_at": "2026-04-08T11:35:00Z",
+    "outputs": [
+      "01.product-requirement/user-management-prd.md"
+    ]
+  }
+}
+```
+
+### 13c Handle Missing Progress File
+
+If WORKFLOW-PROGRESS.json does not exist (backward compatibility):
+- Create the file with initial structure
+- Set `01_prd` to confirmed state directly
+- Other stages remain as `pending`
+
+**Status Flow**: `pending` → `in_progress` → `completed` → `confirmed`
+
+---
+
 # Knowledge Loading Strategy
 
 1. **First**: Read `system-overview.md` for system context
@@ -473,3 +536,5 @@ After confirmation, you can start the Solution Agent for solution planning.
 - [ ] **[If modifying existing features]** All changes marked with [EXISTING]/[MODIFIED]/[NEW]
 - [ ] Files written to correct paths
 - [ ] Summary shown to user and confirmation requested
+- [ ] **[After confirmation]** Checkpoint file written to `01.product-requirement/.checkpoints.json`
+- [ ] **[After confirmation]** WORKFLOW-PROGRESS.json updated with confirmed status and outputs

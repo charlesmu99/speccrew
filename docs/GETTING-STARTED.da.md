@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Ofte Stillede Spørgsmål (FAQ)
+## 6. Arbejdsgangsforløbsstyring
+
+Det virtuelle SpecCrew-team følger en streng fase-gate-mekanisme, hvor hver fase skal bekræftes af brugeren før der fortsættes til den næste. Det understøtter også genoptagelig udførelse — når det genstartes efter afbrydelse, fortsætter det automatisk fra hvor det slap.
+
+### 6.1 Tremedlagsforløbsfiler
+
+Arbejdsgangen vedligeholder automatisk tre typer JSON-forløbsfiler, placeret i iterationsmappen:
+
+| Fil | Placering | Formål |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Registrerer status for hver pipeline-fase |
+| `.checkpoints.json` | Under hver fasemappe | Registrerer brugerens checkpoint-bekræftelsesstatus |
+| `DISPATCH-PROGRESS.json` | Under hver fasemappe | Registrerer punkt-for-punkt forløb for parallelle opgaver (multi-platform/multi-modul) |
+
+### 6.2 Fasestatusforløb
+
+Hver fase følger dette statusforløb:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Ikke startet endnu
+- **in_progress**: Udføres i øjeblikket
+- **completed**: Agent-udførelse afsluttet, venter på brugerbekræftelse
+- **confirmed**: Bruger bekræftet gennem sidste checkpoint, næste fase kan starte
+
+### 6.3 Genoptagelig Udførelse
+
+Når en Agent genstartes for en fase:
+
+1. **Automatisk opstrømskontrol**: Verificerer om den forrige fase er bekræftet, blokerer og informerer hvis ikke
+2. **Checkpoint-gendannelse**: Læser `.checkpoints.json`, springer over passerede checkpoints, fortsætter fra det sidste afbrydelsespunkt
+3. **Parallel opgavegendannelse**: Læser `DISPATCH-PROGRESS.json`, udfører kun opgaver med `pending` eller `failed` status igen, springer over `completed` opgaver
+
+### 6.4 Vis Nuværende Forløb
+
+Vis pipeline-panorama-status gennem Team Leader Agent:
+
+```
+@speccrew-team-leader vis nuværende iterationsforløb
+```
+
+Team Leader vil læse forløbsfilerne og vise en statusoversigt svarende til:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Bekræftet
+  02 Feature Design: 🔄 I gang (Checkpoint A passeret)
+  03 System Design:  ⏳ Afventer
+  04 Development:    ⏳ Afventer
+  05 System Test:    ⏳ Afventer
+```
+
+### 6.5 Bagudkompatibilitet
+
+Forløbsfilms-mekanismen er fuldt bagudkompatibel — hvis forløbsfiler ikke findes (f.eks. i ældre projekter eller nye iterationer), vil alle Agenter udføre normalt i henhold til den oprindelige logik.
+
+---
+
+## 7. Ofte Stillede Spørgsmål (FAQ)
 
 ### Q1: Hvad hvis agenten ikke fungerer som forventet?
 
@@ -418,7 +478,7 @@ Følgende situationer kræver re-initialisering:
 
 ---
 
-## 7. Hurtigreference
+## 8. Hurtigreference
 
 ### Agent Start Hurtigreferencetabel
 

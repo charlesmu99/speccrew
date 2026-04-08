@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. 常见问题（FAQ）
+## 6. 流水线进度管理
+
+SpecCrew 虚拟团队遵循严格的阶段门控机制，每个阶段必须经过用户确认后才能推进到下一阶段。同时支持断点续传 —— 中断后重新启动时，自动从上次停止的位置继续。
+
+### 6.1 三层进度文件
+
+工作流自动维护三类 JSON 进度文件，位于迭代目录下：
+
+| 文件 | 位置 | 作用 |
+|------|------|------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | 记录整条流水线各阶段状态 |
+| `.checkpoints.json` | 各阶段目录下 | 记录用户确认点（Checkpoint）通过状态 |
+| `DISPATCH-PROGRESS.json` | 各阶段目录下 | 记录并行任务（多平台/多模块）的逐项进度 |
+
+### 6.2 阶段状态流转
+
+每个阶段遵循以下状态流转：
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**：尚未开始
+- **in_progress**：正在执行中
+- **completed**：Agent 执行完成，等待用户确认
+- **confirmed**：用户通过最终 Checkpoint 确认，下一阶段可以启动
+
+### 6.3 断点续传
+
+当重新启动某个阶段的 Agent 时：
+
+1. **自动检查上游**：验证前一阶段是否已 confirmed，未确认则阻塞并提示
+2. **恢复 Checkpoint**：读取 `.checkpoints.json`，跳过已通过的确认点，从上次中断处继续
+3. **恢复并行任务**：读取 `DISPATCH-PROGRESS.json`，只重新执行 `pending` 或 `failed` 状态的任务，跳过已 `completed` 的任务
+
+### 6.4 查看当前进度
+
+通过 Team Leader Agent 查看流水线全景状态：
+
+```
+@speccrew-team-leader 查看当前迭代进度
+```
+
+Team Leader 会读取进度文件并展示类似以下的状态概览：
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 向下兼容
+
+进度文件机制完全向下兼容 —— 如果进度文件不存在（如旧项目或全新迭代），所有 Agent 将按照原有逻辑正常执行。
+
+---
+
+## 7. 常见问题（FAQ）
 
 ### Q1: Agent 不按预期工作怎么办？
 
@@ -418,7 +478,7 @@ speccrew update
 
 ---
 
-## 7. 快速参考
+## 8. 快速参考
 
 ### Agent 启动速查表
 

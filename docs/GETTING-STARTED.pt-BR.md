@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Perguntas Frequentes (FAQ)
+## 6. Gestão do Progresso do Workflow
+
+A equipe virtual SpecCrew segue um rigoroso mecanismo de validação por estágios onde cada fase deve ser confirmada pelo usuário antes de prosseguir para a próxima. Também suporta execução retomável — ao reiniciar após interrupção, continua automaticamente de onde parou.
+
+### 6.1 Arquivos de Progresso de Três Níveis
+
+O workflow mantém automaticamente três tipos de arquivos de progresso JSON, localizados no diretório de iteração:
+
+| Arquivo | Localização | Propósito |
+|---------|-------------|----------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Registra o status de cada estágio do pipeline |
+| `.checkpoints.json` | Sob cada diretório de fase | Registra o status de confirmação dos checkpoints do usuário |
+| `DISPATCH-PROGRESS.json` | Sob cada diretório de fase | Registra o progresso item por item para tarefas paralelas (multiplataforma/multimódulo) |
+
+### 6.2 Fluxo de Status dos Estágios
+
+Cada fase segue este fluxo de status:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Ainda não iniciado
+- **in_progress**: Atualmente em execução
+- **completed**: Execução do Agent concluída, aguardando confirmação do usuário
+- **confirmed**: Confirmado pelo usuário através do checkpoint final, a próxima fase pode iniciar
+
+### 6.3 Execução Retomável
+
+Ao reiniciar um Agent para uma fase:
+
+1. **Verificação automática ascendente**: Verifica se a fase anterior está confirmada, bloqueia e notifica se não estiver
+2. **Recuperação de checkpoints**: Lê `.checkpoints.json`, ignora checkpoints passados, continua do último ponto de interrupção
+3. **Recuperação de tarefas paralelas**: Lê `DISPATCH-PROGRESS.json`, reexecuta apenas tarefas com status `pending` ou `failed`, ignora tarefas `completed`
+
+### 6.4 Visualizar o Progresso Atual
+
+Visualizar o status panorâmico do pipeline através do Agent Team Leader:
+
+```
+@speccrew-team-leader visualizar progresso da iteração atual
+```
+
+O Team Leader lerá os arquivos de progresso e exibirá um resumo do status similar a:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Compatibilidade com Versões Anteriores
+
+O mecanismo de arquivos de progresso é totalmente retrocompatível — se os arquivos de progresso não existirem (por exemplo, em projetos legados ou novas iterações), todos os Agents serão executados normalmente de acordo com a lógica original.
+
+---
+
+## 7. Perguntas Frequentes (FAQ)
 
 ### P1: O que fazer se o Agente não funcionar como esperado?
 
@@ -419,7 +479,7 @@ Reinicialização é necessária nas seguintes situações:
 
 ---
 
-## 7. Referência Rápida
+## 8. Referência Rápida
 
 ### Referência Rápida de Início de Agentes
 

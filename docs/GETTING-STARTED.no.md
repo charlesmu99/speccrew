@@ -361,7 +361,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Ofte Stilte Spørsmål (FAQ)
+## 6. Arbeidsflytforløpsstyring
+
+Det virtuelle SpecCrew-teamet følger en streng fase-port-mekanisme hvor hver fase må bekreftes av brukeren før man fortsetter til den neste. Det støtter også gjenopptakbar utførelse — når det startes på nytt etter avbrudd, fortsetter det automatisk fra hvor det slapp.
+
+### 6.1 Trelagsforløpsfiler
+
+Arbeidsflyten vedlikeholder automatisk tre typer JSON-forløpsfiler, plassert i iterasjonskatalogen:
+
+| Fil | Plassering | Formål |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Registrerer status for hver pipeline-fase |
+| `.checkpoints.json` | Under hver fasekatalog | Registrerer brukerens sjekkpunkt-bekreftelsesstatus |
+| `DISPATCH-PROGRESS.json` | Under hver fasekatalog | Registrerer punkt-for-punkt forløp for parallelle oppgaver (multi-plattform/multi-modul) |
+
+### 6.2 Fasestatusforløp
+
+Hver fase følger dette statusforløpet:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Ikke startet ennå
+- **in_progress**: Utføres for øyeblikket
+- **completed**: Agent-utførelse fullført, venter på brukerbekreftelse
+- **confirmed**: Bruker bekreftet gjennom siste sjekkpunkt, neste fase kan starte
+
+### 6.3 Gjenopptakbar Utførelse
+
+Når en Agent startes på nytt for en fase:
+
+1. **Automatisk oppstrømskontroll**: Verifiserer om den forrige fasen er bekreftet, blokkerer og varsler hvis ikke
+2. **Sjekkpunkt-gjenoppretting**: Leser `.checkpoints.json`, hopper over passerte sjekkpunkter, fortsetter fra det siste avbruddspunktet
+3. **Parallell oppgave-gjenoppretting**: Leser `DISPATCH-PROGRESS.json`, utfører kun oppgaver med `pending` eller `failed` status på nytt, hopper over `completed` oppgaver
+
+### 6.4 Vise Nåværende Forløp
+
+Vis pipeline-panorama-status gjennom Team Leader Agent:
+
+```
+@speccrew-team-leader vis nåværende iterasjonsforløp
+```
+
+Team Leader vil lese forløpsfilene og vise en statusoversikt som ligner på:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Bekreftet
+  02 Feature Design: 🔄 Pågår (Sjekkpunkt A passert)
+  03 System Design:  ⏳ Avventer
+  04 Development:    ⏳ Avventer
+  05 System Test:    ⏳ Avventer
+```
+
+### 6.5 Bakoverkompatibilitet
+
+Forløpsfil-mekanismen er fullstendig bakoverkompatibel — hvis forløpsfiler ikke finnes (f.eks. i eldre prosjekter eller nye iterasjoner), vil alle Agenter utføre normalt i henhold til den opprinnelige logikken.
+
+---
+
+## 7. Ofte Stilte Spørsmål (FAQ)
 
 ### S1: Hva gjør jeg hvis Agenten ikke fungerer som forventet?
 
@@ -419,7 +479,7 @@ Re-initialisering kreves i følgende situasjoner:
 
 ---
 
-## 7. Hurtigreferanse
+## 8. Hurtigreferanse
 
 ### Agent-start Hurtigreferanse
 

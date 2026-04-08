@@ -44,7 +44,7 @@ Bằng cách tích hợp các Agent và Skill vào các dự án hiện có, cá
 ## ✨ Điểm Nổi Bật Chính
 
 ### 🏭 Đội Phần Mềm Ảo
-Tạo bằng một cú nhấp chuột **7 vai trò Agent chuyên nghiệp** + **38 quy trình Skill**, xây dựng đội phần mềm ảo hoàn chỉnh:
+Tạo bằng một cú nhấp chuột **7 vai trò Agent chuyên nghiệp** + **30+ quy trình Skill**, xây dựng đội phần mềm ảo hoàn chỉnh:
 - **Team Leader** - Lập kế hoạch toàn cầu và quản lý lặp lại
 - **Product Manager** - Phân tích yêu cầu và xuất PRD
 - **Feature Designer** - Thiết kế tính năng + hợp đồng API
@@ -83,6 +83,13 @@ Giai đoạn 4: Tổng hợp hệ thống → Tạo toàn cảnh hệ thống
 ```
 - Hỗ trợ **đồng bộ hóa đầy đủ** và **đồng bộ hóa tăng dần** (dựa trên Git diff)
 - Một người tối ưu hóa, cả đội chia sẻ
+
+### 🔧 Harness Khung Thực chiến Triển khai
+**Khung thực thi chuẩn hóa**, đảm bảo tài liệu thiết kế được chuyển đổi chính xác thành các chỉ lệnh phát triển có thể thực thi:
+- **Nguyên tắc sổ tay vận hành**: Skill là SOP, các bước rõ ràng, liên tục và tự chứa
+- **Hợp đồng đầu vào-đầu ra**: Định nghĩa rõ ràng các giao diện, thực thi nghiêm ngặt như pseudocode
+- **Kiến trúc tiết lộ dần dần**: Tải thông tin theo lớp, tránh quá tải ngữ cảnh một lần
+- **Ủy quyền Sub-Agent**: Tự động chia nhỏ tác vụ phức tạp, thực thi song song đảm bảo chất lượng
 
 ---
 

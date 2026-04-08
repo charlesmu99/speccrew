@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. よくある質問（FAQ）
+## 6. パイプライン進捗管理
+
+SpecCrew 仮想チームは厳密なフェーズゲートメカニズムに従い、各フェーズはユーザー確認後に次のフェーズに進む必要があります。また、ブレークポイントレジュームをサポート —— 中断後に再起動すると、自動的に前回停止した位置から継続します。
+
+### 6.1 三層進捗ファイル
+
+ワークフローは自動的に3種類の JSON 進捗ファイルを維持し、イテレーションディレクトリに配置されます：
+
+| ファイル | 位置 | 役割 |
+|------|------|------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | パイプライン全体の各フェーズ状態を記録 |
+| `.checkpoints.json` | 各フェーズディレクトリ下 | ユーザーチェックポイント（Checkpoint）の通過状態を記録 |
+| `DISPATCH-PROGRESS.json` | 各フェーズディレクトリ下 | 並行タスク（複数プラットフォーム/モジュール）の個別進捗を記録 |
+
+### 6.2 フェーズ状態の遷移
+
+各フェーズは以下の状態遷移に従います：
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**：未開始
+- **in_progress**：実行中
+- **completed**：Agent 実行完了、ユーザー確認待ち
+- **confirmed**：ユーザーが最終 Checkpoint を確認、次のフェーズを開始可能
+
+### 6.3 ブレークポイントレジューム
+
+あるフェーズの Agent を再起動すると：
+
+1. **上流の自動チェック**：前のフェーズが confirmed されているか検証、未確認の場合はブロックして警告
+2. **Checkpoint の復元**：`.checkpoints.json` を読み込み、通過済みの確認ポイントをスキップし、前回の中断位置から継続
+3. **並行タスクの復元**：`DISPATCH-PROGRESS.json` を読み込み、`pending` または `failed` 状態のタスクのみ再実行、既に `completed` のタスクはスキップ
+
+### 6.4 現在の進捗を確認
+
+Team Leader Agent を通じてパイプラインの全体状態を確認：
+
+```
+@speccrew-team-leader 現在のイテレーション進捗を確認
+```
+
+Team Leader は進捗ファイルを読み込み、以下のような状態概要を表示します：
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 下位互換性
+
+進捗ファイルメカニズムは完全に下位互換 —— 進捗ファイルが存在しない場合（古いプロジェクトや新規イテレーションなど）、すべての Agent は元のロジックで正常に実行されます。
+
+---
+
+## 7. よくある質問（FAQ）
 
 ### Q1: エージェントが期待通りに動作しない場合は？
 
@@ -418,7 +478,7 @@ speccrew update
 
 ---
 
-## 7. クイックリファレンス
+## 8. クイックリファレンス
 
 ### エージェント起動クイックリファレンス表
 
@@ -455,7 +515,7 @@ speccrew update
 
 ---
 
-## 次のステップ
+## 9. 次のステップ
 
 1. `speccrew init --ide qoder`を実行してプロジェクトを初期化
 2. ステップ0を実行：プロジェクト診断とナレッジベース初期化

@@ -44,7 +44,7 @@ Durch die Integration von Agents und Skills in bestehende Projekte können Teams
 ## ✨ Hauptmerkmale
 
 ### 🏭 Virtuelles Softwareteam
-Ein-Klick-Generierung von **7 professionellen Agent-Rollen** + **38 Skill-Workflows**, Aufbau eines vollständigen virtuellen Softwareteams:
+Ein-Klick-Generierung von **7 professionellen Agent-Rollen** + **30+ Skill-Workflows**, Aufbau eines vollständigen virtuellen Softwareteams:
 - **Team Leader** - Globale Planung und Iterationsmanagement
 - **Product Manager** - Anforderungsanalyse und PRD-Erstellung
 - **Feature Designer** - Feature-Design + API-Verträge
@@ -83,6 +83,13 @@ Stufe 4: Systemaggregation → Systempanorama generieren
 ```
 - Unterstützt **Voll-Synchronisierung** und **Inkrementelle Synchronisierung** (basierend auf Git diff)
 - Eine Person optimiert, Team teilt
+
+### 🔧 Harness Praktisches Implementierungsframework
+**Standardisiertes Ausführungsframework**, stellt sicher, dass Design-Dokumente präzise in ausführbare Entwicklungsanweisungen umgewandelt werden:
+- **Betriebsanleitungs-Prinzip**: Skill ist SOP, Schritte sind klar, fortlaufend, in sich geschlossen
+- **Input-Output-Vertrag**: Schnittstellen klar definiert, strenge Ausführung wie Pseudocode
+- **Progressive-Disclosure-Architektur**: Informationen werden schichtweise geladen, vermeidet einmalige Kontextüberlastung
+- **Sub-Agent-Delegierung**: komplexe Aufgaben werden automatisch aufgeteilt, parallele Ausführung sichert Qualität
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Nach der Initialisierung werden in Ihrem Projekt generiert:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 Agent-Rollendefinitionen
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 Skill-Workflows
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ Skill-Workflows
 - `speccrew-workspace/` — Workspace (Iterationsverzeichnisse, Wissensbasis, Dokumentvorlagen)
 - `.speccrewrc` — SpecCrew-Konfigurationsdatei
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Parallele Entwicklung nach Plattform
 │   │   ├── speccrew-test-manager.md      # Test Manager: Dreiphasige Testkoordination
 │   │   └── speccrew-task-worker.md       # Task Worker: Parallele Unteraufgabenausführung
-│   └── skills/                      # 38 Skills (nach Funktion gruppiert)
+│   └── skills/                      # 30+ Skills (nach Funktion gruppiert)
 │       ├── speccrew-pm-*/                # Produktmanagement (Anforderungsanalyse, Bewertung)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, API Vertrag)
 │       ├── speccrew-sd-*/                # System Design (Frontend/Backend/Mobile/Desktop)

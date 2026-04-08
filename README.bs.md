@@ -44,7 +44,7 @@ Integracijom Agenata i Vještina u postojeće projekte, timovi mogu brzo inicija
 ## ✨ Ključne Karakteristike
 
 ### 🏭 Virtuelni Softverski Tim
-Jednoklik generisanje **7 profesionalnih uloga Agenata** + **38 tokova rada Vještina**, izgradnja kompletnog virtuelnog softverskog tima:
+Jednoklik generisanje **7 profesionalnih uloga Agenata** + **30+ tokova rada Vještina**, izgradnja kompletnog virtuelnog softverskog tima:
 - **Team Leader** - Globalno planiranje i upravljanje iteracijama
 - **Product Manager** - Analiza zahtjeva i PRD output
 - **Feature Designer** - Dizajn funkcionalnosti + API ugovori
@@ -83,6 +83,13 @@ Stepen 4: Sistemska agregacija → Generisanje panorame sistema
 ```
 - Podržava **potpunu sinhronizaciju** i **inkrementalnu sinhronizaciju** (bazirano na Git diff)
 - Jedna osoba optimizira, tim dijeli
+
+### 🔧 Harness Okvir za Praktičnu Implementaciju
+**Standardizovani okvir za izvršavanje**, osigurava preciznu transformaciju dizajn dokumenata u izvršne razvojne instrukcije:
+- **Princip operativnog priručnika**: Skill je SOP, koraci jasni, kontinuirani, samodovoljni
+- **Ugovor o ulazima i izlazima**: jasno definisani interfejsi, strogo izvršavanje poput pseudokoda
+- **Arhitektura postepenog otkrivanja**: informacije se učitavaju u slojevima, izbjegava preopterećenje konteksta
+- **Delegiranje sub-agenta**: kompleksni zadaci se automatski dijele, paralelno izvršavanje osigurava kvalitet
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Nakon inicijalizacije, u projektu će biti generisano:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 definicija uloga Agenata
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 tokova rada Vještina
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ tokova rada Vještina
 - `speccrew-workspace/` — Radni prostor (direktoriji iteracija, baza znanja, predlošci dokumenata)
 - `.speccrewrc` — Konfiguracioni fajl SpecCrew
 
@@ -299,7 +306,7 @@ your-project/
 │   │   ├── speccrew-system-developer.md  # System Developer: Paralelni razvoj po platformama
 │   │   ├── speccrew-test-manager.md      # Test Manager: Koordinacija trofaznog testiranja
 │   │   └── speccrew-task-worker.md       # Task Worker: Paralelno izvršavanje podzadataka
-│   └── skills/                      # 38 Vještina (grupisanih po funkciji)
+│   └── skills/                      # 30+ Vještina (grupisanih po funkciji)
 │       ├── speccrew-pm-*/                # Upravljanje proizvodom (analiza zahtjeva, evaluacija)
 │       ├── speccrew-fd-*/                # Feature Design (Feature Design, API ugovor)
 │       ├── speccrew-sd-*/                # System Design (frontend/backend/mobile/desktop)

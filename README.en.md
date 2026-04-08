@@ -44,7 +44,7 @@ By integrating Agents and Skills into existing projects, teams can quickly initi
 ## ✨ Key Highlights
 
 ### 🏭 Virtual Software Team
-One-click generation of **7 professional Agent roles** + **38 Skill workflows**, building a complete virtual software team:
+One-click generation of **7 professional Agent roles** + **30+ Skill workflows**, building a complete virtual software team:
 - **Team Leader** - Global scheduling and iteration management
 - **Product Manager** - Requirements analysis and PRD output
 - **Feature Designer** - Feature design + API contracts
@@ -83,6 +83,13 @@ Stage 4: System aggregation → Generate system panorama
 ```
 - Supports **full sync** and **incremental sync** (based on Git diff)
 - One person optimizes, team shares
+
+### 🔧 Harness Execution Framework
+**Standardized execution framework** ensuring design documents are accurately transformed into executable development instructions:
+- **SOP Principle**: Skills as standard operating procedures—clear, continuous, self-contained steps
+- **Input/Output Contracts**: Well-defined interfaces for rigorous, pseudocode-like execution
+- **Progressive Disclosure**: Layered information architecture preventing context overload
+- **Sub-Agent Dispatch**: Automatic task decomposition with parallel execution for quality assurance
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 After initialization, the following will be generated in your project:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 Agent role definitions
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 Skill workflows
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ Skill workflows
 - `speccrew-workspace/` — Workspace (iteration directories, knowledge base, document templates)
 - `.speccrewrc` — SpecCrew configuration file
 

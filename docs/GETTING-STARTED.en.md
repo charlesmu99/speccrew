@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Frequently Asked Questions (FAQ)
+## 6. Workflow Progress Management
+
+The SpecCrew virtual team follows a strict stage-gating mechanism where each phase must be confirmed by the user before proceeding to the next. It also supports resumable execution — when restarted after interruption, it automatically continues from where it left off.
+
+### 6.1 Three-Layer Progress Files
+
+The workflow automatically maintains three types of JSON progress files, located in the iteration directory:
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Records the status of each pipeline stage |
+| `.checkpoints.json` | Under each phase directory | Records user checkpoint confirmation status |
+| `DISPATCH-PROGRESS.json` | Under each phase directory | Records item-by-item progress for parallel tasks (multi-platform/multi-module) |
+
+### 6.2 Stage Status Flow
+
+Each phase follows this status flow:
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending**: Not yet started
+- **in_progress**: Currently executing
+- **completed**: Agent execution completed, awaiting user confirmation
+- **confirmed**: User confirmed through final checkpoint, next phase can start
+
+### 6.3 Resumable Execution
+
+When restarting an Agent for a phase:
+
+1. **Automatic upstream check**: Verifies if the previous phase is confirmed, blocks and prompts if not
+2. **Checkpoint recovery**: Reads `.checkpoints.json`, skips passed checkpoints, continues from the last interruption point
+3. **Parallel task recovery**: Reads `DISPATCH-PROGRESS.json`, only re-executes tasks with `pending` or `failed` status, skips `completed` tasks
+
+### 6.4 Viewing Current Progress
+
+View the pipeline panorama status through the Team Leader Agent:
+
+```
+@speccrew-team-leader view current iteration progress
+```
+
+The Team Leader will read the progress files and display a status overview similar to:
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Backward Compatibility
+
+The progress file mechanism is fully backward compatible — if progress files do not exist (e.g., in legacy projects or new iterations), all Agents will execute normally according to the original logic.
+
+---
+
+## 7. Frequently Asked Questions (FAQ)
 
 ### Q1: What if the Agent doesn't work as expected?
 
@@ -418,7 +478,7 @@ Re-initialization is required in the following situations:
 
 ---
 
-## 7. Quick Reference
+## 8. Quick Reference
 
 ### Agent Start Quick Reference
 

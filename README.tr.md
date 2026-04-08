@@ -44,7 +44,7 @@ Mevcut projelere Agent'ları ve Skill'leri entegre ederek, ekipler proje doküma
 ## ✨ Ana Özellikler
 
 ### 🏭 Sanal Yazılım Ekibi
-Tek tıkla **7 profesyonel Agent rolü** + **38 Skill iş akışı** oluşturma, eksiksiz bir sanal yazılım ekibi oluşturma:
+Tek tıkla **7 profesyonel Agent rolü** + **30+ Skill iş akışı** oluşturma, eksiksiz bir sanal yazılım ekibi oluşturma:
 - **Team Leader** - Global planlama ve iterasyon yönetimi
 - **Product Manager** - Gereksinim analizi ve PRD çıktısı
 - **Feature Designer** - Özellik tasarımı + API sözleşmeleri
@@ -83,6 +83,13 @@ Aşama 4: Sistem agregasyonu → Sistem panoraması oluşturma
 ```
 - **Tam senkronizasyon** ve **artımlı senkronizasyon** destekler (Git diff tabanlı)
 - Bir kişi optimize eder, ekip paylaşır
+
+### 🔧 Harness Pratik Uygulama Çerçevesi
+**Standartlaştırılmış yürütme çerçevesi**, tasarım belgelerinin yürütülebilir geliştirme talimatlarına hassas bir şekilde dönüştürülmesini sağlar:
+- **Operasyonel kılavuz ilkesi**: Skill bir SOP'dur, adımlar net, ardışık ve kendi kendine yeten
+- **Girdi-çıktı sözleşmesi**: Arayüzleri açıkça tanımlar, pseudocode gibi titizlikle yürütür
+- **Aşamalı açıklama mimarisi**: Bilgileri katmanlı yükler, tek seferde bağlam aşırı yüklenmesini önler
+- **Alt Agent delege etme**: Karmaşık görevleri otomatik böler, paralel yürütme kaliteyi güvence altına alır
 
 ---
 
@@ -234,7 +241,7 @@ speccrew init --ide claude
 
 Başlatmadan sonra projenizde şu dosyalar oluşturulacaktır:
 - `.qoder/agents/` / `.cursor/agents/` / `.claude/agents/` — 7 Agent rol tanımı
-- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 38 Skill iş akışı
+- `.qoder/skills/` / `.cursor/skills/` / `.claude/skills/` — 30+ Skill iş akışı
 - `speccrew-workspace/` — Çalışma alanı (iterasyon dizinleri, bilgi tabanı, doküman şablonları)
 - `.speccrewrc` — SpecCrew yapılandırma dosyası
 

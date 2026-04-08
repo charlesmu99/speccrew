@@ -360,7 +360,67 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Questions Fréquemment Posées (FAQ)
+## 6. Gestion de la Progression du Workflow
+
+L'équipe virtuelle SpecCrew suit un mécanisme strict de validation par étapes où chaque phase doit être confirmée par l'utilisateur avant de passer à la suivante. Elle prend également en charge l'exécution repreneable — lors du redémarrage après interruption, elle continue automatiquement là où elle s'était arrêtée.
+
+### 6.1 Fichiers de Progression à Trois Niveaux
+
+Le workflow maintient automatiquement trois types de fichiers de progression JSON, situés dans le répertoire d'itération :
+
+| Fichier | Emplacement | Objectif |
+|---------|-------------|----------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Enregistre le statut de chaque étape du pipeline |
+| `.checkpoints.json` | Sous chaque répertoire de phase | Enregistre le statut de confirmation des points de contrôle utilisateur |
+| `DISPATCH-PROGRESS.json` | Sous chaque répertoire de phase | Enregistre la progression élément par élément pour les tâches parallèles (multi-plateforme/multi-module) |
+
+### 6.2 Flux de Statut des Étapes
+
+Chaque phase suit ce flux de statut :
+
+```
+pending → in_progress → completed → confirmed
+```
+
+- **pending** : Pas encore démarré
+- **in_progress** : En cours d'exécution
+- **completed** : Exécution de l'Agent terminée, en attente de confirmation utilisateur
+- **confirmed** : Confirmé par l'utilisateur via le checkpoint final, la phase suivante peut démarrer
+
+### 6.3 Exécution Repreneable
+
+Lors du redémarrage d'un Agent pour une phase :
+
+1. **Vérification automatique en amont** : Vérifie si la phase précédente est confirmée, bloque et invite si ce n'est pas le cas
+2. **Récupération des checkpoints** : Lit `.checkpoints.json`, ignore les checkpoints passés, continue depuis le dernier point d'interruption
+3. **Récupération des tâches parallèles** : Lit `DISPATCH-PROGRESS.json`, réexécute uniquement les tâches avec statut `pending` ou `failed`, ignore les tâches `completed`
+
+### 6.4 Consulter la Progression Actuelle
+
+Consulter le statut panoramique du pipeline via l'Agent Team Leader :
+
+```
+@speccrew-team-leader voir la progression de l'itération actuelle
+```
+
+Le Team Leader lira les fichiers de progression et affichera un aperçu du statut similaire à :
+
+```
+Pipeline Status: i001-user-management
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
+```
+
+### 6.5 Compatibilité Ascendante
+
+Le mécanisme de fichiers de progression est entièrement rétrocompatible — si les fichiers de progression n'existent pas (par exemple, dans les projets existants ou les nouvelles itérations), tous les Agents s'exécuteront normalement selon la logique originale.
+
+---
+
+## 7. Questions Fréquemment Posées (FAQ)
 
 ### Q1 : Que faire si l'Agent ne fonctionne pas comme prévu ?
 
@@ -418,7 +478,7 @@ La réinitialisation est nécessaire dans les situations suivantes :
 
 ---
 
-## 7. Référence Rapide
+## 8. Référence Rapide
 
 ### Référence Rapide de Démarrage Agent
 

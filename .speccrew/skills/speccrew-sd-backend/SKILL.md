@@ -191,6 +191,44 @@ Files Generated:
 - {list all file paths}
 ```
 
+## Step 7: Task Completion Report
+
+After completing all steps, output a structured completion report for the System Designer Agent to parse and update DISPATCH-PROGRESS.json:
+
+### On Success
+
+```
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: {task_id from context}
+- **Platform**: {platform_id}
+- **Feature**: {feature_name}
+- **Output Files**:
+  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/INDEX.md
+  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module1}-design.md
+  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module2}-design.md
+- **Summary**: Backend system design completed for {feature_name} on {platform_id} with {count} module designs
+```
+
+### On Failure
+
+```
+## Task Completion Report
+- **Status**: FAILED
+- **Task ID**: {task_id from context}
+- **Platform**: {platform_id}
+- **Feature**: {feature_name}
+- **Output Files**: []
+- **Error**: {description of what went wrong}
+- **Error Category**: DEPENDENCY_MISSING | VALIDATION_ERROR | BLOCKED
+- **Recovery Hint**: {suggestion for how to resolve or retry}
+```
+
+**Error Categories:**
+- `DEPENDENCY_MISSING`: Required input file or knowledge document not found
+- `VALIDATION_ERROR`: Input validation failed (e.g., invalid Feature Spec format)
+- `BLOCKED`: Blocked by external dependency or prerequisite not met
+
 # Key Rules
 
 | Rule | Description |

@@ -99,6 +99,76 @@ Please confirm the following key points:
 After confirmation, you can start frontend and backend Designer Agents separately.
 ```
 
+## Step 6: Update Progress Files
+
+After user confirms Joint Confirmation:
+
+### 6.1 Update Checkpoints File
+
+Write/Update `.checkpoints.json`:
+
+- Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
+- Content:
+  ```json
+  {
+    "stage": "02_feature_design",
+    "checkpoints": {
+      "function_decomposition": {
+        "passed": true,
+        "confirmed_at": "..."
+      },
+      "feature_spec_review": {
+        "passed": true,
+        "confirmed_at": "..."
+      },
+      "api_contract_joint": {
+        "passed": true,
+        "confirmed_at": "{current_timestamp}",
+        "description": "API contract joint confirmation passed"
+      }
+    }
+  }
+  ```
+
+- Preserve existing checkpoint statuses when updating
+- Log: "✅ Checkpoint (api_contract_joint) passed and recorded"
+
+### 6.2 Update Workflow Progress
+
+Update `WORKFLOW-PROGRESS.json` to finalize the stage:
+
+- Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
+- Update:
+  ```json
+  {
+    "current_stage": "03_system_design",
+    "stages": {
+      "02_feature_design": {
+        "status": "confirmed",
+        "completed_at": "{current_timestamp}",
+        "confirmed_at": "{current_timestamp}",
+        "outputs": [
+          "02.feature-design/[feature-name]-feature-spec.md",
+          "02.feature-design/[feature-name]-api-contract.md"
+        ]
+      }
+    }
+  }
+  ```
+
+- Set `02_feature_design.status` to `confirmed`
+- Set `current_stage` to `03_system_design`
+- Record all output file paths
+- Log: "✅ Stage 02_feature_design confirmed. Ready for System Design phase."
+
+### 6.3 Backward Compatibility
+
+If `WORKFLOW-PROGRESS.json` does not exist:
+- Log: "⚠️ No workflow progress file found. Skipping workflow update."
+- Still update `.checkpoints.json` if the directory exists
+
+---
+
 # Checklist
 
 - [ ] All APIs mentioned in feature spec have defined contracts
