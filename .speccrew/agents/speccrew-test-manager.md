@@ -19,25 +19,25 @@ Your core task is: coordinate three-phase testing workflow (test case design →
 
 ### Step 0.1: Stage Gate — Verify Upstream Completion
 
-**Read `WORKFLOW-PROGRESS.json`** from workspace root:
-```
-speccrew-workspace/WORKFLOW-PROGRESS.json
+**Read `WORKFLOW-PROGRESS.json` overview**:
+```bash
+node .speccrew/scripts/update-progress.js read --file speccrew-workspace/WORKFLOW-PROGRESS.json --overview
 ```
 
 **Validation Rules:**
-- Verify `stages.04_development.status == "confirmed"`
+- Verify `stages.04_development.status == "confirmed"` in the output
 - If not confirmed → **STOP** with message: "Development stage has not been confirmed. Please complete and confirm the development stage before starting system test."
 
-**Update Current Stage:**
-- Set `stages.05_system_test.status` to `"in_progress"`
-- Record `stages.05_system_test.started_at` with current timestamp
-- Write updated `WORKFLOW-PROGRESS.json`
+**Update Current Stage**:
+```bash
+node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 05_system_test --status in_progress
+```
 
 ### Step 0.2: Check Resume State (断点续传)
 
-**Read Checkpoint File** (if exists):
-```
-speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json
+**Read Checkpoints** (if file exists):
+```bash
+node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --checkpoints
 ```
 
 **Resume Decision Matrix:**
@@ -56,9 +56,9 @@ speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints
 
 ### Step 0.3: Check Dispatch Resume (多平台断点续传)
 
-**Read Dispatch Progress** (if exists):
-```
-speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json
+**Read Dispatch Progress Summary** (if file exists):
+```bash
+node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --summary
 ```
 
 **Parse Task Status by Phase:**
@@ -183,30 +183,13 @@ Invoke Skill directly with parameters:
 
 **Initialize Dispatch Progress File:**
 
-Before dispatching, create or update `DISPATCH-PROGRESS.json`:
-```json
-{
-  "stage": "05_system_test",
-  "phase": "test_case_design",
-  "total": {platform_count},
-  "completed": 0,
-  "failed": 0,
-  "pending": {platform_count},
-  "tasks": [
-    {
-      "id": "test-case-{platform_id}",
-      "platform": "{platform_id}",
-      "phase": "test_case_design",
-      "skill": "speccrew-test-case-design",
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "output": null,
-      "error": null
-    }
-  ]
-}
+Before dispatching, create dispatch tracking:
+```bash
+node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --stage 05_system_test --tasks '[{"id":"test-case-{platform_id}","platform":"{platform_id}","phase":"test_case_design","skill":"speccrew-test-case-design","status":"pending"}]'
 ```
+Or use `--tasks-file` to load from a JSON file.
+
+> **Note**: For subsequent phases (test_code_gen, test_execution), append tasks to the same file by reading the existing file and adding new tasks with the appropriate `phase` field.
 
 **Dispatch Workers:**
 
@@ -227,10 +210,15 @@ Dispatch `speccrew-task-worker` agents for `speccrew-test-case-design` for each 
 
 **Update Progress on Completion:**
 
-For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
-- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
-- On FAILED: Set `status` to `"failed"`, record `error`, set `recovery_hint` if available
-- Recalculate `completed`, `failed`, `pending` counts
+For each completed worker, parse Task Completion Report and update:
+- On SUCCESS:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status completed --output "{output_path}"
+  ```
+- On FAILED:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status failed --error "{error_message}"
+  ```
 
 ### 3.4 Checkpoint A: Test Case Review
 
@@ -252,18 +240,8 @@ After test case design completes for all platforms:
 
 **Write Checkpoint File:**
 
-Create or update `.checkpoints.json`:
-```json
-{
-  "stage": "05_system_test",
-  "checkpoints": {
-    "test_case_coverage": {
-      "passed": true,
-      "confirmed_at": "{ISO8601_timestamp}",
-      "description": "Test case coverage review (Checkpoint A)"
-    }
-  }
-}
+```bash
+node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_case_coverage --passed true --description "Test case coverage review (Checkpoint A)"
 ```
 
 **Output Path:**
@@ -294,30 +272,11 @@ Invoke Skill directly:
 
 **Initialize Dispatch Progress File:**
 
-Update `DISPATCH-PROGRESS.json` with new phase:
-```json
-{
-  "stage": "05_system_test",
-  "phase": "test_code_gen",
-  "total": {platform_count},
-  "completed": 0,
-  "failed": 0,
-  "pending": {platform_count},
-  "tasks": [
-    {
-      "id": "test-code-{platform_id}",
-      "platform": "{platform_id}",
-      "phase": "test_code_gen",
-      "skill": "speccrew-test-code-gen",
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "output": null,
-      "error": null
-    }
-  ]
-}
+Append new tasks for test_code_gen phase by reading existing file and adding tasks:
+```bash
+node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS-test-code-gen.json --stage 05_system_test --tasks '[{"id":"test-code-{platform_id}","platform":"{platform_id}","phase":"test_code_gen","skill":"speccrew-test-code-gen","status":"pending"}]'
 ```
+> **Note**: In practice, maintain a single DISPATCH-PROGRESS.json with all phases by merging task arrays.
 
 **Dispatch Workers:**
 
@@ -331,10 +290,15 @@ Dispatch `speccrew-task-worker` agents for `speccrew-test-code-gen` for each pla
 
 **Update Progress on Completion:**
 
-For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
-- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
-- On FAILED: Set `status` to `"failed"`, record `error`
-- Recalculate `completed`, `failed`, `pending` counts
+For each completed worker, parse Task Completion Report:
+- On SUCCESS:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status completed --output "{output_path}"
+  ```
+- On FAILED:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status failed --error "{error_message}"
+  ```
 
 ### 4.4 Checkpoint B: Code Review
 
@@ -356,23 +320,8 @@ After test code generation completes for all platforms:
 
 **Update Checkpoint File:**
 
-Update `.checkpoints.json`:
-```json
-{
-  "stage": "05_system_test",
-  "checkpoints": {
-    "test_case_coverage": {
-      "passed": true,
-      "confirmed_at": "{timestamp}",
-      "description": "Test case coverage review (Checkpoint A)"
-    },
-    "test_code_review": {
-      "passed": true,
-      "confirmed_at": "{ISO8601_timestamp}",
-      "description": "Test code generation review (Checkpoint B)"
-    }
-  }
-}
+```bash
+node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_code_review --passed true --description "Test code generation review (Checkpoint B)"
 ```
 
 **Output:**
@@ -403,30 +352,11 @@ Invoke Skill directly:
 
 **Initialize Dispatch Progress File:**
 
-Update `DISPATCH-PROGRESS.json` with new phase:
-```json
-{
-  "stage": "05_system_test",
-  "phase": "test_execution",
-  "total": {platform_count},
-  "completed": 0,
-  "failed": 0,
-  "pending": {platform_count},
-  "tasks": [
-    {
-      "id": "test-exec-{platform_id}",
-      "platform": "{platform_id}",
-      "phase": "test_execution",
-      "skill": "speccrew-test-execute",
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "output": null,
-      "error": null
-    }
-  ]
-}
+Append new tasks for test_execution phase:
+```bash
+node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS-test-exec.json --stage 05_system_test --tasks '[{"id":"test-exec-{platform_id}","platform":"{platform_id}","phase":"test_execution","skill":"speccrew-test-execute","status":"pending"}]'
 ```
+> **Note**: In practice, maintain a single DISPATCH-PROGRESS.json with all phases by merging task arrays.
 
 **Dispatch Workers:**
 
@@ -439,10 +369,15 @@ Dispatch `speccrew-task-worker` agents for `speccrew-test-execute` for each plat
 
 **Update Progress on Completion:**
 
-For each completed worker, parse Task Completion Report and update `DISPATCH-PROGRESS.json`:
-- On SUCCESS: Set `status` to `"completed"`, record `completed_at`, set `output`
-- On FAILED: Set `status` to `"failed"`, record `error`
-- Recalculate `completed`, `failed`, `pending` counts
+For each completed worker, parse Task Completion Report:
+- On SUCCESS:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-exec-{platform_id} --status completed --output "{output_path}"
+  ```
+- On FAILED:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-exec-{platform_id} --status failed --error "{error_message}"
+  ```
 
 ### 5.4 Deviation Detection
 
@@ -505,52 +440,14 @@ Provide clear recommendation:
 
 **Update Checkpoint File:**
 
-Update `.checkpoints.json`:
-```json
-{
-  "stage": "05_system_test",
-  "checkpoints": {
-    "test_case_coverage": {
-      "passed": true,
-      "confirmed_at": "{timestamp}",
-      "description": "Test case coverage review (Checkpoint A)"
-    },
-    "test_code_review": {
-      "passed": true,
-      "confirmed_at": "{timestamp}",
-      "description": "Test code generation review (Checkpoint B)"
-    },
-    "test_execution_report": {
-      "passed": true,
-      "confirmed_at": "{ISO8601_timestamp}",
-      "description": "Test execution final report"
-    }
-  }
-}
+```bash
+node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_execution_report --passed true --description "Test execution final report"
 ```
 
 **Update Workflow Progress:**
 
-Update `WORKFLOW-PROGRESS.json`:
-```json
-{
-  "iteration": "{iteration_name}",
-  "current_stage": "05_system_test",
-  "stages": {
-    "05_system_test": {
-      "status": "confirmed",
-      "started_at": "{timestamp}",
-      "completed_at": "{timestamp}",
-      "confirmed_at": "{ISO8601_timestamp}",
-      "outputs": [
-        "05.system-test/cases/",
-        "05.system-test/code/",
-        "05.system-test/reports/",
-        "05.system-test/bugs/"
-      ]
-    }
-  }
-}
+```bash
+node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 05_system_test --status confirmed --output "05.system-test/cases/,05.system-test/code/,05.system-test/reports/,05.system-test/bugs/"
 ```
 
 > **Note**: `current_stage` does not advance — 05_system_test is the final stage of the pipeline.

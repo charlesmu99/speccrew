@@ -21,25 +21,29 @@ Your core task is: based on the System Design (HOW to build), execute and coordi
 
 Before starting development, verify upstream stage completion:
 
-1. **Read WORKFLOW-PROGRESS.json** from workspace root:
-   - Path: `speccrew-workspace/WORKFLOW-PROGRESS.json`
+1. **Read WORKFLOW-PROGRESS.json overview**:
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/WORKFLOW-PROGRESS.json --overview
+   ```
 
 2. **Verify System Design stage status**:
-   - Check `stages.03_system_design.status == "confirmed"`
+   - Check that `stages.03_system_design.status == "confirmed"` in the output
    - If status is not "confirmed": **STOP** and report:
      > "System Design stage has not been confirmed. Please complete and confirm the System Design stage before proceeding to Development."
 
 3. **Update Development stage status**:
-   - Set `stages.04_development.status` to `"in_progress"`
-   - Record `started_at` with current timestamp (ISO 8601 format)
-   - Write updated WORKFLOW-PROGRESS.json
+   ```bash
+   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 04_development --status in_progress
+   ```
 
 ### Phase 0.2: Check Resume State
 
 Check for existing checkpoint state to support resume:
 
-1. **Read .checkpoints.json** (if exists):
-   - Path: `speccrew-workspace/iterations/{current}/04.development/.checkpoints.json`
+1. **Read checkpoints** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/04.development/.checkpoints.json --checkpoints
+   ```
 
 2. **Determine resume point based on passed checkpoints**:
 
@@ -49,20 +53,19 @@ Check for existing checkpoint state to support resume:
    | `task_list_review.passed == true` | Skip task list confirmation, proceed directly to dispatch |
    | `delivery_report.passed == true` | **STOP** — entire stage already completed |
 
-3. **If .checkpoints.json does not exist**: Proceed with full workflow (no resume)
+3. **If file does not exist**: Proceed with full workflow (no resume)
 
 ### Phase 0.3: Check Dispatch Resume (Module-Level Resume)
 
 Check for existing dispatch progress to support module-level retry:
 
-1. **Read DISPATCH-PROGRESS.json** (if exists):
-   - Path: `speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json`
+1. **Read dispatch progress summary** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --summary
+   ```
 
-2. **Calculate task statistics**:
-   - Total tasks: `tasks.length`
-   - Completed: `tasks.filter(t => t.status == "completed").length`
-   - Failed: `tasks.filter(t => t.status == "failed").length`
-   - Pending: `tasks.filter(t => t.status == "pending").length`
+2. **Parse the output** to get counts:
+   - `total`, `completed`, `failed`, `pending`, `in_progress`
 
 3. **Present resume summary to user**:
    ```
@@ -71,7 +74,7 @@ Check for existing dispatch progress to support module-level retry:
    - Completed: {completed}
    - Failed: {failed}
    - Pending: {pending}
-   
+
    Will skip completed modules and only dispatch pending/failed tasks.
    ```
 
@@ -159,20 +162,10 @@ Verify required services are accessible:
 ### 3.4 Pre-check Success Handling
 
 If all pre-checks pass:
-1. **Write checkpoint to .checkpoints.json**:
-   ```json
-   {
-     "stage": "04_development",
-     "checkpoints": {
-       "environment_precheck": {
-         "passed": true,
-         "confirmed_at": "2026-01-15T10:30:00Z",
-         "description": "Runtime environment verification"
-       }
-     }
-   }
+1. **Write checkpoint**:
+   ```bash
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/04.development/.checkpoints.json --stage 04_development --checkpoint environment_precheck --passed true --description "Runtime environment verification"
    ```
-2. Create .checkpoints.json if it doesn't exist, or update existing file
 
 ### 3.5 Pre-check Failure Handling
 
@@ -192,35 +185,41 @@ Before dispatching tasks, create or read dispatch progress file:
 
 1. **Check if DISPATCH-PROGRESS.json exists**:
    - Path: `speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json`
+   - If exists, read summary to determine resume state
 
 2. **If not exists — Create fresh dispatch progress**:
+   ```bash
+   node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --stage 04_development --tasks-file <tasks_json_path>
+   ```
+   Where `<tasks_json_path>` contains the task list built from Step 1.3:
    ```json
-   {
-     "stage": "04_development",
-     "total": 0,
-     "completed": 0,
-     "failed": 0,
-     "pending": 0,
-     "tasks": []
-   }
+   [
+     {
+       "id": "dev-{platform_id}-{module-name}",
+       "platform": "{platform_id}",
+       "module": "{module_name}",
+       "skill": "{skill_name}",
+       "status": "pending"
+     }
+   ]
    ```
 
-3. **Build task list from Step 1.3** and populate DISPATCH-PROGRESS.json:
-   ```json
-   {
-     "id": "dev-{platform_id}-{module-name}",
-     "platform": "{platform_id}",
-     "module": "{module_name}",
-     "skill": "{skill_name}",
-     "status": "pending",
-     "started_at": null,
-     "completed_at": null,
-     "output": null,
-     "error": null
-   }
+3. **Alternatively, pass tasks JSON directly**:
+   ```bash
+   node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --stage 04_development --tasks '[{"id":"dev-web-vue-crm","platform":"web-vue","module":"crm","skill":"speccrew-dev-frontend","status":"pending"}]'
    ```
 
-4. **Update counts**: Set `total` to task list length, `pending` to same value
+**Task Status Enumeration:**
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Task not yet started |
+| `in_progress` | Dev worker currently executing |
+| `in_review` | Dev worker completed, awaiting review verification |
+| `completed` | Review passed, implementation verified |
+| `partial` | Review found incomplete, awaiting re-dispatch |
+| `failed` | Task failed after max re-dispatch attempts |
+| `skipped` | Task explicitly skipped |
 
 ### 4.1 Determine Skill for Each Platform
 
@@ -232,6 +231,12 @@ Platform type mapping:
 | `backend-*` | `speccrew-dev-backend` |
 | `mobile-*` | `speccrew-dev-mobile` |
 | `desktop-*` | `speccrew-dev-desktop` |
+
+**Review Skill (All Platforms):**
+
+| Phase | Skill | Purpose |
+|-------|-------|---------|
+| 4.4 | `speccrew-dev-review` | Validate dev output against design doc, API contract, and code conventions |
 
 ### 4.2 Build Module Task List
 
@@ -269,17 +274,9 @@ for each platform_id:
 - Wait for user confirmation
 
 **After user confirms**:
-1. **Write checkpoint to .checkpoints.json**:
-   ```json
-   {
-     "checkpoints": {
-       "task_list_review": {
-         "passed": true,
-         "confirmed_at": "2026-01-15T10:35:00Z",
-         "description": "Development task list confirmed by user"
-       }
-     }
-   }
+1. **Write checkpoint**:
+   ```bash
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/04.development/.checkpoints.json --stage 04_development --checkpoint task_list_review --passed true --description "Development task list confirmed by user"
    ```
 
 ### 4.3 Dispatch Workers with Concurrency Limit
@@ -299,9 +296,9 @@ while pending is not empty or running is not empty:
     task = pending.pop()
     
     // Update task status to "in_progress"
-    Update DISPATCH-PROGRESS.json:
-      - Set task.status = "in_progress"
-      - Set task.started_at = current timestamp
+    ```bash
+    node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status in_progress
+    ```
     
     // Dispatch speccrew-task-worker agent (NOT Skill tool directly)
     Invoke `speccrew-task-worker` agent with:
@@ -322,18 +319,19 @@ while pending is not empty or running is not empty:
   for each finished worker in running:
     Parse Task Completion Report from worker output
     
+    // Dev worker completion triggers review phase (not final completion)
     if report.status == "SUCCESS":
-      Update DISPATCH-PROGRESS.json:
-        - Set task.status = "completed"
-        - Set task.completed_at = current timestamp
-        - Set task.output = report.output_files
-        - Increment completed count, decrement pending count
+      // Mark as in_review pending review verification
+      ```bash
+      node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status in_review --output "{report.output_files}"
+      ```
+      Add task to review_queue for Phase 4.4
     else:
-      Update DISPATCH-PROGRESS.json:
-        - Set task.status = "failed"
-        - Set task.completed_at = current timestamp
-        - Set task.error = report.error
-        - Increment failed count, decrement pending count
+      // Even failed dev workers go to review for diagnosis
+      ```bash
+      node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status in_review --error "{report.error}"
+      ```
+      Add task to review_queue for Phase 4.4
     
     move finished task from running to completed
 ```
@@ -343,24 +341,141 @@ while pending is not empty or running is not empty:
 - Pass complete context including `design_doc_path`, `skill_name`, platform info, and `task_id`
 - Up to 10 workers execute simultaneously (concurrency limit)
 - Update DISPATCH-PROGRESS.json **before** dispatch (status → "in_progress")
-- Update DISPATCH-PROGRESS.json **after** completion based on Task Completion Report
-- Track all dispatched tasks: completed / failed / pending counts
-- If a worker fails, log the failure and continue with remaining tasks
-- Wait for all workers to complete before proceeding to Step 5 (Integration Check)
+- After dev worker completes, mark as "in_review" (NOT "completed") and queue for review
+- Track all dispatched tasks: in_review / failed / pending counts
+- If a worker fails, still mark as "in_review" for review diagnosis
+- After all dev workers complete, proceed to Phase 4.4 (Review Dispatch)
 
 **Progress Update After Each Batch:**
 After processing a batch of completed workers:
-1. Read current DISPATCH-PROGRESS.json
-2. Update counts: `completed`, `failed`, `pending`
-3. Write updated DISPATCH-PROGRESS.json
-4. Present progress summary to user:
+1. **Read current progress summary**:
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --summary
+   ```
+2. Present progress summary to user:
    ```
    Development Progress Update:
-   - Completed: {completed}/{total}
+   - In Review: {in_review}/{total}
    - Failed: {failed}
    - Pending: {pending}
    - In Progress: {running.size}
    ```
+
+### 4.4: Review Verification
+
+After each dev worker completes (status = "in_review"), dispatch a **separate** `speccrew-task-worker` agent to run the `speccrew-dev-review` skill:
+
+Invoke `speccrew-task-worker` agent with:
+- skill_name: `speccrew-dev-review`
+- context:
+  - design_doc_path: {task.module_design_path}
+  - implementation_report_path: {dev_worker_report_path}
+  - source_root: {project_source_root}
+  - platform_id: {task.platform_id}
+  - api_contract_path: {task.api_contract_path}
+  - task_id: review-{task.id}
+
+**Review Result Handling:**
+
+| Review Verdict | Action |
+|---|---|
+| PASS | Update task status to "completed" via `update-progress.js update-task --status completed` |
+| PARTIAL | Update task status to "partial" via `update-progress.js update-task --status partial --output "<review_summary>"`. Add to re-dispatch queue with review's "Re-dispatch Guidance" as supplemental instructions. |
+| FAIL | Update task status to "failed" via `update-progress.js update-task --status failed --error "<review_summary>" --error-category VALIDATION_ERROR` |
+
+**Review Dispatch Pattern:**
+
+```
+review_queue = [tasks with status == "in_review"]
+
+for each task in review_queue:
+  // Dispatch review worker
+  Invoke `speccrew-task-worker` agent with:
+    - skill_name: speccrew-dev-review
+    - context: (as specified above)
+  
+  wait for review worker completion
+  
+  // Parse review result
+  Parse Review Report from worker output
+  
+  if review.verdict == "PASS":
+    ```bash
+    node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status completed --output "{review_report_path}"
+    ```
+  elif review.verdict == "PARTIAL":
+    ```bash
+    node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status partial --output "{review_report_path}" --metadata "{review.redispatch_guidance}"
+    ```
+    Add task to redispatch_queue
+  else: // FAIL
+    ```bash
+    node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status failed --error "{review.summary}" --error-category VALIDATION_ERROR
+    ```
+```
+
+### 4.5: Re-dispatch Partial/Failed Tasks
+
+After all initial dev + review cycles complete for the current batch:
+
+1. **Query partial/failed tasks:**
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --status partial
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --status failed
+   ```
+
+2. **For each partial/failed task, re-dispatch a dev worker with:**
+   - Original design doc + API contract
+   - Previous implementation report (so worker knows what's already done)
+   - Review report's "Re-dispatch Guidance" (specific list of what to fix/complete)
+   - Instruction: "Continue from previous implementation. Focus on missing items listed in review guidance."
+
+3. **After re-dispatch dev worker completes, run review again (Phase 4.4)**
+
+4. **Maximum re-dispatch attempts: 2** (total 3 attempts including initial)
+   - Track attempt count in task metadata: `attempts`
+   - After 3 attempts, mark as "failed" with accumulated error info
+
+5. **Update counts after each cycle:**
+   ```bash
+   node .speccrew/scripts/update-progress.js update-counts --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json
+   ```
+
+**Re-dispatch Flow:**
+
+```
+redispatch_queue = [tasks with status == "partial" or (status == "failed" and attempts < 3)]
+
+for each task in redispatch_queue:
+  // Increment attempt counter
+  attempts = task.attempts + 1
+  
+  if attempts > 3:
+    // Max attempts reached - mark as permanently failed
+    ```bash
+    node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status failed --error "Max re-dispatch attempts (3) exceeded" --metadata "{accumulated_errors}"
+    ```
+    continue
+  
+  // Update attempt count and reset to in_progress
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --task-id {task.id} --status in_progress --metadata "{attempts: attempts, previous_review: review_report_path}"
+  ```
+  
+  // Dispatch dev worker with supplemental context
+  Invoke `speccrew-task-worker` agent with:
+    - skill_name: {task.skill_name}
+    - context:
+      - (original context)
+      - previous_review_path: {review_report_path}
+      - supplemental_instructions: {review.redispatch_guidance}
+      - is_redispatch: true
+  
+  wait for dev worker completion
+  
+  // Run review again (Phase 4.4)
+  goto Phase 4.4
+```
 
 ## Step 5: Integration Check
 
@@ -473,38 +588,14 @@ Assess readiness for test phase:
 
 **After user confirms delivery**:
 
-1. **Update .checkpoints.json**:
-   ```json
-   {
-     "checkpoints": {
-       "delivery_report": {
-         "passed": true,
-         "confirmed_at": "2026-01-15T14:00:00Z",
-         "description": "Final delivery report"
-       }
-     }
-   }
+1. **Update checkpoint**:
+   ```bash
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/04.development/.checkpoints.json --stage 04_development --checkpoint delivery_report --passed true --description "Final delivery report"
    ```
 
 2. **Update WORKFLOW-PROGRESS.json**:
-   ```json
-   {
-     "current_stage": "05_system_test",
-     "stages": {
-       "04_development": {
-         "status": "confirmed",
-         "started_at": "...",
-         "completed_at": "2026-01-15T14:00:00Z",
-         "confirmed_at": "2026-01-15T14:00:00Z",
-         "outputs": [
-           "04.development/{platform_id}/{module}/"
-         ]
-       },
-       "05_system_test": {
-         "status": "pending"
-       }
-     }
-   }
+   ```bash
+   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 04_development --status confirmed --output "04.development/{platform_id}/{module}/"
    ```
 
 3. **Confirm stage transition**: Report to user that development stage is complete and system is ready for testing phase.

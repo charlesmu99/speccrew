@@ -21,18 +21,31 @@ Your core task is: based on the Feature Spec (WHAT to build), design HOW to buil
 
 Before starting system design, verify that Feature Design stage is confirmed:
 
-1. **Read WORKFLOW-PROGRESS.json** from `speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json`
-2. **Validate upstream stage**: Check `stages.02_feature_design.status == "confirmed"`
+1. **Read WORKFLOW-PROGRESS.json overview**:
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --overview
+   ```
+
+2. **Validate upstream stage**: Check `stages.02_feature_design.status == "confirmed"` in the output
+
 3. **If not confirmed**: STOP — "Feature Design stage has not been confirmed. Please complete Feature Design confirmation first."
+
 4. **If confirmed**: 
    - Read `02_feature_design.outputs` to get Feature Spec and API Contract paths
-   - Update `03_system_design.status` to `in_progress`, record `started_at` timestamp
+   - Update stage status:
+     ```bash
+     node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status in_progress
+     ```
 
 ### Step 0.2: Check Resume State (断点续传)
 
 Check if there's existing progress to resume:
 
-1. **Read .checkpoints.json** from `speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json` (if exists)
+1. **Read checkpoints** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --checkpoints
+   ```
+
 2. **Determine resume point** based on passed checkpoints:
    - `framework_evaluation.passed == true` → Skip Phase 3 (Framework Evaluation)
    - `design_overview.passed == true` → Skip Phase 4 (DESIGN-OVERVIEW.md generation)
@@ -43,7 +56,11 @@ Check if there's existing progress to resume:
 
 Check dispatch progress for parallel task execution:
 
-1. **Read DISPATCH-PROGRESS.json** from `speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json` (if exists)
+1. **Read dispatch progress summary** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --summary
+   ```
+
 2. **List task statuses**:
    - `completed`: Skip these tasks
    - `failed`: Retry these tasks
@@ -175,37 +192,27 @@ Based on platform types in techs-manifest:
 
 Before dispatching, create or update dispatch tracking:
 
-1. **Create task entries** for each Feature × Platform combination:
-   ```json
-   {
-     "stage": "03_system_design",
-     "total": 6,
-     "completed": 0,
-     "failed": 0,
-     "pending": 6,
-     "tasks": [
-       {
-         "id": "sd-{platform_id}-{feature_name}",
-         "platform": "{platform_id}",
-         "feature": "{feature_name}",
-         "skill": "speccrew-sd-{type}",
-         "status": "pending",
-         "started_at": null,
-         "completed_at": null,
-         "output": null,
-         "error": null
-       }
-     ]
-   }
+1. **Initialize dispatch progress file with task list**:
+   ```bash
+   node .speccrew/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks '[{"id":"sd-{platform_id}-{feature_name}","platform":"{platform_id}","feature":"{feature_name}","skill":"speccrew-sd-{type}","status":"pending"}]'
    ```
+   Or use `--tasks-file` to load from a JSON file.
+
 2. **Check existing progress** (from Step 0.3) — skip `completed` tasks
-3. **Update status** to `in_progress` for tasks being dispatched
+3. **Update status** to `in_progress` for tasks being dispatched:
+   ```bash
+   node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+   ```
 
 ### 5.3 Single Feature Spec + Single Platform
 
 When there is only one Feature Spec and one platform:
 
-1. Update task status to `in_progress` with `started_at` timestamp
+1. **Update task status to `in_progress`**:
+   ```bash
+   node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+   ```
+
 2. Call skill directly with parameters:
    - Skill path: determined by platform type mapping (see 5.1)
    - Pass context:
@@ -215,9 +222,16 @@ When there is only one Feature Spec and one platform:
      - `api_contract_path`: Path to API Contract document
      - `techs_paths`: Relevant techs knowledge paths
      - `framework_decisions`: Framework decisions from Phase 3
+
 3. **Parse Task Completion Report** from skill output:
-   - If `Status: SUCCESS` → Update task to `completed`, record `output` path
-   - If `Status: FAILED` → Update task to `failed`, record `error` details
+   - If `Status: SUCCESS`:
+     ```bash
+     node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
+     ```
+   - If `Status: FAILED`:
+     ```bash
+     node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
+     ```
 
 ### 5.4 Parallel Execution (Feature × Platform)
 
@@ -243,7 +257,10 @@ Each worker receives:
   - `framework_decisions`: Framework decisions from Phase 3
   - `output_base_path`: Path to `03.system-design/` directory
 
-**Before dispatch**: Update each task status to `in_progress` with `started_at` timestamp.
+**Before dispatch**: Update each task status to `in_progress`:
+```bash
+node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+```
 
 **Parallel execution example** (2 features × 3 platforms = 6 workers):
 - Worker 1: speccrew-sd-frontend for Feature A on web-vue → 03.system-design/web-vue/
@@ -259,21 +276,14 @@ All workers execute simultaneously to maximize efficiency.
 
 After each worker completes, parse its **Task Completion Report** and update:
 
-```json
-{
-  "tasks": [
-    {
-      "id": "sd-web-vue-feature-a",
-      "status": "completed",
-      "completed_at": "2026-01-15T10:30:00Z",
-      "output": "03.system-design/web-vue/feature-a-design.md"
-    }
-  ],
-  "completed": 4,
-  "failed": 1,
-  "pending": 1
-}
-```
+- On SUCCESS:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
+  ```
+- On FAILED:
+  ```bash
+  node .speccrew/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
+  ```
 
 Wait for all workers to complete before proceeding to Phase 6.
 
@@ -290,31 +300,16 @@ After all platform designs are complete:
 
 After user confirms:
 
-1. **Write .checkpoints.json**:
-   ```json
-   {
-     "stage": "03_system_design",
-     "checkpoints": {
-       "framework_evaluation": { "passed": true, "confirmed_at": "..." },
-       "design_overview": { "passed": true, "confirmed_at": "..." },
-       "joint_confirmation": { "passed": true, "confirmed_at": "..." }
-     }
-   }
+1. **Write checkpoints**:
+   ```bash
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint framework_evaluation --passed true
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint design_overview --passed true
+   node .speccrew/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint joint_confirmation --passed true
    ```
 
 2. **Update WORKFLOW-PROGRESS.json**:
-   ```json
-   {
-     "current_stage": "04_development",
-     "stages": {
-       "03_system_design": {
-         "status": "confirmed",
-         "completed_at": "...",
-         "confirmed_at": "...",
-         "outputs": ["DESIGN-OVERVIEW.md", "platform-indexes", "module-designs"]
-       }
-     }
-   }
+   ```bash
+   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status confirmed --output "DESIGN-OVERVIEW.md, platform-indexes, module-designs"
    ```
 
 3. **Designs become baseline** for Dev phase

@@ -23,12 +23,14 @@ Your core task is to **bridge requirements and implementation**: based on the us
 
 Before starting any feature design work:
 
-1. **Read `WORKFLOW-PROGRESS.json`** from:
-   - Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
+1. **Read `WORKFLOW-PROGRESS.json` overview**:
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --overview
+   ```
    - If the file does not exist → Skip to Phase 1 (backward compatibility mode)
 
 2. **Verify PRD Stage Status**:
-   - Check: `stages.01_prd.status == "confirmed"`
+   - Check: `stages.01_prd.status == "confirmed"` in the output
    - If **NOT confirmed**:
      - **STOP** — Do not proceed
      - Report to user: "❌ **PRD stage has not been confirmed.** Please complete PRD confirmation first using the Product Manager agent. Current status: `{status}`"
@@ -37,16 +39,18 @@ Before starting any feature design work:
      - Proceed to Step 0.2
 
 3. **Update Stage Status**:
-   - Set `stages.02_feature_design.status = "in_progress"`
-   - Set `stages.02_feature_design.started_at = "{current_timestamp}"`
-   - Write the updated `WORKFLOW-PROGRESS.json`
+   ```bash
+   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress
+   ```
 
 ### 0.2 Check Resume State (Checkpoint Recovery)
 
 If resuming from an interrupted session:
 
-1. **Read `.checkpoints.json`** from:
-   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
+1. **Read checkpoints** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json --checkpoints
+   ```
    - If the file does not exist → Start from Phase 1 (no previous progress)
 
 2. **Evaluate Checkpoint Status**:
@@ -63,7 +67,7 @@ If resuming from an interrupted session:
    ├── function_decomposition: ✅ Passed
    ├── feature_spec_review: ✅ Passed
    └── api_contract_joint: ⏳ Pending
-   
+
    Resuming from: API Contract Generation phase
    ```
 
@@ -73,8 +77,10 @@ If resuming from an interrupted session:
 
 If the feature involves multiple frontend platforms:
 
-1. **Read `DISPATCH-PROGRESS.json`** from:
-   - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json`
+1. **Read `DISPATCH-PROGRESS.json` summary** (if file exists):
+   ```bash
+   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json --summary
+   ```
    - If the file does not exist → No dispatch in progress, proceed normally
 
 2. **List Platform Task Status**:
@@ -83,7 +89,7 @@ If the feature involves multiple frontend platforms:
    ├── fd-web-vue: ✅ Completed
    ├── fd-mobile-uniapp: ⏳ Pending
    └── fd-web-react: ❌ Failed (error message)
-   
+
    Total: 3 | Completed: 1 | Failed: 1 | Pending: 1
    ```
 
@@ -218,30 +224,11 @@ After both Feature Spec and API Contract documents are ready, present summary to
 After user confirms Joint Confirmation:
 
 1. **Update `WORKFLOW-PROGRESS.json`**:
-   ```json
-   {
-     "current_stage": "03_system_design",
-     "stages": {
-       "02_feature_design": {
-         "status": "confirmed",
-         "completed_at": "{timestamp}",
-         "confirmed_at": "{timestamp}",
-         "outputs": [
-           "02.feature-design/[feature-name]-feature-spec.md",
-           "02.feature-design/[feature-name]-api-contract.md"
-         ]
-       }
-     }
-   }
+   ```bash
+   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status confirmed --output "02.feature-design/[feature-name]-feature-spec.md,02.feature-design/[feature-name]-api-contract.md"
    ```
 
-2. **Write Updated Progress File**:
-   - Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
-   - Set `current_stage` to `03_system_design` (ready for next stage)
-   - Set `02_feature_design.status` to `confirmed`
-   - Record all output file paths in `outputs` array
-
-3. **Confirm Transition**:
+2. **Confirm Transition**:
    - Notify user: "✅ Feature Design phase completed and confirmed. Ready to start System Design phase."
    - The next agent (speccrew-system-designer) will verify this confirmation via its Stage Gate
 
