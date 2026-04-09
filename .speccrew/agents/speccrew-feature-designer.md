@@ -172,15 +172,98 @@ After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
    - `Type`: Either `Page+API` or `API-only`
    - `Dependencies`: List of prerequisite Feature IDs (if any)
 
-3. **Build Feature Registry**: Consolidate all features across Sub-PRDs into a unified list:
+3. **Build Feature Registry**: Consolidate all features across Sub-PRDs into a unified list.
+
+4. **Write Feature Registry to `.checkpoints.json`**:
+
+   Write or update the checkpoint file at:
    ```
-   Feature Registry Example:
-   ├── F-CRM-01: Customer List Management (Page+API) - from sub-prd-customer.md
-   ├── F-CRM-02: Customer Detail View (Page+API) - from sub-prd-customer.md, depends on F-CRM-01
-   └── F-CRM-03: Customer Search API (API-only) - from sub-prd-customer.md
+   speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json
    ```
 
-4. **Backward Compatibility Check**:
+   Structure — each feature has individual status fields for full checklist tracking:
+   ```json
+   {
+     "stage": "02_feature_design",
+     "checkpoints": {
+       "function_decomposition": {
+         "passed": false,
+         "confirmed_at": null,
+         "description": "Feature Registry extraction and confirmation",
+         "total_features": 42,
+         "total_modules": 13,
+         "features": [
+           {
+             "feature_id": "F-SYS-01",
+             "feature_name": "Account Login",
+             "type": "Page+API",
+             "module": "M1-System",
+             "source_prd": "crm-system-sub-system.md",
+             "dependencies": [],
+             "feature_spec_status": "pending",
+             "api_contract_status": "pending"
+           },
+           {
+             "feature_id": "F-MEMBER-01",
+             "feature_name": "Customer Info Management",
+             "type": "Page+API",
+             "module": "M2-Member",
+             "source_prd": "crm-system-sub-member.md",
+             "dependencies": ["F-SYS-01"],
+             "feature_spec_status": "pending",
+             "api_contract_status": "pending"
+           }
+         ]
+       },
+       "feature_spec_review": {
+         "passed": false,
+         "confirmed_at": null
+       },
+       "api_contract_joint": {
+         "passed": false,
+         "confirmed_at": null
+       }
+     }
+   }
+   ```
+
+   **Feature status values:**
+   - `pending`: Not started
+   - `in_progress`: Worker dispatched
+   - `completed`: Worker finished successfully
+   - `failed`: Worker failed (needs retry)
+   - `confirmed`: User confirmed the output
+
+   **After each worker completes**, update the corresponding feature's status:
+   - Feature Spec worker done → set `feature_spec_status` = `completed`
+   - API Contract worker done → set `api_contract_status` = `completed`
+
+5. **Present Feature Registry to user for confirmation**:
+
+   Display the full feature table:
+
+   | # | Feature ID | Feature Name | Type | Module | Dependencies |
+   |---|-----------|-------------|------|--------|--------------|
+   | 1 | F-SYS-01 | Account Login | Page+API | M1-System | - |
+   | 2 | F-MEMBER-01 | Customer Info | Page+API | M2-Member | F-SYS-01 |
+   | ... | ... | ... | ... | ... | ... |
+
+   ⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
+
+   ```
+   DO NOT dispatch Feature Spec workers until user explicitly confirms the Feature Registry.
+   Ask user:
+   - Is the feature decomposition granularity appropriate?
+   - Are Feature IDs, Types, and dependencies correct?
+   - Any features to add, remove, or merge?
+
+   IF user requests changes → update .checkpoints.json, then re-present.
+   ONLY after user confirms → update function_decomposition.passed = true,
+   set confirmed_at via: node -e "console.log(new Date().toISOString())"
+   Then proceed to Phase 3.
+   ```
+
+6. **Backward Compatibility Check**:
    - If **Feature Breakdown exists**: Proceed with Feature-granular dispatch (new behavior)
    - If **Feature Breakdown missing**: Fall back to Sub-PRD-granular dispatch (legacy behavior)
    - Log the dispatch mode: "📋 Dispatch mode: Feature-granular" or "📋 Dispatch mode: Module-granular (legacy)"
