@@ -195,6 +195,16 @@ If any pre-check fails:
 
 ## Step 4: Dispatch Per-Module Dev Skills
 
+#### ⚠️ Stage 4 Directory Constraint
+
+All development outputs MUST go under `iterations/{iter}/04.development/`.
+- Task records: `04.development/{platform_id}/{module}-task.md`
+- Review reports: `04.development/{platform_id}/{module}-review-report.md`
+- Dispatch progress: `04.development/DISPATCH-PROGRESS.json`
+- Checkpoints: `04.development/.checkpoints.json`
+
+**FORBIDDEN directory names**: `04.dev-report/`, `04.dev-reports/`, `04.implementation/`, or any other variant.
+
 > ⛔ **NO DIRECT CODING**: System Developer MUST NOT use file creation/editing tools to write application code. Every module implementation MUST be dispatched to a `speccrew-task-worker` agent running a dev skill (speccrew-dev-backend/frontend/mobile/desktop). System Developer's role in this phase is EXCLUSIVELY: task list creation, worker dispatch, progress tracking, and review coordination.
 
 > **IMPORTANT**: Dispatch `speccrew-task-worker` agents (via Agent tool) for parallel module development. Do NOT call dev skills directly — each module MUST run in an independent Worker Agent for progress visibility and error isolation.

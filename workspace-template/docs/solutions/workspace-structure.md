@@ -102,6 +102,21 @@ iterations/
 | 系统设计 | `03.system-design/` | 详细设计、数据库设计、接口设计 |
 | 开发 | `04.development/` | 代码实现、开发日志、技术债记录 |
 | 测试 | `05.test/` | 测试用例、测试报告 |
+
+#### Stage 4 详细目录结构 (`04.development/`)
+
+```
+04.development/
+├── .checkpoints.json                  # Stage progress checkpoints
+├── DISPATCH-PROGRESS.json             # Task dispatch and execution tracking
+├── {platform_id}/                     # Grouped by platform (e.g., backend-spring, web-vue)
+│   ├── {module}-task.md               # Development task record (created by Dev Skill)
+│   └── {module}-review-report.md      # Code review report (created by Review Skill)
+└── delivery-report.md                 # Final delivery summary
+```
+
+> ⚠️ **MANDATORY**: All Stage 4 outputs MUST use `04.development/` as the top-level directory.
+> The following variants are **FORBIDDEN**: `04.dev-report/`, `04.dev-reports/`, `04.implementation/`, or any other `04.*` name.
 | 交付 | `06.delivery/` | 部署文档、验收报告、交付清单 |
 ```
 

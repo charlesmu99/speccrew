@@ -16,7 +16,7 @@ tools: Read, Grep, Glob
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `design_doc_path` | Yes | Path to module design document (e.g., `03.system-design/module-designs/backend-spring/M6-employee-design.md`) |
-| `implementation_report_path` | Yes | Path to development report (e.g., `04.dev-reports/backend-spring/M6-employee-implementation-report.md`) |
+| `implementation_report_path` | Yes | Path to development report (e.g., `04.development/backend-spring/M6-employee-implementation-report.md`) |
 | `source_root` | Yes | Root directory of source code to review |
 | `platform_id` | Yes | Platform identifier (backend-spring/web-vue/mobile-uniapp/desktop-tauri) |
 | `api_contract_path` | No | Path to API contract file for endpoint validation |
