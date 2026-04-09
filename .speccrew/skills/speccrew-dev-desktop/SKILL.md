@@ -108,7 +108,7 @@ Use `DT-` prefix for desktop tasks: `DT-001`, `DT-002`, etc.
 
 **Status**: Pending / In Progress / Completed / Blocked
 
-**Checkpoint A: Present task extraction summary to user for confirmation.**
+**Proceed directly to implementation — no user confirmation required.**
 
 ## Step 4: Implement Tasks
 
@@ -290,11 +290,11 @@ If the skill fails at any step:
 - `RUNTIME_ERROR`: App crash on launch, runtime exception, IPC communication failure
 - `BLOCKED`: Blocked by external dependency, native module issue, or unresolved design issue
 
-**Ask user to confirm:**
-1. Are all IPC channels working correctly?
-2. Is context isolation properly configured?
-3. Do native integrations work as expected?
-4. Are there any security concerns?
+**Verify automatically:**
+1. All IPC channels working correctly
+2. Context isolation properly configured
+3. Native integrations working as expected
+4. No security concerns introduced
 
 # Key Rules
 
@@ -315,7 +315,7 @@ If the skill fails at any step:
 - [ ] Design document loaded before implementation (single module design_doc_path)
 - [ ] Existing code structure analyzed via Glob/Grep
 - [ ] Task record created with complete checklist
-- [ ] Checkpoint A passed: task extraction confirmed with user
+- [ ] Task list extracted and recorded in task file
 - [ ] All modules in the design document covered in task list
 - [ ] All IPC channels from design implemented
 - [ ] Context isolation enabled for all windows

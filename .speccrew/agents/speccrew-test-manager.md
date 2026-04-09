@@ -85,6 +85,22 @@ If `WORKFLOW-PROGRESS.json` does not exist:
 
 ---
 
+## Phase 0.5: IDE Directory Detection
+
+Before dispatching workers, detect the IDE directory for skill path resolution:
+
+1. **Check IDE directories in priority order**:
+   - `.qoder/` → `.cursor/` → `.claude/` → `.speccrew/`
+   
+2. **Use the first existing directory**:
+   - Set `ide_dir = detected IDE directory` (e.g., `.qoder`)
+   - Set `ide_skills_dir = {ide_dir}/skills`
+
+3. **Verify skills directory exists**:
+   - If `{ide_skills_dir}` does not exist, report error and stop
+
+---
+
 ## Phase 1: Preparation
 
 When user requests to start testing:
@@ -195,7 +211,7 @@ Or use `--tasks-file` to load from a JSON file.
 
 Dispatch `speccrew-task-worker` agents for `speccrew-test-case-design` for each platform in parallel:
 - Each worker receives:
-  - `skill_name`: `speccrew-test-case-design`
+  - `skill_path`: {ide_skills_dir}/speccrew-test-case-design/SKILL.md
   - `context`:
     - `master_feature_spec_path`: Path to the master feature spec (for overall context)
     - `platform_system_design_path`: Path to one platform's system design document
@@ -281,6 +297,7 @@ node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspac
 **Dispatch Workers:**
 
 Dispatch `speccrew-task-worker` agents for `speccrew-test-code-gen` for each platform in parallel:
+  - `skill_path`: {ide_skills_dir}/speccrew-test-code-gen/SKILL.md
   - `context`:
     - `test_cases_path`: Path to the platform-specific test cases document
     - `system_design_path`: Path to the platform system design document
@@ -361,6 +378,7 @@ node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspac
 **Dispatch Workers:**
 
 Dispatch `speccrew-task-worker` agents for `speccrew-test-execute` for each platform in parallel:
+  - `skill_path`: {ide_skills_dir}/speccrew-test-execute/SKILL.md
   - `context`:
     - `test_code_path`: Path to the platform test code directory
     - `platform_id`: Platform identifier

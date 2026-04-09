@@ -89,6 +89,22 @@ If WORKFLOW-PROGRESS.json does not exist:
 - Do not block execution due to missing progress files
 - Log informational message: "Progress tracking not available (WORKFLOW-PROGRESS.json not found). Running in compatibility mode."
 
+## Phase 0.5: IDE Directory Detection
+
+Before dispatching workers, detect the IDE directory for skill path resolution:
+
+1. **Check IDE directories in priority order**:
+   - `.qoder/` → `.cursor/` → `.claude/` → `.speccrew/`
+   
+2. **Use the first existing directory**:
+   - Set `ide_dir = detected IDE directory` (e.g., `.qoder`)
+   - Set `ide_skills_dir = {ide_dir}/skills`
+
+3. **Verify skills directory exists**:
+   - If `{ide_skills_dir}` does not exist, report error and stop
+
+---
+
 ## Step 1: Read System Design
 
 When user requests to start development:
@@ -314,7 +330,7 @@ while pending is not empty or running is not empty:
     
     // Dispatch speccrew-task-worker agent (NOT Skill tool directly)
     Invoke `speccrew-task-worker` agent with:
-      - skill_name: {task.skill_name}
+      - skill_path: {ide_skills_dir}/{task.skill_name}/SKILL.md
       - context:
         - platform_id: {task.platform_id}
         - iteration_path: {task.iteration_path}
@@ -373,12 +389,19 @@ After processing a batch of completed workers:
    - In Progress: {running.size}
    ```
 
-### 4.4: Review Verification
+### 4.4: Review Verification (MANDATORY)
+
+> **MANDATORY**: Review is NOT optional. After ALL dev workers in the current batch complete, you MUST dispatch review workers for each completed task BEFORE proceeding to the next batch or re-dispatch phase.
+
+**Review Dispatch Rule:**
+- Every task with status `completed` or `partial` MUST have a review worker dispatched
+- NO task may proceed to "completed" status without passing review
+- Review workers run AFTER all dev workers in the batch complete
 
 After each dev worker completes (status = "in_review"), dispatch a **separate** `speccrew-task-worker` agent to run the `speccrew-dev-review` skill:
 
 Invoke `speccrew-task-worker` agent with:
-- skill_name: `speccrew-dev-review`
+- skill_path: {ide_skills_dir}/speccrew-dev-review/SKILL.md
 - context:
   - design_doc_path: {task.module_design_path}
   - implementation_report_path: {dev_worker_report_path}
@@ -428,6 +451,18 @@ for each task in review_queue:
 
 ### 4.5: Re-dispatch Partial/Failed Tasks
 
+**Batch Loop Structure (REQUIRED):**
+
+```
+For each batch:
+  1. Dispatch dev workers (Phase 4.3)
+  2. Wait for ALL dev workers to complete
+  3. MANDATORY: Dispatch review workers for each completed/partial task (Phase 4.4)
+  4. Wait for ALL review workers to complete
+  5. Re-dispatch partial/failed tasks (Phase 4.5)
+  6. Move to next batch
+```
+
 After all initial dev + review cycles complete for the current batch:
 
 1. **Query partial/failed tasks:**
@@ -476,7 +511,7 @@ for each task in redispatch_queue:
   
   // Dispatch dev worker with supplemental context
   Invoke `speccrew-task-worker` agent with:
-    - skill_name: {task.skill_name}
+    - skill_path: {ide_skills_dir}/{task.skill_name}/SKILL.md
     - context:
       - (original context)
       - previous_review_path: {review_report_path}

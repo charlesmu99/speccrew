@@ -89,7 +89,7 @@ Parse design documents to extract all implementation tasks.
 
 > Status: ⏳ Pending / 🔄 In Progress / ✅ Complete / 🚫 Blocked
 
-**Checkpoint A: Present task checklist to user for confirmation before proceeding.**
+**Proceed directly to implementation — no user confirmation required.**
 
 ## Step 4: Task-by-Task Implementation
 
@@ -244,7 +244,7 @@ If the skill fails at any step:
 | **Blueprint-Driven** | Implement directly from system design, no template filling for source code |
 | **Actual Framework Syntax** | Use real framework annotations/syntax from techs knowledge |
 | **API Contract is READ-ONLY** | Do NOT modify API Contract; report issues if found |
-| **Checkpoint A Required** | Must confirm task list with user before implementation |
+| **Task List Required** | Must extract and record task list before implementation |
 | **Per-Task Quality Gates** | Each task must pass local checks before proceeding |
 | **Deviation Recording** | ALL deviations from design must be documented |
 | **Tech Debt Tracking** | Suboptimal solutions written to tech-debt/ directory |
@@ -265,7 +265,7 @@ When generating Mermaid diagrams, follow compatibility guidelines:
 
 - [ ] All design documents and techs knowledge loaded before implementation
 - [ ] Task record file created with complete checklist
-- [ ] Checkpoint A passed: task list confirmed with user
+- [ ] Task list extracted and recorded in task file
 - [ ] Each task marked in progress before coding
 - [ ] Local checks run after each task (compile/lint/test/smoke)
 - [ ] Code follows conventions-data.md ORM patterns

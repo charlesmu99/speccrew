@@ -90,7 +90,7 @@ Use `MB-001`, `MB-002`, etc. for mobile tasks.
 
 **Status Values**: ⏳ Pending | 🔄 In Progress | ✅ Complete | 🚫 Blocked
 
-**Checkpoint A: Present task extraction summary to user for confirmation.**
+**Proceed directly to implementation — no user confirmation required.**
 
 ## Step 4: Create Task Record File
 
@@ -270,4 +270,4 @@ If the skill fails at any step:
 - [ ] All deviations recorded
 - [ ] Technical debt written to `iterations/{iter}/tech-debt/`
 - [ ] Task record status updated to complete
-- [ ] Checkpoint A passed: task extraction confirmed with user
+- [ ] Task list extracted and recorded in task file

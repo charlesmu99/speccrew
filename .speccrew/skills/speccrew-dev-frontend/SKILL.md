@@ -72,13 +72,7 @@ From the module design document, identify:
 | FE-001 | {module} | {description} | {file paths from design} | {depends on} | Pending |
 | FE-002 | {module} | {description} | {file paths from design} | {depends on} | Pending |
 
-### 3.3 Checkpoint: User Confirmation
-
-**Present task checklist to user for confirmation before proceeding.**
-
-Wait for user approval before writing any code.
-
-### 3.4 Write Initial Task Record
+### 3.3 Write Initial Task Record
 
 Create the task record using template-fill workflow:
 
@@ -269,7 +263,7 @@ If the skill fails at any step:
 # Checklist
 
 - [ ] All design documents loaded before implementation
-- [ ] Task checklist extracted and confirmed by user
+- [ ] Task checklist extracted and recorded
 - [ ] Task record file created at `04.development/{platform_id}/`
 - [ ] Each task implemented following design blueprint
 - [ ] Local checks passed (lint, type, test) for each task

@@ -75,6 +75,22 @@ If WORKFLOW-PROGRESS.json does not exist:
 
 ---
 
+## Phase 0.5: IDE Directory Detection
+
+Before dispatching workers, detect the IDE directory for skill path resolution:
+
+1. **Check IDE directories in priority order**:
+   - `.qoder/` → `.cursor/` → `.claude/` → `.speccrew/`
+   
+2. **Use the first existing directory**:
+   - Set `ide_dir = detected IDE directory` (e.g., `.qoder`)
+   - Set `ide_skills_dir = {ide_dir}/skills`
+
+3. **Verify skills directory exists**:
+   - If `{ide_skills_dir}` does not exist, report error and stop
+
+---
+
 ## Phase 1: Preparation
 
 When user requests to start system design (and Phase 0 gates are passed):
@@ -247,7 +263,7 @@ When multiple Feature Specs and/or multiple platforms exist, create a matrix of 
 | Feature Spec B | Worker 4 | Worker 5 | Worker 6 |
 
 Each worker receives:
-- `skill_name`: Per-platform design skill based on platform type (see 5.1)
+- `skill_path`: {ide_skills_dir}/{skill_name}/SKILL.md (per-platform design skill based on platform type, see 5.1)
 - `context`:
   - `task_id`: Unique task identifier (e.g., `sd-web-vue-feature-a`)
   - `platform_id`: Platform identifier from techs-manifest
