@@ -286,9 +286,13 @@ When involving related business domains, read `speccrew-workspace/knowledges/biz
 - Technical architecture documents (handled by speccrew-system-designer)
 - Code conventions (handled by speccrew-system-designer/speccrew-dev)
 
-## Phase 3: Design
+## Phase 3: Design — Worker Dispatch
 
-After knowledge loading is complete, design feature specifications based on the dispatch mode:
+> ⚠️ **MANDATORY RULES FOR PHASE 3:**
+> 1. **DO NOT ask user which strategy to use** — the strategy is determined by Phase 2 extraction results, not user choice.
+> 2. **DO NOT invoke the Feature Design skill directly** when there are multiple Features. You MUST dispatch `speccrew-task-worker` agents.
+> 3. **Dispatch granularity is PER FEATURE, not per module.** Each Feature gets its own worker and its own output file.
+> 4. **DO NOT generate Feature Spec documents yourself.** Your role is to DISPATCH workers, not to write specs.
 
 ### 3.1 Dispatch Mode Decision
 
@@ -296,13 +300,13 @@ Based on Phase 2 Feature Breakdown extraction:
 
 | Condition | Dispatch Mode | Behavior |
 |-----------|---------------|----------|
-| Feature Breakdown found with multiple Features | Feature-granular | Each Feature gets its own worker/skill invocation |
-| Feature Breakdown found with single Feature | Direct skill | Invoke skill directly without worker |
-| No Feature Breakdown (legacy PRD) | Module-granular | Each Sub-PRD gets one worker (backward compatible) |
+| Feature Breakdown found with 2+ Features | Feature-granular (worker dispatch) | Each Feature gets its own worker |
+| Feature Breakdown found with 1 Feature | Direct skill invocation | Invoke skill directly (only case where this is allowed) |
+| No Feature Breakdown (legacy PRD) | Module-granular (worker dispatch) | Each Sub-PRD gets one worker (backward compatible) |
 
 ### 3.2 Feature-Granular Dispatch (New Behavior)
 
-When Feature Breakdown is present, dispatch by Feature:
+When Feature Breakdown is present and has 2+ Features:
 
 #### Single Feature (Direct Skill Invocation)
 If the entire iteration has only **one Feature** in the registry:
@@ -318,9 +322,11 @@ Invoke Skill directly with parameters:
   - `frontend_platforms`: List of frontend platforms from techs-manifest
 
 #### Multiple Features (Parallel Worker Dispatch)
-If the iteration has **multiple Features** in the registry:
+If the iteration has **2+ Features** in the registry:
 
-Invoke `speccrew-task-worker` agents in parallel, one per Feature:
+⚠️ **YOU MUST dispatch `speccrew-task-worker` agents. DO NOT invoke the skill yourself.**
+
+Invoke `speccrew-task-worker` agents in parallel, **one worker per Feature** (NOT per module):
 - Each worker receives:
   - `skill_path`: `speccrew-fd-feature-design/SKILL.md`
   - `context`:
@@ -338,6 +344,26 @@ Invoke `speccrew-task-worker` agents in parallel, one per Feature:
   - Worker 1: Feature F-CRM-01 → Feature Spec for Customer List
   - Worker 2: Feature F-CRM-02 → Feature Spec for Customer Detail
   - Worker N: Feature F-CRM-0N → Feature Spec for Feature N
+
+- **Batch dispatch for large feature counts**:
+  When total features > 6, dispatch in batches to avoid overload:
+  ```
+  Batch 1: Dispatch up to 6 workers (Features 1-6)
+  Wait for all workers in Batch 1 to complete
+  Update .checkpoints.json feature_spec_status for completed features
+  
+  Batch 2: Dispatch next 6 workers (Features 7-12)
+  Wait for all workers in Batch 2 to complete
+  Update .checkpoints.json feature_spec_status for completed features
+  
+  ... continue until all features are processed
+  ```
+  
+  **Between batches**: Report progress to user:
+  ```
+  📊 Batch 1 complete: 6/44 Feature Specs generated
+  Starting Batch 2...
+  ```
 
 - **Dependency handling**: Features with dependencies should note them, but all workers can execute simultaneously (each Feature Spec references its dependencies)
 
