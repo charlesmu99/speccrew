@@ -529,16 +529,27 @@ Total files: 1 (Master) + N (Sub-PRDs) = N+1 files.
    - Section 7 (Assumptions & Dependencies)
 
 **For Master-Sub Structure** — fill ONLY system-level overview content:
-   - Section 1 (Background & Goals): System-wide background and goals
-   - Section 2 (User Stories): **HIGH-LEVEL system user stories ONLY** (e.g., "As a store manager, I want a CRM system to manage customer relationships"). DO NOT include module-specific user stories.
+
+   > ⚠️ **Master PRD = System Overview ONLY. All module-specific details go into Sub-PRDs.**
+   > The Master PRD should read like an "executive summary" — a reader should understand
+   > WHAT the system does and HOW modules relate, but NOT the detailed features of each module.
+
+   - Section 1 (Background & Goals): System-wide background and goals (keep concise, 2-3 paragraphs max)
+   - Section 2 (User Stories):
+     - 2.1 Target Users: List all user roles with brief descriptions
+     - 2.2 User Scenarios: **Maximum 3-5 HIGH-LEVEL system stories.** Each story describes a MODULE-LEVEL capability, NOT individual features.
+       - ✅ Good: "As a store manager, I want a CRM system to manage customer relationships across all stores"
+       - ❌ Bad: "As a beautician, I want to upload before/after photos" (this is module-specific, belongs in Sub-PRD)
    - Section 3 (Functional Requirements):
-     - 3.1 Use Case Diagram: System-level use case diagram showing all modules
-     - 3.2 Business Process Flow: Cross-module process flow overview
-     - 3.3 Feature List: Module-level feature summary table (NOT detailed features)
+     - 3.1 Use Case Diagram: System-level use case diagram showing modules as use case groups (NOT individual features)
+     - 3.2 Business Process Flow: ONE cross-module end-to-end process flow (the main business flow only)
+     - 3.3 Feature List: **ONE row per MODULE** (NOT per feature). Columns: Module, Priority, Scope Summary, Key Capabilities (brief). Maximum N rows for N modules.
+       - ✅ Good: `| M2-会员管理 | P0 | 顾客信息CRUD、自定义字段、公共池 |`
+       - ❌ Bad: Listing 24 individual features across all modules
      - 3.4 Feature Breakdown: Write "See individual Sub-PRDs for module-specific Feature Breakdown"
      - 3.5 Feature Details: Write "See individual Sub-PRDs for module-specific Feature Details"
-   - Section 4 (Non-functional Requirements): System-wide NFRs only
-   - Section 5 (Acceptance Criteria): System-wide acceptance criteria only
+   - Section 4 (Non-functional Requirements): System-wide NFRs only (performance, security, compatibility — 1 line each)
+   - Section 5 (Acceptance Criteria): **System-wide milestones only** (e.g., "All Phase 1 modules deployed"). NOT module-specific acceptance items.
    - Section 6 (Boundary Description): System-wide scope boundaries
    - Section 7 (Assumptions & Dependencies): System-wide dependencies
    - **APPEND after Section 7** using `search_replace` on the PRD Status line:
@@ -607,9 +618,9 @@ IF any check fails → Report error and fix before proceeding.
 
 ---
 
-### Step 12e: Request Confirmation
+### Step 12e: Present Documents for User Review
 
-Present summary to user:
+Present the generated document summary to user:
 
 **Single PRD:**
 ```
@@ -628,68 +639,86 @@ Sub-PRDs ({sub_prd_count} files):
 Total files generated: {sub_prd_count + 1}
 ```
 
-Confirm:
+Ask user to review the documents and check:
 1. Feature boundary accurate?
 2. Acceptance criteria quantifiable?
 3. Not In Scope complete?
 4. [Master-Sub] Module decomposition appropriate?
 5. [Existing features] EXISTING/MODIFIED/NEW markers accurate?
 
-After user confirms, proceed to Step 13 to write progress files and finalize PRD stage.
+⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
 
-## Step 13: Write Progress Files
+```
+DO NOT proceed to Step 13 until user explicitly confirms.
+DO NOT update any status files or mark documents as confirmed.
+DO NOT suggest moving to the next stage.
 
-After user confirms the PRD, write progress tracking files:
+Wait for user to respond with confirmation (e.g., "确认", "OK", "没问题").
+IF user requests changes → make the changes, then re-present for review.
+ONLY after user explicitly confirms → proceed to Step 13.
+```
 
-### 13a Write Checkpoint File
+## Step 13: Finalize PRD Stage (ONLY after user explicitly confirms)
 
-Write or update the checkpoint file at:
+⚠️ **PREREQUISITE: User has explicitly confirmed the PRD documents in Step 12e.**
+IF user has NOT confirmed yet → DO NOT execute this step. Return to Step 12e and wait.
+
+### 13a Update Workflow Progress
+
+Use the `update-progress.js` script to update workflow status with real timestamps:
+
+```bash
+node speccrew-workspace/scripts/update-progress.js update-workflow \
+  --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+  --stage 01_prd --status confirmed \
+  --output "01.product-requirement/{feature-name}-prd.md,01.product-requirement/{feature-name}-sub-{module1}.md,..."
+```
+
+> The script automatically generates real ISO timestamps for `completed_at` and `confirmed_at`.
+> **DO NOT manually construct timestamps** — LLM-generated timestamps are always incorrect.
+
+IF the script is not available or fails, use the following shell command to get the real timestamp:
+```bash
+node -e "console.log(new Date().toISOString())"
+```
+Then use the output to fill in the JSON fields manually.
+
+### 13b Write Checkpoint File
+
+1. First, get the real current timestamp:
+```bash
+node -e "console.log(new Date().toISOString())"
+```
+
+2. Write or update the checkpoint file using the REAL timestamp from the command above:
 ```
 speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json
 ```
 
-Content:
+Content (use the REAL timestamp from the command output):
 ```json
 {
   "stage": "01_prd",
   "checkpoints": {
     "prd_review": {
       "passed": true,
-      "confirmed_at": "<current-ISO-timestamp>",
+      "confirmed_at": "{REAL_TIMESTAMP_FROM_COMMAND}",
       "description": "PRD review and confirmation"
     }
   }
 }
 ```
 
-### 13b Update Workflow Progress
+### 13c Update PRD Document Status
 
-Read and update the WORKFLOW-PROGRESS.json file:
+Update the PRD document status line from Draft to Confirmed:
 
-1. **Read**: `speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json`
-2. **Update the following fields**:
-   - `current_stage` = "01_prd" (keep current stage — the next agent will update this when it starts)
-   - `01_prd.status` = "confirmed"
-   - `01_prd.completed_at` = `<current-ISO-timestamp>`
-   - `01_prd.confirmed_at` = `<current-ISO-timestamp>`
-   - `01_prd.outputs` = `["01.product-requirement/{feature-name}-prd.md"]`
+Use `search_replace` on the Master PRD (and all Sub-PRDs if Master-Sub structure):
+- Replace `📝 Draft` with `✅ Confirmed`
+- Replace `[Date]` with the real date from the timestamp command
+- Replace `[Name]` with `User`
 
-**Example updated stage entry**:
-```json
-{
-  "01_prd": {
-    "status": "confirmed",
-    "started_at": "2026-04-08T10:00:00Z",
-    "completed_at": "2026-04-08T11:30:00Z",
-    "confirmed_at": "2026-04-08T11:35:00Z",
-    "outputs": [
-      "01.product-requirement/user-management-prd.md"
-    ]
-  }
-}
-```
-
-### 13c Handle Missing Progress File
+### 13d Handle Missing Progress File
 
 If WORKFLOW-PROGRESS.json does not exist (backward compatibility):
 - Create the file with initial structure
@@ -697,6 +726,17 @@ If WORKFLOW-PROGRESS.json does not exist (backward compatibility):
 - Other stages remain as `pending`
 
 **Status Flow**: `pending` → `in_progress` → `completed` → `confirmed`
+
+### 13e Output Completion Message
+
+After all status files are updated:
+
+```
+✅ PRD documents have been confirmed. PRD stage is complete.
+When you are ready to proceed with Feature Design, please start a new conversation and invoke the Feature Designer Agent.
+```
+
+**END** — Do not proceed further.
 
 ---
 

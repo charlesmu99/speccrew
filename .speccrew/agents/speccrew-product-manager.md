@@ -259,22 +259,31 @@ Return to the Skill's Step 12d for verification:
 - Verify Master PRD Sub-PRD Index matches actual files
 - Verify each Sub-PRD contains Feature Breakdown (Section 3.4)
 
-### 4.2 Request User Confirmation
+### 4.2 Present Documents for User Review
 
-Execute Skill's Step 12e to present summary and request user review.
+Execute Skill's Step 12e to present document summary and ask user to review.
 
-### 4.3 Finalize PRD Stage (After User Confirmation)
+⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
+- DO NOT update any status files yet
+- DO NOT mark documents as confirmed
+- DO NOT suggest proceeding to the next stage
+- Wait for user to explicitly confirm (e.g., "确认", "OK", "没问题")
+- IF user requests changes → make the changes, then re-present for review
+
+### 4.3 Finalize PRD Stage (ONLY after user explicitly confirms)
 
 After user confirms the PRD documents are correct:
 
-1. Execute Skill's Step 13 to write progress files (update WORKFLOW-PROGRESS.json, set `01_prd.status` = `confirmed`)
-2. Update all PRD document status lines from `📝 Draft` to `✅ Confirmed` with confirmation date using `search_replace`
-3. Output completion message:
+1. Execute Skill's Step 13 to finalize:
+   - Use `update-progress.js` script to update WORKFLOW-PROGRESS.json with **real timestamps** (NOT LLM-generated)
+   - Write checkpoint file with **real timestamps** (use `node -e "console.log(new Date().toISOString())"` if script unavailable)
+   - Update all PRD document status lines from `📝 Draft` to `✅ Confirmed`
+2. Output completion message:
    ```
    ✅ PRD documents have been confirmed. PRD stage is complete.
    When you are ready to proceed with Feature Design, please start a new conversation and invoke the Feature Designer Agent.
    ```
-4. **END** — Do not proceed further. Do not invoke or suggest transitioning to the next stage agent.
+3. **END** — Do not proceed further. Do not invoke or suggest transitioning to the next stage agent.
 
 # Deliverables
 
