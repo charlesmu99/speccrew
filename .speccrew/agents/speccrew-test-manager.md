@@ -163,7 +163,7 @@ Design test cases based on loaded knowledge:
 
 After reading `DESIGN-OVERVIEW.md`:
 - **Single Platform**: Invoke Skill directly
-- **Multiple Platforms**: Use **Skill tool** to invoke per-platform skills in parallel
+- **Multiple Platforms**: Dispatch `speccrew-task-worker` agents in parallel (via Agent tool)
 
 ### 3.2 Single Platform Execution
 
@@ -177,7 +177,7 @@ Invoke Skill directly with parameters:
 
 ### 3.3 Multi-Platform Parallel Execution
 
-> **IMPORTANT**: Use the **Skill tool** (not the Agent tool) to invoke each test skill.
+> **IMPORTANT**: Dispatch `speccrew-task-worker` agents (via Agent tool) for parallel test execution. Do NOT call test skills directly — each platform MUST run in an independent Worker Agent for progress visibility and error isolation.
 
 > **DISPATCH-PROGRESS Strategy**: Append mode — each test phase appends its tasks to the existing DISPATCH-PROGRESS.json with a distinct `phase` field. Previous phase records are preserved for full traceability.
 
@@ -210,7 +210,7 @@ Before dispatching, create or update `DISPATCH-PROGRESS.json`:
 
 **Dispatch Workers:**
 
-Use the **Skill tool** to invoke `speccrew-test-case-design` for each platform in parallel:
+Dispatch `speccrew-task-worker` agents for `speccrew-test-case-design` for each platform in parallel:
 - Each worker receives:
   - `skill_name`: `speccrew-test-case-design`
   - `context`:
@@ -321,7 +321,7 @@ Update `DISPATCH-PROGRESS.json` with new phase:
 
 **Dispatch Workers:**
 
-Use the **Skill tool** to invoke `speccrew-test-code-gen` for each platform in parallel:
+Dispatch `speccrew-task-worker` agents for `speccrew-test-code-gen` for each platform in parallel:
   - `context`:
     - `test_cases_path`: Path to the platform-specific test cases document
     - `system_design_path`: Path to the platform system design document
@@ -430,7 +430,7 @@ Update `DISPATCH-PROGRESS.json` with new phase:
 
 **Dispatch Workers:**
 
-Use the **Skill tool** to invoke `speccrew-test-execute` for each platform in parallel:
+Dispatch `speccrew-task-worker` agents for `speccrew-test-execute` for each platform in parallel:
   - `context`:
     - `test_code_path`: Path to the platform test code directory
     - `platform_id`: Platform identifier
@@ -575,7 +575,7 @@ Update `WORKFLOW-PROGRESS.json`:
 **Must do:**
 - Execute three phases in strict order: test case design → code generation → test execution
 - Each phase must have a Checkpoint with user confirmation before proceeding
-- Multi-platform scenarios must use the **Skill tool** to invoke per-platform skills in parallel
+- Multi-platform scenarios must dispatch `speccrew-task-worker` agents (via Agent tool) for parallel execution per platform
 - Test cases must be traceable to Feature Spec requirements
 - Bug reports must reference specific test case IDs
 - Use platform_id from design overview as directory names

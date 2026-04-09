@@ -184,7 +184,7 @@ If any pre-check fails:
 
 ## Step 4: Dispatch Per-Module Dev Skills
 
-> **IMPORTANT**: Use the **Skill tool** to dispatch dev skills for parallel execution.
+> **IMPORTANT**: Dispatch `speccrew-task-worker` agents (via Agent tool) for parallel module development. Do NOT call dev skills directly — each module MUST run in an independent Worker Agent for progress visibility and error isolation.
 
 ### 4.0 Initialize DISPATCH-PROGRESS.json
 
@@ -282,11 +282,11 @@ for each platform_id:
    }
    ```
 
-### 4.3 Dispatch Skills with Concurrency Limit
+### 4.3 Dispatch Workers with Concurrency Limit
 
-**Max concurrent child agents: 10**
+**Max concurrent workers: 10**
 
-Process `task_list` using a queue-based concurrency limit model:
+Process `task_list` using a queue-based concurrency limit model. Each task runs in an independent `speccrew-task-worker` agent:
 
 ```
 MAX_CONCURRENT = 10
@@ -303,24 +303,24 @@ while pending is not empty or running is not empty:
       - Set task.status = "in_progress"
       - Set task.started_at = current timestamp
     
-    // Use Skill tool (not Agent tool)
-    skill_result = invoke Skill tool with:
-      - skill: {task.skill_name}
-      - args: |
-          platform_id: {task.platform_id}
-          iteration_path: {task.iteration_path}
-          design_doc_path: {task.module_design_path}
-          api_contract_path: {task.api_contract_path}
-          techs_knowledge_paths: {task.techs_knowledge_paths}
-          task_id: {task.id}  // Pass task ID for completion report
+    // Dispatch speccrew-task-worker agent (NOT Skill tool directly)
+    Invoke `speccrew-task-worker` agent with:
+      - skill_name: {task.skill_name}
+      - context:
+        - platform_id: {task.platform_id}
+        - iteration_path: {task.iteration_path}
+        - design_doc_path: {task.module_design_path}
+        - api_contract_path: {task.api_contract_path}
+        - techs_knowledge_paths: {task.techs_knowledge_paths}
+        - task_id: {task.id}  // Pass task ID for completion report
     
-    running.add({task_id: task.id, skill_handle: skill_result})
+    running.add({task_id: task.id})
   
-  wait until at least one skill in running completes
+  wait until at least one worker in running completes
   
-  // Process completed skill result
-  for each finished skill in running:
-    Parse Task Completion Report from skill output
+  // Process completed worker result
+  for each finished worker in running:
+    Parse Task Completion Report from worker output
     
     if report.status == "SUCCESS":
       Update DISPATCH-PROGRESS.json:
@@ -339,17 +339,17 @@ while pending is not empty or running is not empty:
 ```
 
 **Dispatch rules:**
-- Each skill invocation handles **one module** on **one platform** (not all modules)
+- Each worker handles **one module** on **one platform** (not all modules)
 - Pass complete context including `design_doc_path`, `skill_name`, platform info, and `task_id`
-- Up to 10 skills execute simultaneously (concurrency limit)
+- Up to 10 workers execute simultaneously (concurrency limit)
 - Update DISPATCH-PROGRESS.json **before** dispatch (status → "in_progress")
 - Update DISPATCH-PROGRESS.json **after** completion based on Task Completion Report
 - Track all dispatched tasks: completed / failed / pending counts
-- If a skill fails, log the failure and continue with remaining tasks
-- Wait for all skills to complete before proceeding to Step 5 (Integration Check)
+- If a worker fails, log the failure and continue with remaining tasks
+- Wait for all workers to complete before proceeding to Step 5 (Integration Check)
 
 **Progress Update After Each Batch:**
-After processing a batch of completed skills:
+After processing a batch of completed workers:
 1. Read current DISPATCH-PROGRESS.json
 2. Update counts: `completed`, `failed`, `pending`
 3. Write updated DISPATCH-PROGRESS.json
