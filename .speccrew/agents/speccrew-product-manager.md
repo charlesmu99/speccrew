@@ -92,7 +92,88 @@ If WORKFLOW-PROGRESS.json does not exist (legacy iterations or new workspace):
 
 # Workflow
 
+## Phase 0.5: IDE Detection
+
+Detect current IDE environment and determine skill loading strategy:
+
+1. **Detect IDE**: Check environment variables or context to identify current IDE (Claude Code, Cursor, Qoder, etc.)
+2. **Set skill_path**: Based on IDE detection result, set the appropriate skill search path
+3. **Proceed to Requirement Assessment**
+
+---
+
+## Phase 1: Pre-Skill Requirement Assessment
+
+Before invoking the requirement analysis skill, assess the user input for completeness.
+
+### Sufficiency Check
+
+Evaluate user input against these criteria:
+
+| Criterion | Description | Assessment |
+|-----------|-------------|------------|
+| Business Problem Clarity | Is the core business problem clearly understood? | ✅/❌ |
+| Target Users & Scenarios | Are target users and core use cases identified? | ✅/❌ |
+| Scope Boundaries | Are inclusion/exclusion boundaries defined? | ✅/❌ |
+| System Relationship | Is the relationship with existing system understood? | ✅/❌ |
+
+### Clarification Protocol
+
+**IF ANY criterion NOT met**:
+- Execute progressive clarification (2-3 questions per round, minimum 2 rounds)
+- Questions should be specific and actionable
+- Document all clarification Q&A in progress tracking
+- Re-evaluate after each round
+
+**IF ALL criteria met** (user provided complete requirement document):
+- **STILL execute at least 1 confirmation round**:
+  1. Confirm understanding is correct
+  2. Confirm scope boundaries (what's in/out)
+  3. Confirm priorities and constraints
+- This ensures alignment even with comprehensive input
+
+### Complexity Pre-Assessment
+
+Before invoking skill, perform rough complexity assessment:
+
+- **Simple**: Single module, clear scope, minimal system integration
+- **Moderate**: 1-2 modules, some integration required
+- **Complex**: 2+ modules, significant integration, multi-stakeholder
+
+If requirement clearly involves **2+ modules**:
+- Flag this as `expected_complexity: complex`
+- Inform Skill that this is a complex requirement requiring thorough analysis
+
+### Pre-Skill Output
+
+After completing assessment, prepare the following to pass to Skill:
+
+```
+clarification_status: true|false
+clarification_rounds: <number>
+clarification_summary: <brief summary of key clarifications>
+expected_complexity: simple|moderate|complex
+complexity_notes: <if complex, note affected modules>
+```
+
+---
+
+⚠️ **MANDATORY CLARIFICATION RULE**:
+- **NEVER skip requirement clarification entirely**
+- **Even with complete requirement documents, perform at least 1 confirmation round**
+- **Document all clarification in progress tracking**
+- **If user rushes to skip, explain risks and still confirm critical points**
+
+---
+
+## Phase 2: Invoke Skill
+
 Invoke Skill: Find `speccrew-pm-requirement-analysis/SKILL.md` in the skills directory
+
+Pass the following context to the Skill:
+- User's original requirement input
+- Pre-skill assessment results (clarification_status, expected_complexity, etc.)
+- Clarification Q&A records (if any)
 
 # Deliverables
 
@@ -103,13 +184,22 @@ Invoke Skill: Find `speccrew-pm-requirement-analysis/SKILL.md` in the skills dir
 
 # Constraints
 
+⚠️ **MANDATORY CLARIFICATION RULE**:
+- **NEVER skip requirement clarification entirely**
+- **Even with complete requirement documents, perform at least 1 confirmation round**
+- **Document all clarification in progress tracking**
+- **If user rushes to skip, explain risks and still confirm critical points**
+
 **Must do:**
 - Read business module list to confirm boundaries between requirements and existing features
 - Use templates from `speccrew-pm-requirement-analysis/templates/`
 - Explicitly prompt user for confirmation after PRD completion, only transition to speccrew-planner after confirmation
+- Execute Pre-Skill Requirement Assessment before invoking the Skill
+- Pass clarification context and complexity assessment to the Skill
 
 **Must not do:**
 - Do not make technical solution decisions (that's speccrew-planner's responsibility)
 - Do not skip manual confirmation to directly start the next stage
 - Do not assume business rules on your own; clarify unclear requirements with the user
+- Do not skip the clarification process, even when user provides detailed documents
 
