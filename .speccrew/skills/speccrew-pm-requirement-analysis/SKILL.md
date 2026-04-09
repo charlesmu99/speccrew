@@ -484,147 +484,158 @@ speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/
 
 If the iteration directory does not exist, refer to the `000-sample` directory structure to create it.
 
-## Step 12: Write Files Using Template-Fill Workflow
+## Step 12: Write PRD Files
 
-⚠️ **CRITICAL: For Master-Sub structure, you MUST generate ALL Sub-PRD files.**
-- **DO NOT put all module content into the Master PRD.**
-- **Each Sub-PRD is a SEPARATE file containing ONLY that module's requirements.**
+### Step 12a: Plan File List (MANDATORY FIRST STEP)
+
+Before writing any file, create a complete list of ALL files to generate:
+
+**For Single PRD Structure:**
+
+| # | File | Path |
+|---|------|------|
+| 1 | PRD | {iteration}/01.prd/{feature-name}-prd.md |
+
+**For Master-Sub Structure (present this table to user):**
+
+| # | File Type | Module | Path |
+|---|-----------|--------|------|
+| 1 | Master PRD | (system overview) | {iteration}/01.prd/{feature-name}-prd.md |
+| 2 | Sub-PRD | {module-1-name} | {iteration}/01.prd/{feature-name}-sub-{module-1-key}.md |
+| 3 | Sub-PRD | {module-2-name} | {iteration}/01.prd/{feature-name}-sub-{module-2-key}.md |
+| ... | ... | ... | ... |
+| N+1 | Sub-PRD | {module-N-name} | {iteration}/01.prd/{feature-name}-sub-{module-N-key}.md |
+
+Total files: 1 (Master) + N (Sub-PRDs) = N+1 files.
+
+⚠️ **Present this file list to user for confirmation before proceeding.**
 
 ---
 
-### Step 12a: Generate Master PRD
+### Step 12b: Generate Master PRD
 
-**For BOTH Single and Master-Sub structures:**
+1. Read `templates/PRD-TEMPLATE.md` (already loaded in Step 7)
+2. Create document using `create_file` at: `{iteration}/01.prd/{feature-name}-prd.md`
 
-1. **Copy template to document path:**
-   - Read `templates/PRD-TEMPLATE.md` (already loaded in Step 7)
-   - Replace top-level placeholders (feature name, iteration, date)
-   - Create document using `create_file` at: `{iteration}/01.product-requirement/{feature-name}-prd.md`
+3. Fill content using `search_replace` per section:
 
-2. **Fill Master-only content using `search_replace`:**
-   - Section 1: Overall background, goals, success metrics
-   - Section 2: System architecture overview (Mermaid graph TB)
-   - Section 3: Module list with scope boundaries (from Step 6.1)
-   - Section 4: Cross-module dependency matrix (from Step 6.2)
-   - Section 5: Implementation phases and ordering (from Step 6.3)
-   - Section 6: Shared entities and data contracts
-   - Section 7: Global non-functional requirements
+**For Single PRD Structure** — fill ALL sections with full detail:
+   - Section 1 (Background & Goals): Full background, goals
+   - Section 2 (User Stories): All user stories with scenarios
+   - Section 3 (Functional Requirements): All requirements including Feature Breakdown (3.4)
+   - Section 4 (Non-functional Requirements): Performance, security, etc.
+   - Section 5 (Acceptance Criteria): All criteria
+   - Section 6 (Boundary Description): In/out scope
+   - Section 7 (Assumptions & Dependencies)
 
-3. **DO NOT include module-specific content in Master:**
-   - No module-specific user stories
-   - No module-specific functional requirements
-   - No module-specific Feature Breakdown tables
+**For Master-Sub Structure** — fill ONLY system-level overview content:
+   - Section 1 (Background & Goals): System-wide background and goals
+   - Section 2 (User Stories): **HIGH-LEVEL system user stories ONLY** (e.g., "As a store manager, I want a CRM system to manage customer relationships"). DO NOT include module-specific user stories.
+   - Section 3 (Functional Requirements):
+     - 3.1 Use Case Diagram: System-level use case diagram showing all modules
+     - 3.2 Business Process Flow: Cross-module process flow overview
+     - 3.3 Feature List: Module-level feature summary table (NOT detailed features)
+     - 3.4 Feature Breakdown: Write "See individual Sub-PRDs for module-specific Feature Breakdown"
+     - 3.5 Feature Details: Write "See individual Sub-PRDs for module-specific Feature Details"
+   - Section 4 (Non-functional Requirements): System-wide NFRs only
+   - Section 5 (Acceptance Criteria): System-wide acceptance criteria only
+   - Section 6 (Boundary Description): System-wide scope boundaries
+   - Section 7 (Assumptions & Dependencies): System-wide dependencies
+   - **APPEND after Section 7** using `search_replace` on the PRD Status line:
+     - **Section 8: Module Overview** — Module list table (from Step 6.1), Cross-module dependency matrix (from Step 6.2), Implementation phases (from Step 6.3)
+     - **Section 9: Sub-PRD Index** — List all Sub-PRD file paths with module names
 
 > ⚠️ **CRITICAL CONSTRAINTS:**
 > - **FORBIDDEN: `create_file` to rewrite the entire document**
 > - **MUST use `search_replace` to fill each section individually**
-> - **All section titles MUST be preserved**
+> - **For Master-Sub: DO NOT include module-specific user stories, requirements, or Feature Breakdowns in the Master PRD**
 
 ---
 
-### Step 12b: Generate Sub-PRDs (LOOP - MANDATORY for Master-Sub)
+### Step 12c: Sub-PRD Dispatch Plan (MANDATORY for Master-Sub)
 
-**IF Step 8 determined Master-Sub structure, execute this loop:**
+**IF Step 8 determined Master-Sub structure:**
+
+⚠️ **IMPORTANT: Sub-PRD generation is handled by the PM Agent through parallel worker dispatch.**
+**DO NOT generate Sub-PRD files sequentially in this skill.**
+
+Prepare and output the dispatch plan for the PM Agent:
+
+**Sub-PRD Dispatch Plan:**
+
+For each module from Step 6.1, prepare worker context:
+
+| # | Module | module_key | Sub-PRD Path | Feature Count |
+|---|--------|-----------|--------------|---------------|
+| 1 | {module-1-name} | {module-1-key} | {feature-name}-sub-{module-1-key}.md | {count} |
+| 2 | {module-2-name} | {module-2-key} | {feature-name}-sub-{module-2-key}.md | {count} |
+| ... | ... | ... | ... | ... |
+
+For each module, collect and output the following context data:
+- `module_name`: Module name
+- `module_key`: Module identifier (for file naming)
+- `module_scope`: What this module covers (from Step 6.1)
+- `module_entities`: Core entities (from Step 6.1)
+- `module_user_stories`: User stories specific to this module (from Steps 1-5 analysis)
+- `module_requirements`: Functional requirements for this module (P0/P1/P2)
+- `module_features`: Feature Breakdown entries for this module (from Step 9.1 analysis)
+- `module_dependencies`: Dependencies on other modules (from Step 6.2)
+
+After outputting the dispatch plan:
 
 ```
-FOR each module in module_list from Step 6.1:
-  
-  12b.1: Copy template to sub_prd_path
-    sub_prd_name = "{feature-name}-sub-{module-key}.md"
-    sub_prd_path = "{iteration}/01.product-requirement/{sub_prd_name}"
-    
-    Action:
-    1. Read templates/PRD-TEMPLATE.md
-    2. Replace top-level placeholders
-    3. Create document using create_file at sub_prd_path
-
-  12b.2: Fill module-specific content using search_replace:
-    - Section 1: Module-specific background and context
-    - Section 2: Module-specific user stories
-    - Section 3: Module-specific functional requirements
-    - Section 3.4: Module-specific Feature Breakdown (REQUIRED)
-    - Section 5: Module-specific acceptance criteria
-    - Add: Interface Contracts (from Master dependency matrix)
-
-  12b.3: Verify file exists and is non-empty
-    - Read sub_prd_path to confirm file was created
-    - Verify file size > 1KB (not empty placeholder)
-
-NEXT module
-
-⚠️ STOP condition: All modules in module_list have been processed.
+→ RETURN to PM Agent for parallel worker dispatch.
+→ PM Agent will invoke speccrew-task-worker for each module.
+→ Each worker uses speccrew-pm-sub-prd-generate/SKILL.md to generate one Sub-PRD.
 ```
 
-**Example loop execution:**
-```
-Iteration 1: Process module "inventory"
-  → Create: inventory-management-sub-inventory.md
-  → Fill: inventory-specific content
-  → Verify: file exists and has content
-
-Iteration 2: Process module "order"
-  → Create: inventory-management-sub-order.md
-  → Fill: order-specific content
-  → Verify: file exists and has content
-
-... continue until all modules processed
-```
+**IF Single PRD Structure:** Skip this step (no Sub-PRDs needed).
 
 ---
 
-### Step 12c: Verification Checklist (MANDATORY)
+### Step 12d: Verification Checklist (Execute after all Sub-PRDs are generated)
 
-**After all PRD files are generated, verify:**
+**After PM Agent confirms all workers have completed, verify:**
 
-```
-□ Master PRD exists at {iteration}/01.product-requirement/{feature-name}-prd.md
-□ Master PRD file size > 2KB (not empty placeholder)
+- [ ] Master PRD exists and file size > 2KB
+- [ ] [Master-Sub] All {sub_prd_count} Sub-PRD files exist
+- [ ] [Master-Sub] Each Sub-PRD file size > 3KB
+- [ ] [Master-Sub] Master PRD Section 9 (Sub-PRD Index) matches actual files
+- [ ] [Master-Sub] Each Sub-PRD contains Section 3.4 Feature Breakdown
 
-[For Master-Sub structure ONLY:]
-  □ All {sub_prd_count} Sub-PRD files exist
-  □ Each Sub-PRD file size > 3KB (not empty placeholder)
-  □ Master PRD Section index links match actual Sub-PRD files
-  □ No broken file references
-  □ Each Sub-PRD contains module-specific Feature Breakdown
-
-IF any check fails → STOP and report error, fix before proceeding
-IF all checks pass → Proceed to Step 12d
-```
+IF any check fails → Report error and fix before proceeding.
 
 ---
 
-### Step 12d: Request Confirmation
+### Step 12e: Request Confirmation
 
-After verification passes, show summary and request user confirmation:
+Present summary to user:
 
-**Simple PRD Output:**
+**Single PRD:**
 ```
-PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
-```
-
-**Complex PRD Output (with modeling):**
-```
-Business Modeling generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-bizs-modeling.md
-PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
+PRD generated: {path}
 ```
 
-**Master-Sub PRD Output:**
+**Master-Sub PRD:**
 ```
-Master PRD generated: speccrew-workspace/iterations/XXX-{type}-{name}/01.product-requirement/[feature-name]-prd.md
-Sub-PRDs generated ({sub_prd_count} files):
-  - [feature-name]-sub-[module1].md
-  - [feature-name]-sub-[module2].md
-  - ...
+Master PRD: {master_path}
+Sub-PRDs ({sub_prd_count} files):
+  1. {module-1}: {sub_prd_1_path}
+  2. {module-2}: {sub_prd_2_path}
+  ...
+  N. {module-N}: {sub_prd_N_path}
+
+Total files generated: {sub_prd_count + 1}
 ```
 
-Please confirm the following key points:
-1. Is the feature boundary accurate?
-2. Are the acceptance criteria quantifiable?
-3. Is the Not In Scope complete?
-4. **[For complex requirements]** Is the Master-Sub structure appropriate?
-5. **[For existing features]** Are the [EXISTING]/[MODIFIED]/[NEW] markers accurate?
+Confirm:
+1. Feature boundary accurate?
+2. Acceptance criteria quantifiable?
+3. Not In Scope complete?
+4. [Master-Sub] Module decomposition appropriate?
+5. [Existing features] EXISTING/MODIFIED/NEW markers accurate?
 
-After confirmation, you can start the Solution Agent for solution planning.
+After user confirms, proceed to Step 13 to write progress files and finalize PRD stage.
 
 ## Step 13: Write Progress Files
 
@@ -657,7 +668,7 @@ Read and update the WORKFLOW-PROGRESS.json file:
 
 1. **Read**: `speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json`
 2. **Update the following fields**:
-   - `current_stage` = "02_feature_design"
+   - `current_stage` = "01_prd" (keep current stage — the next agent will update this when it starts)
    - `01_prd.status` = "confirmed"
    - `01_prd.completed_at` = `<current-ISO-timestamp>`
    - `01_prd.confirmed_at` = `<current-ISO-timestamp>`
