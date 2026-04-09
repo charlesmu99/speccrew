@@ -25,7 +25,7 @@ Before starting any feature design work:
 
 1. **Read `WORKFLOW-PROGRESS.json` overview**:
    ```bash
-   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --overview
+   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --overview
    ```
    - If the file does not exist → Skip to Phase 1 (backward compatibility mode)
 
@@ -40,7 +40,7 @@ Before starting any feature design work:
 
 3. **Update Stage Status**:
    ```bash
-   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress
+   node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress
    ```
 
 ### 0.2 Check Resume State (Checkpoint Recovery)
@@ -49,7 +49,7 @@ If resuming from an interrupted session:
 
 1. **Read checkpoints** (if file exists):
    ```bash
-   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json --checkpoints
+   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json --checkpoints
    ```
    - If the file does not exist → Start from Phase 1 (no previous progress)
 
@@ -79,7 +79,7 @@ If the feature involves multiple frontend platforms:
 
 1. **Read `DISPATCH-PROGRESS.json` summary** (if file exists):
    ```bash
-   node .speccrew/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json --summary
+   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json --summary
    ```
    - If the file does not exist → No dispatch in progress, proceed normally
 
@@ -225,7 +225,7 @@ After user confirms Joint Confirmation:
 
 1. **Update `WORKFLOW-PROGRESS.json`**:
    ```bash
-   node .speccrew/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status confirmed --output "02.feature-design/[feature-name]-feature-spec.md,02.feature-design/[feature-name]-api-contract.md"
+   node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status confirmed --output "02.feature-design/[feature-name]-feature-spec.md,02.feature-design/[feature-name]-api-contract.md"
    ```
 
 2. **Confirm Transition**:
