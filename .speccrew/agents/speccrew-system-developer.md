@@ -131,6 +131,14 @@ For each platform_id identified:
 - Read `03.system-design/{platform_id}/INDEX.md` to get module design list
 - Identify all module design documents to implement
 
+**Design Document Naming Convention** (supports both formats):
+- Legacy format: `{module}-design.md` (e.g., `crm-design.md`)
+- New format: `{feature-id}-{feature-name}-design.md` (e.g., `F-CRM-01-customer-list-design.md`)
+
+**Feature ID Extraction**:
+- From new format: extract `{feature-id}` from filename (e.g., `F-CRM-01` from `F-CRM-01-customer-list-design.md`)
+- From legacy format: use `{module}` as feature_id (e.g., `crm` from `crm-design.md`)
+
 ## Step 2: Load Techs Knowledge
 
 Load development-focused techs knowledge following the Developer section of agent-knowledge-map:
@@ -225,14 +233,17 @@ Before dispatching tasks, create or read dispatch progress file:
    ```json
    [
      {
-       "id": "dev-{platform_id}-{module-name}",
+       "id": "dev-{platform_id}-{feature-id}",
        "platform": "{platform_id}",
        "module": "{module_name}",
+       "feature_id": "{feature_id}",
        "skill": "{skill_name}",
        "status": "pending"
      }
    ]
    ```
+   
+   Note: `feature_id` is extracted from design doc filename. For new format `{feature-id}-{feature-name}-design.md`, use `{feature-id}`. For legacy format `{module}-design.md`, use `{module}` as feature_id.
 
 3. **Alternatively, pass tasks JSON directly**:
    ```bash
@@ -277,10 +288,29 @@ task_list = []
 for each platform_id:
   read INDEX.md → get module design file list
   for each module_design_doc:
+    // Extract feature_id from design doc filename
+    // New format: {feature-id}-{feature-name}-design.md → extract {feature-id}
+    // Legacy format: {module}-design.md → use {module} as feature_id
+    filename = module_design_doc.filename  // e.g., "F-CRM-01-customer-list-design.md" or "crm-design.md"
+    base_name = filename.replace("-design.md", "")  // e.g., "F-CRM-01-customer-list" or "crm"
+    
+    // Detect format: if base_name contains pattern like "F-XXX-NN", extract feature_id
+    if base_name matches pattern "^([A-Z]-[A-Z]+-\d+)" (e.g., "F-CRM-01"):
+      feature_id = matched group 1  // e.g., "F-CRM-01"
+      module_name = base_name  // full name for reference
+    else:
+      feature_id = base_name  // e.g., "crm"
+      module_name = base_name
+    
+    task_id = "dev-{platform_id}-{feature_id}"
+    
     task_list.append({
-      platform_id,
+      id: task_id,  // e.g., "dev-backend-spring-F-CRM-01" or "dev-backend-spring-crm"
+      platform: platform_id,
+      module: module_name,
+      feature_id: feature_id,
       skill_name: determined by platform prefix (see 4.1),
-      module_design_path: 03.system-design/{platform_id}/{module}-design.md,
+      module_design_path: 03.system-design/{platform_id}/{filename},
       techs_knowledge_paths: relevant techs knowledge for this platform,
       api_contract_path: API Contract path,
       iteration_path: current iteration directory
@@ -288,13 +318,16 @@ for each platform_id:
 ```
 
 **Example** (3 platforms × ~11 modules each = ~33 tasks):
-- Task 1: `speccrew-dev-backend` for `backend-spring/crm-design.md`
-- Task 2: `speccrew-dev-backend` for `backend-spring/member-design.md`
+- Task 1: `speccrew-dev-backend` for `backend-spring/F-CRM-01-customer-list-design.md` → task_id: `dev-backend-spring-F-CRM-01`
+- Task 2: `speccrew-dev-backend` for `backend-spring/F-MEM-02-member-profile-design.md` → task_id: `dev-backend-spring-F-MEM-02`
 - ...
-- Task 12: `speccrew-dev-frontend` for `web-vue/crm-design.md`
+- Task 12: `speccrew-dev-frontend` for `web-vue/F-CRM-01-customer-list-design.md` → task_id: `dev-web-vue-F-CRM-01`
 - ...
-- Task 23: `speccrew-dev-mobile` for `mobile-uniapp/crm-design.md`
+- Task 23: `speccrew-dev-mobile` for `mobile-uniapp/F-CRM-01-customer-list-design.md` → task_id: `dev-mobile-uniapp-F-CRM-01`
 - ...
+
+**Legacy format example**:
+- Task 1: `speccrew-dev-backend` for `backend-spring/crm-design.md` → task_id: `dev-backend-spring-crm`
 
 ### 4.2a Checkpoint: Task List Review
 
@@ -319,12 +352,12 @@ for each platform_id:
 >
 > **REQUIRED ACTION**: Dispatch `speccrew-task-worker` agents via Agent tool. Each worker independently calls the appropriate dev skill.
 
-**Max concurrent workers: 10**
+**Max concurrent workers: 6**
 
 Process `task_list` using a queue-based concurrency limit model. Each task runs in an independent `speccrew-task-worker` agent:
 
 ```
-MAX_CONCURRENT = 10
+MAX_CONCURRENT = 6
 pending = [...task_list]  // Only pending/failed tasks from DISPATCH-PROGRESS.json
 running = {}
 completed = []
@@ -343,6 +376,7 @@ while pending is not empty or running is not empty:
       - skill_path: {ide_skills_dir}/{task.skill_name}/SKILL.md
       - context:
         - platform_id: {task.platform_id}
+        - feature_id: {task.feature_id}  // Extracted from design doc filename
         - iteration_path: {task.iteration_path}
         - design_doc_path: {task.module_design_path}
         - api_contract_path: {task.api_contract_path}
@@ -377,7 +411,7 @@ while pending is not empty or running is not empty:
 **Dispatch rules:**
 - Each worker handles **one module** on **one platform** (not all modules)
 - Pass complete context including `design_doc_path`, `skill_name`, platform info, and `task_id`
-- Up to 10 workers execute simultaneously (concurrency limit)
+- Up to 6 workers execute simultaneously (concurrency limit)
 - Update DISPATCH-PROGRESS.json **before** dispatch (status → "in_progress")
 - After dev worker completes, mark as "in_review" (NOT "completed") and queue for review
 - Track all dispatched tasks: in_review / failed / pending counts

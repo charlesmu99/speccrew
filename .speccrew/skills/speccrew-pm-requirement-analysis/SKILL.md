@@ -305,6 +305,7 @@ Before writing, determine the PRD structure based on requirement complexity:
 **Each Sub-PRD covers ONE module:**
 - Module-specific user stories and functional requirements
 - Module-internal process flows and use cases
+- **Feature Breakdown** (required): List all business operation units with Feature ID, Type, and dependencies
 - Module-specific acceptance criteria
 - Interface contracts with other modules (referencing Master PRD dependency matrix)
 
@@ -314,10 +315,39 @@ Fill in according to the template structure, requirements:
 - **Background & Goals**: Explain why we're doing this and what success looks like
 - **User Stories**: `As a [user role], I want [to do something], so that [I can achieve some goal]`
 - **Functional Requirements**: Group by priority (P0 Core / P1 Important / P2 Optional)
+- **Feature Breakdown**: Extract business operation units for downstream Feature Design (see Step 9.1)
 - **Non-functional Requirements**: Performance, security, compatibility, etc.
 - **Acceptance Criteria**: Quantifiable, verifiable definition of done
 - **Boundary Description**: Clearly define Not In Scope content
 - **Assumptions & Dependencies**: Prerequisites, external dependencies
+
+### Step 9.1: Extract Feature Breakdown
+
+For both simple and complex requirements, extract Feature Breakdown to guide downstream Feature Design:
+
+**Analysis Steps:**
+1. **Analyze user stories and functional requirements** for this module/feature
+2. **Identify business operation units** - each unit should represent:
+   - A complete business operation (e.g., "Customer List Management" includes search, filter, pagination, tag management)
+   - Can span 1-2 pages but remains business-cohesive
+   - Estimated implementation: no more than 15 code files (frontend + backend combined)
+3. **Classify Feature Type:**
+   - `Page+API`: Frontend page with corresponding backend APIs (for full-stack architecture)
+   - `API-only`: Group of related APIs (for backend-only features)
+4. **Assign Feature IDs**: Use format `F-{MODULE}-{NN}` (e.g., F-CRM-01, F-CRM-02)
+5. **Document dependencies**: Identify data or workflow dependencies between features
+
+**Granularity Guidelines:**
+| Good Feature Size | Too Large (Split Further) |
+|-------------------|--------------------------|
+| Single CRUD operation group | Complete module with 5+ CRUDs |
+| One list page with filters | Entire reporting subsystem |
+| One form with validation | Multi-step wizard with 10+ steps |
+| Single API endpoint group | All APIs for a domain |
+
+**Output:** Complete the Feature Breakdown table in Section 3.4 of the PRD template.
+
+**Note:** Even simple requirements (single-file PRD) should include Feature Breakdown, typically with 1-3 features.
 
 ### Marking Existing vs New Features
 
@@ -529,6 +559,8 @@ If WORKFLOW-PROGRESS.json does not exist (backward compatibility):
 - [ ] PRD structure (single vs master-sub) determined appropriately
 - [ ] **[Master-Sub]** Master PRD includes architecture overview, module list, dependency matrix, implementation phases
 - [ ] **[Master-Sub]** Each Sub-PRD covers exactly one module with interface contracts
+- [ ] **Feature Breakdown** extracted with appropriate granularity (each feature ≤ 15 code files)
+- [ ] **Feature Breakdown** includes Feature IDs, Types (Page+API / API-only), and dependencies
 - [ ] PRD completely filled according to template structure
 - [ ] User story granularity aligns with "single iteration completable" principle
 - [ ] Acceptance criteria are quantifiable and verifiable

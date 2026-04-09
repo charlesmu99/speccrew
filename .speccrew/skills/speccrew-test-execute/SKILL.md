@@ -85,6 +85,12 @@ Determine if the system under test requires:
 
 **Checkpoint A**: If any environment check fails, report specific missing items and stop execution.
 
+✋ **STOP IF FAILED**: IF any pre-check fails THEN:
+1. Stop workflow immediately
+2. Report all failures to user
+3. Do NOT proceed to test execution
+4. Fix all environment issues before retry
+
 ## Step 3: Execute Tests
 
 ### 3.1 Determine Test Command
@@ -182,6 +188,8 @@ For each deviation, analyze:
 - **Runtime Error**: Exception type and location
 - **Skip Reason**: Why test could not execute
 - **Flaky Pattern**: Conditions causing intermittent failure
+
+> 📋 **Output Requirement**: These root cause analysis results MUST be included in Step 6 Report under the "Recommendations" section. Each root cause should map to its corresponding test case ID for traceability.
 
 ## Step 6: Generate Test Report
 

@@ -37,18 +37,10 @@ Worker Agent (speccrew-task-worker)
 ## Output
 
 - `{{output_path}}/system-overview.md` - Complete system overview
+  - Example (single platform): `speccrew-workspace/knowledges/bizs/system-overview.md`
+  - Example (multi-platform): `speccrew-workspace/knowledges/bizs/system-overview.md` (aggregates all platforms)
 
 ## Workflow
-
-### Absolute Constraints
-
-> **These rules apply to ALL steps. Violation = task failure.**
-
-1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the system overview document. It MUST be created by copying the template (Step 7a) then filling sections with `search_replace` (Step 7b). `create_file` produces truncated output on large files.
-
-2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
-
-3. **MANDATORY: Template-first workflow** — Step 7a (copy template) MUST execute before Step 7b (fill sections). Skipping Step 7a and writing content directly is FORBIDDEN.
 
 ### Prerequisites
 
@@ -216,32 +208,36 @@ Create flow-module mapping matrix:
 
 ### Step 7: Generate system-overview.md
 
+**⚠️ CRITICAL CONSTRAINTS (apply to Step 7a and 7b):**
+> 1. **FORBIDDEN: `create_file` for documents** — Document MUST be created by copying template (Step 7a) then filling with `search_replace` (Step 7b)
+> 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
+> 3. **MANDATORY: Template-first workflow** — Step 7a MUST execute before Step 7b
+
+**Step 7a: Prepare Document**
+
 1. **Read Configuration**:
    - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` → system tech stacks and display names
    - Read `speccrew-workspace/docs/rules/mermaid-rule.md` → Mermaid diagram guidelines
 
-2. **Determine Technology Stack**:
+2. **Invoke** `speccrew-get-timestamp` using Skill tool:
+   - Parameters: none (uses default format `YYYY-MM-DD-HHmmss`)
+   - Returns: timestamp string (e.g., `2026-03-17-132645`)
+   - Use the returned timestamp as generation timestamp in document
+
+3. **Determine Technology Stack**:
    - Extract platform types from discovered module paths
    - Map platform_type to display name via tech-stack-mappings.json
    - Example: `web-vue` → `Vue 3 + TypeScript`; `backend-java` → `Java 17 + Spring Boot`
 
-3. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no parameters needed, uses default format `YYYY-MM-DD-HHmmss`, returns timestamp string e.g. `2026-03-17-132645`)
-   - Use the returned timestamp as generation timestamp in document
-
-4. **Copy template to document path (Step 7a)**:
+4. **Copy template to document path**:
    - Read template: `templates/SYSTEM-OVERVIEW-TEMPLATE.md` (already loaded in Step 0)
    - Replace top-level placeholders (system name, generation timestamp, tech stack info)
-   - Create document using `create_file` at: `output_path/system-overview.md`
+   - Create document using `create_file` at: `{{output_path}}/system-overview.md`
    - Verify: Document has complete section structure ready for filling
 
-5. **Fill each section using search_replace (Step 7b)**:
+**Step 7b: Fill Each Section Using search_replace**
 
-> ⚠️ **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template structure
-> - **MUST use `search_replace` to fill each section individually**
-> - **All section titles MUST be preserved**
-> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
+> ⚠️ **CRITICAL**: Use `search_replace` to fill each section individually. If a section has no applicable content, keep the section title and replace placeholder with "N/A"
 
 **Fill via `search_replace`:**
 

@@ -24,14 +24,36 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read PRD Input
 
+### 1.1 Input Parameters
+
+The skill receives the following parameters from the calling agent:
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `feature_id` | No | Feature identifier (e.g., `F-CRM-01`). If not provided, processes entire PRD (backward compatibility) |
+| `feature_name` | No | Feature name in English (e.g., `customer-list`). Used for file naming |
+| `feature_type` | No | `Page+API` or `API-only`. `API-only` skips frontend design steps |
+| `iteration_id` | No | Current iteration identifier. Paths come from `prd_path`/`output_path`; `iteration_id` is used only for progress messages when available |
+| `prd_path` | Yes | Path to the Sub-PRD document |
+
+### 1.2 Read PRD
+
 Read in order:
 
-1. **Current iteration PRD**: `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md`
+1. **Current iteration PRD**: `{prd_path}` (typically `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[module-name]-prd.md`)
 2. **Feature spec template**: `speccrew-fd-feature-design/templates/FEATURE-SPEC-TEMPLATE.md`
 
-**[Master-Sub PRD structure]** If master PRD exists, also read all sub PRDs:
-- Master PRD: `[feature-name]-prd.md`
-- Sub PRDs: `[feature-name]-sub-[module1].md`, `[feature-name]-sub-[module2].md`, etc.
+### 1.3 Focus on Specific Feature (when feature_id provided)
+
+If `feature_id` is provided:
+- Locate the specific Feature in PRD Section 3.4 "Feature Breakdown"
+- Extract only the user stories and requirements related to this Feature
+- Ignore other Features in the same PRD
+- Use the Feature's scope to guide function breakdown
+
+### 1.4 Backward Compatibility (when feature_id not provided)
+
+If `feature_id` is NOT provided, process entire PRD using legacy mode. For Master-Sub PRD structure, read master PRD and all sub PRDs. See Reference Guides for detailed behavior.
 
 ## Step 2: Load System Knowledge
 
@@ -76,6 +98,25 @@ If cross-module relationships need analysis, use `speccrew-knowledge-graph-query
 ## Step 3: Function Breakdown
 
 Break down PRD functional requirements into implementable system functions.
+
+### 3.1 Feature-Based Decomposition (when feature_id provided)
+
+When processing a single Feature:
+
+1. **Extract Feature Scope**: From PRD Section 3.4, locate the specific Feature by `feature_id`
+2. **Identify Related User Stories**: Extract only user stories mapped to this Feature
+3. **Decompose into Functions**: Break down into 3-8 focused Functions (not 10-20)
+4. **Check feature_type**:
+   - If `feature_type = API-only`: Mark for backend-only design (skip frontend in Step 5)
+   - If `feature_type = Page+API`: Include both frontend and backend design
+
+### 3.2 Full PRD Decomposition (backward compatibility)
+
+When `feature_id` is NOT provided (legacy mode):
+- Decompose entire PRD into all required Functions
+- May result in 10-20 Functions for complex modules
+
+### 3.3 Function Analysis
 
 For each function, identify:
 
@@ -132,14 +173,28 @@ After user confirms the function breakdown:
 
 ## Step 4: Determine Output Structure
 
-Based on PRD structure, determine feature spec output structure:
+### 4.1 Single Feature Output (when feature_id provided)
+
+When processing a single Feature:
+
+| Output | Description |
+|--------|-------------|
+| **Single File** | One Feature Spec document for this Feature only |
+| **File Naming** | `[feature-id]-[feature-name]-feature-spec.md` |
+| **Example** | `F-CRM-01-customer-list-feature-spec.md` |
+
+**No Master-Sub structure** for single Feature mode.
+
+### 4.2 Legacy Output (backward compatibility)
+
+When `feature_id` is NOT provided:
 
 | PRD Structure | Feature Spec Structure |
 |---------------|------------------------|
 | **Single PRD** | Single Feature Spec |
 | **Master-Sub PRD** | Master Feature Spec + Sub Feature Specs (one per module) |
 
-### Master Feature Spec Structure
+#### Master Feature Spec Structure (Legacy)
 
 ```
 02.feature-design/
@@ -164,6 +219,18 @@ Based on PRD structure, determine feature spec output structure:
 
 ## Step 5: Frontend Design (Per Function)
 
+### 5.0 Conditional Execution Based on feature_type
+
+**Execution Logic:**
+```
+IF feature_type = "Page+API" THEN
+  → Execute Step 5 (Full frontend design)
+IF feature_type = "API-only" THEN
+  → Skip Step 5 entirely (No frontend design needed)
+IF feature_type is NOT provided THEN
+  → Execute Step 5 (backward compatibility)
+```
+
 **Multi-Platform Rule**: If multiple frontend platforms are identified, repeat the frontend design (5.1 UI Prototype + 5.2 Interface Elements + 5.3 Interaction Flow) for EACH platform. Use platform-specific section headers:
 
 | Platforms | Section Structure |
@@ -172,6 +239,8 @@ Based on PRD structure, determine feature spec output structure:
 | Multiple platforms | `#### 2.N.1 Frontend Prototype - Web` + `#### 2.N.1b Frontend Prototype - Mobile` |
 
 **Mobile-specific wireframe patterns:**
+
+> **Note**: These are ASCII wireframe design specifications, NOT actual template files in the `templates/` directory.
 
 ```
 Pattern M-A: Card List (replaces PC table list)
@@ -418,17 +487,15 @@ Frontend Components: {count} pages/components
 Backend Interfaces: {count} APIs
 Data Entities: {count} new, {count} modified
 
-[Master-Sub] Output Structure:
-- Master Feature Spec: {filename}
-- Sub Feature Specs: {list of filenames}
+Output File: {filename}
 ```
 
 **Ask user to confirm:**
-1. Is the frontend prototype appropriate for user needs?
+1. Is the frontend prototype appropriate for user needs? (if applicable)
 2. Is the backend logic flow correct and complete?
 3. Is the data model reasonable and extensible?
 4. Are all business rules and constraints captured?
-5. **[Master-Sub]** Is the module breakdown appropriate?
+5. **[Legacy Master-Sub]** Is the module breakdown appropriate?
 
 ### Checkpoint B Progress Update
 
@@ -465,6 +532,19 @@ After user confirms the complete feature spec:
 ## Step 10: Write Files
 
 ### 10.1 Determine Output Paths
+
+#### Single Feature Mode (when feature_id provided)
+
+```
+speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md
+```
+
+**Naming Rules:**
+- `feature-id`: As provided in input (e.g., `F-CRM-01`)
+- `feature-name`: Converted to kebab-case (lowercase with hyphens)
+- **Example**: `F-CRM-01-customer-list-feature-spec.md`
+
+#### Legacy Mode (backward compatibility)
 
 **Single Feature Spec:**
 ```
@@ -517,7 +597,7 @@ Fill sections sequentially using `search_replace` for each content block:
 | **Business Rules** | Permissions, validation, business logic rules |
 | **Cross-Module Interactions** | **[If applicable]** Interface contracts between modules |
 
-For Master-Sub specs, repeat Step 10.2a + 10.2b for each sub-spec document.
+For legacy Master-Sub specs (when feature_id not provided), repeat Step 10.2a + 10.2b for each sub-spec document.
 
 ### 10.3 Mermaid Diagram Requirements
 
@@ -631,6 +711,44 @@ After each worker completes:
 
 5. Log progress: "📊 Dispatch progress: {completed}/{total} completed, {failed} failed, {pending} pending"
 
+---
+
+# Reference Guides
+
+## Backward Compatibility Details (Legacy Mode)
+
+When `feature_id` is NOT provided, the skill operates in legacy mode:
+
+### Master-Sub PRD Structure
+
+If master PRD exists, also read all sub PRDs:
+- Master PRD: `[feature-name]-prd.md`
+- Sub PRDs: `[feature-name]-sub-[module1].md`, `[feature-name]-sub-[module2].md`, etc.
+
+### Output Structure (Legacy)
+
+**Single Feature Spec:**
+```
+speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
+```
+
+**Master-Sub Feature Specs:**
+```
+02.feature-design/
+├── [feature-name]-feature-spec.md          # Master Feature Spec (overview + cross-module)
+├── [feature-name]-sub-[module1]-spec.md    # Sub Feature Spec: Module 1
+├── [feature-name]-sub-[module2]-spec.md    # Sub Feature Spec: Module 2
+```
+
+**Master Feature Spec MUST include:**
+- Overall feature overview and goals
+- Cross-module interaction diagram
+- Module list with scope boundaries
+- Cross-module interface contracts
+- Shared data structures
+
+---
+
 # Key Rules
 
 | Rule | Description |
@@ -645,22 +763,26 @@ After each worker completes:
 # Checklist
 
 - [ ] PRD has been read, all P0 requirements covered
-- [ ] **[Master-Sub]** All sub PRDs have been read
+- [ ] **[Single Feature Mode]** Feature ID and name parameters received
+- [ ] **[Single Feature Mode]** Only related Feature content extracted from PRD
+- [ ] **[Legacy Mode]** All sub PRDs have been read (if master-sub structure)
 - [ ] System overview loaded for context
 - [ ] Related module overviews loaded
 - [ ] **[Cross-module]** Knowledge graph queried for relationship analysis
 - [ ] Function breakdown completed with [EXISTING]/[MODIFIED]/[NEW] markers
+- [ ] **[Single Feature Mode]** 3-8 focused Functions defined
 - [ ] Checkpoint A passed: function breakdown confirmed with user
-- [ ] Output structure determined (single vs master-sub)
-- [ ] Frontend design includes ASCII wireframes and interaction flows
+- [ ] Output structure determined (single file for Feature mode)
+- [ ] **[API-only]** Frontend design step skipped correctly
+- [ ] **[Page+API]** Frontend design includes ASCII wireframes and interaction flows
 - [ ] **[Multi-platform]** Each frontend platform has separate wireframes and interaction flows
 - [ ] Backend design includes interface list and logic flows
 - [ ] Data model includes new entities and modifications to existing
 - [ ] Business rules and constraints documented
 - [ ] Checkpoint B passed: complete feature spec confirmed with user
-- [ ] **[Master-Sub]** Master spec includes cross-module overview and contracts
-- [ ] **[Master-Sub]** Each sub spec covers exactly one module
+- [ ] **[Legacy Master-Sub]** Master spec includes cross-module overview and contracts
+- [ ] **[Legacy Master-Sub]** Each sub spec covers exactly one module
 - [ ] All Mermaid diagrams follow mermaid-rule.md
 - [ ] No specific technology decisions included
-- [ ] Files written to correct paths
+- [ ] Files written to correct paths with proper naming (`{feature-id}-{feature-name}-feature-spec.md`)
 - [ ] API contract skill called after writing

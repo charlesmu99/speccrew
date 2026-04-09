@@ -82,8 +82,27 @@ Fill each section with task checklist and design metadata extracted from input d
 
 ### 3.2 Desktop-Specific Task Types
 
+**Conditional Task Selection:**
+
+```
+IF task involves backend logic in main process THEN
+  → Create Main Process Module task
+IF task involves UI components in renderer THEN
+  → Create Renderer Page/Component task
+IF task involves process communication THEN
+  → Create IPC Channel Handler task + Preload Script task
+IF task involves native APIs THEN
+  → Create Native Integration task
+IF task involves menus or shortcuts THEN
+  → Create Menu/Shortcut task
+IF task involves auto-update THEN
+  → Create Auto-Update task
+IF task involves security configuration THEN
+  → Create Security Hardening task
+```
+
 | Task Type | Description | Example |
-|-----------|-------------|---------|
+|-----------|-------------|---------||
 | Main Process Module | Backend logic running in main process | Window manager, IPC handlers, native integrations |
 | Renderer Page/Component | UI components in renderer process | React/Vue components, pages, layouts |
 | IPC Channel Handler | Communication bridge between processes | `ipcMain.handle`, `#[tauri::command]` |
@@ -176,12 +195,7 @@ npx tsc --noEmit
 
 ### 5.4 Security Audit
 
-| Check | Method |
-|-------|--------|
-| Context Isolation | Verify `contextIsolation: true` in window config |
-| nodeIntegration | Verify `nodeIntegration: false` |
-| Preload Script | Verify all IPC goes through preload |
-| CSP | Check Content Security Policy headers |
+Perform security checks according to Security Audit Reference (see Reference Guides section).
 
 ### 5.5 Unit Tests
 
@@ -295,6 +309,21 @@ If the skill fails at any step:
 2. Context isolation properly configured
 3. Native integrations working as expected
 4. No security concerns introduced
+
+---
+
+# Reference Guides
+
+## Security Audit Checklist
+
+| Check | Method |
+|-------|--------|
+| Context Isolation | Verify `contextIsolation: true` in window config |
+| nodeIntegration | Verify `nodeIntegration: false` |
+| Preload Script | Verify all IPC goes through preload |
+| CSP | Check Content Security Policy headers |
+
+---
 
 # Key Rules
 

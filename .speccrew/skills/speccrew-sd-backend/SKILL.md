@@ -24,10 +24,15 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read Inputs
 
+**Input Parameters** (from agent context):
+- `feature_id` (optional): Feature identifier, e.g., `F-CRM-01`. If provided, use new naming format.
+- `feature_name`: Feature name, e.g., `customer-list`.
+- `platform_id`: Target platform, e.g., `backend-spring`, `backend-nestjs`.
+
 Read in order:
 
-1. **Feature Spec document(s)**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md`
-2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+1. **Feature Spec document(s)**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md`
 3. **Backend techs knowledge** (paths from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`
@@ -55,6 +60,8 @@ Use Glob/Grep to understand current backend codebase:
 ## Step 3: Extract Functions from Feature Spec
 
 Parse Feature Spec to identify all backend-relevant functions.
+
+> **Note**: With the new fine-grained Feature Spec format, each Feature Spec typically contains **3-8 functions** (previously 10-20). The extraction logic remains the same, but the scope is more focused.
 
 For each function, extract:
 
@@ -91,7 +98,10 @@ Read the SD-BACKEND-TEMPLATE.md to understand document structure.
 2. **Replace top-level placeholders** with known variables:
    - Module name, feature name, platform ID, etc.
 3. **Create the document file** using `create_file`:
-   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
+   - **Target path pattern**:
+     - With `feature_id`: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md`
+       - Example: `03.system-design/backend-spring/F-CRM-01-customer-list-design.md`
+     - Without `feature_id` (backward compatibility): `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
    - Content: Template with top-level placeholders replaced
 4. **Verify**: Document should have complete section structure ready for filling
 
@@ -112,6 +122,22 @@ Fill each section with technology-specific implementation details.
 | **Database Design** | Use actual ORM entity definitions from conventions-data.md |
 | **Transaction Boundaries** | Use actual framework transaction mechanism |
 | **Exception Handling** | Use actual exception classes and error codes |
+
+**How to Reference Techs Knowledge for Pseudo-code:**
+
+1. **Read relevant techs knowledge file for the platform**:
+   - Core syntax: `tech-stack.md` for framework version and key libraries
+   - ORM patterns: `conventions-data.md` for entity definitions and transaction management
+   - Design patterns: `conventions-design.md` for layer structure and naming conventions
+2. **Extract framework-specific syntax patterns**:
+   - Controller annotations/decorators
+   - Service injection patterns
+   - Repository/DAO method signatures
+   - Transaction management annotations
+3. **Apply patterns in pseudo-code**:
+   - Use exact annotation/decorator syntax from techs knowledge
+   - Follow naming conventions from conventions-design.md
+   - Apply ORM patterns from conventions-data.md
 
 **Pseudo-code Requirements:**
 - MUST use actual framework syntax from techs knowledge
@@ -153,7 +179,7 @@ Read INDEX-TEMPLATE.md to understand platform-level document structure.
 |---------|---------|
 | **Tech Stack Summary** | Extract from techs knowledge |
 | **Shared Design Decisions** | Middleware stack, data source config, base service classes, common utilities |
-| **Module List Table** | Links to each module design document |
+| **Module List Table** | Links to each module design document. Use `feature_id` as identifier if available (e.g., `F-CRM-01`), otherwise use module name. Example: `\| F-CRM-01 \| Customer List \| F-CRM-01-customer-list-design.md \| NEW \|` |
 | **Cross-Module Interaction Notes** | Shared services, event-driven patterns, dependencies |
 | **Database Schema Overview** | New tables, modified tables, entity relationships |
 
@@ -202,11 +228,11 @@ After completing all steps, output a structured completion report for the System
 - **Status**: SUCCESS
 - **Task ID**: {task_id from context}
 - **Platform**: {platform_id}
+- **Feature ID**: {feature_id}
 - **Feature**: {feature_name}
 - **Output Files**:
   - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/INDEX.md
-  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module1}-design.md
-  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module2}-design.md
+  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md (or {module}-design.md if no feature_id)
 - **Summary**: Backend system design completed for {feature_name} on {platform_id} with {count} module designs
 ```
 
@@ -217,6 +243,7 @@ After completing all steps, output a structured completion report for the System
 - **Status**: FAILED
 - **Task ID**: {task_id from context}
 - **Platform**: {platform_id}
+- **Feature ID**: {feature_id}
 - **Feature**: {feature_name}
 - **Output Files**: []
 - **Error**: {description of what went wrong}

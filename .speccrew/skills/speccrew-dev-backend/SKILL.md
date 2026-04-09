@@ -10,6 +10,16 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 - User asks "Start backend development", "Implement backend code"
 - System Developer Agent receives task to implement backend for a specific platform
 
+# Input Parameters
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| `design_doc_path` | Yes | string | Path to a single module design document (passed by upstream system-developer agent) |
+| `platform_id` | Yes | string | Platform identifier (e.g., backend-spring, backend-nodejs) |
+| `task_id` | Yes | string | Task identifier from dispatch context |
+| `iteration_id` | No | string | Current iteration identifier for progress messages |
+| `output_dir` | No | string | Output directory for task record (default: auto-derived from iteration path) |
+
 # Workflow
 
 ## Absolute Constraints
@@ -249,7 +259,9 @@ If the skill fails at any step:
 | **Deviation Recording** | ALL deviations from design must be documented |
 | **Tech Debt Tracking** | Suboptimal solutions written to tech-debt/ directory |
 
-# Mermaid Diagram Requirements
+# Reference Guides
+
+## Mermaid Diagram Requirements
 
 When generating Mermaid diagrams, follow compatibility guidelines:
 
@@ -260,6 +272,8 @@ When generating Mermaid diagrams, follow compatibility guidelines:
 - No `style` definitions
 - No special characters in node text
 - Use standard `graph TB/LR` or `flowchart TD/LR` or `erDiagram` syntax only
+
+---
 
 # Checklist
 

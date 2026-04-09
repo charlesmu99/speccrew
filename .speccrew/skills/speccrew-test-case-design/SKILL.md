@@ -98,6 +98,13 @@ speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
 | Test Data Management | Fixtures, seeding, mock strategies |
 | API Contract Testing | Contract testing conventions if applicable |
 
+**Fallback Handling:**
+
+IF `conventions-system-test.md` not found:
+1. Use default analysis dimensions defined in Step 4
+2. Proceed without platform-specific testing conventions
+3. Log a note: "Testing conventions file not found, using default analysis dimensions"
+
 ## Step 4: Analyze Test Dimensions
 
 Systematically analyze test dimensions to ensure comprehensive coverage:
@@ -205,6 +212,16 @@ Each test case contains:
 | P1-High | Important functionality, significant impact | Key business rules, main error handling |
 | P2-Medium | Standard functionality, moderate impact | Edge cases, secondary flows |
 | P3-Low | Minor functionality, low impact | UI polish, rare edge cases |
+
+**Priority Mapping from Feature Spec to Test Cases:**
+
+| Feature Spec Priority | Test Case Priority | Mapping Rationale |
+|-----------------------|-------------------|------------------|
+| P0 (Critical) | P0 (Critical) | Core functionality must have critical test coverage |
+| P1 (Important) | P1 (High) | Important features need high-priority test validation |
+| P2 (Standard) | P2 (Medium) | Standard features receive medium-priority testing |
+| P3 (Minor) | P3 (Low) | Minor features receive low-priority testing |
+| Unspecified | P2 (Medium) | Default to medium priority if not specified |
 
 ## Step 6: Coverage Self-Check
 

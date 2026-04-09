@@ -12,7 +12,10 @@
 
 | Item | Description |
 |------|-------------|
+| Feature ID | {Feature ID, e.g., F-CRM-01} |
 | Feature Name | {Feature Name} |
+| Feature Type | {Page+API / API-only} |
+| Source PRD | {Link to Sub-PRD document} |
 | Module | {Module Name} |
 | Core Function | {1-3 sentences describing core feature value} |
 | Target Users | {Describe target user groups} |
@@ -20,7 +23,7 @@
 
 ### 1.2 Feature Scope
 
-<!-- AI-NOTE: Check all items that this specification covers -->
+<!-- AI-NOTE: This specification covers a SINGLE Feature (business operation unit), not the entire module. Check all items that this specification covers. -->
 
 - [ ] {Function 1} - Frontend prototype + Interaction flow + Backend interface + Data definition
 - [ ] {Function 2} - Frontend prototype + Interaction flow + Backend interface + Data definition

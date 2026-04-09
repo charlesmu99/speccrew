@@ -73,22 +73,22 @@ If resuming from an interrupted session:
 
 4. **User Confirmation**: Show resume point and ask "Continue from this checkpoint?"
 
-### 0.3 Check Dispatch Resume (Multi-Platform Recovery)
+### 0.3 Check Dispatch Resume (Feature-Granular Recovery)
 
-If the feature involves multiple frontend platforms:
+If the iteration involves multiple Features:
 
 1. **Read `DISPATCH-PROGRESS.json` summary** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/DISPATCH-PROGRESS.json --summary
+   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --summary
    ```
    - If the file does not exist → No dispatch in progress, proceed normally
 
-2. **List Platform Task Status**:
+2. **List Feature Task Status**:
    ```
    📊 Dispatch Status:
-   ├── fd-web-vue: ✅ Completed
-   ├── fd-mobile-uniapp: ⏳ Pending
-   └── fd-web-react: ❌ Failed (error message)
+   ├── F-CRM-01 (Customer List): ✅ Completed
+   ├── F-CRM-02 (Customer Detail): ⏳ Pending
+   └── F-CRM-03 (Customer Search API): ❌ Failed (error message)
 
    Total: 3 | Completed: 1 | Failed: 1 | Pending: 1
    ```
@@ -98,9 +98,25 @@ If the feature involves multiple frontend platforms:
    - Re-execute tasks with `status == "failed"`
    - Execute tasks with `status == "pending"`
 
-4. **User Confirmation**: Ask "Resume dispatch for pending/failed platforms?"
+4. **User Confirmation**: Ask "Resume dispatch for pending/failed Features?"
 
-### 0.4 Backward Compatibility
+### 0.4 Backward Compatibility Note
+
+**Dispatch Mode Detection**:
+
+The agent automatically detects the appropriate dispatch mode based on PRD content:
+
+- **Feature Breakdown present** → Feature-granular dispatch (new behavior)
+  - Each Feature in the breakdown table gets its own Feature Spec and API Contract
+  - File naming: `{feature-id}-{feature-name}-feature-spec.md`
+
+- **Feature Breakdown missing** → Module-granular dispatch (legacy behavior)
+  - Each Sub-PRD gets one Feature Spec and API Contract
+  - File naming: `{module-name}-feature-spec.md`
+
+This ensures backward compatibility with PRDs created before the Feature Breakdown feature was introduced.
+
+### 0.5 Backward Compatibility
 
 If `WORKFLOW-PROGRESS.json` does not exist:
 - Log: "⚠️ No workflow progress file found. Running in legacy mode."
@@ -144,6 +160,31 @@ Read all confirmed PRD documents specified by the user. PRD documents contain:
 - Business process flows
 - Acceptance criteria
 
+### Extract Feature Breakdown (Section 3.4)
+
+After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
+
+1. **Locate Section 3.4**: In each Sub-PRD, find the "Feature Breakdown" table under Section 3.4
+
+2. **Parse Feature Table**: Extract the following columns for each Feature:
+   - `Feature ID`: Unique identifier (e.g., `F-CRM-01`, `F-CRM-02`)
+   - `Feature Name`: Descriptive name (e.g., `Customer List Management`)
+   - `Type`: Either `Page+API` or `API-only`
+   - `Dependencies`: List of prerequisite Feature IDs (if any)
+
+3. **Build Feature Registry**: Consolidate all features across Sub-PRDs into a unified list:
+   ```
+   Feature Registry Example:
+   ├── F-CRM-01: Customer List Management (Page+API) - from sub-prd-customer.md
+   ├── F-CRM-02: Customer Detail View (Page+API) - from sub-prd-customer.md, depends on F-CRM-01
+   └── F-CRM-03: Customer Search API (API-only) - from sub-prd-customer.md
+   ```
+
+4. **Backward Compatibility Check**:
+   - If **Feature Breakdown exists**: Proceed with Feature-granular dispatch (new behavior)
+   - If **Feature Breakdown missing**: Fall back to Sub-PRD-granular dispatch (legacy behavior)
+   - Log the dispatch mode: "📋 Dispatch mode: Feature-granular" or "📋 Dispatch mode: Module-granular (legacy)"
+
 ### Discover Frontend Platforms
 
 Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to identify all frontend platforms:
@@ -164,45 +205,160 @@ When involving related business domains, read `speccrew-workspace/knowledges/biz
 
 ## Phase 3: Design
 
-After knowledge loading is complete, design feature specifications based on the number of PRD documents:
+After knowledge loading is complete, design feature specifications based on the dispatch mode:
 
-### Single PRD Document
+### 3.1 Dispatch Mode Decision
+
+Based on Phase 2 Feature Breakdown extraction:
+
+| Condition | Dispatch Mode | Behavior |
+|-----------|---------------|----------|
+| Feature Breakdown found with multiple Features | Feature-granular | Each Feature gets its own worker/skill invocation |
+| Feature Breakdown found with single Feature | Direct skill | Invoke skill directly without worker |
+| No Feature Breakdown (legacy PRD) | Module-granular | Each Sub-PRD gets one worker (backward compatible) |
+
+### 3.2 Feature-Granular Dispatch (New Behavior)
+
+When Feature Breakdown is present, dispatch by Feature:
+
+#### Single Feature (Direct Skill Invocation)
+If the entire iteration has only **one Feature** in the registry:
+
+Invoke Skill directly with parameters:
+- Skill path: `speccrew-fd-feature-design/SKILL.md`
+- Parameters:
+  - `prd_path`: Path to the PRD document (Master PRD if exists, otherwise the single PRD)
+  - `feature_id`: Feature ID (e.g., `F-CRM-01`)
+  - `feature_name`: Feature name (e.g., `Customer List Management`)
+  - `feature_type`: `Page+API` or `API-only`
+  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-feature-spec.md`
+  - `frontend_platforms`: List of frontend platforms from techs-manifest
+
+#### Multiple Features (Parallel Worker Dispatch)
+If the iteration has **multiple Features** in the registry:
+
+Invoke `speccrew-task-worker` agents in parallel, one per Feature:
+- Each worker receives:
+  - `skill_path`: `speccrew-fd-feature-design/SKILL.md`
+  - `context`:
+    - `feature_id`: Feature ID (e.g., `F-CRM-01`)
+    - `feature_name`: Feature name (e.g., `Customer List Management`)
+    - `feature_type`: `Page+API` or `API-only`
+    - `master_prd_path`: Path to the Master PRD document (if exists)
+    - `source_prd_path`: Path to the Sub-PRD containing this Feature
+    - `prd_path`: Path to the Sub-PRD containing this Feature (same as source_prd_path, required by speccrew-fd-feature-design skill)
+    - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-feature-spec.md`
+    - `frontend_platforms`: List of frontend platforms from techs-manifest
+- **Note**: `prd_path` and `source_prd_path` refer to the same Sub-PRD file. `prd_path` is the primary field required by the Feature Design skill.
+
+- **Parallel execution pattern**:
+  - Worker 1: Feature F-CRM-01 → Feature Spec for Customer List
+  - Worker 2: Feature F-CRM-02 → Feature Spec for Customer Detail
+  - Worker N: Feature F-CRM-0N → Feature Spec for Feature N
+
+- **Dependency handling**: Features with dependencies should note them, but all workers can execute simultaneously (each Feature Spec references its dependencies)
+
+- **Output file naming convention**:
+  - Format: `{feature-id}-{feature-name-slug}-feature-spec.md`
+  - Example: `F-CRM-01-customer-list-feature-spec.md`
+  - Slug: lowercase, hyphens for spaces, no special characters
+
+### 3.3 Module-Granular Dispatch (Legacy Behavior)
+
+If **no Feature Breakdown** is found in PRD documents (legacy format), fall back to Sub-PRD granularity:
+
+#### Single PRD Document
 Invoke Skill directly with parameters:
 - Skill path: `speccrew-fd-feature-design/SKILL.md`
 - Parameters:
   - `prd_path`: Path to the PRD document
-  - `output_path`: Path for the feature specification document
-  - `frontend_platforms`: List of frontend platforms from techs-manifest (e.g., `["web-vue", "mobile-uniapp"]`)
+  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{module-name}-feature-spec.md`
+  - `frontend_platforms`: List of frontend platforms from techs-manifest
 
-### Multiple PRD Documents (Master + Sub PRDs)
+#### Multiple PRD Documents (Master + Sub PRDs)
 Invoke `speccrew-task-worker` agents in parallel:
 - Each worker receives:
   - `skill_path`: `speccrew-fd-feature-design/SKILL.md`
   - `context`:
     - `master_prd_path`: Path to the Master PRD document (for overall context)
     - `sub_prd_path`: Path to one Sub PRD document
-    - `output_path`: Path for the feature specification document
+    - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{module-name}-feature-spec.md`
     - `frontend_platforms`: List of frontend platforms from techs-manifest
 - Parallel execution pattern:
   - Worker 1: Master PRD + Sub PRD 1 → Sub Feature Spec 1
   - Worker 2: Master PRD + Sub PRD 2 → Sub Feature Spec 2
   - Worker N: Master PRD + Sub PRD N → Sub Feature Spec N
-- Each worker has access to both Master PRD (for overall view) and one Sub PRD (for focused design)
-- All workers execute simultaneously to maximize efficiency
+
+### 3.4 Initialize Dispatch Progress Tracking
+
+Before dispatching workers, initialize `DISPATCH-PROGRESS.json`:
+
+```bash
+node speccrew-workspace/scripts/update-progress.js init-dispatch \
+  --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json \
+  --tasks "F-CRM-01,F-CRM-02,F-CRM-03"
+```
+
+Each task entry records:
+- `feature_id`: Feature identifier
+- `feature_name`: Feature name
+- `feature_type`: `Page+API` or `API-only`
+- `source_prd`: Path to the source PRD document
+- `status`: `pending` | `in_progress` | `completed` | `failed`
+- `output_path`: Path to the generated Feature Spec
 
 ## Phase 4: API Contract Generation
 
 After Feature Spec documents are confirmed by user, generate API Contract documents.
 
-### 4.1 Single Feature Spec
+### 4.1 Dispatch Mode Decision
 
+Follow the same dispatch mode as Phase 3:
+
+| Dispatch Mode | API Contract Strategy |
+|---------------|----------------------|
+| Feature-granular | Each Feature Spec generates one API Contract |
+| Module-granular (legacy) | Each Feature Spec (by module) generates one API Contract |
+
+### 4.2 Feature-Granular API Contract (New Behavior)
+
+#### Single Feature Spec
+Invoke API Contract skill directly:
+- Skill path: `speccrew-fd-api-contract/SKILL.md`
+- Parameters:
+  - `feature_spec_path`: Path to the Feature Spec document
+  - `feature_id`: Feature ID (e.g., `F-CRM-01`)
+  - `feature_type`: `Page+API` or `API-only`
+  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+
+**Note**: Both `Page+API` and `API-only` Features require API Contract documents.
+
+#### Multiple Feature Specs (Parallel Worker Dispatch)
+Invoke `speccrew-task-worker` agents in parallel:
+- Each worker receives:
+  - `skill_path`: `speccrew-fd-api-contract/SKILL.md`
+  - `context`:
+    - `feature_spec_path`: Path to one Feature Spec document
+    - `feature_id`: Feature ID (e.g., `F-CRM-01`)
+    - `feature_type`: `Page+API` or `API-only`
+    - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+
+- **Parallel execution**: One worker per Feature Spec document
+- **Output file naming**:
+  - Format: `{feature-id}-{feature-name-slug}-api-contract.md`
+  - Example: `F-CRM-01-customer-list-api-contract.md`
+
+### 4.3 Module-Granular API Contract (Legacy Behavior)
+
+If dispatch was done at module granularity (legacy PRD without Feature Breakdown):
+
+#### Single Feature Spec
 Invoke API Contract skill directly:
 - Skill path: `speccrew-fd-api-contract/SKILL.md`
 - Input: The Feature Spec document generated in Phase 3
-- Output path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+- Output path: `speccrew-workspace/iterations/{iteration}/02.feature-design/{module-name}-api-contract.md`
 
-### 4.2 Multiple Feature Specs (Master + Sub)
-
+#### Multiple Feature Specs (Master + Sub)
 Invoke `speccrew-task-worker` agents in parallel:
 - Each worker receives:
   - `skill_path`: `speccrew-fd-api-contract/SKILL.md`
@@ -211,21 +367,24 @@ Invoke `speccrew-task-worker` agents in parallel:
     - `output_path`: Path for the API Contract document
 - Parallel execution: one worker per Feature Spec document
 
-### 4.3 Joint Confirmation
+### 4.4 Joint Confirmation
 
 After both Feature Spec and API Contract documents are ready, present summary to user:
-- List all Feature Spec documents with paths
+- List all Feature Spec documents with paths (grouped by Feature or Module)
 - List all API Contract documents with paths
 - Request user confirmation before proceeding to system design phase
 - After confirmation, API Contract becomes the read-only baseline for downstream stages
 
-### 4.4 Finalize Stage (Update Workflow Progress)
+### 4.5 Finalize Stage (Update Workflow Progress)
 
 After user confirms Joint Confirmation:
 
 1. **Update `WORKFLOW-PROGRESS.json`**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status confirmed --output "02.feature-design/[feature-name]-feature-spec.md,02.feature-design/[feature-name]-api-contract.md"
+   node speccrew-workspace/scripts/update-progress.js update-workflow \
+     --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+     --stage 02_feature_design --status confirmed \
+     --output "02.feature-design/F-CRM-01-customer-list-feature-spec.md,02.feature-design/F-CRM-01-customer-list-api-contract.md,..."
    ```
 
 2. **Confirm Transition**:
@@ -236,8 +395,42 @@ After user confirms Joint Confirmation:
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| Feature Detail Design Document | `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md` | Based on template from `speccrew-fd-feature-design/templates/FEATURE-SPEC-TEMPLATE.md` |
-| API Contract Document | `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md` | Based on template from `speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md` |
+| Feature Detail Design Document | `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md` | New naming convention (Feature-granular) |
+| Feature Detail Design Document (Legacy) | `speccrew-workspace/iterations/{iteration}/02.feature-design/{module-name}-feature-spec.md` | Legacy naming convention (Module-granular, for backward compatibility) |
+| API Contract Document | `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-api-contract.md` | New naming convention (Feature-granular) |
+| API Contract Document (Legacy) | `speccrew-workspace/iterations/{iteration}/02.feature-design/{module-name}-api-contract.md` | Legacy naming convention (Module-granular, for backward compatibility) |
+
+## Naming Convention
+
+### Feature-Granular Naming (New)
+
+When Feature Breakdown is present in PRD:
+
+**Format**: `{feature-id}-{feature-name-slug}-{document-type}.md`
+
+- `feature-id`: From Feature Breakdown table (e.g., `F-CRM-01`)
+- `feature-name-slug`: Feature name converted to lowercase with hyphens
+  - Example: `Customer List Management` → `customer-list-management` → shortened to `customer-list`
+- `document-type`: Either `feature-spec` or `api-contract`
+
+**Examples**:
+- `F-CRM-01-customer-list-feature-spec.md`
+- `F-CRM-01-customer-list-api-contract.md`
+- `F-CRM-02-customer-detail-feature-spec.md`
+- `F-ORD-01-order-create-feature-spec.md`
+
+### Module-Granular Naming (Legacy)
+
+When Feature Breakdown is NOT present in PRD:
+
+**Format**: `{module-name}-{document-type}.md`
+
+- `module-name`: Derived from Sub-PRD filename or module identifier
+- `document-type`: Either `feature-spec` or `api-contract`
+
+**Examples**:
+- `customer-feature-spec.md`
+- `order-feature-spec.md`
 
 # Deliverable Content Structure
 

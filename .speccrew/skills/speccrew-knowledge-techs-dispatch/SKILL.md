@@ -66,7 +66,10 @@ flowchart TB
 
 **Goal**: Scan source code and identify all technology platforms.
 
-**Action**:
+**Step 1a: Read Configuration**
+- Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized platform mapping rules
+
+**Step 1b: Invoke Worker**
 - Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-init/SKILL.md`
 - Task: Analyze project structure, detect technology platforms
 - Parameters to pass to skill:
@@ -79,55 +82,7 @@ flowchart TB
 
 See [templates/techs-manifest-EXAMPLE.json](templates/techs-manifest-EXAMPLE.json) for complete example.
 
-### Platform Status Tracking Fields
-
-Each platform entry in techs-manifest.json includes status tracking fields for monitoring the analysis pipeline progress:
-
-| Field | Type | Values | Description |
-|-------|------|--------|-------------|
-| `status` | string | `pending` / `processing` / `completed` / `partial` / `failed` | Current analysis status |
-| `startedAt` | string \| null | ISO 8601 timestamp | When the Worker started analyzing this platform |
-| `completedAt` | string \| null | ISO 8601 timestamp | When the Worker finished analyzing this platform |
-| `analysisLevel` | string \| null | `full` / `minimal` / `reference_only` | Depth of analysis achieved |
-| `topicsCoverage` | number \| null | 0-100 | Percentage of domain topics covered (from analysis.json) |
-| `workers` | object | See below | Per-worker status tracking |
-
-**Workers Object Structure:**
-```json
-{
-  "platform_id": "web-vue",
-  "status": "completed",
-  "workers": {
-    "conventions": {
-      "status": "completed",
-      "skill": "speccrew-knowledge-techs-generate-conventions",
-      "done_file": "web-vue.done-conventions.json"
-    },
-    "ui_style": {
-      "status": "completed",
-      "skill": "speccrew-knowledge-techs-generate-ui-style",
-      "done_file": "web-vue.done-ui-style.json"
-    }
-  }
-}
-```
-
-For backend platforms, `ui_style.status` is set to `"skipped"`.
-
-**Status Lifecycle:**
-```
-pending → processing → completed
-                    → partial (conventions OK, ui-style failed)
-                    → failed
-```
-
-**Stage 1 (techs-init)**: All platforms initialized with `status: "pending"`, other tracking fields set to `null`.
-
-**Stage 2 (techs-generate)**: 
-- Before launching Workers: Set `status: "processing"`, `startedAt: "{now}"`, set both workers status to `"processing"`
-- After all Workers complete successfully: Set `status: "completed"`, `completedAt: "{now}"`, populate `analysisLevel` and `topicsCoverage` from Worker output
-- After conventions Worker fails: Set `status: "failed"`, `completedAt: "{now}"`
-- After ui-style Worker fails (but conventions succeeded): Set `status: "partial"`, `completedAt: "{now}"`
+See [Platform Status Tracking Fields](#platform-status-tracking-fields) for status field definitions.
 
 ---
 
@@ -157,102 +112,57 @@ When launching each platform Worker, the Workers will output:
 - `{completed_dir}/{platform_id}.analysis-conventions.json` — conventions coverage report
 - `{completed_dir}/{platform_id}.analysis-ui-style.json` — ui-style coverage report (frontend only)
 
-**Parallel Execution Logic**:
+**Step 2a: Prepare Environment and Update Manifest**
 
-```
-# Ensure completed_dir exists before launching Workers
-completed_dir = "speccrew-workspace/knowledges/techs/.sync-status/"
-CREATE_DIRECTORY IF NOT EXISTS completed_dir
+1. Ensure completed_dir exists: `speccrew-workspace/knowledges/techs/.sync-status/`
+2. For each platform in manifest:
+   - SET `platform.status = "processing"`
+   - SET `platform.startedAt = "{current_timestamp}"`
+   - SET `platform.workers.conventions.status = "processing"`
+   - IF platform.platform_type IN ["web", "mobile", "desktop"]: SET `platform.workers.ui_style.status = "processing"`
+   - WRITE manifest to techs-manifest.json
 
-FOR each platform IN manifest.platforms:
-  # Update manifest before launching Workers
-  SET platform.status = "processing"
-  SET platform.startedAt = "{current_timestamp}"
-  SET platform.workers.conventions.status = "processing"
-  IF platform.platform_type IN ["web", "mobile", "desktop"]:
-    SET platform.workers.ui_style.status = "processing"
-  WRITE manifest to techs-manifest.json
-  
-  # Worker 1: Conventions (ALL platforms)
-  INVOKE speccrew-task-worker WITH:
-    - skill_path: "speccrew-knowledge-techs-generate-conventions/SKILL.md"
-    - context:
-        platform_id: platform.platform_id
-        platform_type: platform.platform_type
-        framework: platform.framework
-        source_path: platform.source_path
-        config_files: platform.config_files
-        convention_files: platform.convention_files
-        output_path: "speccrew-workspace/knowledges/techs/{platform.platform_id}/"
-        completed_dir: completed_dir
-        language: language
-  
-  # Worker 2: UI-Style (frontend platforms ONLY)
-  IF platform.platform_type IN ["web", "mobile", "desktop"]:
-    INVOKE speccrew-task-worker WITH:
-      - skill_path: "speccrew-knowledge-techs-generate-ui-style/SKILL.md"
-      - context:
-          platform_id: platform.platform_id
-          platform_type: platform.platform_type
-          framework: platform.framework
-          source_path: platform.source_path
-          output_path: "speccrew-workspace/knowledges/techs/{platform.platform_id}/"
-          completed_dir: completed_dir
-          language: language
-  
-  # Both workers run in PARALLEL for the same platform
-    
-WAIT_ALL workers complete
-```
+**Step 2b: Launch Conventions Worker (ALL Platforms)**
+
+For each platform, invoke `speccrew-task-worker` with:
+- skill_path: `speccrew-knowledge-techs-generate-conventions/SKILL.md`
+- context:
+  - platform_id: platform.platform_id
+  - platform_type: platform.platform_type
+  - framework: platform.framework
+  - source_path: platform.source_path
+  - config_files: platform.config_files
+  - convention_files: platform.convention_files
+  - output_path: `speccrew-workspace/knowledges/techs/{platform.platform_id}/`
+  - completed_dir: completed_dir
+  - language: language
+
+**Step 2c: Launch UI-Style Worker (Frontend Platforms ONLY)**
+
+IF platform.platform_type IN ["web", "mobile", "desktop"]:
+1. Invoke `speccrew-task-worker` with:
+   - skill_path: `speccrew-knowledge-techs-generate-ui-style/SKILL.md`
+   - context:
+     - platform_id: platform.platform_id
+     - platform_type: platform.platform_type
+     - framework: platform.framework
+     - source_path: platform.source_path
+     - output_path: `speccrew-workspace/knowledges/techs/{platform.platform_id}/`
+     - completed_dir: completed_dir
+     - language: language
+
+**Step 2d: Wait for All Workers**
+- WAIT_ALL workers complete
+- Both workers run in PARALLEL for the same platform
 
 ### Worker Completion Marker (MANDATORY)
 
-After generating all documents and the analysis report, each Worker MUST create a completion marker file:
+Each Worker MUST create a completion marker file after generating documents. See [Worker Completion Marker Format](#worker-completion-marker-format) for details.
 
-#### Conventions Worker Done File
+- Conventions Worker: `{completed_dir}/{platform_id}.done-conventions.json`
+- UI-Style Worker: `{completed_dir}/{platform_id}.done-ui-style.json` (frontend only)
 
-**File**: `{completed_dir}/{platform_id}.done-conventions.json`
-
-**Format**:
-```json
-{
-  "platform_id": "web-vue",
-  "worker_type": "conventions",
-  "status": "completed",
-  "documents_generated": [
-    "INDEX.md", "tech-stack.md", "architecture.md",
-    "conventions-dev.md", "conventions-design.md",
-    "conventions-unit-test.md", "conventions-build.md"
-  ],
-  "analysis_file": "web-vue.analysis-conventions.json",
-  "completed_at": "2024-01-15T10:45:00Z"
-}
-```
-
-#### UI-Style Worker Done File
-
-**File**: `{completed_dir}/{platform_id}.done-ui-style.json`
-
-**Format**:
-```json
-{
-  "platform_id": "web-vue",
-  "worker_type": "ui-style",
-  "status": "completed",
-  "ui_analysis_level": "full",
-  "documents_generated": [
-    "ui-style/ui-style-guide.md"
-  ],
-  "analysis_file": "web-vue.analysis-ui-style.json",
-  "completed_at": "2024-01-15T10:45:00Z"
-}
-```
-
-**Status values**:
-- `completed` — All required documents generated successfully
-- `failed` — Critical failure, required documents not generated
-
-If a Worker encounters a fatal error, it should still attempt to create the done file with `status: "failed"` and include error details in an `"error"` field.
+**Status values**: `completed` | `failed`
 
 **Output per Platform**:
 ```
@@ -301,14 +211,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 - `total_platforms`, `completed`, `failed` counts
 - Per-platform: `documents_generated` list
 
----
-
-## Stage 2 Post-Processing: Validate Worker Output
-
-**Trigger**: After ALL platform Workers have completed (or timed out)
-**Purpose**: Validate Worker output via completion markers and update manifest status
-
-**Step 2a: Scan Completion Markers**
+**Step 2e: Scan Completion Markers**
 
 For each platform in the manifest:
 1. Check for `{platform_id}.done-conventions.json` (REQUIRED for all platforms)
@@ -316,21 +219,21 @@ For each platform in the manifest:
 3. A platform is "fully completed" only when ALL expected done files are present
 4. If any expected done file is missing → mark platform as `failed` (Worker crashed without creating marker)
 
-**Step 2b: Verify Document Output**
+**Step 2f: Verify Document Output**
 
 For each platform:
 - **Conventions**: Check that INDEX.md, tech-stack.md, architecture.md, conventions-*.md exist
 - **UI-Style** (frontend platforms only): Check that ui-style/ directory and required files exist
 - If any required document is missing → downgrade status accordingly
 
-**Step 2c: Read Coverage Reports**
+**Step 2g: Read Coverage Reports**
 
 For each platform:
 1. Read `{platform_id}.analysis-conventions.json`
 2. If frontend platform, also read `{platform_id}.analysis-ui-style.json`
 3. Merge coverage data from both reports for manifest update
 
-**Step 2d: Update Manifest Status**
+**Step 2h: Update Manifest Status**
 
 Update `techs-manifest.json` for each platform:
 - Set `status` based on worker results:
@@ -346,7 +249,7 @@ Update `techs-manifest.json` for each platform:
   - `"reference_only"` if critical docs missing or Worker failed
 - Set `topicsCoverage` from analysis-conventions.json coverage_percent
 
-**Step 2e: Handle Failures**
+**Step 2i: Handle Failures**
 
 For platforms with conventions worker `status: "failed"`:
 - Mark platform as `failed`
@@ -680,4 +583,99 @@ After all 3 stages complete, return a summary object to the caller:
     "manifest": "speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json"
   }
 }
+```
+
+---
+
+## Reference Guides
+
+### Worker Completion Marker Format
+
+Each Worker MUST create a completion marker file after generating documents.
+
+#### Conventions Worker Done File
+
+**File**: `{completed_dir}/{platform_id}.done-conventions.json`
+
+**Format**:
+```json
+{
+  "platform_id": "web-vue",
+  "worker_type": "conventions",
+  "status": "completed",
+  "documents_generated": [
+    "INDEX.md", "tech-stack.md", "architecture.md",
+    "conventions-dev.md", "conventions-design.md",
+    "conventions-unit-test.md", "conventions-build.md"
+  ],
+  "analysis_file": "web-vue.analysis-conventions.json",
+  "completed_at": "2024-01-15T10:45:00Z"
+}
+```
+
+#### UI-Style Worker Done File
+
+**File**: `{completed_dir}/{platform_id}.done-ui-style.json`
+
+**Format**:
+```json
+{
+  "platform_id": "web-vue",
+  "worker_type": "ui-style",
+  "status": "completed",
+  "ui_analysis_level": "full",
+  "documents_generated": [
+    "ui-style/ui-style-guide.md"
+  ],
+  "analysis_file": "web-vue.analysis-ui-style.json",
+  "completed_at": "2024-01-15T10:45:00Z"
+}
+```
+
+**Status values**:
+- `completed` — All required documents generated successfully
+- `failed` — Critical failure, required documents not generated
+
+If a Worker encounters a fatal error, it should still attempt to create the done file with `status: "failed"` and include error details in an `"error"` field.
+
+### Platform Status Tracking Fields
+
+Each platform entry in techs-manifest.json includes status tracking fields for monitoring the analysis pipeline progress:
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `status` | string | `pending` / `processing` / `completed` / `partial` / `failed` | Current analysis status |
+| `startedAt` | string \| null | ISO 8601 timestamp | When the Worker started analyzing this platform |
+| `completedAt` | string \| null | ISO 8601 timestamp | When the Worker finished analyzing this platform |
+| `analysisLevel` | string \| null | `full` / `minimal` / `reference_only` | Depth of analysis achieved |
+| `topicsCoverage` | number \| null | 0-100 | Percentage of domain topics covered (from analysis.json) |
+| `workers` | object | See below | Per-worker status tracking |
+
+**Workers Object Structure:**
+```json
+{
+  "platform_id": "web-vue",
+  "status": "completed",
+  "workers": {
+    "conventions": {
+      "status": "completed",
+      "skill": "speccrew-knowledge-techs-generate-conventions",
+      "done_file": "web-vue.done-conventions.json"
+    },
+    "ui_style": {
+      "status": "completed",
+      "skill": "speccrew-knowledge-techs-generate-ui-style",
+      "done_file": "web-vue.done-ui-style.json"
+    }
+  }
+}
+```
+
+For backend platforms, `ui_style.status` is set to `"skipped"`.
+
+**Status Lifecycle:**
+```
+pending → processing → completed
+                    → partial (conventions OK, ui-style failed)
+                    → failed
 ```

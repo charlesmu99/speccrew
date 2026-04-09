@@ -84,9 +84,11 @@ Generate the following documents in `{output_path}/`:
 
 3. **MANDATORY: Template-first workflow** — For every output document, the corresponding template MUST be copied to the target path first, then sections filled with `search_replace`. Skipping copy and writing content directly is FORBIDDEN.
 
-### Step 0: Read All Templates
+### Step 0: Pre-load Required Templates (Mandatory)
 
-Before analysis, read all template files to understand document structures and required content:
+**This step must complete before any workflow step begins.**
+
+Read all template files to understand document structures and required content:
 
 | Template File | Output Document | Purpose |
 |---------------|-----------------|---------|
@@ -105,6 +107,8 @@ Before analysis, read all template files to understand document structures and r
 | `templates/SPACING-TEMPLATE.md` | `styles/spacing-system.md` | Spacing system structure |
 
 **Key principle**: Extract information from source code according to each template's section requirements.
+
+**Error Handling**: IF any template file is missing THEN report error with template path and STOP workflow.
 
 ### Step 1: Discover Source Structure
 

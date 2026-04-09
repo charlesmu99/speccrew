@@ -24,10 +24,15 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read Inputs
 
+**Input Parameters** (from agent context):
+- `feature_id` (optional): Feature identifier, e.g., `F-CRM-01`. If provided, use new naming format.
+- `feature_name`: Feature name, e.g., `customer-list`.
+- `platform_id`: Target platform, e.g., `frontend-vue`, `frontend-react`.
+
 Read in order:
 
-1. **Feature Spec document(s)**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md`
-2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+1. **Feature Spec document(s)**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md`
 3. **Frontend techs knowledge** (paths from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`
@@ -55,6 +60,8 @@ Document findings for reference in later steps.
 ## Step 3: Extract Functions from Feature Spec
 
 Parse Feature Spec to identify all functions (Section 2.N pattern).
+
+> **Note**: With the new fine-grained Feature Spec format, each Feature Spec typically contains **3-8 functions** (previously 10-20). The extraction logic remains the same, but the scope is more focused.
 
 For each function, extract:
 
@@ -89,7 +96,10 @@ Read `SD-FRONTEND-TEMPLATE.md` for document structure.
 2. **Replace top-level placeholders** with known variables:
    - Module name, feature name, platform ID, etc.
 3. **Create the document file** using `create_file`:
-   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
+   - **Target path pattern**:
+     - With `feature_id`: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md`
+       - Example: `03.system-design/frontend-vue/F-CRM-01-customer-list-design.md`
+     - Without `feature_id` (backward compatibility): `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{module}-design.md`
    - Content: Template with top-level placeholders replaced
 4. **Verify**: Document should have complete section structure ready for filling
 
@@ -161,6 +171,15 @@ Read `INDEX-TEMPLATE.md` for document structure.
 
 Create table with links to each module design document.
 
+| Column | Content |
+|--------|---------|
+| **ID** | Use `feature_id` if available (e.g., `F-CRM-01`), otherwise use module name |
+| **Name** | Feature or module name |
+| **Document** | Link to design file (e.g., `F-CRM-01-customer-list-design.md`) |
+| **Status** | `[NEW]`, `[MODIFIED]`, or `[EXISTING]` |
+
+Example row with `feature_id`: `| F-CRM-01 | Customer List | F-CRM-01-customer-list-design.md | NEW |`
+
 ### 5.4 Verify Output
 
 Verify the completed INDEX.md:
@@ -207,11 +226,11 @@ After completing all steps, output a structured completion report for the System
 - **Status**: SUCCESS
 - **Task ID**: {task_id from context}
 - **Platform**: {platform_id}
+- **Feature ID**: {feature_id}
 - **Feature**: {feature_name}
 - **Output Files**:
   - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/INDEX.md
-  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module1}-design.md
-  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{module2}-design.md
+  - speccrew-workspace/iterations/{iter}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md (or {module}-design.md if no feature_id)
 - **Summary**: Frontend system design completed for {feature_name} on {platform_id} with {count} module designs
 ```
 
@@ -222,6 +241,7 @@ After completing all steps, output a structured completion report for the System
 - **Status**: FAILED
 - **Task ID**: {task_id from context}
 - **Platform**: {platform_id}
+- **Feature ID**: {feature_id}
 - **Feature**: {feature_name}
 - **Output Files**: []
 - **Error**: {description of what went wrong}

@@ -21,7 +21,7 @@ tools: Read, Grep, Glob
 | `platform_id` | Yes | Platform identifier (backend-spring/web-vue/mobile-uniapp/desktop-tauri) |
 | `api_contract_path` | No | Path to API contract file for endpoint validation |
 | `task_id` | Yes | Task identifier from dispatch context |
-| `previous_review_path` | No | Path to previous review report for incremental review (skip already passed items) |
+| `previous_review_path` | No | Path to previous review report for incremental review |
 
 # Workflow
 
@@ -276,13 +276,22 @@ Compare Service implementation against design document:
 
 ### 6.1 Determine Review Result
 
-Based on findings, determine overall result:
+Based on findings, determine overall result using quantitative thresholds:
 
-| Result | Criteria |
-|--------|----------|
-| **PASS** | All files created, no ERROR-level issues |
-| **PARTIAL** | 50-99% files created, or has ERROR issues but not critical blockers |
-| **FAIL** | <50% files created, or has critical blockers preventing functionality |
+```
+IF completeness_pct == 100% AND error_count == 0 THEN
+  → Result = PASS
+IF completeness_pct >= 70% AND completeness_pct < 100% THEN
+  → Result = PARTIAL
+IF completeness_pct < 70% OR has_critical_blockers == true THEN
+  → Result = FAIL
+```
+
+| Result | Threshold Criteria |
+|--------|-------------------|
+| **PASS** | 100% files created, 0 ERROR-level issues |
+| **PARTIAL** | 70-99% files created, or has non-critical ERROR issues |
+| **FAIL** | <70% files created, or critical blockers present |
 
 ### 6.2 Write Review Report
 

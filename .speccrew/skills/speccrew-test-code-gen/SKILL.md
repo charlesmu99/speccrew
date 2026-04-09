@@ -50,7 +50,7 @@ Load platform testing conventions to understand the target test framework:
 speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
 ```
 
-### 2.2 Secondary Convention Path (Fallback for Unit Testing)
+### 2.2 Unit Test Convention Path (Fallback)
 
 If `conventions-system-test.md` does not exist or for unit test specifics, read:
 
@@ -58,7 +58,7 @@ If `conventions-system-test.md` does not exist or for unit test specifics, read:
 speccrew-workspace/knowledges/techs/{platform_id}/conventions-unit-test.md
 ```
 
-### 2.3 Fallback Convention Path (Last Resort)
+### 2.3 Generic Convention Path (Last Resort)
 
 If neither conventions file exists, read `conventions-dev.md` and infer:
 
@@ -66,7 +66,7 @@ If neither conventions file exists, read `conventions-dev.md` and infer:
 |-----------------|-------------------|
 | conventions-dev.md | Extract framework from tech stack, infer unit test framework |
 
-### 2.3 Information to Extract
+### 2.4 Information to Extract
 
 | Item | Purpose |
 |------|---------|
@@ -108,6 +108,23 @@ For mocking strategy planning:
 ## Step 4: Generate Code Plan
 
 Create a comprehensive test code generation plan:
+
+### 4.0 Determine File Grouping Strategy
+
+Before organizing test files, determine the grouping strategy:
+
+| Condition | Grouping Strategy |
+|-----------|-------------------|
+| Test cases share same module/component | Group into single test file |
+| Test cases are independent | One test file per test case |
+| Test cases span multiple modules | Create separate test files per module |
+
+**File Grouping Rules:**
+
+1. **IF test cases share same module/component THEN** group into single test file
+2. **IF test cases are independent THEN** one test file per test case
+3. **Maximum test cases per file:** 10 (split into multiple files if exceeded)
+4. **Naming convention:** `{module-name}.test.{ext}` or `{module-name}.spec.{ext}`
 
 ### 4.1 Test File Structure Planning
 

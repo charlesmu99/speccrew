@@ -55,12 +55,48 @@ Orchestrate **bizs knowledge base generation** with a 5-stage pipeline: Feature 
 
 ## Workflow Overview
 
+**Execution Pseudocode:**
+
+```
+INPUT: source_path, language, sync_mode, max_concurrent_workers
+
+STAGE 0: Platform Detection
+  FOR each detected platform:
+    Identify platform_type, platform_subtype, tech_stack
+  Present platform list for user confirmation
+
+STAGE 1: Feature Inventory
+  Stage 1a: Entry Directory Recognition → Generate entry-dirs-{platform}.json
+  Stage 1b: Feature Inventory → Generate features-{platform}.json
+  Stage 1c (incremental only): Merge features with existing state
+
+STAGE 2: Feature Analysis (REPEAT until all features processed)
+  Step 0: Ensure completed_dir exists
+  Step 1: Get next batch of pending features
+  Step 2: Launch parallel Workers (API or UI analysis)
+  Step 3: Process batch results, update features.json, write graph
+
+STAGE 3: Module Summarize (parallel per module)
+  FOR each module:
+    Launch Worker with module-summarize skill
+
+STAGE 3.5: UI Style Pattern Extract (parallel per frontend platform)
+  FOR each frontend platform:
+    Launch Worker with ui-style-extract skill
+
+STAGE 4: System Summary
+  Launch Worker with system-summarize skill
+
+OUTPUT: system-overview.md, graph data, module overviews
+```
+
+**Stage Sequence:**
+
 ```mermaid
 flowchart TB
-    S0[Pre-processing: Platform Root Detection] --> S0a[Stage 0: Platform Detection]
-    S0a --> S1a[Stage 1a: Entry Directory Recognition]
+    S0[Stage 0: Platform Detection] --> S1a[Stage 1a: Entry Directory Recognition]
     S1a --> S1b[Stage 1b: Feature Inventory]
-    S1b --> S1c[Stage 1c: Feature Merge - Incremental]
+    S1b --> S1c[Stage 1c: Feature Merge]
     S1c --> S2[Stage 2: Feature Analysis + Graph Write]
     S2 --> S3[Stage 3: Module Summarize]
     S3 --> S3_5[Stage 3.5: UI Style Pattern Extract]
@@ -330,6 +366,17 @@ After generating the entry-dirs JSON:
 
 > **Script execution rule**: All script calls in Stage 2 are executed **directly by the dispatch agent** via `run_in_terminal`. Only the analysis tasks are delegated to Worker Agents.
 
+**Skill Routing Table (by platformType):**
+
+| platformType | skill_name | Description |
+|--------------|------------|-------------|
+| `web` | `speccrew-knowledge-bizs-ui-analyze` | Web frontend (Vue/React/Angular) |
+| `mobile` | `speccrew-knowledge-bizs-ui-analyze` | Mobile apps (Flutter/React Native/UniApp) |
+| `desktop` | `speccrew-knowledge-bizs-ui-analyze` | Desktop apps (Electron/WPF) |
+| `backend` | `speccrew-knowledge-bizs-api-analyze` | Backend APIs (Java/Python/Node.js) |
+
+> **CRITICAL**: Use this routing table to select the correct skill for each feature in Step 2.
+
 #### Execution Flow
 
 Repeat the following 3 steps until all features are processed:
@@ -366,9 +413,7 @@ node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.
 ⚠️ **CRITICAL**: You MUST launch ALL features in the current batch SIMULTANEOUSLY as parallel Worker Tasks. **FORBIDDEN**: sequential launch (start one Worker, wait, then start next).
 
 For each feature in the `batch` array, prepare a Worker Task:
-- **Skill routing** by `platformType`:
-    - `"web"`, `"mobile"`, `"desktop"` → `skill_name: speccrew-knowledge-bizs-ui-analyze`
-    - `"backend"` → `skill_name: speccrew-knowledge-bizs-api-analyze`
+- **Select skill** using the routing table at Stage 2 start
 - **Worker parameters**: Pass all feature fields plus `language`, `completed_dir`, `sourceFile`, `skill_path`
 - **Behavior constraint**: Worker MUST NOT create any temporary scripts. If execution fails, STOP and report error.
 

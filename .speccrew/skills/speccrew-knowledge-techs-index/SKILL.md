@@ -38,6 +38,14 @@ Worker Agent (speccrew-task-worker)
 
 - `{{output_path}}/INDEX.md` - Root technology knowledge index
 
+**INDEX.md Content Structure**:
+- Introduction (generation info, platform count)
+- Platform Overview (table with links to all platform docs)
+- Quick Reference (links organized by document type)
+- Agent-to-Platform Mapping (maps agents to their platform docs)
+- Document Guide (explains each document type)
+- Usage Guide (how to use the knowledge)
+
 ## Workflow
 
 ```mermaid
@@ -95,79 +103,35 @@ Read `techs-manifest.json` to get the list of all platforms:
 }
 ```
 
-### Step 2: Verify Platform Documents (Dynamic Detection)
+### Step 2: Verify Platform Documents
 
 **CRITICAL**: Do NOT assume all platforms have the same document set. Must dynamically detect which documents actually exist.
 
-For each platform in manifest, scan the platform directory to detect actual document existence:
+**Step 2a: Scan Platform Directories**
 
-```
-speccrew-workspace/knowledges/techs/{{platform_id}}/
-├── INDEX.md                    # Required - must exist
-├── tech-stack.md              # Required - must exist
-├── architecture.md            # Required - must exist
-├── conventions-design.md      # Required - must exist
-├── conventions-dev.md         # Required - must exist
-├── conventions-test.md        # Required - must exist
-├── conventions-build.md       # Required - must exist
-└── conventions-data.md        # Optional - check existence dynamically
-```
+For each platform in manifest:
+1. List all `.md` files in `{{techs_base_path}}/{{platform_id}}/`
+2. Build a document availability map for each platform
 
-**Dynamic Detection Logic:**
+**Step 2b: Verify Required Documents**
 
-1. **Scan Platform Directory**: List all `.md` files in `{{techs_base_path}}/{{platform_id}}/`
-2. **Build Document Availability Map**:
-   ```json
-   {
-     "platform_id": "mobile-uniapp",
-     "documents": {
-       "INDEX.md": true,
-       "tech-stack.md": true,
-       "architecture.md": true,
-       "conventions-design.md": true,
-       "conventions-dev.md": true,
-       "conventions-test.md": true,
-       "conventions-build.md": true,
-       "conventions-data.md": false  // Dynamically detected (optional)
-     }
-   }
-   ```
-3. **Validation**:
-   - If `INDEX.md` is missing → Note as error in report, skip this platform
-   - If any required document (except conventions-data.md) is missing → Note as warning
-   - Record actual document availability for dynamic link generation
+Check each platform for required documents:
+| Document | Required? | If Missing |
+|----------|-----------|------------|
+| INDEX.md | YES | Skip entire platform from root INDEX |
+| tech-stack.md | YES | Mark as "[Missing]" in links |
+| architecture.md | YES | Mark as "[Missing]" in links |
+| conventions-design.md | YES | Mark as "[Missing]" in links |
+| conventions-dev.md | YES | Mark as "[Missing]" in links |
+| conventions-test.md | YES | Mark as "[Missing]" in links |
+| conventions-build.md | YES | Mark as "[Missing]" in links |
+| conventions-data.md | NO | Silently skip link |
 
-#### Document Verification Matrix
+**Step 2c: Determine Platform Eligibility**
 
-For each platform directory, verify document existence with these strict rules:
-
-| Document | Required? | If Missing | Action |
-|----------|-----------|------------|--------|
-| INDEX.md | YES | ERROR | Skip entire platform from root INDEX. Log: "ERROR: Platform {platform_id} skipped - INDEX.md missing" |
-| tech-stack.md | YES | WARN | Include platform but mark document as "[Missing]" in links. Log warning |
-| architecture.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
-| conventions-design.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
-| conventions-dev.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
-| conventions-test.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
-| conventions-build.md | YES | WARN | Include platform but mark as "[Missing]". Log warning |
-| conventions-data.md | NO | OK | Do not warn. Do not include link. Silently skip |
-
-**Platform Eligibility Rules**:
-- INDEX.md missing → Platform SKIPPED entirely (not listed in root INDEX)
-- Any required doc missing (except INDEX.md) → Platform INCLUDED but marked INCOMPLETE
-- Only conventions-data.md missing → Platform is COMPLETE (it's optional)
-
-**Verification Summary** (generate at end of verification step):
-```
-Verification Report:
-- Total platforms in manifest: {N}
-- Complete platforms: {X} (all 7 required docs present)
-- Incomplete platforms: {Y} (missing some required docs) [WARN]
-  - {platform_id}: missing {doc1}, {doc2}
-- Skipped platforms: {Z} (no INDEX.md) [ERROR]
-  - {platform_id}: INDEX.md not found
-- Optional conventions-data.md present in: {W} platforms
-```
+- IF `INDEX.md` missing → Platform SKIPPED entirely
+- IF any required doc missing (except INDEX.md) → Platform INCLUDED but marked INCOMPLETE
+- IF only conventions-data.md missing → Platform is COMPLETE (it's optional)
 
 ### Step 3: Extract Platform Summaries
 

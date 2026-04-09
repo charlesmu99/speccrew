@@ -30,9 +30,8 @@ Analyze one specific API controller from source code, extract all business featu
 | `{{platform_type}}` | string | Platform type | `"admin-api"`, `"app-api"` |
 | `{{platform_subtype}}` | string | Platform subtype | `"spring-boot"`, `"java"` |
 | `{{tech_stack}}` | array | Platform tech stack | `["java", "spring-boot", "mybatis-plus"]` |
-| `{{completed_dir}}` | string | Directory for completion marker files (`sync_state_path/completed`) | `"speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed"` |
-| `{{sourceFile}}` | string | Source features JSON file name | `"features-admin-api.json"` |
-| `{{language}}` | string | **REQUIRED** - Target language for generated content | `"zh"`, `"en"` |
+
+> **Note**: Additional parameters for completion markers (`completed_dir`, `sourceFile`, `language`) are defined in Step 7 and Language Adaptation section.
 
 ## Language Adaptation
 
@@ -129,8 +128,14 @@ graph TB
 **Step 1 Status: 🔄 IN PROGRESS**
 
 1. **Check Analysis Status:**
-   - If `{{analyzed}}` is `true`, output "Step 1 Status: ⏭️ SKIPPED (already analyzed)" and skip to Step 6 with status="skipped"
-   - If `{{analyzed}}` is `false`, proceed
+   ```
+   IF {{analyzed}} == true THEN
+       Output "Step 1 Status: ⏭️ SKIPPED (already analyzed)"
+       Skip to Step 6 with status="skipped"
+   ELSE
+       Proceed to next step
+   END IF
+   ```
 
 2. **Read the appropriate template based on tech stack:**
    - Java/Spring Boot: Read `templates/FEATURE-DETAIL-TEMPLATE.md`
@@ -216,13 +221,8 @@ Each public API endpoint in the controller = one feature.
 - Document ALL public API endpoints with their HTTP methods and paths
 - For **internal service methods**: only record references, do not document as separate features
 - Document business flows for each API endpoint: request validation → business logic → data persistence → response
-- **Generate Mermaid flowcharts following `speccrew-workspace/docs/rules/mermaid-rule.md` guidelines:**
-  - Use `graph TB` or `graph LR` syntax (not `flowchart`)
-  - No parentheses `()` in node text (e.g., use `validate request` instead of `validate()`)
-  - No HTML tags like `<br/>`
-  - No `style` definitions
-  - No nested `subgraph`
-  - No special characters in node text
+- **Read Configuration**: Read `speccrew-workspace/docs/rules/mermaid-rule.md` for Mermaid diagram guidelines
+- **Generate Mermaid flowcharts** following the configuration (see [Reference Guides > Mermaid Guide](#mermaid-guide) for quick reference)
 - Use `{{language}}` for all extracted content naming
 
 **Example Code Analysis:**
@@ -846,12 +846,15 @@ Or in case of failure:
 
 **⚠️ MANDATORY - This step MUST be executed. The task is NOT complete until marker files are written.**
 
-分析完成后，将结果写入标记文件，供 dispatch 批量处理。
+Write analysis results to marker files for dispatch batch processing.
+
+**Input Parameters (from dispatch):**
+- `{{completed_dir}}` - **REQUIRED** - Marker files output directory (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`)
+- `{{sourceFile}}` - **REQUIRED** - Source features JSON file name (e.g., `features-admin-api.json`)
+- `{{language}}` - **REQUIRED** - Target language for content (see Language Adaptation section)
 
 **Prerequisites:**
 - Step 6 completed successfully
-- `{{completed_dir}}` - Marker files output directory (e.g., `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`)
-- `{{sourceFile}}` - Source features JSON file name
 
 > **ASSUMPTION**: The `completed_dir` directory already exists (pre-created by dispatch Stage 2). If write fails, report error — do NOT attempt to create directories.
 
@@ -1102,6 +1105,17 @@ Before writing the graph.json file, verify:
 **⚠️ IMPORTANT: If this step fails, the dispatch script will NOT be able to process your analysis results. You MUST ensure both marker files are written successfully.**
 
 ## Reference Guides
+
+### Mermaid Guide
+
+When generating Mermaid diagrams, follow these compatibility guidelines from `speccrew-workspace/docs/rules/mermaid-rule.md`:
+
+- Use `graph TB` or `graph LR` syntax (not `flowchart`)
+- No parentheses `()` in node text
+- No HTML tags like `<br/>`
+- No `style` definitions
+- No nested `subgraph`
+- No special characters in node text
 
 ### Business Flow Diagram Guidelines
 

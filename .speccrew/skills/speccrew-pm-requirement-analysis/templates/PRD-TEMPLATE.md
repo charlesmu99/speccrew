@@ -103,7 +103,22 @@ graph TB
 | [Feature 1] | P0 | [Description] | [Acceptance Criteria] |
 | [Feature 2] | P1 | [Description] | [Acceptance Criteria] |
 
-### 3.2 Feature Details
+### 3.4 Feature Breakdown
+
+> List all business operation units in this module. Each feature represents a cohesive business operation (e.g., one frontend page with its backend APIs, or one API group for backend-only). This breakdown guides downstream Feature Design to generate per-feature specs.
+
+| Feature ID | Feature Name | Type | Pages/Endpoints | Description |
+|------------|-------------|------|-----------------|-------------|
+| F-{MODULE}-01 | {Feature name} | Page+API / API-only | {page count or endpoint count} | {Brief description} |
+| F-{MODULE}-02 | {Feature name} | Page+API / API-only | {page count or endpoint count} | {Brief description} |
+
+#### Feature Dependencies
+
+| Feature | Depends On | Dependency Type |
+|---------|-----------|----------------|
+| F-{MODULE}-02 | F-{MODULE}-01 | Data dependency |
+
+### 3.5 Feature Details
 
 #### Feature 1: [Feature Name]
 

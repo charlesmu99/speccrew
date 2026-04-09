@@ -23,7 +23,20 @@ tools: Read, Write, Glob, Grep
 
 ## Step 1: Read Input
 
-1. Feature spec document: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md`
+### Input Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `feature_id` | Optional | Feature 唯一标识符，如 `F-CRM-01`（向后兼容：不传则使用当前逻辑） |
+| `feature_name` | Optional | Feature 名称，如 `customer-list`（向后兼容：不传则使用当前逻辑） |
+
+### Input Files
+
+1. **Feature Spec 文档**：
+   - **新格式（推荐）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+   - **旧格式（向后兼容）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md`
+   - 优先检查新格式，不存在则回退到旧格式
+
 2. API Contract template: `speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md`
 3. System architecture (API specification part): Refer to project tech-stack-mappings.json for API naming conventions
 
@@ -53,9 +66,11 @@ Complete definition for each API:
 ### 4a Copy Template to Document Path
 
 1. **Read the template file**: `templates/API-CONTRACT-TEMPLATE.md`
-2. **Replace top-level placeholders** (feature name, date, etc.)
+2. **Replace top-level placeholders** (feature name, date, feature_id if provided, etc.)
 3. **Create the document** using `create_file`:
-   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+   - **新格式（当提供了 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md`
+     - 示例：`F-CRM-01-customer-list-api-contract.md`
+   - **旧格式（向后兼容，未提供 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
    - Content: Template with top-level placeholders replaced
 4. **Verify**: Document has complete section structure ready for filling
 
@@ -80,8 +95,42 @@ For each API, locate its section anchor in the template and use `search_replace`
 
 ## Step 5: Joint Confirmation
 
-After both documents (Feature Spec + API Contract) are ready, request confirmation from user:
+After both documents (Feature Spec + API Contract) are ready, request user confirmation:
 
+**Conditional Confirmation Logic:**
+```
+IF feature_id is provided THEN
+  → Execute Feature-granular confirmation (情况 A)
+ELSE
+  → Execute Module-level confirmation (情况 B)
+```
+
+**情况 A：提供了 feature_id（Feature 粒度确认）**
+```
+Feature 设计阶段交付物已准备就绪：
+
+📋 Feature 信息：
+   - Feature ID: {feature_id}
+   - Feature 名称: {feature_name}
+
+📄 文档清单：
+   - Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md
+   - API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md
+
+请确认以下关键点：
+1. 当前 Feature 的技术方案是否可行？
+2. API 定义是否满足前端需求？
+3. 数据模型设计是否合理？
+
+⚠️ 确认后，API Contract 将成为前后端协作的唯一基准。
+   在设计/开发阶段只读引用，不允许修改。
+   如需变更，必须返回此阶段重新确认。
+
+✅ 当前仅确认单个 Feature 的交付物。
+   全局阶段状态（02_feature_design）将在所有 Feature 完成后由 Feature Designer Agent 统一更新。
+```
+
+**情况 B：未提供 feature_id（向后兼容，模块级确认）**
 ```
 Feature design phase deliverables are ready:
 - Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
@@ -103,20 +152,20 @@ After confirmation, you can start frontend and backend Designer Agents separatel
 
 After user confirms Joint Confirmation:
 
-### 6.1 Update Checkpoints File
+### 6a: Update Checkpoints File
 
-Write/Update `.checkpoints.json`:
+Update the `.checkpoints.json` file to record confirmation status.
+
+Write/Update `.checkpoints.json`：
 
 - Path: `speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json`
-- Content:
-  ```json
-  {
-    "stage": "02_feature_design",
-    "checkpoints": {
-      "function_decomposition": {
-        "passed": true,
-        "confirmed_at": "..."
-      },
+
+**情况 A：提供了 feature_id（Feature 粒度）**
+```json
+{
+  "stage": "02_feature_design",
+  "feature_checkpoints": {
+    "{feature_id}": {
       "feature_spec_review": {
         "passed": true,
         "confirmed_at": "..."
@@ -124,42 +173,108 @@ Write/Update `.checkpoints.json`:
       "api_contract_joint": {
         "passed": true,
         "confirmed_at": "{current_timestamp}",
-        "description": "API contract joint confirmation passed"
+        "description": "API contract joint confirmation passed for {feature_id}"
       }
     }
+  },
+  "checkpoints": {
+    "function_decomposition": {
+      "passed": true,
+      "confirmed_at": "..."
+    }
   }
-  ```
+}
+```
+
+- 使用 `feature_checkpoints.{feature_id}` 作为 key 存储单个 Feature 的状态
+- 保留原有的 `checkpoints` 用于全局检查点
+- Log: "✅ Checkpoint (api_contract_joint) passed and recorded for Feature {feature_id}"
+
+**情况 B：未提供 feature_id（向后兼容，模块级）**
+```json
+{
+  "stage": "02_feature_design",
+  "checkpoints": {
+    "function_decomposition": {
+      "passed": true,
+      "confirmed_at": "..."
+    },
+    "feature_spec_review": {
+      "passed": true,
+      "confirmed_at": "..."
+    },
+    "api_contract_joint": {
+      "passed": true,
+      "confirmed_at": "{current_timestamp}",
+      "description": "API contract joint confirmation passed"
+    }
+  }
+}
+```
 
 - Preserve existing checkpoint statuses when updating
 - Log: "✅ Checkpoint (api_contract_joint) passed and recorded"
 
-### 6.2 Update Workflow Progress
+### 6b: Update Workflow Progress
 
-Update `WORKFLOW-PROGRESS.json` to finalize the stage:
+Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
 
 - Path: `speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json`
-- Update:
-  ```json
-  {
-    "current_stage": "03_system_design",
-    "stages": {
-      "02_feature_design": {
-        "status": "confirmed",
-        "completed_at": "{current_timestamp}",
-        "confirmed_at": "{current_timestamp}",
-        "outputs": [
-          "02.feature-design/[feature-name]-feature-spec.md",
-          "02.feature-design/[feature-name]-api-contract.md"
-        ]
+
+**情况 A：提供了 feature_id（Feature 粒度）**
+```json
+{
+  "current_stage": "02_feature_design",
+  "stages": {
+    "02_feature_design": {
+      "status": "in_progress",
+      "features": {
+        "{feature_id}": {
+          "status": "confirmed",
+          "completed_at": "{current_timestamp}",
+          "confirmed_at": "{current_timestamp}",
+          "outputs": [
+            "02.feature-design/{feature-id}-{feature-name}-feature-spec.md",
+            "02.feature-design/{feature-id}-{feature-name}-api-contract.md"
+          ]
+        }
       }
     }
   }
-  ```
+}
+```
+
+- **重要**：单个 Feature 完成时，**不修改** `02_feature_design.status`（保持 `in_progress`）
+- **重要**：**不修改** `current_stage`（保持 `02_feature_design`）
+- 仅在 `stages.02_feature_design.features.{feature_id}` 中记录该 Feature 的完成状态
+- Log: "✅ Feature {feature_id} API Contract confirmed. Feature Designer Agent will update global stage status when all features are completed."
+
+**情况 B：未提供 feature_id（向后兼容，模块级）**
+```json
+{
+  "current_stage": "03_system_design",
+  "stages": {
+    "02_feature_design": {
+      "status": "confirmed",
+      "completed_at": "{current_timestamp}",
+      "confirmed_at": "{current_timestamp}",
+      "outputs": [
+        "02.feature-design/[feature-name]-feature-spec.md",
+        "02.feature-design/[feature-name]-api-contract.md"
+      ]
+    }
+  }
+}
+```
 
 - Set `02_feature_design.status` to `confirmed`
 - Set `current_stage` to `03_system_design`
 - Record all output file paths
 - Log: "✅ Stage 02_feature_design confirmed. Ready for System Design phase."
+
+**关于全局状态管理的说明**：
+> Feature 粒度的 API Contract 完成后，全局阶段状态（`02_feature_design.status` 和 `current_stage`）**不由本 Skill 更新**。
+> 全局状态由 **Feature Designer Agent** 统一管理，当检测到所有 Feature 都完成时，统一更新为 `confirmed` 并推进到下一阶段。
 
 ### 6.3 Backward Compatibility
 
@@ -175,5 +290,5 @@ If `WORKFLOW-PROGRESS.json` does not exist:
 - [ ] Each API has complete request/response structure definition
 - [ ] URL naming conforms to backend architecture specifications
 - [ ] Error code list is complete
-- [ ] File has been written to correct path
-- [ ] Summary of both documents has been shown to user and confirmation requested
+- [ ] File has been written to correct path (with proper naming convention based on feature_id)
+- [ ] Summary of both documents has been shown to user and confirmation requested (including Feature ID if applicable)

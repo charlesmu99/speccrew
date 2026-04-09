@@ -4,12 +4,9 @@ description: Stage 2 of technology knowledge initialization - Generate technolog
 tools: Read, Write, Glob, Grep, Skill
 ---
 
-> **⚠️ DEPRECATED**: This skill has been split into two specialized skills for parallel execution:
-> - **`speccrew-knowledge-techs-generate-conventions`** — Generates convention documents (INDEX, tech-stack, architecture, conventions-*)
-> - **`speccrew-knowledge-techs-generate-ui-style`** — Generates UI style documents (ui-style/ directory, frontend platforms only)
+> **⚠️ DEPRECATED**: This skill has been superseded by `speccrew-knowledge-techs-generate-conventions` and `speccrew-knowledge-techs-generate-ui-style`. Use those skills for new requests. This file is kept for backward compatibility only.
 >
 > **Do NOT invoke this skill directly.** Use the specialized skills via `speccrew-knowledge-techs-dispatch` Stage 2 dual-worker orchestration.
-> This file is retained as reference documentation only.
 
 # Stage 2: Generate Platform Technology Documents
 
@@ -50,66 +47,19 @@ Worker Agent (speccrew-task-worker)
 
 Generate the following documents in `{output_path}/`:
 
-```
-{output_path}/
-├── INDEX.md                    # Platform technology index (Required)
-├── tech-stack.md              # Technology stack details (Required)
-├── architecture.md            # Architecture conventions (Required)
-├── conventions-design.md      # Design conventions (Required)
-├── conventions-dev.md         # Development conventions (Required)
-├── conventions-unit-test.md        # Unit testing conventions (Required)
-├── conventions-system-test.md      # System testing conventions (Required)
-├── conventions-build.md       # Build & Deployment conventions (Required)
-├── conventions-data.md        # Data conventions (Optional)
-└── ui-style/                  # UI style analysis (Optional, frontend platforms only)
-    ├── ui-style-guide.md      # Main UI style guide
-    ├── page-types/            # Page type analysis
-    ├── components/            # Component analysis
-    ├── layouts/               # Layout patterns
-    └── styles/                # Styling conventions
-```
+**Required Documents (All Platforms)**:
+- `INDEX.md` - Platform technology index
+- `tech-stack.md` - Technology stack details
+- `architecture.md` - Architecture conventions
+- `conventions-design.md` - Design conventions
+- `conventions-dev.md` - Development conventions
+- `conventions-unit-test.md` - Unit testing conventions
+- `conventions-system-test.md` - System testing conventions
+- `conventions-build.md` - Build & Deployment conventions
 
-### Platform Type to Document Mapping
-
-| Platform Type | Required Documents | Optional Documents | Generate conventions-data.md? |
-|---------------|-------------------|-------------------|------------------------------|
-| `backend` | All 8 docs | - | ✅ **必须生成** - 包含 ORM、数据建模、缓存策略 |
-| `web` | All 8 docs | conventions-data.md | ⚠️ **条件生成** - 仅当使用 ORM/数据层时（Prisma、TypeORM、Sequelize 等） |
-| `mobile` | All 8 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `desktop` | All 8 docs | conventions-data.md | ❌ **默认不生成** - 根据实际技术栈判断 |
-| `api` | All 8 docs | conventions-data.md | ⚠️ **条件生成** - 根据是否有数据层 |
-
-### Decision Logic for conventions-data.md
-
-**Step 1: Check Platform Type**
-- If `backend` → **Generate** (always)
-- If `web`/`mobile`/`desktop`/`api` → Proceed to Step 2
-
-**Step 2: Detect Data Layer (for non-backend platforms)**
-
-Check configuration files for data layer indicators:
-
-| Indicator | Technology | Action |
-|-----------|------------|--------|
-| `prisma` in package.json dependencies | Prisma ORM | Generate conventions-data.md |
-| `typeorm` in package.json dependencies | TypeORM | Generate conventions-data.md |
-| `sequelize` in package.json dependencies | Sequelize | Generate conventions-data.md |
-| `mongoose` in package.json dependencies | Mongoose | Generate conventions-data.md |
-| `drizzle-orm` in package.json dependencies | Drizzle ORM | Generate conventions-data.md |
-| `firebase` / `@react-native-firebase` | Firebase | Generate conventions-data.md (lightweight) |
-| `sqlite` / `realm` / `@realm/react` | SQLite/Realm | Generate conventions-data.md (lightweight) |
-| `core-data` in iOS project | Core Data | Generate conventions-data.md |
-| `room` in Android project | Room Persistence | Generate conventions-data.md |
-| None detected | - | **Skip** conventions-data.md |
-
-**Step 3: Report Decision**
-```
-Platform: {platform_id}
-Type: {platform_type}
-Framework: {framework}
-Data Layer Detected: {yes/no/technology}
-Generate conventions-data.md: {yes/no}
-```
+**Optional Documents**:
+- `conventions-data.md` - Data conventions (backend required; other platforms: only if ORM/data layer detected)
+- `ui-style/` - UI style analysis (frontend platforms only)
 
 ## Workflow
 
@@ -444,6 +394,16 @@ Analysis completeness: {ui_style_analysis_level}
 ### Step 5: Generate Documents (MANDATORY: Copy Template + Fill)
 
 **CRITICAL**: This step MUST follow the template fill workflow - copy template first, then fill sections.
+
+**Decision Logic for conventions-data.md**:
+
+IF `platform_type` == `backend`:
+  - Generate conventions-data.md (REQUIRED)
+ELSE IF `platform_type` IN [`web`, `mobile`, `desktop`, `api`]:
+  - Check package.json dependencies for data layer indicators:
+    - IF `prisma` / `typeorm` / `sequelize` / `mongoose` / `drizzle-orm` found → Generate conventions-data.md
+    - IF `firebase` / `sqlite` / `realm` found → Generate conventions-data.md (lightweight)
+    - ELSE → Skip conventions-data.md
 
 1. **For Each Document, Follow This Workflow**:
 

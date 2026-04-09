@@ -55,20 +55,6 @@ Analyze one specific UI feature from source code, extract business functionality
 
 ## Output
 
-## 🚫 ABSOLUTE PROHIBITIONS (ZERO TOLERANCE)
-
-> **These rules apply to ALL steps. Violation = task failure.**
-
-1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the analysis document (`{{documentPath}}`). Documents MUST be created by copying the template (Step 5a) then filling sections with `search_replace` (Step 5b). `create_file` produces truncated output on large files.
-
-2. **FORBIDDEN: File deletion** — NEVER use `Remove-Item`, `del`, `rm`, `fs.unlinkSync`, or any delete command on generated files. If a file is malformed, fix it with `search_replace`.
-
-3. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
-
-4. **MANDATORY: Template-first workflow** — Step 5a (copy template) MUST execute before Step 5b (fill sections). Skipping Step 5a and writing content directly is FORBIDDEN.
-
-## Output (Files)
-
 **Generated Files (MANDATORY - Task is NOT complete until all files are written):**
 1. `{{documentPath}}` - Feature documentation file
 2. `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json` - Completion status marker
@@ -94,6 +80,12 @@ The return value is used by dispatch to update the feature status in `features-{
 
 ## Workflow
 
+> **⚠️ CRITICAL CONSTRAINTS (apply to ALL steps):**
+> 1. **FORBIDDEN: `create_file` for documents** — Documents MUST be created by copying template (Step 5a) then filling with `search_replace` (Step 5b)
+> 2. **FORBIDDEN: File deletion** — If a file is malformed, fix it with `search_replace`
+> 3. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
+> 4. **MANDATORY: Template-first workflow** — Step 5a MUST execute before Step 5b
+
 ```mermaid
 graph TB
     Start([Start]) --> Step1[Step 1 Read Analysis Template]
@@ -109,13 +101,19 @@ graph TB
 
 ---
 
-### Step 1: Read Analysis Template
+### Step 1: Read Analysis Template (Required before workflow starts)
 
 **Step 1 Status: 🔄 IN PROGRESS**
 
 1. **Check Analysis Status:**
-   - If `{{analyzed}}` is `true`, output "Step 1 Status: ⏭️ SKIPPED (already analyzed)" and skip to Step 6 with status="skipped"
-   - If `{{analyzed}}` is `false`, proceed
+   ```
+   IF {{analyzed}} == true THEN
+       Output "Step 1 Status: ⏭️ SKIPPED (already analyzed)"
+       Skip to Step 6 with status="skipped"
+   ELSE
+       Proceed to next step
+   END IF
+   ```
 
 2. **Read the appropriate template based on platform type:**
    
@@ -290,13 +288,13 @@ Each user interaction or page initialization in the feature file = one business 
 - **MUST analyze API call sequences**: identify serial vs parallel calls, try/catch/finally timing, race conditions
 - **MUST document boundary scenarios**: empty data, error branches, state reset, concurrent operations
 - For APIs and shared methods in flowcharts: show name, type, and main function only (no deep analysis)
-- **Generate Mermaid flowcharts following `speccrew-workspace/docs/rules/mermaid-rule.md` guidelines:**
+- **Read Configuration**: Read `speccrew-workspace/docs/rules/mermaid-rule.md` for Mermaid diagram guidelines
+- **Generate Mermaid flowcharts** following the configuration:
   - Use `graph TB` or `graph LR` syntax (not `flowchart`)
-  - No parentheses `()` in node text (e.g., use `open method` instead of `open()`)
+  - No parentheses `()` in node text
   - No HTML tags like `<br/>`
   - No `style` definitions
   - No nested `subgraph`
-  - No special characters in node text
 - Use `{{language}}` for all extracted content naming
 
 4. **Build Graph Data** (per feature file):

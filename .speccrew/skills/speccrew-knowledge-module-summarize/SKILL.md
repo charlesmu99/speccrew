@@ -35,6 +35,8 @@ Read all {{feature_name}}.md files of a specific module, extract and summarize i
 ## Output
 
 - `{{module_path}}/{{module_name}}-overview.md` - Complete module overview (overwritten)
+  - Example: `speccrew-workspace/knowledges/bizs/backend-ai/chat/chat-overview.md`
+  - Example: `speccrew-workspace/knowledges/bizs/web-vue/order/order-overview.md`
 
 ## Workflow
 
@@ -48,16 +50,6 @@ flowchart TD
     Step5 --> Step6[Step 6: Report Results]
     Step6 --> End([End])
 ```
-
-### Absolute Constraints
-
-> **These rules apply to ALL steps. Violation = task failure.**
-
-1. **FORBIDDEN: `create_file` for overview document** — NEVER use `create_file` to write the module overview document. If the initial skeleton exists, use `search_replace` to fill sections. If no skeleton exists, copy the template first then fill with `search_replace`.
-
-2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
-
-3. **MANDATORY: Template-first workflow** — Template (or existing skeleton) MUST be in place before filling sections. Writing content without a template base is FORBIDDEN.
 
 ### Step 1: Read Prerequisites
 
@@ -133,6 +125,11 @@ Collect all business rules from feature details:
 - Data consistency rules
 
 ### Step 5: Generate Complete MODULE-OVERVIEW.md
+
+**⚠️ CRITICAL CONSTRAINTS (apply to this step):**
+> 1. **FORBIDDEN: `create_file` for overview document** — If skeleton exists, use `search_replace`; if not, copy template first then fill with `search_replace`
+> 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
+> 3. **MANDATORY: Template-first workflow** — Template (or existing skeleton) MUST be in place before filling sections
 
 **IMPORTANT**: ALL generated content (entity descriptions, business rules, flow descriptions, section headers, and narrative text) MUST be written in the language specified by the `language` parameter. Only code identifiers, file paths, and technical terms (class names, API endpoints) remain in their original language.
 
