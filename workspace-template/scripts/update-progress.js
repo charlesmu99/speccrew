@@ -73,10 +73,29 @@ const path = require('path');
 // ============================================================================
 
 /**
- * 生成 ISO 8601 格式时间戳
+ * 生成本地时区的 ISO 8601 格式时间戳
+ * 例如：2026-04-10T20:38:21.978+08:00
+ */
+function getLocalISOString() {
+    const now = new Date();
+    const off = -now.getTimezoneOffset();
+    const sign = off >= 0 ? '+' : '-';
+    const pad2 = n => String(Math.abs(n)).padStart(2, '0');
+    const tz = sign + pad2(Math.floor(off / 60)) + ':' + pad2(off % 60);
+    return now.getFullYear() + '-' +
+        pad2(now.getMonth() + 1) + '-' +
+        pad2(now.getDate()) + 'T' +
+        pad2(now.getHours()) + ':' +
+        pad2(now.getMinutes()) + ':' +
+        pad2(now.getSeconds()) + '.' +
+        String(now.getMilliseconds()).padStart(3, '0') + tz;
+}
+
+/**
+ * 生成 ISO 8601 格式时间戳（本地时区）
  */
 function getTimestamp() {
-    return new Date().toISOString();
+    return getLocalISOString();
 }
 
 /**
