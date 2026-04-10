@@ -50,13 +50,22 @@ This skill applies the ISA-95 six-stage methodology (Stages 1-3) as an internal 
 
 ⚠️ **MANDATORY: This step CANNOT be skipped.**
 
-```
-IF user provided a complete requirement document:
-  → Perform at least 1 confirmation round (verify understanding, scope, priorities)
-  → Generate clarification summary
-IF user provided incomplete input:
-  → Perform full progressive clarification (Round 1 → Round 2 → optional Round 3)
-```
+**ABORT CONDITIONS — If ANY of these apply, workflow MUST STOP:**
+- `.clarification-summary.md` file was not generated
+- Sufficiency Checks are not ALL marked as ✅
+- No Q&A round was conducted with the user
+
+**DO NOT proceed to Step 2 without completing this step.**
+
+**MANDATORY CLARIFICATION LOGIC:**
+- ALWAYS perform at least 1 clarification round, REGARDLESS of input completeness
+- NEVER skip clarification based on user urgency or perceived completeness
+- COMPLETE ALL Sufficiency Checks before proceeding
+
+**Clarification Depth:**
+- User provided complete requirement document → Minimum 1 confirmation round to verify understanding
+- User provided incomplete input → Minimum 2 rounds (Core scope + Boundaries), 3rd round if needed
+- User says "skip clarification" → REFUSE. Explain: "Clarification ensures PRD quality and cannot be skipped."
 
 Use progressive questioning to clarify requirements. Do NOT ask all questions at once.
 
@@ -145,21 +154,21 @@ Path: speccrew-workspace/iterations/{iteration}/01.product-requirement/.clarific
 
 ### Proceed Gate to Step 2
 
-**Before proceeding to Step 2, verify BOTH conditions:**
+⚠️ **HARD STOP — Proceed Gate:**
 
-```
-□ All Sufficiency Check items marked as ✅
-□ .clarification-summary.md file exists and is complete
+**ABORT if ANY condition is missing:**
+- [ ] `.clarification-summary.md` file MUST exist with complete content
+- [ ] ALL 4 Sufficiency Checks MUST be marked as ✅
+- [ ] At least 1 confirmed round of clarification Q&A
+- [ ] Key Decisions section MUST be filled
 
-IF both conditions met → Proceed to Step 2
-IF any condition fails → STOP and complete the missing items
-```
+**IF ANY condition fails:**
+→ REFUSE to proceed to Step 2
+→ Continue clarification until ALL conditions pass
+
+**ONLY after ALL conditions verified → Proceed to Step 2**
 
 After clarification is confirmed sufficient, write initial `.checkpoints.json`:
-
-```bash
-# Create or update checkpoint file
-```
 
 Write the following structure to `speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json`:
 
@@ -362,10 +371,12 @@ Phase 3 (Extension): Remaining modules
 
 ## Step 7: Read PRD Template
 
-Read the template file:
+Read the PRD template file:
 ```
-speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md
+templates/PRD-TEMPLATE.md
 ```
+> This path is relative to the current skill directory (`.speccrew/skills/speccrew-pm-requirement-analysis/`).
+> **DO NOT search for PRD templates in bizs/, knowledges/, workspace docs, or any other directory.**
 
 After reading the template, check if any required information is missing based on:
 - Template structure requirements
@@ -629,8 +640,11 @@ Total files: 1 (Master) + N (Sub-PRDs) = N+1 files.
 
 **IF Step 8 determined Master-Sub structure:**
 
-⚠️ **IMPORTANT: Sub-PRD generation is handled by the PM Agent through parallel worker dispatch.**
-**DO NOT generate Sub-PRD files sequentially in this skill.**
+⚠️ **CRITICAL — Sub-PRD Generation Rules:**
+
+1. **DO NOT generate Sub-PRD files in this Skill** — this Skill outputs the dispatch plan ONLY
+2. **DO NOT skip Sub-PRD generation** — If modules > 1, Sub-PRDs are REQUIRED
+3. **This Skill MUST RETURN control to PM Agent for Phase 4 execution**
 
 Prepare and output the dispatch plan for the PM Agent:
 
@@ -657,10 +671,17 @@ For each module, collect and output the following context data:
 After outputting the dispatch plan:
 
 ```
-→ RETURN to PM Agent for parallel worker dispatch.
-→ PM Agent will invoke speccrew-task-worker for each module.
-→ Each worker uses speccrew-pm-sub-prd-generate/SKILL.md to generate one Sub-PRD.
+→ **MANDATORY: RETURN to PM Agent Phase 4 (Sub-PRD Worker Dispatch)**
+→ PM Agent MUST invoke speccrew-task-worker for each module
+→ Each worker uses speccrew-pm-sub-prd-generate/SKILL.md
+→ All workers execute in parallel
+→ After ALL workers complete → PM Agent executes Phase 5 Verification
 ```
+
+**IF PM Agent skips Phase 4:**
+- Sub-PRDs will NOT be generated
+- Master PRD alone is INCOMPLETE for Feature Design stage
+- Entire PRD stage must be redone
 
 **IF Single PRD Structure:** Skip this step (no Sub-PRDs needed).
 
