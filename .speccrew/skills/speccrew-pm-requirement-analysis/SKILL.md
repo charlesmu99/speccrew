@@ -63,7 +63,15 @@ Applies ISA-95 Stages 2-3 outputs for PRD generation:
 
 **Actions:**
 1. Read `.clarification-summary.md` — extract: key decisions, clarified scope, business rules
-2. Read `.module-design.md` — extract: module list, dependency matrix, implementation phases
+2. Read `.module-design.md` — extract:
+   - **Module count**: from `## Module List (Total: N modules)` heading (parse the number N)
+   - **Module list**: rows from Module List table
+   - **Dependency matrix**: rows from Dependency Matrix table
+   - **Implementation phases**: items from Implementation Phases section
+
+   **Validation:**
+   - IF module_count >= 2 → MANDATORY: Use Master-Sub Structure
+   - IF module_count < 2 → Use Single PRD Structure
 
 ## Step 2: Read PRD Template
 

@@ -80,7 +80,10 @@ Applies ISA-95 Stages 1-3 as structured analysis framework:
 ### Domain Description
 - **System Boundary**: [what's included/excluded]
 - **Actors**: [user roles, external systems]
-- **Domain Glossary**: [term: definition]
+- **Domain Glossary**:
+  | Term | Definition |
+  |------|-----------|
+  | [term] | [definition] |
 ```
 
 **Checkpoint A:** Present to user for confirmation.
@@ -164,11 +167,13 @@ Ready to proceed with module decomposition? Reply "确认".
 
 **Output format:**
 ```markdown
-## Module List
+## Module List (Total: {N} modules)
 | Module | Key | Scope | Key Entities | Owner Domain |
 |--------|-----|-------|-------------|--------------|
 | [Name] | [key] | [scope] | [entities] | [domain] |
 ```
+
+> ⚠️ **MANDATORY:** Replace `{N}` with the actual module count. This count is used by downstream skills for structure validation.
 
 ### 3.2 Cross-Module Dependency Matrix
 
@@ -226,7 +231,10 @@ Please review. Reply "确认" to finalize or request changes.
 ### Domain Description
 - **System Boundary**: [description]
 - **Actors**: [list]
-- **Domain Glossary**: [terms]
+- **Domain Glossary**:
+  | Term | Definition |
+  |------|-----------|
+  | [term] | [definition] |
 
 ### Domain Functions (WBS)
 [WBS structure]
@@ -238,7 +246,7 @@ Please review. Reply "确认" to finalize or request changes.
 | Should | [fn] | [rationale] |
 | Could | [fn] | [rationale] |
 
-## Module List
+## Module List (Total: {N} modules)
 | Module | Key | Scope | Key Entities | Owner Domain | Phase |
 |--------|-----|-------|-------------|--------------|-------|
 | [name] | [key] | [scope] | [entities] | [domain] | [1/2/3] |
