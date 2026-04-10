@@ -1,6 +1,6 @@
 ---
 name: speccrew-pm-requirement-analysis
-description: PRD Writing SOP with ISA-95 business modeling. Guide PM Agent through requirements clarification, business domain analysis, and PRD document generation. For complex requirements, applies ISA-95 six-stage methodology for structured domain modeling before PRD writing. Use when PM needs to write PRD, organize requirements, model business domains, or create structured requirement documents.
+description: PRD Writing SOP with ISA-95 methodology integration. Guide PM Agent through requirements clarification, business domain analysis, and PRD document generation. Applies ISA-95 Stages 1-3 as internal thinking framework for clarification, functional decomposition, and prioritization — no separate modeling documents. Use when PM needs to write PRD, organize requirements, or create structured requirement documents.
 tools: Read, Write, Glob, Grep
 ---
 
@@ -8,8 +8,19 @@ tools: Read, Write, Glob, Grep
 
 - PM Agent receives user requirement description
 - User requests "Write a PRD" or "Help organize requirements" or "New feature requirements"
-- User requests "Create business model" or "Model business requirements"
 - User needs structured requirement document with UML diagrams
+
+## Methodology Foundation
+
+This skill applies the ISA-95 six-stage methodology (Stages 1-3) as an internal thinking framework:
+
+| ISA-95 Stage | Integrated Into | Purpose |
+|---|---|---|
+| Stage 1: Domain Description | Clarification process | Define domain boundary, participants, glossary |
+| Stage 2: Functions in Domain | PRD Section 3 (Functional Requirements) | WBS decomposition, capability mapping |
+| Stage 3: Functions of Interest | PRD Section 3.4 (Feature Breakdown) | MoSCoW prioritization, MVP scoping |
+
+> ⚠️ **No separate modeling documents.** The methodology guides thinking quality, not document quantity.
 
 # Workflow
 
@@ -36,6 +47,13 @@ IF user provided incomplete input:
 ```
 
 Use progressive questioning to clarify requirements. Do NOT ask all questions at once.
+
+> **ISA-95 Stage 1 Thinking — Domain Description**
+> During clarification, apply domain description methodology:
+> - **Domain Boundary**: Explicitly define what is in-scope and out-of-scope. Record in clarification summary.
+> - **External Participants**: Identify all user roles, external systems, and integration points.
+> - **Domain Glossary**: Unify key business terms to eliminate ambiguity across stakeholders.
+> These elements should naturally flow into the clarification summary, NOT as a separate document.
 
 ### Round 1: Core Understanding
 
@@ -198,94 +216,68 @@ Evaluate requirement complexity to determine the appropriate workflow path:
 | Modules involved | 1 module | 2+ modules or new domain |
 | Domain clarity | Well-understood domain | New/unclear domain |
 | Cross-module deps | None or minimal | Significant |
-| Template | PRD-TEMPLATE.md only | BIZS-MODELING-TEMPLATE.md + PRD-TEMPLATE.md |
+| Template | PRD-TEMPLATE.md only | PRD-TEMPLATE.md (with deeper analysis) |
 
 **Workflow Path:**
 - **Simple path**: Skip to Step 7 (Read PRD Template)
 - **Complex path**: Proceed to Step 5 (ISA-95 Business Modeling) → Step 6 (Module Decomposition)
 
-## Step 5: ISA-95 Business Modeling (Complex Requirements Only)
+## Step 5: ISA-95 Business Modeling Thinking (Complex Requirements Only)
 
-Read the modeling template:
-```
-speccrew-pm-requirement-analysis/templates/BIZS-MODELING-TEMPLATE.md
-```
+> ⚠️ **This step is a THINKING PROCESS, not a document generation step.**
+> Apply ISA-95 methodology internally to deepen your analysis. Results flow into the PRD.
 
-Execute ISA-95 six stages **in condensed form**:
+Apply ISA-95 six stages as internal thinking framework:
 
-### 5.1 Stage 1 - Domain Description
+### 5.1 Stage 1 - Domain Description (Thinking)
 - Define domain boundary (in-scope, out-of-scope)
 - Identify external participants (users, systems, agents)
 - Create domain glossary
-- Draw system context diagram (graph TD)
+- Visualize system context (mental model or rough sketch)
 
 **Checkpoint A: Briefly confirm domain boundary with user before proceeding.**
 Ask: "Here is the domain boundary and key participants. Does this match your understanding?"
 
-### 5.2 Stage 2 - Functions in Domain
-- Create WBS decomposition (graph TD)
+### 5.2 Stage 2 - Functions in Domain (Thinking)
+- Create WBS decomposition (mental or rough sketch)
 - Map functions to business capabilities
-- Select UML visualization as needed (Use Case / Activity / State Machine)
+- Identify module boundaries
 
-### 5.3 Stage 3 - Functions of Interest
+### 5.3 Stage 3 - Functions of Interest (Thinking)
 - Apply MoSCoW prioritization
-- Create focused use case diagram (graph TB)
+- Identify core vs non-core functions
 - Document non-core functions and their iteration plan
 
 **Checkpoint B: Confirm MVP scope with user before proceeding.**
 Ask: "Here are the core functions (Must have) and deferred functions. Is the MVP scope correct?"
 
-### 5.4 Stage 4 - Information Flows
+### 5.4 Stage 4 - Information Flows (Thinking)
 - Document core information flows
-- Create sequence diagram (sequenceDiagram)
-- Create Data Flow Diagram (graph TD)
-- List interface interactions
+- Identify key interfaces
+- Understand data movement patterns
 
-### 5.5 Stage 5 - Categories of Information
+### 5.5 Stage 5 - Categories of Information (Thinking)
 - Define information categories
-- Create data dictionary
-- Draw conceptual class diagram (classDiagram)
+- Identify core entities
+- Understand data relationships
 
-### 5.6 Stage 6 - Information Descriptions
-- Create design class diagram with technical details
-- Create component diagram (graph TB)
-- Document implementation standards
+### 5.6 Stage 6 - Information Descriptions (Thinking)
+- Consider technical implications
+- Identify component boundaries
+- Note implementation considerations
 
-**Checkpoint C: Present complete modeling results (Stages 4-6) to user for final confirmation.**
+**Checkpoint C: Present analysis summary to user for final confirmation.**
+
+> All ISA-95 thinking results will be reflected in the PRD document, NOT as a separate modeling file.
 
 **Key rules for this step:**
 - Use 3 checkpoints (A/B/C) for progressive confirmation, not all-at-once
-- All Mermaid diagrams MUST follow mermaid-rule.md:
-  - No HTML tags (`<br/>`)
-  - No nested subgraphs
-  - No `direction` keyword
-  - No `style` definitions
-  - No special characters in node text
-- **Write modeling document using template-fill workflow:**
-
-  **5.7a Copy Template to Document Path:**
-  1. Read `templates/BIZS-MODELING-TEMPLATE.md`
-  2. Replace top-level placeholders (feature name, domain name, etc.)
-  3. Create document using `create_file` at: `iterations/{number}-{type}-{name}/01.product-requirement/{feature-name}-bizs-modeling.md`
-
-  **5.7b Fill Each Section Using search_replace:**
-  Fill each modeling stage section with results from Stages 1-6 above, using `search_replace` per section.
-  > ⚠️ FORBIDDEN: `create_file` to rewrite entire document. MUST use `search_replace` per section.
-
-**ISA-95 Quick Reference:**
-
-| Stage | Focus | Key Output | UML Type |
-|-------|-------|------------|----------|
-| 1. Domain Description | Boundary, terminology | System context diagram | graph TD |
-| 2. Functions in Domain | All functions | WBS, use case diagram | graph TD, graph TB |
-| 3. Functions of Interest | Core functions (MVP) | MoSCoW table | graph TB |
-| 4. Information Flows | Interactions, interfaces | Sequence diagram, DFD | sequenceDiagram, graph TD |
-| 5. Categories of Information | Entities, data dictionary | Conceptual class diagram | classDiagram |
-| 6. Information Descriptions | Design details | Design class diagram | classDiagram, graph TB |
+- This is an analysis phase — focus on understanding, not documentation
+- Results integrate into PRD Sections 3-7 during Step 9
 
 ## Step 6: Module Decomposition & Ordering (Complex Requirements Only)
 
-Map WBS Level-1 nodes from Stage 2 into independent modules. For each module:
+Based on ISA-95 analysis from Step 5, map identified modules into independent units. For each module:
 
 ### 6.1 Define Module List
 
@@ -295,7 +287,7 @@ Map WBS Level-1 nodes from Stage 2 into independent modules. For each module:
 
 ### 6.2 Cross-Module Dependency Matrix
 
-Extract dependencies from Stage 4 information flows and graph query results:
+Based on information flow analysis from Step 5, identify dependencies:
 
 | Module | Depends On | Dependency Type | Shared Entities |
 |--------|-----------|-----------------|-----------------|
@@ -381,6 +373,14 @@ Fill in according to the template structure, requirements:
 - **Background & Goals**: Explain why we're doing this and what success looks like
 - **User Stories**: `As a [user role], I want [to do something], so that [I can achieve some goal]`
 - **Functional Requirements**: Group by priority (P0 Core / P1 Important / P2 Optional)
+
+> **ISA-95 Stage 2 Thinking — Functions in Domain**
+> When decomposing functional requirements:
+> - **WBS Decomposition**: Break down the system into functional modules using Work Breakdown Structure logic. Each module should map to a clear business capability.
+> - **Function-Capability Mapping**: Every function must answer "what business capability does this deliver?"
+> - **Module Boundaries**: Ensure modules have clear boundaries with minimal coupling.
+> This thinking drives PRD Section 3 content quality — no separate WBS document needed.
+
 - **Feature Breakdown**: Extract business operation units for downstream Feature Design (see Step 9.1)
 - **Non-functional Requirements**: Performance, security, compatibility, etc.
 - **Acceptance Criteria**: Quantifiable, verifiable definition of done
@@ -390,6 +390,13 @@ Fill in according to the template structure, requirements:
 ### Step 9.1: Extract Feature Breakdown
 
 For both simple and complex requirements, extract Feature Breakdown to guide downstream Feature Design:
+
+> **ISA-95 Stage 3 Thinking — Functions of Interest**
+> When creating the Feature Breakdown table:
+> - **MoSCoW Prioritization**: Classify each feature as Must-have (P0), Should-have (P1), Could-have (P2), or Won't-have (deferred).
+> - **MVP Focus**: The Feature Breakdown table IS the MVP definition. Features marked P0 form the core scope.
+> - **Non-core Exclusion**: Explicitly note deferred features in Section 6 (Boundary & Constraints) with planned iteration.
+> The Feature Breakdown table in Section 3.4 serves as the core function selection — no separate priority matrix needed.
 
 **Analysis Steps:**
 1. **Analyze user stories and functional requirements** for this module/feature

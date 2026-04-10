@@ -8,6 +8,31 @@
 ### 1.2 Goals
 [Describe the business objectives to be achieved]
 
+### 1.3 Domain Boundary
+
+**In-Scope Domains:**
+- {Domain 1: brief description}
+- {Domain 2: brief description}
+
+**Out-of-Scope Domains:**
+- {Domain 1: reason for exclusion}
+
+**External Participants:**
+
+| Participant Type | Name | Description |
+|------------------|------|-------------|
+| User | {Role name} | {Role description} |
+| System | {System name} | {Integration description} |
+
+### 1.4 Domain Glossary
+
+> Unify key business terms to eliminate cross-stakeholder ambiguity.
+
+| Term | Definition | Related Concepts |
+|------|------------|------------------|
+| {Term 1} | {Precise definition} | {Related terms or modules} |
+| {Term 2} | {Precise definition} | {Related terms or modules} |
+
 ## 2. User Stories
 
 ### 2.1 Target Users
@@ -107,10 +132,12 @@ graph TB
 
 > List all business operation units in this module. Each feature represents a cohesive business operation (e.g., one frontend page with its backend APIs, or one API group for backend-only). This breakdown guides downstream Feature Design to generate per-feature specs.
 
-| Feature ID | Feature Name | Type | Pages/Endpoints | Description |
-|------------|-------------|------|-----------------|-------------|
-| F-{MODULE}-01 | {Feature name} | Page+API / API-only | {page count or endpoint count} | {Brief description} |
-| F-{MODULE}-02 | {Feature name} | Page+API / API-only | {page count or endpoint count} | {Brief description} |
+> Priority follows MoSCoW method: P0 = Must have (MVP core), P1 = Should have, P2 = Could have, Deferred = Won't have this iteration.
+
+| Feature ID | Feature Name | Type | Priority | Pages/Endpoints | Description |
+|------------|-------------|------|----------|-----------------|-------------|
+| F-{MODULE}-01 | {Feature name} | Page+API / API-only | P0 (Must) / P1 (Should) / P2 (Could) | {count} | {Brief description} |
+| F-{MODULE}-02 | {Feature name} | Page+API / API-only | P0 (Must) / P1 (Should) / P2 (Could) | {count} | {Brief description} |
 
 #### Feature Dependencies
 

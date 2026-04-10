@@ -4,6 +4,18 @@ description: Feature Design SOP. Guide Feature Designer Agent to transform PRD r
 tools: Read, Write, Glob, Grep
 ---
 
+# Methodology Foundation
+
+This skill applies the ISA-95 six-stage methodology (Stages 4-6) as an internal thinking framework:
+
+| ISA-95 Stage | Integrated Into | Purpose |
+|---|---|---|
+| Stage 4: Information Flows | Feature Spec Section 3 (Interaction Flow) | Map cross-module data flows, identify API endpoints |
+| Stage 5: Categories of Information | Feature Spec Section 4 (Data Field Definition) | Classify data entities, build data dictionary |
+| Stage 6: Information Descriptions | Feature Spec Section 5 (Business Rules) + API Contract | Define validation rules, output standards, traceability |
+
+> ⚠️ **No separate modeling documents.** The methodology guides thinking quality, not document quantity.
+
 # Trigger Scenarios
 
 - PRD has been confirmed, user requests to start feature design
@@ -336,6 +348,14 @@ Document user actions and system responses:
 User Action → Frontend Response → Backend API Call
 ```
 
+> **ISA-95 Stage 4 Thinking — Information Flows of Interest**
+> When designing interaction flows:
+> - **Cross-module Information Flow**: Map all data flows between this feature and other modules/systems. Identify data source, destination, format, and frequency.
+> - **Sequence Diagram Coverage**: The sequence diagram must cover the complete interaction chain — user action → frontend → backend → database → external systems.
+> - **Interface Identification**: Every data exchange point becomes a potential API endpoint. List all interface interactions with direction, format, and core fields.
+> - **Exception Flows**: Identify and document alternative/exception paths, not just the happy path.
+> These elements flow into Feature Spec Section 3 (Interaction Flow) — no separate DFD document needed.
+
 **Example:**
 ```
 1. User clicks "New User" button
@@ -424,6 +444,14 @@ For each new entity:
 |-------|------|-------------|-------------|
 | {field name} | {data type} | {required/unique/etc} | {purpose} |
 
+> **ISA-95 Stage 5 Thinking — Categories of Information**
+> When defining data fields:
+> - **Information Classification**: Categorize data entities (master data, transactional data, reference data, computed data). This determines storage strategy and update frequency.
+> - **Data Dictionary Rigor**: Every field must have: name, type, constraints, semantic description, and data source.
+> - **Semantic Consistency**: Field names and definitions must align with the domain glossary established in the PRD clarification phase. No "同物异名" (same thing, different names).
+> - **Entity Relationships**: Identify core entity relationships (1:1, 1:N, N:N) that will drive database design downstream.
+> These elements flow into Feature Spec Section 4 (Data Field Definition) — no separate data dictionary document needed.
+
 ### 7.2 Modifications to Existing Data Structures
 
 | Entity | Change Type | Details | Impact |
@@ -450,6 +478,14 @@ EntityA --N:1--> EntityC
 | {data item} | {internal system / external API / user input} | {real-time / periodic / on-demand} |
 
 ## Step 8: Business Rules and Constraints
+
+> **ISA-95 Stage 6 Thinking — Information Descriptions**
+> When defining business rules and constraints:
+> - **Validation Rules**: Define field-level validation (format, range, required), cross-field validation, and business logic validation.
+> - **Output Format Standards**: Specify information output format (JSON for API, specific encoding), ensuring consistency with downstream API Contract.
+> - **Permission Rules**: Define data access permissions that will map to API authorization logic.
+> - **Traceability**: Every business rule should trace back to a PRD requirement. Every data field should trace to a user story.
+> These elements flow into Feature Spec Section 5 (Business Rules) and prepare the foundation for API Contract generation.
 
 ### 8.1 Permission Rules
 

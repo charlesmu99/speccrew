@@ -1,3 +1,9 @@
+<!-- 
+  INTERNAL REFERENCE ONLY — This template is NOT used to generate standalone documents.
+  ISA-95 methodology is internalized into the PRD generation process.
+  All modeling insights should flow into PRD-TEMPLATE.md sections.
+  See SKILL.md "Methodology Foundation" section for the integration mapping.
+-->
 # Business Modeling - [Feature/Skill Name]
 
 ## Document Info
