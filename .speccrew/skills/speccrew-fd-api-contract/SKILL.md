@@ -21,6 +21,12 @@ tools: Read, Write, Glob, Grep
 
 3. **MANDATORY: Template-first workflow** — Step 4a (copy template) MUST execute before Step 4b (fill sections). Skipping Step 4a and writing content directly is FORBIDDEN.
 
+4. **ABORT CONDITIONS** — If any of the following occur, STOP immediately and report to user:
+   - Feature Spec document (`feature_spec_path`) does not exist or is empty → STOP
+   - API Contract template file does not exist → STOP
+   - `node ... update-progress.js` script execution fails → **HARD STOP**: Do NOT manually create or edit JSON progress files. Report the script error and wait for user resolution.
+   - User rejects Joint Confirmation → STOP, ask user for specific revision requirements
+
 ## Step 1: Read Input
 
 ### Input Parameters
@@ -152,6 +158,8 @@ After confirmation, you can start frontend and backend Designer Agents separatel
 
 After user confirms Joint Confirmation:
 
+> **SCRIPT ENFORCEMENT RULE**: All `.checkpoints.json` and `WORKFLOW-PROGRESS.json` updates MUST be performed via `node speccrew-workspace/scripts/update-progress.js` commands. Manually creating or editing these JSON files is FORBIDDEN. If the script fails, STOP and report the error — do NOT attempt manual JSON construction.
+
 ### 6a: Update Checkpoints File
 
 Update the `.checkpoints.json` file to record confirmation status.
@@ -271,6 +279,8 @@ Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
 - Set `current_stage` to `03_system_design`
 - Record all output file paths
 - Log: "✅ Stage 02_feature_design confirmed. Ready for System Design phase."
+
+> **Note**: On Windows PowerShell, do not use backslash (`\`) for line continuation. Write the entire command on a single line.
 
 **关于全局状态管理的说明**：
 > Feature 粒度的 API Contract 完成后，全局阶段状态（`02_feature_design.status` 和 `current_stage`）**不由本 Skill 更新**。
