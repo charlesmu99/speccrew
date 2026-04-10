@@ -8,7 +8,7 @@ tools: Read, Write, Glob, Grep
 
 - PM Agent receives user requirement description
 - User requests "Write a PRD" or "Help organize requirements" or "New feature requirements"
-- User needs structured requirement document with UML diagrams
+- User needs structured requirement document with business-level diagrams (use case diagrams, business process flows, activity diagrams)
 
 ## Methodology Foundation
 
@@ -33,6 +33,18 @@ This skill applies the ISA-95 six-stage methodology (Stages 1-3) as an internal 
 2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
 
 3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections. Skipping copy and writing content directly is FORBIDDEN.
+
+## PM Stage Content Boundary
+
+> **PM Stage Content Boundary — DO NOT include:**
+> - API endpoint definitions, HTTP methods, request/response JSON
+> - Design class diagrams, component diagrams, deployment diagrams
+> - Database table structures, ER diagrams
+> - Code snippets, pseudocode
+> - Technical terminology in Domain Glossary (e.g., UUID, JSON, REST)
+> - Technical metrics (e.g., "code files", "CPU usage")
+>
+> These belong to Feature Designer (interaction design, data modeling) or System Designer (technical architecture).
 
 ## Step 1: Requirements Clarification (MANDATORY)
 
@@ -141,6 +153,49 @@ Path: speccrew-workspace/iterations/{iteration}/01.product-requirement/.clarific
 
 IF both conditions met → Proceed to Step 2
 IF any condition fails → STOP and complete the missing items
+```
+
+After clarification is confirmed sufficient, write initial `.checkpoints.json`:
+
+```bash
+# Create or update checkpoint file
+```
+
+Write the following structure to `speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json`:
+
+```json
+{
+  "stage": "01_prd",
+  "checkpoints": {
+    "requirement_clarification": {
+      "passed": true,
+      "confirmed_at": "{REAL_TIMESTAMP via node -e}",
+      "description": "Requirement clarification completed",
+      "clarification_file": ".clarification-summary.md",
+      "sufficiency_checks": {
+        "business_problem": true,
+        "target_users": true,
+        "scope_boundaries": true,
+        "existing_system": true
+      }
+    },
+    "sub_prd_dispatch": {
+      "passed": false,
+      "confirmed_at": null,
+      "description": "Sub-PRD generation via worker dispatch"
+    },
+    "verification_checklist": {
+      "passed": false,
+      "confirmed_at": null,
+      "description": "PRD structure and content verification"
+    },
+    "prd_review": {
+      "passed": false,
+      "confirmed_at": null,
+      "description": "User review and confirmation of all PRD documents"
+    }
+  }
+}
 ```
 
 **Principles:**
@@ -403,10 +458,10 @@ For both simple and complex requirements, extract Feature Breakdown to guide dow
 2. **Identify business operation units** - each unit should represent:
    - A complete business operation (e.g., "Customer List Management" includes search, filter, pagination, tag management)
    - Can span 1-2 pages but remains business-cohesive
-   - Estimated implementation: no more than 15 code files (frontend + backend combined)
+   - Estimated implementation: can be completed by 1-2 developers in 1 sprint
 3. **Classify Feature Type:**
-   - `Page+API`: Frontend page with corresponding backend APIs (for full-stack architecture)
-   - `API-only`: Group of related APIs (for backend-only features)
+   - `User Interaction`: Features involving user interface and business logic
+   - `Backend Process`: Background processing or business logic without direct user interaction
 4. **Assign Feature IDs**: Use format `F-{MODULE}-{NN}` (e.g., F-CRM-01, F-CRM-02)
 5. **Document dependencies**: Identify data or workflow dependencies between features
 
@@ -416,7 +471,7 @@ For both simple and complex requirements, extract Feature Breakdown to guide dow
 | Single CRUD operation group | Complete module with 5+ CRUDs |
 | One list page with filters | Entire reporting subsystem |
 | One form with validation | Multi-step wizard with 10+ steps |
-| Single API endpoint group | All APIs for a domain |
+| Single business process | All processes for a domain |
 
 **Output:** Complete the Feature Breakdown table in Section 3.4 of the PRD template.
 
@@ -436,7 +491,7 @@ When the requirement involves modifying existing system functions, clearly mark 
 - User stories (prefix the story)
 - Functional requirements (prefix each requirement)
 - UI mockups descriptions
-- API specifications
+- System capability changes
 
 **Example:**
 ```markdown
@@ -623,6 +678,29 @@ After outputting the dispatch plan:
 
 IF any check fails → Report error and fix before proceeding.
 
+After all Sub-PRDs are verified, update `.checkpoints.json`:
+- Set `sub_prd_dispatch.passed = true`
+- Set `sub_prd_dispatch.confirmed_at` via real timestamp
+- Add sub_prd summary:
+
+```json
+"sub_prd_dispatch": {
+  "passed": true,
+  "confirmed_at": "{REAL_TIMESTAMP}",
+  "total_modules": 11,
+  "sub_prds": [
+    {
+      "module_key": "member",
+      "module_name": "Member Management",
+      "file_path": "crm-system-sub-member.md",
+      "status": "completed",
+      "has_feature_breakdown": true,
+      "feature_count": 5
+    }
+  ]
+}
+```
+
 ---
 
 ### Step 12e: Present Documents for User Review
@@ -707,10 +785,50 @@ Content (use the REAL timestamp from the command output):
 {
   "stage": "01_prd",
   "checkpoints": {
+    "requirement_clarification": {
+      "passed": true,
+      "confirmed_at": "{REAL_TIMESTAMP_FROM_COMMAND}",
+      "description": "Requirement clarification completed",
+      "clarification_file": ".clarification-summary.md",
+      "sufficiency_checks": {
+        "business_problem": true,
+        "target_users": true,
+        "scope_boundaries": true,
+        "existing_system": true
+      }
+    },
+    "sub_prd_dispatch": {
+      "passed": true,
+      "confirmed_at": "{REAL_TIMESTAMP_FROM_COMMAND}",
+      "description": "Sub-PRD generation via worker dispatch",
+      "total_modules": 11,
+      "sub_prds": [
+        {
+          "module_key": "member",
+          "module_name": "Member Management",
+          "file_path": "crm-system-sub-member.md",
+          "status": "completed",
+          "has_feature_breakdown": true,
+          "feature_count": 5
+        }
+      ]
+    },
+    "verification_checklist": {
+      "passed": true,
+      "confirmed_at": "{REAL_TIMESTAMP_FROM_COMMAND}",
+      "description": "PRD structure and content verification",
+      "checks": {
+        "master_prd_exists": true,
+        "master_prd_size": true,
+        "sub_prds_exist": true,
+        "sub_prd_index_match": true,
+        "feature_breakdown_present": true
+      }
+    },
     "prd_review": {
       "passed": true,
       "confirmed_at": "{REAL_TIMESTAMP_FROM_COMMAND}",
-      "description": "PRD review and confirmation"
+      "description": "User review and confirmation of all PRD documents"
     }
   }
 }
@@ -771,8 +889,8 @@ When you are ready to proceed with Feature Design, please start a new conversati
 - [ ] PRD structure (single vs master-sub) determined appropriately
 - [ ] **[Master-Sub]** Master PRD includes architecture overview, module list, dependency matrix, implementation phases
 - [ ] **[Master-Sub]** Each Sub-PRD covers exactly one module with interface contracts
-- [ ] **Feature Breakdown** extracted with appropriate granularity (each feature ≤ 15 code files)
-- [ ] **Feature Breakdown** includes Feature IDs, Types (Page+API / API-only), and dependencies
+- [ ] **Feature Breakdown** extracted with appropriate granularity (each feature completable in 1 sprint)
+- [ ] **Feature Breakdown** includes Feature IDs, Types (User Interaction / Backend Process), and dependencies
 - [ ] PRD completely filled according to template structure
 - [ ] User story granularity aligns with "single iteration completable" principle
 - [ ] Acceptance criteria are quantifiable and verifiable

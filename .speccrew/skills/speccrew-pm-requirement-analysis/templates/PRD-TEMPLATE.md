@@ -130,14 +130,14 @@ graph TB
 
 ### 3.4 Feature Breakdown
 
-> List all business operation units in this module. Each feature represents a cohesive business operation (e.g., one frontend page with its backend APIs, or one API group for backend-only). This breakdown guides downstream Feature Design to generate per-feature specs.
+> List all business operation units in this module. Each feature represents a cohesive business operation (e.g., a user-facing feature with business logic, or a backend process without direct user interaction). This breakdown guides downstream Feature Design to generate per-feature specs.
 
 > Priority follows MoSCoW method: P0 = Must have (MVP core), P1 = Should have, P2 = Could have, Deferred = Won't have this iteration.
 
-| Feature ID | Feature Name | Type | Priority | Pages/Endpoints | Description |
-|------------|-------------|------|----------|-----------------|-------------|
-| F-{MODULE}-01 | {Feature name} | Page+API / API-only | P0 (Must) / P1 (Should) / P2 (Could) | {count} | {Brief description} |
-| F-{MODULE}-02 | {Feature name} | Page+API / API-only | P0 (Must) / P1 (Should) / P2 (Could) | {count} | {Brief description} |
+| Feature ID | Feature Name | Type | Priority | Scope | Description |
+|------------|-------------|------|----------|-------|-------------|
+| F-{MODULE}-01 | {Feature name} | User Interaction / Backend Process | P0 (Must) / P1 (Should) / P2 (Could) | {Brief scope description} | {Brief description} |
+| F-{MODULE}-02 | {Feature name} | User Interaction / Backend Process | P0 (Must) / P1 (Should) / P2 (Could) | {Brief scope description} | {Brief description} |
 
 #### Feature Dependencies
 
@@ -197,12 +197,12 @@ graph LR
 
 **Operation Steps Detail:**
 
-| Step | Action | System Response | User Feedback | Exception Handling |
-|------|--------|-----------------|---------------|-------------------|
-| 1 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
-| 2 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
-| 3 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
-| 4 | [User action] | [System behavior] | [UI feedback] | [Error handling] |
+| Step | Action | Expected Outcome | Exception Handling |
+|------|--------|------------------|-------------------|
+| 1 | [User action] | [Expected result] | [Error handling] |
+| 2 | [User action] | [Expected result] | [Error handling] |
+| 3 | [User action] | [Expected result] | [Error handling] |
+| 4 | [User action] | [Expected result] | [Error handling] |
 
 ## 4. Non-functional Requirements
 

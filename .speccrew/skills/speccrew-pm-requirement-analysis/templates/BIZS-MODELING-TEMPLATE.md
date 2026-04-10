@@ -77,9 +77,9 @@ graph TD
 
 ### 2.2 Function-Capability Mapping Table
 
-| Function Module | Core Sub-function | Business Capability | UML Visualization |
-|-----------------|-------------------|---------------------|-------------------|
-| __________ | __________ | __________ | Use Case / Activity / State |
+| Function Module | Core Sub-function | Business Capability |
+|-----------------|-------------------|---------------------|
+| __________ | __________ | __________ |
 
 ### 2.3 UML Visualization (As Needed)
 
@@ -223,58 +223,36 @@ graph TD
 |-------------|-----------------|-----------|-------------|-------------|
 | __________ | __________ | String/Number/Enum | Non-null | __________ |
 
-### 5.3 Conceptual Class Diagram
+### 5.3 Business Entity Relationship Diagram (Optional)
+
+> Visualize core business entity relationships using natural language. Do NOT include programming constructs (visibility modifiers, method signatures, data types).
 
 ```mermaid
 classDiagram
     class Entity1 {
-        +attribute1
-        +attribute2
+        Core attribute 1
+        Core attribute 2
     }
     class Entity2 {
-        +attribute3
+        Core attribute 3
     }
-    Entity1 "1" -- "*" Entity2 : relates
+    Entity1 "1" -- "*" Entity2 : relationship description
 ```
 
 ---
 
-## 6. Information Descriptions
+## 6. Data Format Requirements
 
-<!-- AI-NOTE: IMPLEMENTATION-READY specifications with technical details. -->
+<!-- AI-NOTE: Focus on user-visible data formats and business data quality. Technical implementation details are handled by Feature Designer. -->
 
-### 6.1 Design Class Diagram
+### 6.1 Data Format Requirements
 
-```mermaid
-classDiagram
-    class ClassName {
-        -privateAttribute: Type
-        +publicMethod(): ReturnType
-    }
-    class InterfaceName {
-        +interfaceMethod(): ReturnType
-    }
-    ClassName ..|> InterfaceName : implements
-```
-
-### 6.2 Component Diagram
-
-```mermaid
-graph TB
-    C1[Component 1] --> C2[Component 2]
-    C2 --> C3[Component 3]
-```
-
-### 6.3 Information Description Standards
-
-**Output Format**: __________
-
-**Encoding**: UTF-8
-
-**Validation Rules**:
-- __________
-
-**Storage Requirements**: __________
+| Requirement | Description |
+|-------------|-------------|
+| Input Format | {User-visible input formats: forms, file upload (CSV/Excel), etc.} |
+| Output Format | {User-visible output formats: PDF reports, Excel export, etc.} |
+| Data Quality | {Business data quality rules: completeness, accuracy, timeliness} |
+| Compliance | {Data compliance requirements: privacy, retention, audit trail} |
 
 ---
 

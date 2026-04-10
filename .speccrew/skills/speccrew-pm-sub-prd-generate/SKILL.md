@@ -66,7 +66,7 @@ Fill each section using `search_replace`:
 - 3.2 Business Process Flow: Module-internal process flow
 - 3.3 Feature List: Module features with P0/P1/P2 priority
 - 3.4 Feature Breakdown: **REQUIRED** — Fill with `{module_features}` data:
-  - Feature ID, Feature Name, Type (Page+API / API-only), Pages/Endpoints count, Description
+  - Feature ID, Feature Name, Type (User Interaction / Backend Process), Scope, Description
   - Feature Dependencies table
 - 3.5 Feature Details: Detailed descriptions for each feature including:
   - Requirement Description
