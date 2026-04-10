@@ -503,6 +503,27 @@ Step 3b: Invoke speccrew-pm-requirement-analysis
 
 After the Skill generates the Master PRD and outputs the dispatch plan, the PM Agent takes over to generate Sub-PRDs in parallel using worker agents.
 
+> **Phase 4 Execution Flow:**
+> ```
+> Generate Skill outputs Dispatch Plan
+>     ↓
+> PM reads Dispatch Plan (module list + contexts)
+>     ↓
+> PM initializes DISPATCH-PROGRESS.json (via script)
+>     ↓
+> PM invokes speccrew-task-worker × N (one per module)
+>   └─ Each worker internally calls speccrew-pm-sub-prd-generate
+>     ↓
+> Workers complete → PM updates progress (via script)
+>     ↓
+> ALL workers done → Phase 5
+> ```
+> 
+> **NOT this flow:**
+> ```
+> PM reads Dispatch Plan → PM generates Sub-PRDs directly ← VIOLATION
+> ```
+
 ### 4.1 Read Dispatch Plan
 
 From the Skill's Step 12c output, collect:
@@ -531,8 +552,11 @@ node speccrew-workspace/scripts/update-progress.js init \
 > 2. Read file content in the command: `node scripts/update-progress.js init --stage sub_prd_dispatch --tasks (Get-Content tasks-temp.json -Raw)`
 > 3. Or use: `Get-Content tasks-temp.json | node scripts/update-progress.js init --stage sub_prd_dispatch --tasks -`
 
-> ⚠️ DO NOT create DISPATCH-PROGRESS.json manually with PowerShell or any other method.
-> If the script fails, STOP and report the error to the user.
+> 🛑 **HARD STOP: DISPATCH-PROGRESS.json MUST be created by script ONLY**
+> - MUST use: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks '<JSON_ARRAY>'`
+> - DO NOT create DISPATCH-PROGRESS.json manually (PowerShell, create_file, or any other method)
+> - IF script fails → STOP workflow immediately, report error to user, ask "Retry or Abort?"
+> - DO NOT proceed to Worker dispatch without successful script execution
 
 After each worker completes:
 ```bash
@@ -550,13 +574,22 @@ node speccrew-workspace/scripts/update-progress.js update-task \
 
 ### 4.3 Dispatch Workers
 
-**PM Agent Role: ORCHESTRATOR ONLY**
+**PM Agent Role: ORCHESTRATOR ONLY — Phase 4 EXPLICIT RULES**
 
-You are the dispatcher, NOT the writer. Your job is to:
-1. Invoke `speccrew-task-worker` for EACH module
-2. Pass the correct skill_path and context
-3. Wait for all workers to complete
-4. Collect results
+**MANDATORY — PM MUST:**
+1. Read the Dispatch Plan from generate skill output
+2. Initialize DISPATCH-PROGRESS.json via update-progress.js script
+3. For EACH module in dispatch plan: invoke `speccrew-task-worker` with `skill_path: speccrew-pm-sub-prd-generate/SKILL.md`
+4. Pass ALL required context parameters to each worker
+5. Wait for ALL workers to complete
+6. Update DISPATCH-PROGRESS.json via script after each worker completes
+
+🛑 **FORBIDDEN — PM MUST NOT:**
+- Generate Sub-PRD files directly (via create_file, write, or any file creation)
+- Invoke speccrew-pm-sub-prd-generate skill directly (ONLY speccrew-task-worker invokes it)
+- Create or edit any Sub-PRD content as fallback if worker fails
+- Skip worker dispatch and generate Sub-PRDs inline
+- IF PM attempts ANY of above → WORKFLOW VIOLATION → STOP immediately
 
 **Implementation:**
 

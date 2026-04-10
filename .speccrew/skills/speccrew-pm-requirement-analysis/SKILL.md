@@ -312,6 +312,18 @@ ELSE:
 → After ALL workers complete → PM Agent executes Phase 5 Verification
 ```
 
+🛑 **CRITICAL HANDOFF — PM Agent MUST NOT:**
+- Generate Sub-PRD files directly
+- Invoke speccrew-pm-sub-prd-generate as its own operation
+- Create Sub-PRD content using create_file or any file write
+- Skip speccrew-task-worker and directly produce Sub-PRD documents
+
+**PM Agent MUST:**
+1. Use Dispatch Plan above to invoke speccrew-task-worker for EACH module
+2. Each worker uses skill_path: speccrew-pm-sub-prd-generate/SKILL.md
+3. Initialize DISPATCH-PROGRESS.json via update-progress.js script (NOT manually)
+4. After ALL workers complete → Execute Phase 5 Verification
+
 **IF Single PRD Structure:** Skip dispatch plan (no Sub-PRDs needed).
 
 ---
