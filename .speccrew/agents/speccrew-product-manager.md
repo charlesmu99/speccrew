@@ -673,7 +673,31 @@ Update `.checkpoints.json` → `sub_prd_dispatch.passed = true` (only if all suc
 
 ## Phase 5: Verification & Confirmation
 
-### 5.1 Run Verification Checklist
+> 🛑 **PHASE 5 STRUCTURE — THREE STRICT STAGES WITH GATES**
+>
+> Phase 5 MUST execute in order with explicit gates between stages:
+> - Phase 5.1 (Verification Checklist) → automatic execution → outputs checklist result
+> - Phase 5.2 (User Review) → **HARD STOP** → MUST wait for explicit user confirmation
+> - Phase 5.3 (Finalize) → **ONLY executes AFTER user confirms** → updates all statuses
+>
+> **CRITICAL GATES:**
+> - Gate 5.1→5.2: Automatic after checklist passes
+> - Gate 5.2→5.3: **REQUIRES EXPLICIT USER CONFIRMATION** — no auto-proceed
+>
+> 🛑 **FORBIDDEN ACTIONS in Phase 5:**
+> - DO NOT update checkpoints (verification_checklist, prd_review) before user confirmation
+> - DO NOT update WORKFLOW-PROGRESS.json to completed before user confirmation
+> - DO NOT change PRD document status from Draft to Confirmed before user confirmation
+> - DO NOT generate completion report before user confirmation
+> - DO NOT suggest next phase (Feature Design) before user confirmation
+> - DO NOT assume user silence means confirmation
+> - DO NOT proceed to Phase 5.3 without explicit "确认" or "OK" from user
+
+---
+
+### Phase 5.1: Verification Checklist
+
+> **This phase can execute automatically. No user interaction required.**
 
 **Simple Requirements Checklist:**
 - [ ] Single PRD file exists
@@ -702,17 +726,36 @@ Randomly select 3 sections from PRD(s) and verify:
 - Ask: "Proceed anyway?" or "Regenerate with stricter constraints?"
 - IF regenerate → Return to appropriate Phase (3a/3b/4)
 
-**After verification passes, update `.checkpoints.json`:**
-```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
-  --file {iteration_path}/01.product-requirement/.checkpoints.json \
-  --checkpoint verification_checklist \
-  --passed true
+**After verification passes, output checklist result:**
 ```
+📊 Verification Checklist Result
+├── File existence: ✅ All files present
+├── Size validation: ✅ All files valid
+├── Feature Breakdown: ✅ All sections present
+└── Content Boundary: ✅ No violations detected
+```
+
+> ⚠️ **DO NOT update any checkpoint yet.**
+> Checkpoints (verification_checklist, prd_review) will be updated in Phase 5.3 AFTER user confirmation.
 
 ---
 
-### 5.2 Present Documents for User Review
+### Phase 5.2: Present for User Review
+
+> 🛑 **HARD STOP — USER CONFIRMATION REQUIRED**
+>
+> This is a CRITICAL gate. You MUST STOP here and wait for explicit user confirmation.
+>
+> **MANDATORY REQUIREMENTS:**
+> 1. Present ALL generated documents to user with file paths and sizes
+> 2. Show verification checklist results
+> 3. Show key statistics (module count, total size, feature counts)
+> 4. Then STOP and ask user for confirmation
+>
+> **MANDATORY: DO NOT proceed to Phase 5.3 until user explicitly confirms.**
+> **MANDATORY: DO NOT update any checkpoint, workflow status, or document status before user confirmation.**
+> **MANDATORY: DO NOT mark prd_review checkpoint as passed before user confirmation.**
+> **MANDATORY: DO NOT assume user silence or inactivity means confirmation.**
 
 **5.2.1 List All Generated Documents**
 
@@ -730,6 +773,13 @@ Verification Results:
 ├── Size validation: ✅ All files valid
 ├── Feature Breakdown: ✅ All sections present
 └── Content Boundary: ✅ No violations detected
+
+Statistics:
+├── Total Modules: {count}
+├── Total Features: {count}
+└── Total Document Size: {size} KB
+
+Document Status: 📝 Draft (pending your confirmation)
 ```
 
 **5.2.2 Summarize Content**
@@ -740,14 +790,24 @@ Verification Results:
 | Sub-PRD 1 | User Stories, Requirements, Features | {count} |
 | ... | ... | ... |
 
-**5.2.3 HARD STOP — Wait for User Confirmation**
+**5.2.3 STOP and Request Confirmation**
 
-⚠️ **CRITICAL: DO NOT proceed without explicit user confirmation.**
+After presenting the documents above, you MUST stop and ask:
 
-**Actions:**
-- Present document summary
-- Ask: "Please review the PRD documents. Reply '确认' or 'OK' when ready to proceed."
-- Wait for explicit confirmation
+---
+
+> 🛑 **AWAITING USER CONFIRMATION**
+>
+> "请审查以上PRD文档。确认无误后我将更新状态为 Confirmed。是否确认？"
+>
+> 您可以回复：
+> - "确认" 或 "OK" → 进入 Phase 5.3 完成最终状态更新
+> - "需要修改" + 具体内容 → 返回相应阶段重新生成
+> - "取消" → 终止当前工作流
+>
+> **I will NOT proceed until you explicitly confirm.**
+
+---
 
 **IF user requests changes:**
 1. Identify which document(s) need changes
@@ -757,17 +817,37 @@ Verification Results:
    - Requirement changes → Return to Phase 2 (re-run clarification)
 3. Re-invoke appropriate skill with updated context
 4. Return to Phase 5 after re-generation
+5. **DO NOT update any status**
 
-**IF user confirms:**
+**IF user confirms (explicit "确认" or "OK"):**
 - Proceed to Phase 5.3
 
 ---
 
-### 5.3 Finalize
+### Phase 5.3: Finalize
+
+> ⚠️ **PREREQUISITE: Phase 5.3 can ONLY execute AFTER user has explicitly confirmed in Phase 5.2.**
+>
+> IF user has NOT confirmed → DO NOT execute any step below.
+> IF you are unsure whether user confirmed → DO NOT execute any step below.
+>
+> **Verification before proceeding:**
+> - Did user explicitly say "确认" or "OK" in Phase 5.2?
+> - If NO → Return to Phase 5.2 and wait for confirmation
+> - If YES → Proceed with the steps below
 
 **5.3.1 Update Checkpoints**
 
+Now update all checkpoints (user has confirmed):
+
 ```bash
+# Update verification_checklist checkpoint
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file {iteration_path}/01.product-requirement/.checkpoints.json \
+  --checkpoint verification_checklist \
+  --passed true
+
+# Update prd_review checkpoint
 node speccrew-workspace/scripts/update-progress.js write-checkpoint \
   --file {iteration_path}/01.product-requirement/.checkpoints.json \
   --checkpoint prd_review \
