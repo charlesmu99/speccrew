@@ -67,6 +67,19 @@ graph TB
 | `/` | File paths (`/pages/index`) | Remove leading `/` or use parentheses: `pages/index` |
 | `(` `)` | Function calls (`handleQuery()`) | Remove parentheses: `handleQuery` |
 
+**When Special Characters Must Be Preserved:**
+
+If node text must contain parentheses `()`, curly braces `{}`, square brackets `[]`, or colons `:`, wrap the entire text in double quotes to prevent Mermaid from misinterpreting them as shape definitions or syntax elements.
+
+| Wrong (Parse Error) | Correct (Quoted) |
+|---------------------|------------------|
+| `P1[选择对比组(如:面部左脸)]` | `P1["选择对比组(如:面部左脸)"]` |
+| `P2[上传图片(1-N张)]` | `P2["上传图片(1-N张)"]` |
+| `A[Task{ urgent }]` | `A["Task{ urgent }"]` |
+| `B[Array[0]]` | `B["Array[0]"]` |
+
+**Important:** The rule "Quoted node text [\"text\"]" in the Prohibited list refers to unnecessary quoting of plain text. When special characters are present, quoting becomes **required** for correct parsing.
+
 ### 5. Multi-line Text Handling
 
 ```
