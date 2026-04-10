@@ -76,32 +76,122 @@ Use progressive questioning to clarify requirements. Do NOT ask all questions at
 > - **Domain Glossary**: Unify key business terms to eliminate ambiguity across stakeholders.
 > These elements should naturally flow into the clarification summary, NOT as a separate document.
 
-### Round 1: Core Understanding
+### File-Based Clarification Workflow
 
-Ask these first (2-3 questions max per round):
+> ⚠️ **All clarification rounds use file-based interaction, NOT chat-based.**
+> This prevents users from having to copy-paste large amounts of content in chat.
 
-| Question | Purpose |
-|----------|---------|
-| What problem does this feature solve? What is the business context? | Confirm background and motivation |
-| Who are the target users and what are the core usage scenarios? | Identify user scope and mainstream use cases |
+**Round 1: Core Understanding**
 
-### Round 2: Scope & Boundaries
+1. **Create** `.clarification-summary.md` in the iteration's `01.product-requirement/` directory:
+   ```
+   speccrew-workspace/iterations/{iteration}/01.product-requirement/.clarification-summary.md
+   ```
 
-Based on Round 1 answers, ask:
+2. **Write** Round 1 questions to the file using this format:
 
-| Question | Purpose |
-|----------|---------|
-| What is explicitly out of scope? | Clarify boundaries |
-| Does this overlap with any existing system capabilities? | Identify reuse vs new build |
-| Are there constraints (timeline, technology, budget)? | Clarify constraints early |
+   ```markdown
+   # Requirements Clarification
 
-### Round 3: Detail & Acceptance (if needed)
+   ## Round 1: Core Understanding
+   
+   > **Instructions**: Please fill in your answers directly after each "**Answer:**" marker below, then save the file and notify me that you have completed your responses.
 
-| Question | Purpose |
-|----------|---------|
-| What does "done" look like? Any specific acceptance criteria? | Confirm definition of done |
-| Are there non-functional requirements (performance, security)? | Identify NFRs |
-| What is the priority relative to other work? | Confirm priority |
+   ### 1. Business Background & Goals
+   
+   Based on the requirement document, the system aims to solve:
+   - [PM's understanding point 1]
+   - [PM's understanding point 2]
+   - ...
+   
+   **Answer:** <!-- Fill your confirmation or corrections here -->
+
+   ### 2. Target Users & Scenarios
+   
+   The document identifies the following user roles:
+   - Role 1: description
+   - Role 2: description
+   
+   Questions:
+   - Are there additional roles not mentioned?
+   - [Other specific questions]
+   
+   **Answer:** <!-- Fill your answers here -->
+
+   ### 3. System Scope & Boundaries
+   
+   The functional scope includes:
+   - Module 1
+   - Module 2
+   - ...
+   
+   Questions:
+   - Are all modules required for Phase 1?
+   - [Other scope questions]
+   
+   **Answer:** <!-- Fill your answers here -->
+   ```
+
+3. **Notify user** with a brief message:
+   ```
+   📝 Clarification questions written to:
+   `01.product-requirement/.clarification-summary.md`
+   
+   Please open the file, fill in your answers after each "**Answer:**" marker, save, and let me know when done.
+   ```
+
+4. **HARD STOP** — Wait for user to confirm they have answered.
+
+5. **Read** the updated `.clarification-summary.md` file.
+
+6. **Evaluate** if answers are sufficient for Sufficiency Checks.
+
+**Round 2 (if needed): Scope & Boundaries**
+
+7. **Append** Round 2 questions to the SAME file:
+
+   ```markdown
+   ---
+
+   ## Round 2: Scope & Boundaries
+   
+   > Based on your Round 1 answers, I need to clarify the following details.
+   > Please fill in your answers after each "**Answer:**" marker.
+
+   ### 1. Out-of-Scope Items
+   
+   Based on the requirement, the following appear to be out of scope:
+   - [Item 1]
+   - [Item 2]
+   
+   Questions:
+   - Are there any explicit exclusions?
+   - [Other boundary questions]
+   
+   **Answer:** <!-- Fill your answers here -->
+
+   ### 2. Existing System Relationship
+   
+   Questions:
+   - Does this overlap with any existing system capabilities?
+   - Should this reuse or replace existing functionality?
+   
+   **Answer:** <!-- Fill your answers here -->
+
+   ### 3. Constraints
+   
+   Questions:
+   - Are there timeline constraints?
+   - Technology or budget constraints?
+   
+   **Answer:** <!-- Fill your answers here -->
+   ```
+
+8. **Notify user** again and wait for response.
+
+9. **Read** the updated file and evaluate Sufficiency Checks.
+
+**Round 3 (if still needed): Detail & Acceptance** — Same pattern: append to the file, notify, wait, read.
 
 ### Sufficiency Check
 
@@ -114,41 +204,35 @@ Sufficient to proceed when ALL of:
 - [ ] Scope boundaries (in/out) are defined
 - [ ] Relationship to existing system is understood
 
-If ANY is unclear → ask follow-up questions targeting the gap
-If ALL are clear → proceed to Step 1 Output
+If ANY is unclear → append follow-up questions to the clarification file
+If ALL are clear → proceed to Finalize Clarification File
 ```
 
-### Step 1 Output: Generate Clarification Summary
+### Finalize Clarification File
 
-After Sufficiency Check passes, generate a clarification summary file:
+After all clarification rounds complete, append the Sufficiency Check results and Key Decisions to the file:
 
-```
-Path: speccrew-workspace/iterations/{iteration}/01.product-requirement/.clarification-summary.md
-```
-
-**Content template:**
 ```markdown
-# Clarification Summary
+---
 
-## Input Type
-- [ ] Complete requirement document provided
-- [ ] Incomplete input (progressive clarification performed)
+## Sufficiency Check
 
-## Clarification Rounds
-- Round 1 (Core Understanding): [Summary of Q&A]
-- Round 2 (Scope & Boundaries): [Summary of Q&A]
-- Round 3 (Detail & Acceptance): [If applicable, Summary of Q&A]
-
-## Sufficiency Check Status
-- [x] Business problem is clearly understood
-- [x] Target users and core scenarios identified
-- [x] Scope boundaries (in/out) are defined
-- [x] Relationship to existing system is understood
+| Check Item | Status |
+|-----------|--------|
+| Core business problem clearly defined | ✅ |
+| Target user roles and permissions identified | ✅ |
+| System scope and boundaries confirmed | ✅ |
+| Key business rules clarified | ✅ |
 
 ## Key Decisions
-- [Record any key decisions made during clarification]
+
+| # | Decision | Rationale |
+|---|----------|----------|
+| 1 | [Decision] | [From user's answer in Round X] |
+| 2 | [Decision] | [From user's answer in Round X] |
 
 ## Proceed Gate
+
 ✅ All checks passed. Ready for Step 2.
 ```
 

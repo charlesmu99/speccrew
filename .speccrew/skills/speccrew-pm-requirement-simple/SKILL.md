@@ -37,7 +37,19 @@ This skill applies ISA-95 Stages 1-3 in lightweight mode:
 
 ### Step 1: Quick Clarification
 
-Confirm the requirement in 1-3 rounds:
+**For simple requirements with 1-3 questions:**
+- Ask directly in chat (acceptable for very short clarifications)
+
+**For requirements needing 4+ questions:**
+- Use file-based clarification (same as complex skill):
+  1. Write questions to `.clarification-summary.md` in the iteration's `01.product-requirement/` directory
+  2. User fills answers in file after each "**Answer:**" marker
+  3. User notifies PM
+  4. PM reads and proceeds
+
+> **Default to chat-based** for simple requirements unless the clarification content is lengthy.
+
+Clarification topics:
 
 1. **What to change**: Which page/function/module is affected?
 2. **What the change is**: Add field? Modify logic? New sub-feature?
