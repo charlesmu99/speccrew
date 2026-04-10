@@ -80,20 +80,19 @@ node speccrew-workspace/scripts/update-progress.js update-workflow \
 
 ### Step 3: Read PRD Template
 
-Read the PRD template from the complex requirement skill's template directory:
-```
-{skill-root}/../speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md
-```
+**Locate and read the PRD template:**
 
-Where `{skill-root}` is the directory of this skill (`.speccrew/skills/speccrew-pm-requirement-simple/`).
+1. **Search** for the template using glob pattern:
+   ```
+   **/speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md
+   ```
+   > Note: Simple requirement skill shares the PRD template with the complex requirement skill.
 
-Alternatively, if the file is available at workspace level:
-```
-speccrew-workspace/docs/templates/PRD-TEMPLATE.md
-```
+2. **Read** the found template file.
 
-> **Priority**: Use the skill-level template first. Only fall back to workspace-level if not found.
-> **DO NOT search in bizs/, knowledges/, or other unrelated directories.**
+> ⚠️ **DO NOT search in bizs/, knowledges/, or project source directories.**
+> The template is ALWAYS located in the skill's own `templates/` subfolder.
+> If glob returns no results, check if speccrew was properly initialized (`speccrew init`).
 
 ### Step 4: Generate Single PRD
 

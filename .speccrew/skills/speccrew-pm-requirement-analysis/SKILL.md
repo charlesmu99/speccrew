@@ -371,12 +371,24 @@ Phase 3 (Extension): Remaining modules
 
 ## Step 7: Read PRD Template
 
-Read the PRD template file:
-```
-templates/PRD-TEMPLATE.md
-```
-> This path is relative to the current skill directory (`.speccrew/skills/speccrew-pm-requirement-analysis/`).
-> **DO NOT search for PRD templates in bizs/, knowledges/, workspace docs, or any other directory.**
+**Locate and read the PRD template file using this search strategy:**
+
+1. **Search** for the template using glob pattern:
+   ```
+   **/speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md
+   ```
+   This will find the template regardless of IDE adapter path (.qoder/, .claude/, .cursor/, .speccrew/).
+
+2. **Read** the found template file.
+
+3. **If BIZS modeling template is needed** (for complex systems with 3+ modules):
+   ```
+   **/speccrew-pm-requirement-analysis/templates/BIZS-MODELING-TEMPLATE.md
+   ```
+
+> ⚠️ **DO NOT manually search in these directories:** bizs/, knowledges/, workspace docs, project src/
+> The template is ALWAYS located in the skill's own `templates/` subfolder.
+> If glob returns no results, check if speccrew was properly initialized (`speccrew init`).
 
 After reading the template, check if any required information is missing based on:
 - Template structure requirements

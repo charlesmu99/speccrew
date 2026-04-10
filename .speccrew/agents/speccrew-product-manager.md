@@ -463,9 +463,12 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 (if complex) → Phase 5
 
 ### MANDATORY TEMPLATE PATH
 
-- **PRD Template**: `templates/PRD-TEMPLATE.md` (relative to the invoked skill directory)
-- **BIZS Modeling Template**: `templates/BIZS-MODELING-TEMPLATE.md` (relative to the invoked skill directory)
-- **DO NOT search for templates in bizs/, knowledges/, or other directories**
+- **PRD Template**: Search with glob `**/speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md`
+- **BIZS Modeling Template**: Search with glob `**/speccrew-pm-requirement-analysis/templates/BIZS-MODELING-TEMPLATE.md`
+- **Sub-PRD Template**: The Sub-PRD worker skill (`speccrew-pm-sub-prd-generate/SKILL.md`) receives template_path as parameter — pass the found PRD template path to the worker
+- **DO NOT search for templates in bizs/, knowledges/, project source, or other unrelated directories**
+- **DO NOT try to find templates by listing all .md files in the project**
+- **Templates are ALWAYS in the skill's own `templates/` subfolder**, accessed via glob pattern
 
 ### Must do
 - Read business module list to confirm boundaries between requirements and existing features
