@@ -663,17 +663,17 @@ Before writing any file, create a complete list of ALL files to generate:
 
 | # | File | Path |
 |---|------|------|
-| 1 | PRD | {iteration}/01.prd/{feature-name}-prd.md |
+| 1 | PRD | {iteration}/01.product-requirement/{feature-name}-prd.md |
 
 **For Master-Sub Structure (present this table to user):**
 
 | # | File Type | Module | Path |
 |---|-----------|--------|------|
-| 1 | Master PRD | (system overview) | {iteration}/01.prd/{feature-name}-prd.md |
-| 2 | Sub-PRD | {module-1-name} | {iteration}/01.prd/{feature-name}-sub-{module-1-key}.md |
-| 3 | Sub-PRD | {module-2-name} | {iteration}/01.prd/{feature-name}-sub-{module-2-key}.md |
+| 1 | Master PRD | (system overview) | {iteration}/01.product-requirement/{feature-name}-prd.md |
+| 2 | Sub-PRD | {module-1-name} | {iteration}/01.product-requirement/{feature-name}-sub-{module-1-key}.md |
+| 3 | Sub-PRD | {module-2-name} | {iteration}/01.product-requirement/{feature-name}-sub-{module-2-key}.md |
 | ... | ... | ... | ... |
-| N+1 | Sub-PRD | {module-N-name} | {iteration}/01.prd/{feature-name}-sub-{module-N-key}.md |
+| N+1 | Sub-PRD | {module-N-name} | {iteration}/01.product-requirement/{feature-name}-sub-{module-N-key}.md |
 
 Total files: 1 (Master) + N (Sub-PRDs) = N+1 files.
 
@@ -684,7 +684,7 @@ Total files: 1 (Master) + N (Sub-PRDs) = N+1 files.
 ### Step 12b: Generate Master PRD
 
 1. Read `templates/PRD-TEMPLATE.md` (already loaded in Step 7)
-2. Create document using `create_file` at: `{iteration}/01.prd/{feature-name}-prd.md`
+2. Create document using `create_file` at: `{iteration}/01.product-requirement/{feature-name}-prd.md`
 
 3. Fill content using `search_replace` per section:
 
