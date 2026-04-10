@@ -1,5 +1,18 @@
 # PRD - [Feature Name]
 
+> ⚠️ **CRITICAL: PM Stage Content Boundary**
+>
+> **DO NOT INCLUDE in this PRD:**
+> - Database table structures, ER diagrams, SQL queries
+> - API endpoint definitions, HTTP methods, request/response JSON schemas
+> - Design class diagrams, component diagrams, deployment diagrams
+> - Code snippets, pseudocode, implementation logic
+> - Technical terminology (e.g., UUID, JWT, REST, JSON, Microservice)
+> - Technical metrics (e.g., "code files", "CPU usage", "latency < 100ms")
+>
+> **These belong to:** Feature Designer (interaction design, API contracts) or System Designer (technical architecture).
+> **Required:** Use BUSINESS LANGUAGE only. Describe WHAT needs to happen, not HOW the system implements it.
+
 ## 1. Background & Goals
 
 ### 1.1 Background
@@ -114,12 +127,14 @@ graph TB
 
 **Process Description:**
 
-| Stage | Description | Input | Output | Responsible Role |
-|-------|-------------|-------|--------|------------------|
+| Stage | Description | Input (business terms) | Output (business terms) | Responsible Role |
+|-------|-------------|------------------------|-------------------------|------------------|
 | Stage 1 | [Description] | [Input data] | [Output data] | [Role] |
 | Stage 2 | [Description] | [Input data] | [Output data] | [Role] |
 | Stage 3 | [Description] | [Input data] | [Output data] | [Role] |
 | Stage 4 | [Description] | [Input data] | [Output data] | [Role] |
+
+*Note: Describe data in BUSINESS TERMS only (e.g., "customer info", "order status"). DO NOT use database column names, JSON fields, or SQL types.*
 
 ### 3.3 Feature List
 
@@ -158,12 +173,12 @@ graph TB
 3. [Step 3]
 
 **Boundary Conditions:**
-| Condition Type | Scenario Description | Expected Handling |
-|----------------|---------------------|-------------------|
-| Edge Cases | [e.g., empty input, too long, special characters] | [Handling method] |
-| Concurrency/Race | [e.g., duplicate submission, concurrent operations] | [Handling method] |
-| Permission Boundary | [e.g., unauthorized access, not logged in] | [Handling method] |
-| Dependency Failure | [e.g., third-party service unavailable] | [Handling method] |
+| Condition Type | Scenario Description | Business Handling Rule |
+|----------------|---------------------|------------------------|
+| Edge Cases | [e.g., customer name empty] | [e.g., "Show error message to user", NOT "throw Exception"] |
+| Concurrency/Race | [e.g., duplicate submission, concurrent operations] | [Handling method in business language] |
+| Permission Boundary | [e.g., unauthorized access, not logged in] | [Handling method in business language] |
+| Dependency Failure | [e.g., third-party service unavailable] | [Handling method in business language] |
 
 **Exception Scenarios:**
 - [Exception 1]: [Handling method]
@@ -197,12 +212,12 @@ graph LR
 
 **Operation Steps Detail:**
 
-| Step | Action | Expected Outcome | Exception Handling |
-|------|--------|------------------|-------------------|
-| 1 | [User action] | [Expected result] | [Error handling] |
-| 2 | [User action] | [Expected result] | [Error handling] |
-| 3 | [User action] | [Expected result] | [Error handling] |
-| 4 | [User action] | [Expected result] | [Error handling] |
+| Step | Action | Expected Outcome | Business Exception Handling |
+|------|--------|------------------|-----------------------------|
+| 1 | [User action] | [Expected result] | [Business handling rule, e.g., "Show friendly error message"] |
+| 2 | [User action] | [Expected result] | [Business handling rule] |
+| 3 | [User action] | [Expected result] | [Business handling rule] |
+| 4 | [User action] | [Expected result] | [Business handling rule] |
 
 ## 4. Non-functional Requirements
 

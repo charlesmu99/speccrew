@@ -4,6 +4,23 @@ description: Generate a single Sub-PRD document for one module. Used by PM Agent
 tools: Read, Write, Glob, Grep
 ---
 
+## PM Stage Content Boundary
+
+> ⚠️ **This Sub-PRD MUST adhere to PM Stage Content Boundary:**
+> - NO API endpoint definitions, HTTP methods, request/response JSON
+> - NO Database table structures, ER diagrams, SQL queries
+> - NO Design class diagrams, component diagrams, deployment diagrams
+> - NO Code snippets, pseudocode, implementation logic
+> - NO Technical terminology (e.g., UUID, JWT, REST, Microservice, JSON)
+> - NO Technical metrics (e.g., "code files", "latency < 100ms", "CPU usage")
+>
+> **Required:** Use BUSINESS LANGUAGE ONLY.
+> Describe WHAT business operation needs to happen, not HOW the system implements it.
+>
+> **ABORT CONDITIONS:**
+> - IF any section being generated contains SQL, API definitions, or code → STOP
+> - IF inherited module_requirements contain technical details → Strip them, use business descriptions only
+
 # Trigger Scenarios
 
 - PM Agent dispatches worker to generate Sub-PRD for a specific module
@@ -62,17 +79,17 @@ Fill each section using `search_replace`:
 - 2.2 User Scenarios: Module-specific user stories in "As a / I want / So that" format
 
 ### 3.3 Section 3: Functional Requirements
-- 3.1 Use Case Diagram: Module-specific use case diagram (Mermaid flowchart TB)
-- 3.2 Business Process Flow: Module-internal process flow
-- 3.3 Feature List: Module features with P0/P1/P2 priority
+- 3.1 Use Case Diagram: Module-specific use case diagram (Mermaid flowchart TB) — **Business use cases showing user interactions — NOT system APIs or technical components**
+- 3.2 Business Process Flow: Module-internal process flow — **Business process steps — NOT database operations or API calls**
+- 3.3 Feature List: Module features with P0/P1/P2 priority — **Business feature descriptions — NOT technical implementation**
 - 3.4 Feature Breakdown: **REQUIRED** — Fill with `{module_features}` data:
   - Feature ID, Feature Name, Type (User Interaction / Backend Process), Scope, Description
   - Feature Dependencies table
 - 3.5 Feature Details: Detailed descriptions for each feature including:
-  - Requirement Description
-  - Interaction Flow
-  - Boundary Conditions table
-  - Exception Scenarios
+  - Requirement Description — **Business requirements in business language**
+  - Interaction Flow — **User interaction steps in business terms**
+  - Boundary Conditions table — **Business scenarios and business handling rules**
+  - Exception Scenarios — **Business exception handling in business language**
 
 ### 3.4 Section 4: Non-functional Requirements
 - Module-specific performance, security, compatibility requirements
@@ -92,6 +109,14 @@ Fill each section using `search_replace`:
 - Prerequisites
 
 > ⚠️ **FORBIDDEN: `create_file` to rewrite the entire document. MUST use `search_replace` per section.**
+
+### ⚠️ Content Boundary Validation
+
+Before filling each section, verify:
+- Feature descriptions use BUSINESS language (✅ "Customer can view order history" ❌ "GET /api/orders returns JSON")
+- Boundary conditions describe BUSINESS scenarios (✅ "Customer name is empty" ❌ "null pointer exception")
+- Exception handling describes BUSINESS rules (✅ "Show friendly error message" ❌ "return HTTP 400")
+- Process flows show BUSINESS steps (✅ "Customer submits order" ❌ "POST request to order service")
 
 ## Step 4: Verify Output
 

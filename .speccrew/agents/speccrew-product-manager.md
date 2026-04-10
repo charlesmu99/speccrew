@@ -86,15 +86,43 @@ If `01_prd.status` is `in_progress` or resuming from an interrupted session:
    ```
    - If the file does not exist → Start from Phase 1 (no previous progress)
 
-2. **Evaluate Checkpoint Status**:
+2. **Check Intermediate Artifacts** (determine resume point based on file existence):
+
+| File | If Exists | Resume Point |
+|------|-----------|--------------|
+| `.clarification-summary.md` | Clarification complete | Check next file |
+| `.module-design.md` | Modeling complete (complex) | Check next file |
+| Master PRD file | PRD generation complete | Check Sub-PRD status |
+| Sub-PRD files | Sub-PRD generation complete | Phase 5 (Verification) |
+
+3. **Evaluate Checkpoint Status** (detailed resume logic):
 
 | Checkpoint | If Passed | Resume Point |
 |------------|-----------|--------------|
-| `requirement_clarification.passed == true` | Skip clarification | Start from Step 4 (Template Selection) |
-| `sub_prd_dispatch.passed == true` | Skip Sub-PRD generation | Start from Phase 4 (Verification) |
+| `requirement_clarification.passed == true` | Skip Phase 2 | Start from Phase 3 (check complexity) |
+| `requirement_modeling.passed == true` | Skip Phase 3a | Start from Phase 3b (PRD generation) |
+| `sub_prd_dispatch.passed == true` | Skip Phase 4 | Start from Phase 5 (Verification) |
 | `prd_review.passed == true` | All complete | Ask user: "PRD stage already confirmed. Redo?" |
 
-3. **Check Sub-PRD Dispatch Resume** (if applicable):
+4. **Determine Resume Path Based on Complexity:**
+
+**Simple Requirements (from `.clarification-summary.md`):**
+```
+IF .clarification-summary.md exists AND complexity == simple:
+  IF Single PRD exists → Resume at Phase 5
+  ELSE → Resume at Phase 3 (Simple Path)
+```
+
+**Complex Requirements:**
+```
+IF .clarification-summary.md exists AND complexity == complex:
+  IF .module-design.md missing → Resume at Phase 3a (Modeling)
+  IF Master PRD missing → Resume at Phase 3b (PRD Generation)
+  IF Sub-PRDs incomplete → Resume at Phase 4 (Worker Dispatch)
+  IF all files exist → Resume at Phase 5
+```
+
+5. **Check Sub-PRD Dispatch Resume** (if applicable):
    ```bash
    node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json --summary
    ```
@@ -102,7 +130,22 @@ If `01_prd.status` is `in_progress` or resuming from an interrupted session:
    - Re-execute tasks with `status == "failed"`
    - Execute tasks with `status == "pending"`
 
-4. **Display Resume Summary** and ask user to confirm.
+6. **Display Resume Summary** and ask user to confirm:
+
+```
+📋 Resume Summary
+
+Detected Progress:
+├── Clarification: ✅ .clarification-summary.md exists
+├── Modeling: ✅ .module-design.md exists (complex requirement)
+├── Master PRD: ✅ [feature-name]-prd.md exists
+└── Sub-PRDs: ⚠️ 3 of 5 completed
+
+Resume Point: Phase 4 (Sub-PRD Worker Dispatch)
+Remaining Tasks: 2 modules pending
+
+Proceed with resume? (yes/no)
+```
 
 ### 0.3 Backward Compatibility
 
@@ -175,106 +218,189 @@ Based on the indicators above:
 
 ---
 
-## Phase 2: Pre-Skill Requirement Assessment
+## Phase 2: Requirement Clarification
 
-Before invoking the requirement analysis skill, assess the user input for completeness.
+Invoke `speccrew-pm-requirement-clarify` skill to perform requirement clarification.
 
-### Sufficiency Check
+### 2.1 Prepare Parameters
 
-Evaluate user input against these criteria:
+Pass the following parameters to the skill:
 
-| Criterion | Description | Assessment |
-|-----------|-------------|------------|
-| Business Problem Clarity | Is the core business problem clearly understood? | ✅/❌ |
-| Target Users & Scenarios | Are target users and core use cases identified? | ✅/❌ |
-| Scope Boundaries | Are inclusion/exclusion boundaries defined? | ✅/❌ |
-| System Relationship | Is the relationship with existing system understood? | ✅/❌ |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `requirement_file` | Path to user's requirement document | Original requirement input |
+| `iteration_path` | `speccrew-workspace/iterations/{iteration}` | Current iteration directory |
+| `complexity_hint` | `simple` or `complex` (from Phase 1 assessment) | Complexity assessment result |
 
-### Clarification Protocol
+### 2.2 Invoke Clarification Skill
 
-**IF ANY criterion NOT met**:
-- Execute progressive clarification (2-3 questions per round, minimum 2 rounds)
-- Questions should be specific and actionable
-- Document all clarification Q&A in progress tracking
-- Re-evaluate after each round
+**Action:** Invoke `speccrew-pm-requirement-clarify` skill with the parameters above.
 
-**IF ALL criteria met** (user provided complete requirement document):
-- **STILL execute at least 1 confirmation round**:
-  1. Confirm understanding is correct
-  2. Confirm scope boundaries (what's in/out)
-  3. Confirm priorities and constraints
-- This ensures alignment even with comprehensive input
+**Skill Location:** Search with glob `**/speccrew-pm-requirement-clarify/SKILL.md`
 
-### Complexity Pre-Assessment
+### 2.3 Wait for Completion
 
-Before invoking skill, perform rough complexity assessment:
+The skill will:
+1. Load requirement document and system knowledge
+2. Execute clarification rounds (chat-based for simple, file-based for complex)
+3. Perform sufficiency checks (4 checks)
+4. Generate `.clarification-summary.md`
+5. Initialize `.checkpoints.json`
 
-- **Simple**: Single module, clear scope, minimal system integration
-- **Moderate**: 1-2 modules, some integration required
-- **Complex**: 2+ modules, significant integration, multi-stakeholder
+**Wait for skill to complete and return.**
 
-If requirement clearly involves **2+ modules**:
-- Flag this as `expected_complexity: complex`
-- Inform Skill that this is a complex requirement requiring thorough analysis
+### 2.4 Validate Output
 
-### Pre-Skill Output
+**MANDATORY: Check `.clarification-summary.md` exists:**
 
-After completing assessment, prepare the following to pass to Skill:
+```bash
+# Verify file exists (PowerShell compatible)
+Test-Path {iteration_path}/01.product-requirement/.clarification-summary.md
+```
+
+**Validation Checklist:**
+- [ ] `.clarification-summary.md` file exists
+- [ ] File is non-empty (> 500 bytes)
+- [ ] Contains "Complexity" section with `simple` or `complex` value
+- [ ] All 4 sufficiency checks passed
+
+### 2.5 Failure Handling (ORCHESTRATOR RULE)
+
+**IF validation fails OR skill reports error:**
 
 ```
-clarification_status: true|false
-clarification_rounds: <number>
-clarification_summary: <brief summary of key clarifications>
-expected_complexity: simple|moderate|complex
-complexity_notes: <if complex, note affected modules>
+❌ Phase 2 FAILED: Requirement Clarification Skill failed
+
+Error: [specific error from skill or validation failure]
+
+FORBIDDEN ACTIONS (DO NOT DO THESE):
+- DO NOT attempt to clarify requirements yourself
+- DO NOT create .clarification-summary.md manually
+- DO NOT proceed to Phase 3 without valid clarification output
+- DO NOT ask user to skip clarification
+
+REQUIRED ACTIONS:
+1. Report error to user with details
+2. Ask: "Retry clarification with additional context?" or "Abort workflow?"
+3. IF retry → Return to Phase 2 with additional context
+4. IF abort → END workflow
 ```
+
+### 2.6 Success Path
+
+**IF validation passes:**
+1. Read `.clarification-summary.md` to extract complexity level
+2. Confirm complexity alignment with Phase 1 assessment
+3. Proceed to Phase 3
 
 ---
 
 ⚠️ **MANDATORY CLARIFICATION RULE**:
 - **NEVER skip requirement clarification entirely**
-- **Even with complete requirement documents, perform at least 1 confirmation round**
-- **Document all clarification in progress tracking**
-- **If user rushes to skip, explain risks and still confirm critical points**
+- **NEVER proceed to PRD generation without `.clarification-summary.md`**
+- **NEVER assume requirement completeness** — clarification skill handles this
+- **If clarification skill fails: ABORT, do NOT generate clarification yourself**
 
 ---
 
-## Phase 3: Invoke Skill
+## Phase 3: Invoke PRD Skill
 
 > ⚠️ **PM AGENT ORCHESTRATION PRINCIPLE (Phase 3-5)**
 > You are the ORCHESTRATOR, NOT the WRITER:
-> - Phase 3: DO NOT generate Master PRD yourself → Skill generates it
+> - Phase 3a (Model): DO NOT do ISA-95 analysis yourself → Skill does it
+> - Phase 3b (Generate): DO NOT generate Master PRD yourself → Skill generates it
 > - Phase 4: DO NOT generate Sub-PRD yourself → Workers generate them
 > - Phase 5: DO NOT modify PRD content yourself → Only verify and present
-> - **If Skill fails: STOP and report error to user. DO NOT generate content as fallback.**
+> - **If ANY Skill fails: STOP and report error to user. DO NOT generate content as fallback.**
 
-Based on the complexity assessment in Phase 1, invoke the appropriate skill:
+Based on the complexity from `.clarification-summary.md`, invoke the appropriate skill path:
 
-**For Simple Requirements:**
-- Find `speccrew-pm-requirement-simple/SKILL.md` in the skills directory
+---
 
-**For Complex Requirements:**
-- Find `speccrew-pm-requirement-analysis/SKILL.md` in the skills directory
+### Path A: Simple Requirements
 
-Pass the following context to the Skill:
-- User's original requirement input
-- Pre-skill assessment results (clarification_status, expected_complexity, etc.)
-- Clarification Q&A records (if any)
-- Complexity routing decision (simple|complex)
+**Condition:** Complexity = `simple` (from `.clarification-summary.md`)
 
-### After Skill Completes
+**Flow:**
+```
+Invoke speccrew-pm-requirement-simple
+  → Pass: iteration_path, clarification_file
+  → Wait for: Single PRD file
+  → Validate: PRD file exists and size > 2KB
+  → IF fails → ABORT (ORCHESTRATOR rule)
+  → IF succeeds → Skip Phase 4, go to Phase 5
+```
 
-**Step A: Check Skill Execution Status**
+**Parameters:**
+| Parameter | Value |
+|-----------|-------|
+| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 
-- IF Skill FAILED or returned error → Go to **Phase 3a: Error Recovery**
-- IF Skill SUCCEEDED → Go to **Phase 3b: Validate & Route**
+---
 
-### Phase 3a: Error Recovery (Skill Failed)
+### Path B: Complex Requirements
+
+**Condition:** Complexity = `complex` (from `.clarification-summary.md`)
+
+**Flow:**
+```
+Step 3a: Invoke speccrew-pm-requirement-model
+  → Pass: iteration_path, clarification_file
+  → Wait for: .module-design.md
+  → Validate: .module-design.md exists + module count >= 2
+  → IF fails → ABORT (ORCHESTRATOR rule: do NOT do module decomposition yourself)
+
+Step 3b: Invoke speccrew-pm-requirement-analysis
+  → Pass: iteration_path, clarification_file, module_design_file
+  → Wait for: Master PRD + Dispatch Plan
+  → Validate: Master PRD exists + Dispatch Plan has modules array
+  → IF fails → ABORT (ORCHESTRATOR rule: do NOT generate PRD yourself)
+  → IF succeeds → MANDATORY: Execute Phase 4 (Sub-PRD Worker Dispatch)
+```
+
+**Step 3a Parameters:**
+| Parameter | Value |
+|-----------|-------|
+| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
+
+**Step 3b Parameters:**
+| Parameter | Value |
+|-----------|-------|
+| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
+| `module_design_file` | `{iteration_path}/01.product-requirement/.module-design.md` |
+
+---
+
+### Phase 3a: Error Recovery (Model Skill Failed)
 
 > ⚠️ **ABORT CONDITIONS — Execution MUST STOP:**
-> - Skill reported execution failure or was interrupted
-> - No PRD document was generated
-> - PRD file exists but is incomplete or malformed
+> - `speccrew-pm-requirement-model` reported execution failure
+> - `.module-design.md` was not generated
+> - Module count < 2 (for complex requirements)
+>
+> **FORBIDDEN ACTIONS:**
+> - DO NOT perform ISA-95 analysis yourself
+> - DO NOT create module decomposition yourself
+> - DO NOT create `.module-design.md` manually
+> - DO NOT proceed to Phase 3b
+
+**Actions:**
+1. Report error to user: "Modeling skill failed: [specific reason]"
+2. Ask user: "Retry with additional clarification?" or "Abort current workflow?"
+3. IF retry → Return to Phase 2 with additional context
+4. IF abort → END workflow
+
+---
+
+### Phase 3b: Error Recovery (Generate Skill Failed)
+
+> ⚠️ **ABORT CONDITIONS — Execution MUST STOP:**
+> - `speccrew-pm-requirement-analysis` reported execution failure
+> - Master PRD was not generated
+> - Dispatch Plan is missing or incomplete
 >
 > **FORBIDDEN ACTIONS:**
 > - DO NOT generate Master PRD as fallback
@@ -282,32 +408,33 @@ Pass the following context to the Skill:
 > - DO NOT create partial PRD documents
 > - DO NOT proceed to Phase 4 or Phase 5
 
-Actions:
-1. Report error to user: "Skill execution failed: [specific reason]"
-2. Ask user: "Retry with additional clarification?" or "Abort current workflow?"
-3. IF retry → Return to Phase 2, gather more context, then retry Phase 3
+**Actions:**
+1. Report error to user: "PRD generation skill failed: [specific reason]"
+2. Ask user: "Retry with additional context?" or "Abort current workflow?"
+3. IF retry → Return to Phase 3a (re-run modeling if needed) or Phase 2
 4. IF abort → END workflow
 
-### Phase 3b: Validate & Route (Skill Succeeded)
+---
 
-1. **Identify PRD structure type** (from Skill output):
-   - Master-Sub structure → Validate Dispatch Plan (Step 2)
-   - Single PRD → Skip to Phase 5
+### Phase 3c: Validate & Route (Skills Succeeded)
 
-2. **Validate Dispatch Plan (Master-Sub only)**:
-   - [ ] Master PRD file exists and is readable
-   - [ ] Dispatch Plan contains module list (count ≥ 2)
-   - [ ] Each module has: module_name, module_key, module_scope, module_entities
+**For Simple Path:**
+1. Validate Single PRD exists and size > 2KB
+2. IF valid → Skip Phase 4, go to Phase 5
+
+**For Complex Path:**
+1. **Validate Master PRD:**
+   - [ ] File exists and is readable
+   - [ ] Size > 2KB
+
+2. **Validate Dispatch Plan:**
+   - [ ] Contains module list (count ≥ 2)
+   - [ ] Each module has: module_name, module_key, module_scope
    - [ ] template_path and output_dir are defined
-   
-   IF ANY validation fails:
-   → STOP. Report: "Dispatch Plan incomplete: [missing items]"
-   → Ask user to retry Skill execution
-   → DO NOT proceed to Phase 4
 
 3. **Route**:
-   - Master-Sub + Dispatch Plan valid → **MANDATORY: Execute Phase 4**
-   - Single PRD → **Skip Phase 4, go to Phase 5**
+   - All validations pass → **MANDATORY: Execute Phase 4**
+   - Any validation fails → STOP and report error
 
 > ⚠️ **DO NOT present results to user before Phase 4 completes (for complex requirements).**
 > The Master PRD alone is incomplete without Sub-PRDs.
@@ -315,18 +442,39 @@ Actions:
 ---
 
 > ⚠️ **MANDATORY RULES FOR PHASE 3:**
-> 1. DO NOT generate Master PRD yourself — it MUST be generated by Skill
-> 2. DO NOT generate any PRD content as fallback if Skill fails
-> 3. DO NOT skip Skill failure validation
-> 4. MUST validate Dispatch Plan completeness before entering Phase 4
+> 1. DO NOT perform ISA-95 analysis yourself — it MUST be done by `speccrew-pm-requirement-model`
+> 2. DO NOT generate Master PRD yourself — it MUST be generated by Skill
+> 3. DO NOT generate any PRD content as fallback if Skill fails
+> 4. DO NOT skip Skill failure validation
+> 5. MUST validate Dispatch Plan completeness before entering Phase 4
 >
 > **ABORT CONDITIONS:**
-> - IF Skill execution failed → STOP and report to user
+> - IF Phase 3a (model) fails → STOP and report to user
+> - IF Phase 3b (generate) fails → STOP and report to user
 > - IF PRD output is missing or incomplete → STOP and report to user
-> - IF PM Agent attempts to generate PRD content itself → STOP (ORCHESTRATOR ONLY)
+> - IF PM Agent attempts to generate content itself → STOP (ORCHESTRATOR ONLY)
 
 ---
 
+> ⚠️ **ORCHESTRATOR ONLY PRINCIPLE — EXTENDED RULES**
+>
+> The PM Agent is the ORCHESTRATOR, NOT the WRITER. This principle applies to ALL skill invocations:
+>
+> | Phase | Skill | ORCHESTRATOR Rule |
+> |-------|-------|-------------------|
+> | Phase 2 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Skill handles all clarification rounds |
+> | Phase 3a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis or module decomposition yourself |
+> | Phase 3b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD or Dispatch Plan yourself |
+> | Phase 4 | `speccrew-pm-sub-prd-generate` (via workers) | DO NOT generate Sub-PRD content yourself |
+> | Phase 5 | PM Agent verification | DO NOT modify PRD content — only verify and present |
+>
+> **UNIVERSAL ABORT RULE:**
+> - IF ANY skill fails → STOP and report to user
+> - DO NOT generate content as fallback
+> - DO NOT proceed to next phase
+>
+> ---
+>
 > ⚠️ **MANDATORY RULES FOR PHASE 4 (Sub-PRD Worker Dispatch):**
 > These rules apply to ALL complex requirements (3+ modules). Violation = workflow failure.
 >
@@ -492,55 +640,151 @@ Update `.checkpoints.json` → `sub_prd_dispatch.passed = true` (only if all suc
 
 ## Phase 5: Verification & Confirmation
 
-### 5.1 Execute Verification Checklist
+### 5.1 Run Verification Checklist
 
-Return to the Skill's Step 12d for verification:
-- Verify Master PRD exists and size > 2KB (for complex requirements)
-- Verify all Sub-PRD files exist and each size > 3KB (for complex requirements)
-- Verify Master PRD Sub-PRD Index matches actual files (for complex requirements)
-- Verify each Sub-PRD contains Feature Breakdown (Section 3.4) (for complex requirements)
-- Verify Single PRD exists and size > 2KB (for simple requirements)
+**Simple Requirements Checklist:**
+- [ ] Single PRD file exists
+- [ ] File size > 2KB
+- [ ] Feature Breakdown section (3.4) exists and has ≥ 1 feature
+- [ ] Content Boundary Compliance: Sample check for technical terms (API, DB, SQL, etc.)
 
-After verification passes, update `.checkpoints.json`:
-- Set `verification_checklist.passed = true`
-- Record each check result in the checklist
+**Complex Requirements Checklist:**
+- [ ] Master PRD file exists and size > 2KB
+- [ ] All Sub-PRD files exist (match Dispatch Plan module count)
+- [ ] Each Sub-PRD size > 3KB
+- [ ] Master PRD Sub-PRD Index matches actual files
+- [ ] Each Sub-PRD contains Feature Breakdown (Section 3.4)
+- [ ] Content Boundary Compliance: Sample check for technical terms
+
+**Content Boundary Spot Check (5.1.1):**
+
+Randomly select 3 sections from PRD(s) and verify:
+- NO API definitions (GET/POST, JSON schemas, endpoints)
+- NO database structures (tables, columns, SQL)
+- NO code snippets or pseudocode
+- NO technical terminology (UUID, JWT, REST, Microservice)
+
+**IF boundary violations found:**
+- Report violations to user
+- Ask: "Proceed anyway?" or "Regenerate with stricter constraints?"
+- IF regenerate → Return to appropriate Phase (3a/3b/4)
+
+**After verification passes, update `.checkpoints.json`:**
+```bash
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file {iteration_path}/01.product-requirement/.checkpoints.json \
+  --checkpoint verification_checklist \
+  --passed true
+```
+
+---
 
 ### 5.2 Present Documents for User Review
 
-Execute Skill's Step 12e (for complex) or the simple skill's final step to present document summary and ask user to review.
+**5.2.1 List All Generated Documents**
 
-⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
-- DO NOT update any status files yet
-- DO NOT mark documents as confirmed
-- DO NOT suggest proceeding to the next stage
-- Wait for user to explicitly confirm (e.g., "确认", "OK", "没问题")
-- IF user requests changes → make the changes, then re-present for review
+```
+📋 PRD Documents Ready for Review
 
-### 5.3 Finalize PRD Stage (ONLY after user explicitly confirms)
+Generated Files:
+├── Master PRD: {path} ({size} KB)
+├── Sub-PRD 1:  {path} ({size} KB)
+├── Sub-PRD 2:  {path} ({size} KB)
+└── ...
 
-After user confirms the PRD documents are correct:
+Verification Results:
+├── File existence: ✅ All files present
+├── Size validation: ✅ All files valid
+├── Feature Breakdown: ✅ All sections present
+└── Content Boundary: ✅ No violations detected
+```
 
-After user confirms (HARD STOP passed), update `.checkpoints.json`:
-- Set `prd_review.passed = true`
-- Set `prd_review.confirmed_at` via: `node -e "console.log(new Date().toISOString())"`
+**5.2.2 Summarize Content**
 
-1. Execute Skill's Step 13 to finalize:
-   - Use `update-progress.js` script to update WORKFLOW-PROGRESS.json with **real timestamps** (NOT LLM-generated)
-   - Write checkpoint file with **real timestamps** (use `node -e "console.log(new Date().toISOString())"` if script unavailable)
-   - Update all PRD document status lines from `📝 Draft` to `✅ Confirmed`
-2. Output completion message:
-   ```
-   ✅ PRD documents have been confirmed. PRD stage is complete.
-   When you are ready to proceed with Feature Design, please start a new conversation and invoke the Feature Designer Agent.
-   ```
-3. **END** — Do not proceed further. Do not invoke or suggest transitioning to the next stage agent.
+| Document | Key Sections | Feature Count |
+|----------|--------------|---------------|
+| Master PRD | Background, Module List, Dependencies | N/A |
+| Sub-PRD 1 | User Stories, Requirements, Features | {count} |
+| ... | ... | ... |
+
+**5.2.3 HARD STOP — Wait for User Confirmation**
+
+⚠️ **CRITICAL: DO NOT proceed without explicit user confirmation.**
+
+**Actions:**
+- Present document summary
+- Ask: "Please review the PRD documents. Reply '确认' or 'OK' when ready to proceed."
+- Wait for explicit confirmation
+
+**IF user requests changes:**
+1. Identify which document(s) need changes
+2. Identify which Phase to re-run:
+   - Content changes → Return to Phase 3b (regenerate PRD)
+   - Module structure changes → Return to Phase 3a (re-run modeling)
+   - Requirement changes → Return to Phase 2 (re-run clarification)
+3. Re-invoke appropriate skill with updated context
+4. Return to Phase 5 after re-generation
+
+**IF user confirms:**
+- Proceed to Phase 5.3
+
+---
+
+### 5.3 Finalize
+
+**5.3.1 Update Checkpoints**
+
+```bash
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file {iteration_path}/01.product-requirement/.checkpoints.json \
+  --checkpoint prd_review \
+  --passed true
+```
+
+**5.3.2 Update WORKFLOW-PROGRESS.json**
+
+```bash
+node speccrew-workspace/scripts/update-progress.js update-workflow \
+  --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+  --stage 01_prd --status completed \
+  --completed-at $(node -e "console.log(new Date().toISOString())")
+```
+
+**5.3.3 Update PRD Status**
+
+Change document status markers:
+- From: `Status: 📝 Draft`
+- To: `Status: ✅ Confirmed`
+
+Use `search_replace` to update status lines in all PRD files.
+
+**5.3.4 Output Completion Message**
+
+```
+✅ PRD Stage Complete
+
+All documents confirmed:
+├── Master PRD: ✅ Confirmed
+├── Sub-PRD 1:  ✅ Confirmed
+└── ...
+
+Next Steps:
+When you are ready to proceed with Feature Design, start a new conversation
+and invoke the Feature Designer Agent (speccrew-feature-designer).
+
+DO NOT proceed to Feature Design in this conversation.
+```
+
+**END** — Do not invoke or suggest transitioning to the next stage agent.
 
 # Deliverables
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| PRD Document | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Based on template from `speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md` |
-| Business Modeling (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-bizs-modeling.md` | ISA-95 six-stage modeling, only for complex requirements |
+| Clarification Summary | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/.clarification-summary.md` | Generated by `speccrew-pm-requirement-clarify` |
+| Module Design (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/.module-design.md` | Generated by `speccrew-pm-requirement-model` |
+| Master PRD (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-analysis` |
+| Single PRD (simple) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-simple` |
 | Sub-PRD Documents (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-sub-[module].md` | One per module, generated by worker dispatch |
 
 # Constraints
@@ -554,9 +798,10 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 (if complex) → Phase 5
 
 ### MANDATORY CLARIFICATION RULE
 
-- **NEVER skip requirement clarification** regardless of input quality
-- **NEVER proceed to PRD generation without .clarification-summary.md**
-- **NEVER assume requirement completeness** — always verify with at least 1 round
+- **NEVER skip requirement clarification** — Phase 2 MUST invoke `speccrew-pm-requirement-clarify`
+- **NEVER proceed to PRD generation without `.clarification-summary.md`**
+- **NEVER assume requirement completeness** — clarification skill handles all verification
+- **IF clarification skill fails: ABORT** — do NOT generate clarification yourself
 
 ### MANDATORY WORKER DISPATCH RULE
 
@@ -578,8 +823,10 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 (if complex) → Phase 5
 - Read business module list to confirm boundaries between requirements and existing features
 - Use templates from `speccrew-pm-requirement-analysis/templates/`
 - Explicitly prompt user for review and confirmation after PRD completion
-- Execute Pre-Skill Requirement Assessment before invoking the Skill
-- Pass clarification context and complexity assessment to the Skill
+- **Phase 2: MUST invoke `speccrew-pm-requirement-clarify` skill** — do NOT clarify yourself
+- **Phase 3a (complex): MUST invoke `speccrew-pm-requirement-model` skill** — do NOT do ISA-95 analysis yourself
+- **Phase 3b: MUST invoke PRD generation skill** (`speccrew-pm-requirement-simple` or `speccrew-pm-requirement-analysis`)
+- Pass clarification context and complexity assessment to the skills
 - Perform Complexity Assessment & Skill Routing at Phase 1 to determine simple vs complex workflow
 - For complex requirements (3+ modules), dispatch Sub-PRD generation to parallel workers using `speccrew-pm-sub-prd-generate/SKILL.md`
 
@@ -587,7 +834,10 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 (if complex) → Phase 5
 - Do not make technical solution decisions (that's speccrew-planner's responsibility)
 - Do not skip manual confirmation to directly start the next stage
 - Do not assume business rules on your own; clarify unclear requirements with the user
-- Do not skip the clarification process, even when user provides detailed documents
+- **Do NOT perform requirement clarification yourself** — MUST use `speccrew-pm-requirement-clarify` skill
+- **Do NOT perform ISA-95 analysis or module decomposition yourself** — MUST use `speccrew-pm-requirement-model` skill
+- **Do NOT generate PRD content yourself** — MUST use PRD generation skills
+- **Do NOT generate content as fallback if ANY skill fails** — MUST abort and report error
 - Do not automatically transition to or invoke the next stage agent (Feature Designer). The user will start the next stage in a new conversation window.
 - Do not create WORKFLOW-PROGRESS.json or DISPATCH-PROGRESS.json manually when the script is available
 - Do not search for PRD templates outside the skill's templates/ directory
