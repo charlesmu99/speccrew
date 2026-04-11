@@ -1,5 +1,45 @@
 # Feature Specification - [Feature Name]
 
+<!-- AI-NOTE: CRITICAL — Business Perspective Guidelines
+This Feature Spec is a PURE BUSINESS document describing WHAT the system does, NOT HOW it's implemented.
+
+## What to Include (Business Perspective)
+- ✅ User roles, business processes, functional requirements
+- ✅ Data meaning, business rules, constraints (conceptual level)
+- ✅ API functionality and parameter business meaning (no framework details)
+- ✅ Business validation rules, permission rules (business level)
+- ✅ Interaction flow business logic (What happens)
+- ✅ Conceptual data entities and their relationships
+
+## What to EXCLUDE (Technical Perspective) — FORBIDDEN
+- ❌ File paths or code paths (src/views/..., yudao-module-base/..., pages/base/...)
+- ❌ Framework-specific code (Vue directives, Java annotations, SQL statements)
+- ❌ Framework/library names as implementation choices (MyBatis-Plus, Flyway, wot-design-uni, Element Plus component names)
+- ❌ Programming language specific types (VARCHAR(50), BIGINT, Long, String)
+- ❌ Component library element names (el-button, wd-cell, ElDatePicker, etc.)
+- ❌ Error code numeric values or enum definitions
+- ❌ Database table names, column names, SQL DDL/DML
+- ❌ API layer implementation (request.get, @TableName, etc.)
+- ❌ Maven/Gradle module paths, package paths
+- ❌ Class names, method signatures, annotation names
+
+## Correct Approach Examples
+
+❌ WRONG (Technical):
+| Field | Type | Constraint |
+| shop_id | BIGINT NOT NULL | FK to system_shop |
+
+✅ CORRECT (Business):
+| Field | Business Type | Constraint | Meaning |
+| Shop ID | Identifier | Required, references Shop entity | Which shop this record belongs to |
+
+❌ WRONG (Technical):
+`src/views/base/shop/index.vue` with `<el-button v-hasPermi="['base:shop:create']">`
+
+✅ CORRECT (Business):
+Shop List Page — displays all shops with search/filter, includes "Add Shop" button (visible to Admin role only)
+-->
+
 > **Applicable Scenario**: System feature specification for a single feature or module
 > **Target Audience**: speccrew-feature-designer, speccrew-designer, speccrew-dev
 > **Source PRD**: [Link to PRD document]
@@ -23,7 +63,8 @@
 
 ### 1.2 Feature Scope
 
-<!-- AI-NOTE: This specification covers a SINGLE Feature (business operation unit), not the entire module. Check all items that this specification covers. -->
+<!-- AI-NOTE: This specification covers a SINGLE Feature (business operation unit), not the entire module. Check all items that this specification covers.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 - [ ] {Function 1} - Frontend prototype + Interaction flow + Backend interface + Data definition
 - [ ] {Function 2} - Frontend prototype + Interaction flow + Backend interface + Data definition
@@ -41,15 +82,18 @@
 
 ## 2. Function Details
 
-<!-- AI-NOTE: Repeat Section 2.N for each function in the feature. Each function should include: frontend prototype, interaction flow, backend interface, and data definition. -->
+<!-- AI-NOTE: Repeat Section 2.N for each function in the feature. Each function should include: frontend prototype, interaction flow, backend interface, and data definition.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 ### 2.1 Function: {Function Name}
 
 #### 2.1.1 Frontend Prototype
 
-<!-- AI-NOTE: If the project has multiple frontend platforms (e.g., web + mobile), create separate Frontend Prototype sub-sections for each platform. Use headers like "#### 2.1.1 Frontend Prototype - Web" and "#### 2.1.1b Frontend Prototype - Mobile". Each platform should have its own wireframes and element descriptions tailored to the platform's interaction patterns. -->
+<!-- AI-NOTE: If the project has multiple frontend platforms (e.g., web + mobile), create separate Frontend Prototype sub-sections for each platform. Use headers like "#### 2.1.1 Frontend Prototype - Web" and "#### 2.1.1b Frontend Prototype - Mobile". Each platform should have its own wireframes and element descriptions tailored to the platform's interaction patterns.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
-<!-- AI-NOTE: Use ASCII wireframes to show the UI layout. Choose the appropriate pattern below based on the interface type. -->
+<!-- AI-NOTE: Use ASCII wireframes to show the UI layout. Choose the appropriate pattern below based on the interface type.
+FORBIDDEN: Do NOT use framework-specific component names (el-button, wd-cell, etc.) or file paths in wireframes. -->
 
 **Pattern A: List Page**
 
@@ -195,7 +239,8 @@
 
 #### 2.1.2 Interaction Flow
 
-<!-- AI-NOTE: Use Mermaid sequenceDiagram to show the flow: User → Frontend → Backend API → Data Store. NO style definitions allowed. NO HTML tags. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN. -->
+<!-- AI-NOTE: Use Mermaid sequenceDiagram to show the flow: User → Frontend → Backend API → Data Store. NO style definitions allowed. NO HTML tags. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 ```mermaid
 sequenceDiagram
@@ -241,6 +286,9 @@ sequenceDiagram
 
 #### 2.1.3 Backend Interface
 
+<!-- AI-NOTE: Describe API functionality from a business perspective. Focus on WHAT each API does, not HOW it's implemented.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
+
 **Interface List:**
 
 | Interface Name | Method | Path Pattern | Description | Caller |
@@ -250,7 +298,8 @@ sequenceDiagram
 
 **Processing Logic:**
 
-<!-- AI-NOTE: Use Mermaid flowchart TD to show the processing logic for each core interface. Show: business validation → data operation → response. NO style definitions allowed. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN. -->
+<!-- AI-NOTE: Use Mermaid flowchart TD to show the processing logic for each core interface. Show: business validation → data operation → response. NO style definitions allowed. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 ```mermaid
 flowchart TD
@@ -283,12 +332,17 @@ flowchart TD
 
 #### 2.1.4 Data Definition
 
+<!-- AI-NOTE: ALL field definitions MUST use BUSINESS terms, not technical types.
+Example: NOT "VARCHAR(50) NOT NULL" → BUT "Text, required, max 50 characters"
+CRITICAL: Never include database table/column names, SQL types, or framework-specific annotations.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
+
 **Fields:**
 
-| Field Name | Field Type | Data Format | Constraint Rules | New/Existing | Remarks |
-|------------|------------|-------------|------------------|--------------|---------|
-| {Field Name} | String/Number/Boolean/Date/Enum | {e.g., length ≤32, phone format} | {Required/Optional, Unique, Default value} | NEW/EXISTING | {Additional notes} |
-| {Field Name} | {Type} | {Format} | {Constraints} | NEW/EXISTING | {Remarks} |
+| Field Name | Business Type | Constraint Rules | Business Meaning | New/Existing | Remarks |
+|------------|---------------|------------------|------------------|--------------|---------|
+| {Field Name} | Text/Number/Boolean/Date/Enum/Identifier | {e.g., Required, max 50 chars, unique} | {What this field means in business context} | NEW/EXISTING | {Additional notes} |
+| {Field Name} | {Business Type} | {Constraints} | {Business Meaning} | NEW/EXISTING | {Remarks} |
 
 **Data Source:**
 
@@ -328,7 +382,8 @@ flowchart TD
 
 ### 3.1 Shared Data Structures
 
-<!-- AI-NOTE: List data structures used across multiple functions -->
+<!-- AI-NOTE: List data structures used across multiple functions
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 | Structure Name | Used By Functions | Description |
 |----------------|-------------------|-------------|
@@ -337,7 +392,8 @@ flowchart TD
 
 ### 3.2 Cross-Function Flows
 
-<!-- AI-NOTE: Use Mermaid sequenceDiagram for flows that span multiple functions. NO style definitions. NO HTML tags. -->
+<!-- AI-NOTE: Use Mermaid sequenceDiagram for flows that span multiple functions. NO style definitions. NO HTML tags.
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 ```mermaid
 sequenceDiagram
@@ -372,7 +428,8 @@ sequenceDiagram
 
 ### 4.2 Business Logic Rules
 
-<!-- AI-NOTE: Numbered list of business rules -->
+<!-- AI-NOTE: Numbered list of business rules
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 1. **{Rule Name}**: {Detailed description of the rule}
 2. **{Rule Name}**: {Detailed description}
@@ -398,7 +455,8 @@ sequenceDiagram
 
 ### 5.2 Shared Response Format
 
-<!-- AI-NOTE: Standard response JSON structure used across all APIs in this feature -->
+<!-- AI-NOTE: Standard response JSON structure used across all APIs in this feature
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 **Success Response:**
 
@@ -436,21 +494,24 @@ sequenceDiagram
 
 ### 6.1 Pending Confirmations
 
-<!-- AI-NOTE: Checklist of items needing confirmation from stakeholders -->
+<!-- AI-NOTE: Checklist of items needing confirmation from stakeholders
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 - [ ] **{Item 1}**: {Description of what needs confirmation}
 - [ ] **{Item 2}**: {Description}
 
 ### 6.2 Assumptions & Dependencies
 
-<!-- AI-NOTE: List assumptions made and external dependencies -->
+<!-- AI-NOTE: List assumptions made and external dependencies
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 - **Assumption 1**: {Description of assumption}
 - **Dependency 1**: {External system or module this feature depends on}
 
 ### 6.3 Extension Notes
 
-<!-- AI-NOTE: Notes about future iterations or extensions -->
+<!-- AI-NOTE: Notes about future iterations or extensions
+FORBIDDEN: Do NOT include file paths, framework code, SQL statements, component library names, or any implementation-specific details in this section. -->
 
 - {Note about potential future enhancements}
 - {Note about scalability considerations}

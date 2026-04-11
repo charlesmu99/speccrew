@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Sıfırıncı Adım: Proje Teşhisi ve Bilgi Tabanı Başlatma
+## 3. Sıfırıncı Adım: Bilgi Tabanı Başlatma
 
 Resmi mühendislik sürecini başlatmadan önce proje bilgi tabanını başlatmanız gerekir.
 
-### 3.1 Proje Teşhisi
-
-**Örnek Konuşma**:
-```
-@speccrew-team-leader projeyi teşhis et
-```
-
-**Ajan Ne Yapacak**:
-- Proje yapısını tara
-- Teknoloji yığınını tespit et
-- İş modüllerini tanımla
-
-**Çıktı**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Teknik Bilgi Tabanı Başlatma
+### 3.1 Teknik Bilgi Tabanı Başlatma
 
 **Örnek Konuşma**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # İndeks dosyası
 ```
 
-### 3.3 İş Bilgi Tabanı Başlatma
+### 3.2 İş Bilgi Tabanı Başlatma
 
 **Örnek Konuşma**:
 ```
@@ -466,11 +449,24 @@ speccrew update
 
 > **Not**: Her iki adım da gereklidir. Yalnızca `speccrew update` çalıştırmak CLI aracının kendisini güncellemez; yalnızca `npm install` çalıştırmak proje dosyalarını güncellemez.
 
-### S5: Geçmiş iterasyonları nasıl görüntülerim?
+### S5: `speccrew update` yeni sürüm gösteriyor ancak kurulumdan sonra hala eski sürüm?
+
+Genellikle npm önbelleğinden kaynaklanır. Çözüm:
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+Hala çalışmazsa, belirli bir sürüm yükleyin:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### S6: Geçmiş iterasyonları nasıl görüntülerim?
 
 Arşivledikten sonra `speccrew-workspace/iteration-archives/` içinde inceleyin, `{numara}-{tip}-{isim}-{tarih}/` formatında düzenlenmiştir.
 
-### S6: Bilgi tabanının düzenli olarak güncellenmesi gerekiyor mu?
+### S7: Bilgi tabanının düzenli olarak güncellenmesi gerekiyor mu?
 
 Aşağıdaki durumlarda yeniden başlatma gerekir:
 - Proje yapısında önemli değişiklikler
@@ -485,7 +481,6 @@ Aşağıdaki durumlarda yeniden başlatma gerekir:
 
 | Aşama | Ajan | Başlangıç Konuşması |
 |------|-------|-------------------|
-| Teşhis | Team Leader | `@speccrew-team-leader projeyi teşhis et` |
 | Başlatma | Team Leader | `@speccrew-team-leader teknik bilgi tabanını başlat` |
 | Gereksinim Analizi | Product Manager | `@speccrew-product-manager yeni bir gereksinimim var: [açıklama]` |
 | Özellik Tasarımı | Feature Designer | `@speccrew-feature-designer özellik tasarımına başla` |
@@ -519,5 +514,5 @@ Aşağıdaki durumlarda yeniden başlatma gerekir:
 ## Sonraki Adımlar
 
 1. Projenizi başlatmak için `speccrew init --ide qoder` çalıştırın
-2. Sıfırıncı Adımı uygulayın: Proje Teşhisi ve Bilgi Tabanı Başlatma
+2. Sıfırıncı Adımı uygulayın: Bilgi Tabanı Başlatma
 3. İş akışını takip ederek her aşamada ilerleyin, şart odaklı geliştirme deneyiminin keyfini çıkarın!

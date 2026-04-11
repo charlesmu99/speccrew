@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. Step Zero: Project Diagnosis and Knowledge Base Initialization
+## 3. Step Zero: Knowledge Base Initialization
 
 Before starting the formal engineering process, you need to initialize the project knowledge base.
 
-### 3.1 Project Diagnosis
-
-**Conversation Example**:
-```
-@speccrew-team-leader diagnose project
-```
-
-**What the Agent Will Do**:
-- Scan project structure
-- Detect technology stack
-- Identify business modules
-
-**Deliverable**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Technical Knowledge Base Initialization
+### 3.1 Technical Knowledge Base Initialization
 
 **Conversation Example**:
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Index file
 ```
 
-### 3.3 Business Knowledge Base Initialization
+### 3.2 Business Knowledge Base Initialization
 
 **Conversation Example**:
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **Note**: Both steps are required. Running only `speccrew update` will not update the CLI tool itself; running only `npm install` will not update project files.
 
-### Q5: How to view historical iterations?
+### Q5: `speccrew update` shows new version available but `npm install -g speccrew@latest` still installs the old version?
+
+This is usually caused by npm cache. Solution:
+
+```bash
+# Clear npm cache and reinstall
+npm cache clean --force
+npm install -g speccrew@latest
+
+# Verify version
+npm list -g speccrew
+```
+
+If it still doesn't work, try installing with a specific version number:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: How to view historical iterations?
 
 After archiving, view in `speccrew-workspace/iteration-archives/`, organized by `{number}-{type}-{name}-{date}/` format.
 
-### Q6: Does the knowledge base need regular updates?
+### Q7: Does the knowledge base need regular updates?
 
 Re-initialization is required in the following situations:
 - Major changes to project structure
@@ -484,7 +485,6 @@ Re-initialization is required in the following situations:
 
 | Phase | Agent | Start Conversation |
 |-------|-------|-------------------|
-| Diagnosis | Team Leader | `@speccrew-team-leader diagnose project` |
 | Initialization | Team Leader | `@speccrew-team-leader initialize technical knowledge base` |
 | Requirements Analysis | Product Manager | `@speccrew-product-manager I have a new requirement: [description]` |
 | Feature Design | Feature Designer | `@speccrew-feature-designer start feature design` |
@@ -518,5 +518,5 @@ Re-initialization is required in the following situations:
 ## Next Steps
 
 1. Run `speccrew init --ide qoder` to initialize your project
-2. Execute Step Zero: Project Diagnosis and Knowledge Base Initialization
+2. Execute Step Zero: Knowledge Base Initialization
 3. Progress through each phase following the workflow, enjoying the specification-driven development experience!

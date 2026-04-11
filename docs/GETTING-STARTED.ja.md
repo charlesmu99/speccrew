@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. ステップ0：プロジェクト診断とナレッジベース初期化
+## 3. ステップ0：ナレッジベース初期化
 
 正式なエンジニアリングフローを開始する前に、プロジェクトナレッジベースを初期化する必要があります。
 
-### 3.1 プロジェクト診断
-
-**会話例**：
-```
-@speccrew-team-leader プロジェクトを診断
-```
-
-**エージェントの動作**：
-- プロジェクト構造をスキャン
-- テクノロジースタックを検出
-- ビジネスモジュールを識別
-
-**成果物**：
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 テクニカルナレッジベース初期化
+### 3.1 テクニカルナレッジベース初期化
 
 **会話例**：
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # インデックスファイル
 ```
 
-### 3.3 ビジネスナレッジベース初期化
+### 3.2 ビジネスナレッジベース初期化
 
 **会話例**：
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **注意**：両方のステップを実行する必要があります。`speccrew update`のみを実行してもCLIツール自体は更新されません；`npm install`のみを実行してもプロジェクト内のファイルは更新されません。
 
-### Q5: 過去のイテレーションを表示するには？
+### Q5: `speccrew update` で新バージョンが利用可能と表示されるが、`npm install -g speccrew@latest` でも古いバージョンがインストールされる？
+
+これは通常npmキャッシュが原因です。解決方法：
+
+```bash
+# npmキャッシュをクリアして再インストール
+npm cache clean --force
+npm install -g speccrew@latest
+
+# バージョンを確認
+npm list -g speccrew
+```
+
+それでも解決しない場合は、特定のバージョン番号を指定してインストールしてみてください：
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: 過去のイテレーションを表示するには？
 
 アーカイブ後、`speccrew-workspace/iteration-archives/`で表示、`{シーケンス}-{タイプ}-{名前}-{日付}/`形式で整理。
 
-### Q6: ナレッジベースは定期的に更新が必要ですか？
+### Q7: ナレッジベースは定期的に更新が必要ですか？
 
 以下の場合は再初期化が必要です：
 - プロジェクト構造が大幅に変更
@@ -484,7 +485,6 @@ speccrew update
 
 | フェーズ | エージェント | 起動会話 |
 |------|-------|----------|
-| 診断 | Team Leader | `@speccrew-team-leader プロジェクトを診断` |
 | 初期化 | Team Leader | `@speccrew-team-leader テクニカルナレッジベースを初期化` |
 | 要件分析 | Product Manager | `@speccrew-product-manager 新しい要件があります：[説明]` |
 | 機能設計 | Feature Designer | `@speccrew-feature-designer 機能設計を開始` |
@@ -518,5 +518,5 @@ speccrew update
 ## 9. 次のステップ
 
 1. `speccrew init --ide qoder`を実行してプロジェクトを初期化
-2. ステップ0を実行：プロジェクト診断とナレッジベース初期化
+2. ステップ0を実行：ナレッジベース初期化
 3. ワークフローに従ってフェーズごとに進め、仕様駆動の開発体験を楽しんでください！

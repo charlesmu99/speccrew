@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Nulti Korak: Dijagnostika Projekta i Inicijalizacija Baze Znanja
+## 3. Inicijalizacija Baze Znanja
 
 Prije pokretanja formalnog inženjerskog procesa, morate inicijalizirati bazu znanja projekta.
 
-### 3.1 Dijagnostika Projekta
-
-**Primjer Razgovora**:
-```
-@speccrew-team-leader dijagnosticiraj projekt
-```
-
-**Šta će Agent Uraditi**:
-- Skeniranje strukture projekta
-- Otkrivanje tehnološkog steka
-- Identifikacija poslovnih modula
-
-**Isporuka**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Inicijalizacija Tehničke Baze Znanja
+### 3.1 Inicijalizacija Tehničke Baze Znanja
 
 **Primjer Razgovora**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Fajl indeksa
 ```
 
-### 3.3 Inicijalizacija Poslovne Baze Znanja
+### 3.2 Inicijalizacija Poslovne Baze Znanja
 
 **Primjer Razgovora**:
 ```
@@ -466,11 +449,26 @@ speccrew update
 
 > **Napomena**: Obje korake treba izvršiti. Samo izvršavanje `speccrew update` neće ažurirati sam CLI alat; samo izvršavanje `npm install` neće ažurirati datoteke u projektu.
 
-### P5: Kako pogledati historijske iteracije?
+### P5: `speccrew update` prikazuje novu verziju ali nakon instalacije je još uvijek stara?
+
+Obično uzrokovano npm kešom. Rješenje:
+
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+
+Ako i dalje ne radi, navedite broj verzije:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### P6: Kako pogledati historijske iteracije?
 
 Nakon arhiviranja, pogledajte u `speccrew-workspace/iteration-archives/`, organizirano u formatu `{broj}-{tip}-{ime}-{datum}/`.
 
-### P6: Da li baza znanja treba redovno ažuriranje?
+### P7: Da li baza znanja treba redovno ažuriranje?
 
 Ponovna inicijalizacija je potrebna u sljedećim situacijama:
 - Značajne promjene u strukturi projekta
@@ -485,7 +483,7 @@ Ponovna inicijalizacija je potrebna u sljedećim situacijama:
 
 | Faza | Agent | Početni Razgovor |
 |------|-------|-------------------|
-| Dijagnostika | Team Leader | `@speccrew-team-leader dijagnosticiraj projekt` |
+
 | Inicijalizacija | Team Leader | `@speccrew-team-leader inicijaliziraj tehničku bazu znanja` |
 | Analiza Zahtjeva | Product Manager | `@speccrew-product-manager imam novi zahtjev: [opis]` |
 | Dizajn Funkcija | Feature Designer | `@speccrew-feature-designer započni dizajn funkcija` |
@@ -519,5 +517,5 @@ Ponovna inicijalizacija je potrebna u sljedećim situacijama:
 ## Sljedeći Koraci
 
 1. Pokrenite `speccrew init --ide qoder` da inicijalizirate svoj projekt
-2. Izvršite Nulti Korak: Dijagnostika Projekta i Inicijalizacija Baze Znanja
+2. Izvršite Inicijalizaciju Baze Znanja
 3. Napredujte kroz svaku fazu prateći radni tok, uživajte u iskustvu razvoja vođenog specifikacijama!

@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Krok zerowy: Diagnostyka projektu i inicjalizacja bazy wiedzy
+## 3. Krok zerowy: Inicjalizacja bazy wiedzy
 
 Przed rozpoczęciem formalnego procesu inżynieryjnego musisz zainicjować bazę wiedzy projektu.
 
-### 3.1 Diagnostyka projektu
-
-**Przykład rozmowy**:
-```
-@speccrew-team-leader zdiagnozuj projekt
-```
-
-**Co zrobi Agent**:
-- Skanowanie struktury projektu
-- Wykrywanie stosu technologicznego
-- Identyfikacja modułów biznesowych
-
-**Dostarczalny**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Inicjalizacja bazy wiedzy technicznej
+### 3.1 Inicjalizacja bazy wiedzy technicznej
 
 **Przykład rozmowy**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Plik indeksu
 ```
 
-### 3.3 Inicjalizacja bazy wiedzy biznesowej
+### 3.2 Inicjalizacja bazy wiedzy biznesowej
 
 **Przykład rozmowy**:
 ```
@@ -466,11 +449,24 @@ speccrew update
 
 > **Uwaga**: Oba kroki są wymagane. Uruchomienie tylko `speccrew update` nie zaktualizuje samego narzędzia CLI; uruchomienie tylko `npm install` nie zaktualizuje plików projektu.
 
-### P5: Jak wyświetlić historyczne iteracje?
+### P5: `speccrew update` pokazuje nową wersję, ale po instalacji nadal jest stara?
+
+Zazwyczaj jest to spowodowane pamięcią podręczną npm. Rozwiązanie:
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+Jeśli nadal nie działa, zainstaluj określoną wersję:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### P6: Jak wyświetlić historyczne iteracje?
 
 Po zarchiwizowaniu przejrzyj w `speccrew-workspace/iteration-archives/`, zorganizowane w formacie `{numer}-{typ}-{nazwa}-{data}/`.
 
-### P6: Czy baza wiedzy wymaga regularnej aktualizacji?
+### P7: Czy baza wiedzy wymaga regularnej aktualizacji?
 
 Ponowna inicjalizacja jest wymagana w następujących sytuacjach:
 - Znaczne zmiany w strukturze projektu
@@ -485,7 +481,7 @@ Ponowna inicjalizacja jest wymagana w następujących sytuacjach:
 
 | Faza | Agent | Rozmowa początkowa |
 |------|-------|-------------------|
-| Diagnostyka | Team Leader | `@speccrew-team-leader zdiagnozuj projekt` |
+
 | Inicjalizacja | Team Leader | `@speccrew-team-leader zainicjuj bazę wiedzy technicznej` |
 | Analiza wymagań | Product Manager | `@speccrew-product-manager mam nowe wymaganie: [opis]` |
 | Projektowanie funkcji | Feature Designer | `@speccrew-feature-designer rozpocznij projektowanie funkcji` |
@@ -519,5 +515,5 @@ Ponowna inicjalizacja jest wymagana w następujących sytuacjach:
 ## Następne kroki
 
 1. Uruchom `speccrew init --ide qoder`, aby zainicjować swój projekt
-2. Wykonaj Krok zerowy: Diagnostyka projektu i inicjalizacja bazy wiedzy
+2. Wykonaj Krok zerowy: Inicjalizacja bazy wiedzy
 3. Przechodź przez każdą fazę zgodnie z przepływem pracy, ciesząc się doświadczeniem rozwoju opartego na specyfikacjach!

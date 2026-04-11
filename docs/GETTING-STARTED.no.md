@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Null Steg: Prosjektdiagnose og Kunnskapsbase-initialisering
+## 3. Kunnskapsbase-initialisering
 
 Før du starter den formelle ingeniørprosessen, må du initialisere prosjektets kunnskapsbase.
 
-### 3.1 Prosjektdiagnose
-
-**Eksempel på Dialog**:
-```
-@speccrew-team-leader diagnostiser prosjekt
-```
-
-**Hva Agenten Vil Gjøre**:
-- Skann prosjektstruktur
-- Oppdag teknologistabel
-- Identifiser forretningsmoduler
-
-**Leveranse**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Initialiser Teknisk Kunnskapsbase
+### 3.1 Initialiser Teknisk Kunnskapsbase
 
 **Eksempel på Dialog**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Indeksfil
 ```
 
-### 3.3 Initialiser Forretningskunnskapsbase
+### 3.2 Initialiser Forretningskunnskapsbase
 
 **Eksempel på Dialog**:
 ```
@@ -466,11 +449,26 @@ speccrew update
 
 > **Merk**: Begge trinnene er nødvendige. Hvis du bare kjører `speccrew update`, oppdateres ikke selve CLI-verktøyet; hvis du bare kjører `npm install`, oppdateres ikke prosjektfilene.
 
-### S5: Hvordan se historiske iterasjoner?
+### S5: `speccrew update` viser ny versjon men etter installasjon er det fortsatt den gamle?
+
+Vanligvis forårsaket av npm-hurtigbuffer. Løsning:
+
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+
+Hvis det fortsatt ikke fungerer, spesifiser versjonsnummeret:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### S6: Hvordan se historiske iterasjoner?
 
 Etter arkivering, se i `speccrew-workspace/iteration-archives/`, organisert i formatet `{nummer}-{type}-{navn}-{dato}/`.
 
-### S6: Trenger kunnskapsbasen regelmessig oppdatering?
+### S7: Trenger kunnskapsbasen regelmessig oppdatering?
 
 Re-initialisering kreves i følgende situasjoner:
 - Betydelige endringer i prosjektstruktur
@@ -485,7 +483,7 @@ Re-initialisering kreves i følgende situasjoner:
 
 | Fase | Agent | Startdialog |
 |------|-------|-------------------|
-| Diagnose | Team Leader | `@speccrew-team-leader diagnostiser prosjekt` |
+
 | Initialisering | Team Leader | `@speccrew-team-leader initialiser teknisk kunnskapsbase` |
 | Kravanalyse | Product Manager | `@speccrew-product-manager jeg har et nytt krav: [beskrivelse]` |
 | Funksjonsdesign | Feature Designer | `@speccrew-feature-designer start funksjonsdesign` |
@@ -519,5 +517,5 @@ Re-initialisering kreves i følgende situasjoner:
 ## Neste Steg
 
 1. Kjør `speccrew init --ide qoder` for å initialisere prosjektet ditt
-2. Utfør Null Steg: Prosjektdiagnose og Kunnskapsbase-initialisering
+2. Utfør Kunnskapsbase-initialisering
 3. Beveg deg gjennom hver fase etter arbeidsflyten, nyt spesifikasjonsdrevet utviklingserfaring!

@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. Fase Zero: Diagnostica Progetto e Inizializzazione Base Conoscenza
+## 3. Inizializzazione Base Conoscenza
 
 Prima di iniziare il processo di ingegneria formale, devi inizializzare la base di conoscenza del progetto.
 
-### 3.1 Diagnostica Progetto
-
-**Esempio Conversazione**:
-```
-@speccrew-team-leader diagnosticare il progetto
-```
-
-**Cosa farà l'Agent**:
-- Scansionare la struttura del progetto
-- Rilevare lo stack tecnologico
-- Identificare i moduli business
-
-**Deliverable**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Inizializzazione Base Conoscenza Tecnica
+### 3.1 Inizializzazione Base Conoscenza Tecnica
 
 **Esempio Conversazione**:
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # File indice
 ```
 
-### 3.3 Inizializzazione Base Conoscenza Business
+### 3.2 Inizializzazione Base Conoscenza Business
 
 **Esempio Conversazione**:
 ```
@@ -465,11 +448,26 @@ speccrew update
 
 > **Nota**: Entrambi i passaggi devono essere eseguiti. Eseguire solo `speccrew update` non aggiornerà lo strumento CLI stesso; eseguire solo `npm install` non aggiornerà i file nel progetto.
 
-### Q5: Come visualizzare le iterazioni storiche?
+### Q5: `speccrew update` mostra una nuova versione ma dopo l'installazione è ancora la vecchia?
+
+Solitamente è causato dalla cache npm. Soluzione:
+
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+
+Se ancora non funziona, specifica il numero di versione:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: Come visualizzare le iterazioni storiche?
 
 Dopo l'archiviazione, visualizzare in `speccrew-workspace/iteration-archives/`, organizzate per formato `{numero}-{tipo}-{nome}-{date}/`.
 
-### Q6: La base di conoscenza necessita di aggiornamenti regolari?
+### Q7: La base di conoscenza necessita di aggiornamenti regolari?
 
 La re-inizializzazione è necessaria nelle seguenti situazioni:
 - Cambiamenti importanti nella struttura del progetto
@@ -484,7 +482,7 @@ La re-inizializzazione è necessaria nelle seguenti situazioni:
 
 | Fase | Agent | Conversazione di Avvio |
 |------|-------|------------------------|
-| Diagnostica | Team Leader | `@speccrew-team-leader diagnosticare il progetto` |
+
 | Inizializzazione | Team Leader | `@speccrew-team-leader inizializzare la base conoscenza tecnica` |
 | Analisi Requisiti | Product Manager | `@speccrew-product-manager Ho un nuovo requisito: [descrizione]` |
 | Feature Design | Feature Designer | `@speccrew-feature-designer iniziare il feature design` |
@@ -518,5 +516,5 @@ La re-inizializzazione è necessaria nelle seguenti situazioni:
 ## Prossimi Passi
 
 1. Eseguire `speccrew init --ide qoder` per inizializzare il tuo progetto
-2. Eseguire la Fase Zero: Diagnostica Progetto e Inizializzazione Base Conoscenza
+2. Eseguire l'inizializzazione della Base Conoscenza
 3. Procedere attraverso ogni fase seguendo il workflow, godendoti l'esperienza di sviluppo specification-driven!

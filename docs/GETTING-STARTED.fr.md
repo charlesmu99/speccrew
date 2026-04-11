@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. Étape Zéro : Diagnostic de Projet et Initialisation de la Base de Connaissances
+## 3. Étape Zéro : Initialisation de la Base de Connaissances
 
 Avant de commencer le processus d'ingénierie formel, vous devez initialiser la base de connaissances du projet.
 
-### 3.1 Diagnostic de Projet
-
-**Exemple de Conversation** :
-```
-@speccrew-team-leader diagnostiquer le projet
-```
-
-**Ce que l'Agent fera** :
-- Scanner la structure du projet
-- Détecter la pile technologique
-- Identifier les modules métier
-
-**Livrable** :
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Initialisation de la Base de Connaissances Techniques
+### 3.1 Initialisation de la Base de Connaissances Techniques
 
 **Exemple de Conversation** :
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Fichier d'index
 ```
 
-### 3.3 Initialisation de la Base de Connaissances Métier
+### 3.2 Initialisation de la Base de Connaissances Métier
 
 **Exemple de Conversation** :
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **Remarque** : Les deux étapes doivent être exécutées. Exécuter uniquement `speccrew update` ne mettra pas à jour l'outil CLI lui-même ; exécuter uniquement `npm install` ne mettra pas à jour les fichiers dans le projet.
 
-### Q5 : Comment consulter les itérations historiques ?
+### Q5 : `speccrew update` montre qu'une nouvelle version est disponible mais `npm install -g speccrew@latest` installe toujours l'ancienne version ?
+
+Ceci est généralement causé par le cache npm. Solution :
+
+```bash
+# Vider le cache npm et réinstaller
+npm cache clean --force
+npm install -g speccrew@latest
+
+# Vérifier la version
+npm list -g speccrew
+```
+
+Si cela ne fonctionne toujours pas, essayez d'installer avec un numéro de version spécifique :
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6 : Comment consulter les itérations historiques ?
 
 Après archivage, consultez dans `speccrew-workspace/iteration-archives/`, organisé par le format `{numéro}-{type}-{nom}-{date}/`.
 
-### Q6 : La base de connaissances a-t-elle besoin de mises à jour régulières ?
+### Q7 : La base de connaissances a-t-elle besoin de mises à jour régulières ?
 
 La réinitialisation est nécessaire dans les situations suivantes :
 - Changements majeurs dans la structure du projet
@@ -484,7 +485,6 @@ La réinitialisation est nécessaire dans les situations suivantes :
 
 | Phase | Agent | Conversation de Démarrage |
 |-------|-------|---------------------------|
-| Diagnostic | Team Leader | `@speccrew-team-leader diagnostiquer le projet` |
 | Initialisation | Team Leader | `@speccrew-team-leader initialiser la base de connaissances techniques` |
 | Analyse des Exigences | Product Manager | `@speccrew-product-manager J'ai une nouvelle exigence : [description]` |
 | Feature Design | Feature Designer | `@speccrew-feature-designer démarrer la conception de fonctionnalité` |
@@ -518,5 +518,5 @@ La réinitialisation est nécessaire dans les situations suivantes :
 ## Prochaines Étapes
 
 1. Exécuter `speccrew init --ide qoder` pour initialiser votre projet
-2. Exécuter l'Étape Zéro : Diagnostic de Projet et Initialisation de la Base de Connaissances
+2. Exécuter l'Étape Zéro : Initialisation de la Base de Connaissances
 3. Progresser à travers chaque phase en suivant le flux de travail, en profitant de l'expérience de développement piloté par les spécifications !

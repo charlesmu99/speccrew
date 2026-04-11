@@ -24,6 +24,10 @@ This skill applies ISA-95 Stages 1-3 as an internal thinking framework for analy
 
 # Workflow
 
+**MANDATORY:**
+- **Business Perspective Only** — Feature Analysis is a PURE BUSINESS document. It describes WHAT the system does from a business/user perspective, NOT HOW it's technically implemented.
+- **Mermaid for all diagrams** — ALL business flows, interaction sequences, and cross-function flows MUST use Mermaid syntax (`flowchart TB`, `sequenceDiagram`). Plain text ASCII flowcharts are FORBIDDEN.
+
 ## Absolute Constraints
 
 > **Violation = task failure**
@@ -198,6 +202,16 @@ Write analysis results to `.feature-analysis.md`:
 - **Data Changes**: {description}
 - **System Relationship**: [EXISTING]/[MODIFIED]/[NEW] — {explanation}
 
+> **Content Guidelines for Function Details:**
+> 
+> | Aspect | ✅ ALLOWED (Business) | ❌ FORBIDDEN (Technical) |
+> |--------|----------------------|--------------------------|
+> | Frontend Changes | "New appointment list page with search/filter" | "AppointmentIndex.vue, ElDatePicker, v-hasPermi" |
+> | Backend Changes | "Create appointment management operations with validation" | "@PreAuthorize, AppointmentService.java, MapStruct" |
+> | Data Changes | "New appointment entity with status lifecycle" | "appointment_info table, customer_id BIGINT, SQL DDL" |
+> | System Relationship | "[NEW] Full new business module" | "yudao-module-appointment Maven submodule" |
+> | Diagrams | Mermaid flowchart/sequenceDiagram | ASCII text flowcharts |
+
 ## Name Discrepancy Notice (if applicable)
 - Parameter feature_name: {feature_name}
 - PRD actual feature name: {prd_name}
@@ -215,8 +229,16 @@ Write analysis results to `.feature-analysis.md`:
 
 | Rule | Description |
 |------|-------------|
-| **Analysis Only** | Do NOT design UI wireframes, API specs, or data models |
-| **Clear Markers** | Always use [EXISTING]/[MODIFIED]/[NEW] to indicate system relationship |
+| **Business Perspective Only** | Feature Analysis describes business capabilities and functional requirements. Every section must describe WHAT from user/business perspective |
+| **FORBIDDEN: File Paths** | Do NOT include any file paths, code paths, or directory structures (e.g., views/appointment/AppointmentIndex.vue, yudao-module-appointment/...) |
+| **FORBIDDEN: Framework Code** | Do NOT include code snippets in any language — no Java classes, SQL DDL/DML, Vue templates, TypeScript API code, HTML markup, annotations (@PreAuthorize, @OperateLog, @TableLogic, @TableName) |
+| **FORBIDDEN: Framework/Library Names** | Do NOT reference specific framework/library names as implementation details (MyBatis-Plus, MapStruct, Element Plus, wot-design-uni, ElDatePicker, wd-cell, BaseMapperX, etc.) |
+| **FORBIDDEN: Database Artifacts** | Do NOT include database table names (appointment_info), column names (customer_id, staff_id), SQL types (BIGINT, VARCHAR), indexes, or any SQL statements |
+| **FORBIDDEN: Technical Types** | Do NOT use programming language types (Long, String, Integer). Use business types: Text, Number, Date, Boolean, Enum, Identifier |
+| **FORBIDDEN: ASCII Diagrams** | Do NOT use plain text or ASCII art flowcharts. ALL diagrams MUST use Mermaid syntax |
+| **Mermaid Required** | Use `flowchart TB` for business process flows, `sequenceDiagram` for interaction flows. Reference mermaid-rule.md for syntax compliance |
+| Analysis Only | Do NOT design UI wireframes, API specs, or data models — that belongs to Feature Design phase |
+| System Markers | Always use [EXISTING]/[MODIFIED]/[NEW] to indicate system relationship |
 | **Checkpoint A Required** | User confirmation required before design phase (unless skipped) |
 | **Use Script for JSON** | Always use `update-progress.js` for checkpoint files |
 | **Output Contract** | `.feature-analysis.md` serves as interface for downstream design skills |
@@ -235,3 +257,5 @@ Write analysis results to `.feature-analysis.md`:
 - [ ] Checkpoint A passed: function breakdown confirmed with user (or skipped)
 - [ ] `.checkpoints.json` updated via script
 - [ ] `.feature-analysis.md` written to correct path
+- [ ] **CRITICAL — Business Content Only**: All sections use business-level descriptions. ZERO file paths, framework names, code snippets, SQL, database table/column names, component library names, or technical types
+- [ ] **CRITICAL — Mermaid Diagrams**: All process flows use Mermaid syntax (flowchart TB or sequenceDiagram). No ASCII text flowcharts

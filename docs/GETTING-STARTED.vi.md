@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Bước Không: Chẩn Đoán Dự Án và Khởi Tạo Cơ Sở Kiến Thức
+## 3. Bước Không: Khởi Tạo Cơ Sở Kiến Thức
 
 Trước khi bắt đầu quy trình kỹ thuật chính thức, bạn cần khởi tạo cơ sở kiến thức của dự án.
 
-### 3.1 Chẩn Đoán Dự Án
-
-**Ví Dụ Hội Thoại**:
-```
-@speccrew-team-leader chẩn đoán dự án
-```
-
-**Agent Sẽ Làm Gì**:
-- Quét cấu trúc dự án
-- Phát hiện công nghệ stack
-- Xác định các module nghiệp vụ
-
-**Kết Quả**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Khởi Tạo Cơ Sở Kiến Thức Kỹ Thuật
+### 3.1 Khởi Tạo Cơ Sở Kiến Thức Kỹ Thuật
 
 **Ví Dụ Hội Thoại**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Tệp chỉ mục
 ```
 
-### 3.3 Khởi Tạo Cơ Sở Kiến Thức Nghiệp Vụ
+### 3.2 Khởi Tạo Cơ Sở Kiến Thức Nghiệp Vụ
 
 **Ví Dụ Hội Thoại**:
 ```
@@ -466,11 +449,24 @@ speccrew update
 
 > **Lưu ý**: Cả hai bước đều cần thiết. Chỉ chạy `speccrew update` sẽ không cập nhật chính công cụ CLI; chỉ chạy `npm install` sẽ không cập nhật các tệp dự án.
 
-### H5: Làm thế nào để xem các iteration lịch sử?
+### H5: `speccrew update` hiển thị phiên bản mới nhưng sau cài đặt vẫn là phiên bản cũ?
+
+Thường do bộ nhớ cache npm. Cách giải quyết:
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+Nếu vẫn không được, hãy cài đặt phiên bản cụ thể:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### H6: Làm thế nào để xem các iteration lịch sử?
 
 Sau khi lưu trữ, xem trong `speccrew-workspace/iteration-archives/`, được tổ chức theo định dạng `{số}-{loại}-{tên}-{ngày}/`.
 
-### H6: Cơ sở kiến thức có cần cập nhật thường xuyên không?
+### H7: Cơ sở kiến thức có cần cập nhật thường xuyên không?
 
 Cần khởi tạo lại trong các tình huống sau:
 - Thay đổi đáng kể về cấu trúc dự án
@@ -485,7 +481,6 @@ Cần khởi tạo lại trong các tình huống sau:
 
 | Giai Đoạn | Agent | Hội Thoại Bắt Đầu |
 |------|-------|-------------------|
-| Chẩn Đoán | Team Leader | `@speccrew-team-leader chẩn đoán dự án` |
 | Khởi Tạo | Team Leader | `@speccrew-team-leader khởi tạo cơ sở kiến thức kỹ thuật` |
 | Phân Tích Yêu Cầu | Product Manager | `@speccrew-product-manager tôi có yêu cầu mới: [mô tả]` |
 | Thiết Kế Tính Năng | Feature Designer | `@speccrew-feature-designer bắt đầu thiết kế tính năng` |
@@ -519,5 +514,5 @@ Cần khởi tạo lại trong các tình huống sau:
 ## 9. Bước Tiếp Theo
 
 1. Chạy `speccrew init --ide qoder` để khởi tạo dự án của bạn
-2. Thực hiện Bước Không: Chẩn Đoán Dự Án và Khởi Tạo Cơ Sở Kiến Thức
+2. Thực hiện Bước Không: Khởi Tạo Cơ Sở Kiến Thức
 3. Tiến bộ qua từng giai đoạn theo quy trình làm việc, tận hưởng trải nghiệm phát triển dựa trên đặc tả!

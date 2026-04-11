@@ -90,28 +90,11 @@ flowchart LR
 
 ---
 
-## 3. Passo Zero: Diagnóstico do Projeto e Inicialização da Base de Conhecimento
+## 3. Passo Zero: Inicialização da Base de Conhecimento
 
 Antes de iniciar o processo formal de engenharia, você precisa inicializar a base de conhecimento do projeto.
 
-### 3.1 Diagnóstico do Projeto
-
-**Exemplo de Conversa**:
-```
-@speccrew-team-leader diagnosticar projeto
-```
-
-**O que o Agente fará**:
-- Escanear estrutura do projeto
-- Detectar stack tecnológico
-- Identificar módulos de negócio
-
-**Entregável**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Inicialização da Base de Conhecimento Técnica
+### 3.1 Inicialização da Base de Conhecimento Técnica
 
 **Exemplo de Conversa**:
 ```
@@ -133,7 +116,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Arquivo de índice
 ```
 
-### 3.3 Inicialização da Base de Conhecimento de Negócio
+### 3.2 Inicialização da Base de Conhecimento de Negócio
 
 **Exemplo de Conversa**:
 ```
@@ -466,11 +449,24 @@ speccrew update
 
 > **Nota**: Ambas as etapas são necessárias. Executar apenas `speccrew update` não atualizará a própria ferramenta CLI; executar apenas `npm install` não atualizará os arquivos do projeto.
 
-### P5: Como ver iterações históricas?
+### P5: `speccrew update` mostra nova versão mas após instalação ainda é a antiga?
+
+Geralmente é causado pelo cache do npm. Solução:
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+Se ainda não funcionar, instale uma versão específica:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### P6: Como ver iterações históricas?
 
 Após arquivar, consulte em `speccrew-workspace/iteration-archives/`, organizado no formato `{número}-{tipo}-{nome}-{data}/`.
 
-### P6: A base de conhecimento precisa de atualizações regulares?
+### P7: A base de conhecimento precisa de atualizações regulares?
 
 Reinicialização é necessária nas seguintes situações:
 - Mudanças significativas na estrutura do projeto
@@ -485,7 +481,7 @@ Reinicialização é necessária nas seguintes situações:
 
 | Fase | Agente | Conversa de Início |
 |------|--------|-------------------|
-| Diagnóstico | Team Leader | `@speccrew-team-leader diagnosticar projeto` |
+
 | Inicialização | Team Leader | `@speccrew-team-leader inicializar base de conhecimento técnica` |
 | Análise de Requisitos | Product Manager | `@speccrew-product-manager tenho um novo requisito: [descrição]` |
 | Design de Funcionalidades | Feature Designer | `@speccrew-feature-designer iniciar design de funcionalidades` |
@@ -519,5 +515,5 @@ Reinicialização é necessária nas seguintes situações:
 ## Próximos Passos
 
 1. Execute `speccrew init --ide qoder` para inicializar seu projeto
-2. Execute o Passo Zero: Diagnóstico do Projeto e Inicialização da Base de Conhecimento
+2. Execute o Passo Zero: Inicialização da Base de Conhecimento
 3. Avance através de cada fase seguindo o fluxo de trabalho, aproveitando a experiência de desenvolvimento orientada por especificações!

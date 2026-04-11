@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. Trin 0: Projekt Diagnose og Videnbase Initialisering
+## 3. Videnbase Initialisering
 
 Før du starter den formelle ingeniørarbejdsgang, skal du initialisere projektvidenbasen.
 
-### 3.1 Projekt Diagnose
-
-**Dialogeksempel**:
-```
-@speccrew-team-leader diagnosticer projekt
-```
-
-**Hvad agenten gør**:
-- Scanner projektstruktur
-- Detekterer teknologistak
-- Identificerer forretningsmoduler
-
-**Output**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Teknisk Videnbase Initialisering
+### 3.1 Teknisk Videnbase Initialisering
 
 **Dialogeksempel**:
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Indeksfil
 ```
 
-### 3.3 Forretningsvidenbase Initialisering
+### 3.2 Forretningsvidenbase Initialisering
 
 **Dialogeksempel**:
 ```
@@ -465,11 +448,26 @@ speccrew update
 
 > **Bemærk**: Begge trin skal udføres. Kun at køre `speccrew update` opdaterer ikke selve CLI-værktøjet; kun at køre `npm install` opdaterer ikke filerne i projektet.
 
-### Q5: Hvordan vises historiske iterationer?
+### Q5: `speccrew update` viser ny version, men efter installation er det stadig den gamle?
+
+Normalt forårsaget af npm cache. Løsning:
+
+```bash
+npm cache clean --force
+npm install -g speccrew@latest
+npm list -g speccrew
+```
+
+Hvis det stadig ikke virker, angiv versionsnummeret:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: Hvordan vises historiske iterationer?
 
 Efter arkivering, se i `speccrew-workspace/iteration-archives/`, organiseret efter `{sekvens}-{type}-{navn}-{dato}/` format.
 
-### Q6: Skal videnbasen opdateres regelmæssigt?
+### Q7: Skal videnbasen opdateres regelmæssigt?
 
 Følgende situationer kræver re-initialisering:
 - Projektstruktur ændres væsentligt
@@ -484,7 +482,7 @@ Følgende situationer kræver re-initialisering:
 
 | Fase | Agent | Startdialog |
 |------|-------|----------|
-| Diagnose | Team Leader | `@speccrew-team-leader diagnosticer projekt` |
+
 | Initialisering | Team Leader | `@speccrew-team-leader initialiser teknisk videnbase` |
 | Kravanalyse | Product Manager | `@speccrew-product-manager Jeg har et nyt krav: [beskrivelse]` |
 | Funktionsdesign | Feature Designer | `@speccrew-feature-designer start funktionsdesign` |
@@ -518,5 +516,5 @@ Følgende situationer kræver re-initialisering:
 ## Næste Skridt
 
 1. Kør `speccrew init --ide qoder` for at initialisere dit projekt
-2. Udfør trin 0: Projekt Diagnose og Videnbase Initialisering
+2. Udfør Videnbase Initialisering
 3. Følg arbejdsgangen fase for fase og nyd specifikationsdrevet udvikling!

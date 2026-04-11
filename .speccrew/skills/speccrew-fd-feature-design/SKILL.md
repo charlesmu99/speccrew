@@ -187,6 +187,12 @@ Document: `User Action → Frontend Response → Backend API Call`
 
 ## Step 2: Backend Design
 
+> **CRITICAL CONSTRAINT**: Backend design in Feature Spec must remain at the BUSINESS API level:
+> - Describe API endpoints as business operations (e.g., "Create Shop" operation with business parameters)
+> - Describe business validation rules in plain language (e.g., "Shop name must be unique within tenant")
+> - Describe data entities as business concepts with business field types (Text, Number, Date, Enum)
+> - Do NOT include: Java class names, SQL statements, ORM mappings, framework annotations, Maven module paths
+
 ### 2.1 API/Interface List
 
 | Interface | Method | Description |
@@ -332,6 +338,14 @@ Document: `User Action → Frontend Response → Backend API Call`
 
 5. **Data Model Completeness**: "Does the data model cover all fields and relationships needed?"
 
+6. **CRITICAL — Business Perspective Validation**: "Does the specification contain ONLY business concepts and rules? Verify there are NO:
+   - ❌ File paths or code directory structures
+   - ❌ Framework names or specific technologies (Java, MyBatis, Vue component names, etc.)
+   - ❌ Actual code snippets or SQL statements
+   - ❌ Component library names or framework-specific syntax
+   - ❌ Database table/column names or technical data types
+   If ANY of these are present, you MUST revise the affected sections to use pure business descriptions before proceeding."
+
 **WAIT for user confirmation before proceeding to document generation.**
 
 ### 4.3 Update Checkpoints
@@ -459,6 +473,13 @@ Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review pass
 | No Technology Decisions | Do NOT specify frameworks, databases, technologies |
 | Focus on WHAT not HOW | Describe what system does, not how it's implemented |
 | ASCII Wireframes Only | Use ASCII art for UI prototypes |
+| **FORBIDDEN: File Paths** | Do NOT include any file paths, code paths, or directory structures (e.g., src/views/..., yudao-module-base/..., pages/...) |
+| **FORBIDDEN: Framework Code** | Do NOT include actual code snippets in any language — no Java classes, SQL DDL/DML, Vue templates, TypeScript API code, HTML markup |
+| **FORBIDDEN: Framework Names as Implementation** | Do NOT reference specific framework/library names as implementation choices (MyBatis-Plus, Flyway, Element Plus component names like el-button, wot-design-uni widget names like wd-cell) |
+| **FORBIDDEN: Technical Types** | Do NOT use database column types (VARCHAR, BIGINT, INT), Java types (Long, String), or ORM annotations (@TableName, @TableId). Use business types: Text, Number, Date, Boolean, Enum |
+| **FORBIDDEN: Component Names** | Do NOT reference UI component library element names (ElDatePicker, ElMessageBox, wd-date-time-picker). Describe interaction behavior instead |
+| **FORBIDDEN: Database Artifacts** | Do NOT include table names, column names, index names, or any SQL statements. Use conceptual entity names and business field names |
+| **Business Perspective Priority** | Feature Spec is a BUSINESS document. Every section must describe WHAT from a user/business perspective, never HOW from a technical implementation perspective |
 | Mermaid Compatibility | Follow mermaid-rule.md guidelines |
 | Clear Markers | Use [EXISTING]/[MODIFIED]/[NEW] consistently |
 | Template-First | Copy template before filling content |
@@ -489,3 +510,4 @@ Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review pass
 - [ ] `.checkpoints.json` updated via script
 - [ ] No technology decisions included
 - [ ] No intermediate design-data artifact created
+- [ ] **CRITICAL — Business Content Only**: Verify ALL sections use business-level descriptions. Zero tolerance for: file paths, code snippets, SQL, framework names, component names, technical types

@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. 第零步：專案診斷與知識庫初始化
+## 3. 第零步：知識庫初始化
 
 在開始正式工程流程前，需要先初始化專案知識庫。
 
-### 3.1 專案診斷
-
-**對話範例**：
-```
-@speccrew-team-leader 診斷專案
-```
-
-**Agent 會做什麼**：
-- 掃描專案結構
-- 偵測技術棧
-- 識別業務模組
-
-**產出物**：
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 技術知識庫初始化
+### 3.1 技術知識庫初始化
 
 **對話範例**：
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # 索引檔案
 ```
 
-### 3.3 業務知識庫初始化
+### 3.2 業務知識庫初始化
 
 **對話範例**：
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **注意**：兩個步驟都需要執行。只執行 `speccrew update` 不會更新 CLI 工具本身；只執行 `npm install` 不會更新專案檔案。
 
-### Q5: 如何查看歷史迭代？
+### Q5: `speccrew update` 顯示有新版本可用，但 `npm install -g speccrew@latest` 仍然安裝舊版本？
+
+這通常是 npm 緩存造成的。解決方法：
+
+```bash
+# 清除 npm 緩存並重新安裝
+npm cache clean --force
+npm install -g speccrew@latest
+
+# 驗證版本
+npm list -g speccrew
+```
+
+如果仍然無效，嘗試使用特定版本號安裝：
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: 如何查看歷史迭代？
 
 歸檔後在 `speccrew-workspace/iteration-archives/` 中查看，按 `{序號}-{類型}-{名稱}-{日期}/` 格式組織。
 
-### Q6: 知識庫需要定期更新嗎？
+### Q7: 知識庫需要定期更新嗎？
 
 以下情況需要重新初始化：
 - 專案結構發生重大變化
@@ -484,7 +485,6 @@ speccrew update
 
 | 階段 | Agent | 啟動對話 |
 |------|-------|----------|
-| 診斷 | Team Leader | `@speccrew-team-leader 診斷專案` |
 | 初始化 | Team Leader | `@speccrew-team-leader 初始化技術知識庫` |
 | 需求分析 | Product Manager | `@speccrew-product-manager 我有一個新需求：[描述]` |
 | 功能設計 | Feature Designer | `@speccrew-feature-designer 開始功能設計` |
@@ -518,5 +518,5 @@ speccrew update
 ## 9. 下一步
 
 1. 執行 `speccrew init --ide qoder` 初始化您的專案
-2. 執行第零步：專案診斷與知識庫初始化
+2. 執行第零步：知識庫初始化
 3. 按照工作流程逐階段推進，享受規範驅動的開發體驗！

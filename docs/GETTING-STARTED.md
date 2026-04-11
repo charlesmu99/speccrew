@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. 第零步：项目诊断与知识库初始化
+## 3. 第零步：知识库初始化
 
 在开始正式工程流程前，需要先初始化项目知识库。
 
-### 3.1 项目诊断
-
-**对话示例**：
-```
-@speccrew-team-leader 诊断项目
-```
-
-**Agent 会做什么**：
-- 扫描项目结构
-- 检测技术栈
-- 识别业务模块
-
-**产出物**：
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 技术知识库初始化
+### 3.1 技术知识库初始化
 
 **对话示例**：
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # 索引文件
 ```
 
-### 3.3 业务知识库初始化
+### 3.2 业务知识库初始化
 
 **对话示例**：
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **注意**：两步都需要执行。仅执行 `speccrew update` 不会更新 CLI 工具本身；仅执行 `npm install` 不会更新项目中的文件。
 
-### Q5: 如何查看历史迭代？
+### Q5: `speccrew update` 提示有新版本但 `npm install -g speccrew@latest` 安装后仍是旧版本？
+
+这通常是 npm 缓存问题。解决方法：
+
+```bash
+# 清除 npm 缓存后重新安装
+npm cache clean --force
+npm install -g speccrew@latest
+
+# 验证版本
+npm list -g speccrew
+```
+
+如果仍然不行，尝试指定具体版本号安装：
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: 如何查看历史迭代？
 
 归档后在 `speccrew-workspace/iteration-archives/` 中查看，按 `{序号}-{类型}-{名称}-{日期}/` 格式组织。
 
-### Q6: 知识库需要定期更新吗？
+### Q7: 知识库需要定期更新吗？
 
 以下情况需要重新初始化：
 - 项目结构发生重大变化
@@ -484,7 +485,6 @@ speccrew update
 
 | 阶段 | Agent | 启动对话 |
 |------|-------|----------|
-| 诊断 | Team Leader | `@speccrew-team-leader 诊断项目` |
 | 初始化 | Team Leader | `@speccrew-team-leader 初始化技术知识库` |
 | 需求分析 | Product Manager | `@speccrew-product-manager 我有一个新需求：[描述]` |
 | 功能设计 | Feature Designer | `@speccrew-feature-designer 开始功能设计` |
@@ -518,5 +518,5 @@ speccrew update
 ## 下一步
 
 1. 运行 `speccrew init --ide qoder` 初始化您的项目
-2. 执行第零步：项目诊断与知识库初始化
+2. 执行第零步：知识库初始化
 3. 按照工作流程逐阶段推进，享受规范驱动的开发体验！

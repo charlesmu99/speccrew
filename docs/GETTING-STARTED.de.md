@@ -89,28 +89,11 @@ flowchart LR
 
 ---
 
-## 3. Schritt Null: Projektdiagnose und Wissensbasis-Initialisierung
+## 3. Schritt Null: Wissensbasis-Initialisierung
 
 Bevor Sie den formellen Engineering-Prozess starten, müssen Sie die Projektwissensbasis initialisieren.
 
-### 3.1 Projektdiagnose
-
-**Konversationsbeispiel**:
-```
-@speccrew-team-leader Projekt diagnostizieren
-```
-
-**Was der Agent tun wird**:
-- Projektstruktur scannen
-- Technologie-Stack erkennen
-| Geschäftsmodule identifizieren
-
-**Liefergegenstand**:
-```
-speccrew-workspace/knowledges/base/diagnosis-reports/diagnosis-report-{date}.md
-```
-
-### 3.2 Technische Wissensbasis-Initialisierung
+### 3.1 Technische Wissensbasis-Initialisierung
 
 **Konversationsbeispiel**:
 ```
@@ -132,7 +115,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Indexdatei
 ```
 
-### 3.3 Geschäftswissen-Basis-Initialisierung
+### 3.2 Geschäftswissen-Basis-Initialisierung
 
 **Konversationsbeispiel**:
 ```
@@ -465,11 +448,29 @@ speccrew update
 
 > **Hinweis**: Beide Schritte müssen ausgeführt werden. Nur `speccrew update` auszuführen aktualisiert nicht das CLI-Tool selbst; nur `npm install` auszuführen aktualisiert nicht die Dateien im Projekt.
 
-### Q5: Wie historische Iterationen ansehen?
+### Q5: `speccrew update` zeigt neue Version verfügbar an, aber `npm install -g speccrew@latest` installiert trotzdem die alte Version?
+
+Dies wird normalerweise durch den npm-Cache verursacht. Lösung:
+
+```bash
+# npm-Cache leeren und neu installieren
+npm cache clean --force
+npm install -g speccrew@latest
+
+# Version überprüfen
+npm list -g speccrew
+```
+
+Wenn es immer noch nicht funktioniert, versuchen Sie die Installation mit einer spezifischen Versionsnummer:
+```bash
+npm install -g speccrew@0.5.6
+```
+
+### Q6: Wie historische Iterationen ansehen?
 
 Nach Archivierung in `speccrew-workspace/iteration-archives/` ansehen, organisiert nach `{nummer}-{typ}-{name}-{date}/` Format.
 
-### Q6: Muss die Wissensbasis regelmäßig aktualisiert werden?
+### Q7: Muss die Wissensbasis regelmäßig aktualisiert werden?
 
 Neuinitialisierung ist in folgenden Situationen erforderlich:
 - Große Änderungen an der Projektstruktur
@@ -484,7 +485,6 @@ Neuinitialisierung ist in folgenden Situationen erforderlich:
 
 | Phase | Agent | Start-Konversation |
 |-------|-------|-------------------|
-| Diagnose | Team Leader | `@speccrew-team-leader Projekt diagnostizieren` |
 | Initialisierung | Team Leader | `@speccrew-team-leader technische Wissensbasis initialisieren` |
 | Anforderungsanalyse | Product Manager | `@speccrew-product-manager Ich habe eine neue Anforderung: [Beschreibung]` |
 | Feature Design | Feature Designer | `@speccrew-feature-designer Feature Design starten` |
@@ -518,5 +518,5 @@ Neuinitialisierung ist in folgenden Situationen erforderlich:
 ## Nächste Schritte
 
 1. `speccrew init --ide qoder` ausführen um Ihr Projekt zu initialisieren
-2. Schritt Null ausführen: Projektdiagnose und Wissensbasis-Initialisierung
+2. Schritt Null ausführen: Wissensbasis-Initialisierung
 3. Durchlaufen Sie jede Phase nach dem Workflow und genießen Sie die specification-driven Entwicklungserfahrung!
