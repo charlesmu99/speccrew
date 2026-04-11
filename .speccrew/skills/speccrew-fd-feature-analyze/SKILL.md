@@ -144,6 +144,7 @@ After user confirms (or if skipped):
 ```bash
 node speccrew-workspace/scripts/update-progress.js write-checkpoint \
   --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --stage 02_feature_design \
   --checkpoint function_decomposition \
   --passed true
 ```

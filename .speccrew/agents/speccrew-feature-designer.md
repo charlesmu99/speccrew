@@ -355,9 +355,9 @@ If only **1 Feature** in registry:
 
 If **2+ Features** in registry:
 
-1. **Initialize/Update DISPATCH-PROGRESS.json**:
+1. **Initialize DISPATCH-PROGRESS.json**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js init-dispatch --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks "F-CRM-01,F-CRM-02,F-CRM-03"
+   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks "[{\"id\":\"F-CRM-01\"},{\"id\":\"F-CRM-02\"},{\"id\":\"F-CRM-03\"}]"
    ```
 
 2. **Dispatch Workers** (batch of 6):
@@ -408,9 +408,9 @@ If only **1 Feature** in registry:
 
 #### Multiple Features (Worker Dispatch)
 
-1. **Update DISPATCH-PROGRESS.json**:
+1. **Initialize DISPATCH-PROGRESS.json for Design & Generate stage**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-stage --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec
+   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks "[{\"id\":\"F-CRM-01\"},{\"id\":\"F-CRM-02\"},{\"id\":\"F-CRM-03\"}]"
    ```
 
 2. **Dispatch Workers** (batch of 6):
@@ -470,7 +470,7 @@ If only **1 Feature** in registry:
    - If user requests modification for specific Feature → Re-dispatch design worker for that Feature only
    - If user confirms → Update `.checkpoints.json`:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json --checkpoint feature_spec_review --passed true
+     node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true
      ```
 
 ---
@@ -483,7 +483,7 @@ When any worker (analyze/design) reports failure:
 
 2. **Update status**: Set the failed feature's status in `.checkpoints.json`:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task {feature_id} --status failed --error "[{phase}] {error_message}"
+   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[{phase}] {error_message}"
    ```
 
 3. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.

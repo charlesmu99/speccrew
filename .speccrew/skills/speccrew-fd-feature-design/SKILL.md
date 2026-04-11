@@ -325,6 +325,7 @@ After user confirms (or if skipped):
 ```bash
 node speccrew-workspace/scripts/update-progress.js write-checkpoint \
   --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --stage 02_feature_design \
   --checkpoint feature_design_review \
   --passed true
 ```
@@ -414,6 +415,7 @@ Set final checkpoint status:
 ```bash
 node speccrew-workspace/scripts/update-progress.js write-checkpoint \
   --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --stage 02_feature_design \
   --checkpoint feature_spec_review \
   --passed true
 ```
