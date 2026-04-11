@@ -31,6 +31,7 @@ This skill applies ISA-95 Stages 1-3 as an internal thinking framework for analy
 1. **FORBIDDEN: Script execution failure** — If `update-progress.js` fails, HARD STOP and report error
 2. **FORBIDDEN: Hand-written `.checkpoints.json`** — ALWAYS use `update-progress.js` script
 3. **FORBIDDEN: Skip Checkpoint A** — User confirmation required before proceeding to design phase (unless `skip_checkpoint=true`)
+4. **FORBIDDEN: Rename features** — Output filename MUST use the exact `feature_name` parameter value. DO NOT translate, abbreviate, paraphrase, or substitute with alternative names found in PRD content. The `feature_name` parameter is the SINGLE SOURCE OF TRUTH for file naming.
 
 ## Step 1: Read PRD Input
 
@@ -162,6 +163,11 @@ Write analysis results to `.feature-analysis.md`:
 | With feature_id | `{prd_parent}/02.feature-design/{feature-id}-{feature-name}.feature-analysis.md` |
 | Legacy mode | `{prd_parent}/02.feature-design/.feature-analysis.md` |
 
+**CRITICAL — Filename Lock Rule:**
+- `{feature-name}` in the output path MUST be the exact value of the `feature_name` parameter
+- If PRD uses a different name for the same feature → use `feature_name` parameter for filename, note the discrepancy in the document header
+- Example: parameter `feature_name = "店铺信息管理"` → filename MUST contain "店铺信息管理", NOT "shop-management" or "多店切换"
+
 ### Output Structure
 
 ```markdown
@@ -191,6 +197,12 @@ Write analysis results to `.feature-analysis.md`:
 - **Backend Changes**: {description}
 - **Data Changes**: {description}
 - **System Relationship**: [EXISTING]/[MODIFIED]/[NEW] — {explanation}
+
+## Name Discrepancy Notice (if applicable)
+- Parameter feature_name: {feature_name}
+- PRD actual feature name: {prd_name}
+- Discrepancy: {description}
+- File naming follows: parameter value (as per Filename Lock Rule)
 
 ## Decomposition Status
 - Checkpoint A: {passed/pending}

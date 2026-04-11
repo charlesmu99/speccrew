@@ -59,6 +59,7 @@ Phase 4: API Contract Generation
 | Phase 4 | HARD STOP | Joint Confirmation must be confirmed by user before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT attempt to generate content manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js script. Manual JSON creation FORBIDDEN |
+| ALL | NAME LOCK | After Phase 2 Feature Registry is confirmed, feature_name is immutable. All Skills MUST use the exact parameter value for output filenames. Name translation or substitution is FORBIDDEN |
 
 ## ABORT CONDITIONS
 
@@ -284,6 +285,15 @@ After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
    - Feature Spec worker done → set `feature_spec_status` = `completed`
    - API Contract worker done → set `api_contract_status` = `completed`
 
+### 2.5a Feature Name Normalization
+
+Before presenting the Feature Registry to user:
+
+1. **Extract exact names** from PRD Section 3.4 table — use the name column value verbatim
+2. **Store as-is** in `.checkpoints.json` `feature_name` field — no translation, no slug conversion
+3. **Validate uniqueness**: Ensure no two Features share the same `feature_name`
+4. **Language rule**: `feature_name` MUST preserve the PRD's original language (Chinese names stay Chinese)
+
 5. **Present Feature Registry to user for confirmation**:
 
    Display the full feature table:
@@ -328,6 +338,7 @@ When involving related business domains, read `speccrew-workspace/knowledges/biz
 > 4. **DO NOT generate Feature Spec documents yourself.** Your role is to DISPATCH workers.
 > 5. **Phase 3a → 3b → 3c is STRICTLY SERIAL.** Each phase must complete before the next begins.
 > 6. **Intermediate artifacts are MANDATORY.** .feature-analysis.md must exist before Phase 3b.
+> 7. **Feature name is LOCKED after Phase 2 confirmation.** All Worker dispatch parameters MUST use the exact `feature_name` from `.checkpoints.json`. DO NOT derive, translate, or modify feature names at any point after the Feature Registry is confirmed.
 
 ---
 
@@ -366,7 +377,7 @@ If **2+ Features** in registry:
      - `context`:
        - `prd_path`: Path to Sub-PRD
        - `feature_id`: Feature ID
-       - `feature_name`: Feature name
+       - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
        - `feature_type`: `Page+API` or `API-only`
        - `iteration_id`: Current iteration
        - `frontend_platforms`: Platform list
@@ -420,7 +431,7 @@ If only **1 Feature** in registry:
        - `feature_analysis_path`: Path to `.feature-analysis.md`
        - `prd_path`: Path to Sub-PRD
        - `feature_id`: Feature ID
-       - `feature_name`: Feature name
+       - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
        - `feature_type`: `Page+API` or `API-only`
        - `frontend_platforms`: Platform list
        - `output_path`: Path for final spec

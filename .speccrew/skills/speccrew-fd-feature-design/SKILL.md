@@ -39,6 +39,8 @@ ISA-95 Stages 4-6 as internal thinking framework:
 
 **NOTE:** Design process is internal — no intermediate design-data files are produced.
 
+**FORBIDDEN: Rename features** — Output filename MUST use the exact `feature_name` parameter value. DO NOT translate, abbreviate, paraphrase, or substitute with names derived from analysis content. The `feature_name` parameter is the SINGLE SOURCE OF TRUTH for file naming.
+
 ## Step 0: Precondition Check
 
 ### Step 0 Input Parameters
@@ -65,6 +67,15 @@ ISA-95 Stages 4-6 as internal thinking framework:
    - `feature_type`: From analysis file or parameter (`Page+API` or `API-only`)
    - `functions[]`: Function breakdown list
    - `platforms[]`: Frontend platforms list
+
+### 0.3 Verify Feature Name Consistency
+
+1. Read the `Feature Name` field from `.feature-analysis.md` header
+2. Compare with `feature_name` parameter
+3. If different:
+   - Log: "⚠️ Name discrepancy: parameter='{feature_name}', analysis='{analysis_name}'"
+   - Continue with `feature_name` parameter value for all file naming
+   - Use the analysis file's actual content (not its filename) for design work
 
 ## Step 1: Frontend Design
 
@@ -349,6 +360,11 @@ Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
 **Legacy Master-Sub Mode** (backward compatibility):
 - Master Spec: `{iteration_path}/02.feature-design/[master-name]-feature-spec.md`
 - Sub Specs: `{iteration_path}/02.feature-design/[sub-name]-feature-spec.md` (one per sub-feature)
+
+**CRITICAL — Filename Lock Rule:**
+- `{feature_name}` in the output path MUST be the exact value of the `feature_name` parameter
+- If analysis file uses a different name → use `feature_name` parameter for filename
+- Example: parameter `feature_name = "店铺信息管理"` → filename MUST contain "店铺信息管理", NOT "shop-management" or "多店切换"
 
 ### 5.2 Copy Template
 
