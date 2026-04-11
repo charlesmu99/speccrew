@@ -195,7 +195,7 @@
 
 #### 2.1.2 Interaction Flow
 
-<!-- AI-NOTE: Use Mermaid sequenceDiagram to show the flow: User → Frontend → Backend API → Data Store. NO style definitions allowed. NO HTML tags. -->
+<!-- AI-NOTE: Use Mermaid sequenceDiagram to show the flow: User → Frontend → Backend API → Data Store. NO style definitions allowed. NO HTML tags. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN. -->
 
 ```mermaid
 sequenceDiagram
@@ -250,7 +250,7 @@ sequenceDiagram
 
 **Processing Logic:**
 
-<!-- AI-NOTE: Use Mermaid flowchart TD to show the processing logic for each core interface. Show: business validation → data operation → response. NO style definitions allowed. -->
+<!-- AI-NOTE: Use Mermaid flowchart TD to show the processing logic for each core interface. Show: business validation → data operation → response. NO style definitions allowed. CRITICAL: This section MUST contain mermaid syntax. Plain text or ASCII flowcharts are FORBIDDEN. -->
 
 ```mermaid
 flowchart TD

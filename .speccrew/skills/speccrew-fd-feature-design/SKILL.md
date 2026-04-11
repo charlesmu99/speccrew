@@ -36,6 +36,7 @@ ISA-95 Stages 4-6 as internal thinking framework:
 
 **MANDATORY:**
 - Template-first workflow — Step 5 (copy template) MUST precede Step 6 (fill content)
+- **Mermaid for all diagrams** — ALL interaction flows, processing logic flows, and cross-function sequences MUST use Mermaid syntax (`sequenceDiagram`, `flowchart TD`). Plain text ASCII flowcharts are FORBIDDEN for these sections. Reference: `speccrew-workspace/docs/rules/mermaid-rule.md`.
 
 **NOTE:** Design process is internal — no intermediate design-data files are produced.
 
@@ -170,6 +171,8 @@ Create ASCII wireframes showing layout, UI elements, navigation.
 
 Document: `User Action → Frontend Response → Backend API Call`
 
+**Output format: Mermaid `sequenceDiagram`** — Generate interaction flows as Mermaid sequence diagrams showing: User → Frontend → Backend API → Data Store. DO NOT use ASCII text charts.
+
 > **ISA-95 Stage 4 Thinking — Information Flows**
 > - Cross-module flows: Map data flows between feature and other modules
 > - Sequence coverage: Complete chain user→frontend→backend→database→external
@@ -198,6 +201,8 @@ Document: `User Action → Frontend Response → Backend API Call`
 | Business Logic | Core processing steps (conceptual) |
 | Data Operations | What data to read/write |
 | Response | What data to return |
+
+**Output format: Mermaid `flowchart TD`** — Generate processing logic as Mermaid flowcharts showing: business validation → data operation → response. DO NOT use ASCII text charts.
 
 ### 2.3 Data Access Scheme
 
@@ -396,6 +401,13 @@ Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
 | 5. API Contract Summary | Aggregated from Step 2.1 API List |
 | 6. Notes | Contextual notes from analysis |
 
+**CRITICAL — Diagram Format Rule:**
+- "交互流程" / "Interaction Flow" sections → MUST use Mermaid `sequenceDiagram`
+- "核心业务逻辑" / "Processing Logic" sections → MUST use Mermaid `flowchart TD`
+- "跨函数流程" / "Cross-Function Flow" sections → MUST use Mermaid `sequenceDiagram`
+- Plain text / ASCII flowcharts are FORBIDDEN in these sections
+- Reference: `speccrew-workspace/docs/rules/mermaid-rule.md` for syntax compliance
+
 ### Filling Rules
 
 - Use `search_replace` for each section individually
@@ -471,7 +483,9 @@ Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review pass
 - [ ] Output path determined
 - [ ] Template copied using `create_file`
 - [ ] All sections filled using `search_replace`
-- [ ] Mermaid diagrams verified for compliance
+- [ ] **[CRITICAL]** Interaction Flow uses Mermaid sequenceDiagram (NOT ASCII)
+- [ ] **[CRITICAL]** Processing Logic uses Mermaid flowchart TD (NOT ASCII)
+- [ ] All Mermaid diagrams follow mermaid-rule.md compliance rules
 - [ ] `.checkpoints.json` updated via script
 - [ ] No technology decisions included
 - [ ] No intermediate design-data artifact created
