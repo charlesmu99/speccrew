@@ -34,8 +34,6 @@
  *      --output <text>         任务输出（completed 时使用）
  *      --error <text>          错误信息（failed 时使用）
  *      --error-category <cat>  错误类别（failed 时使用）
- *      --started-at <iso>      覆盖 started_at 时间戳
- *      --completed-at <iso>    覆盖 completed_at 时间戳
  *
  * 4. update-counts - 强制重算计数
  *    node update-progress.js update-counts --file <path>
@@ -56,9 +54,6 @@
  *      --stage <name>          阶段名称（必需）
  *      --status <status>       状态：pending/in_progress/completed/confirmed（必需）
  *      --output <text>         输出信息（可选）
- *      --started-at <iso>      覆盖 started_at 时间戳
- *      --completed-at <iso>    覆盖 completed_at 时间戳
- *      --confirmed-at <iso>    覆盖 confirmed_at 时间戳
  *
  * 输出格式：
  *   成功：{"success": true, "message": "...", "data": {...}}
@@ -555,24 +550,24 @@ function cmdUpdateTask(args) {
         task.status = args.status;
         task.updated_at = now;
 
-        // 根据状态自动设置时间戳
+        // 根据状态自动设置时间戳（始终使用脚本生成的真实时间，不接受外部参数）
         if (args.status === 'in_progress') {
-            task.started_at = args.startedAt || now;
+            task.started_at = now;
         } else if (args.status === 'partial') {
             // partial 状态：部分完成，可能已有 started_at，可选设置 completed_at
             if (!task.started_at) {
-                task.started_at = args.startedAt || now;
+                task.started_at = now;
             }
             if (args.output) {
                 task.output = args.output;
             }
         } else if (args.status === 'completed') {
-            task.completed_at = args.completedAt || now;
+            task.completed_at = now;
             if (args.output) {
                 task.output = args.output;
             }
         } else if (args.status === 'failed') {
-            task.completed_at = args.completedAt || now;
+            task.completed_at = now;
             if (args.error) {
                 task.error = args.error;
             }
@@ -750,16 +745,16 @@ function cmdUpdateWorkflow(args) {
         // 更新状态
         stage.status = args.status;
 
-        // 根据状态自动设置时间戳
+        // 根据状态自动设置时间戳（始终使用脚本生成的真实时间，不接受外部参数）
         if (args.status === 'in_progress') {
             // 如 started_at 已有值则不覆盖
             if (!stage.started_at) {
-                stage.started_at = args.startedAt || now;
+                stage.started_at = now;
             }
         } else if (args.status === 'completed') {
-            stage.completed_at = args.completedAt || now;
+            stage.completed_at = now;
         } else if (args.status === 'confirmed') {
-            stage.confirmed_at = args.confirmedAt || now;
+            stage.confirmed_at = now;
         }
 
         // 更新输出

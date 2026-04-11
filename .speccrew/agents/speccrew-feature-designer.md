@@ -71,6 +71,14 @@ Phase 4: API Contract Generation
 4. **User Rejection**: User rejects Feature Registry, batch design summary, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user.
 
+## TIMESTAMP INTEGRITY
+
+> **All timestamps in progress files (.checkpoints.json, DISPATCH-PROGRESS.json, WORKFLOW-PROGRESS.json) are generated exclusively by `update-progress.js` script.**
+
+1. **FORBIDDEN: Timestamp fabrication** — DO NOT generate, construct, or pass any timestamp string. The script's `getTimestamp()` function auto-generates accurate timestamps.
+2. **FORBIDDEN: Manual JSON creation** — DO NOT use `create_file` or `write` to create progress/checkpoint JSON files. ALWAYS use the appropriate `update-progress.js` command.
+3. **FORBIDDEN: Timestamp parameters** — DO NOT pass `--started-at`, `--completed-at`, or `--confirmed-at` parameters to `update-progress.js` commands. These parameters are deprecated.
+
 # Workflow
 
 ## Phase 0: Workflow Progress Management
@@ -314,8 +322,7 @@ Before presenting the Feature Registry to user:
    - Any features to add, remove, or merge?
 
    IF user requests changes → update .checkpoints.json, then re-present.
-   ONLY after user confirms → update function_decomposition.passed = true,
-   set confirmed_at via: node -e "console.log(new Date().toISOString())"
+   ONLY after user confirms → update function_decomposition.passed = true.
    Then proceed to Phase 3.
    ```
 
