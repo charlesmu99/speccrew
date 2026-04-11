@@ -1,7 +1,7 @@
 ---
 name: speccrew-fd-feature-design
-description: Feature Design SOP. Transforms function decomposition into complete feature specifications including frontend prototypes, backend interface logic, and data model design. Reads .feature-analysis.md as input and outputs .feature-design-data.md as interface contract for downstream generate skill. Does not involve specific technology implementation details.
-tools: Read, Write, Glob, Grep
+description: Feature Design & Spec Generation SOP. Reads .feature-analysis.md and PRD documents, performs frontend/backend/data design, and generates complete Feature Spec document using template-first workflow. Combines design thinking with document generation in a single pass, without producing any intermediate design-data artifacts. Use when Feature Designer needs to produce Feature Spec from completed analysis.
+tools: Read, Write, Glob, Grep, search_replace
 ---
 
 # Methodology Foundation
@@ -20,45 +20,55 @@ ISA-95 Stages 4-6 as internal thinking framework:
 
 - Function decomposition completed (`.feature-analysis.md` exists)
 - Checkpoint A passed (function breakdown confirmed)
-- User requests feature specifications design
+- Feature Spec document generation needed
 
 # Workflow
 
 ## Absolute Constraints
 
-**ABORT CONDITIONS:** `.feature-analysis.md` does not exist OR Checkpoint A not passed → HARD STOP
+**ABORT CONDITIONS:**
+- `.feature-analysis.md` missing OR Checkpoint A not passed → HARD STOP
+- Template file missing → HARD STOP
 
-**FORBIDDEN:** `create_file` for final feature-spec documents (use template + search_replace in generate skill)
+**FORBIDDEN:**
+- `create_file` for final documents in section-fill phase — use template + search_replace
+- Full-file rewrite — use targeted search_replace per section
+
+**MANDATORY:**
+- Template-first workflow — Step 5 (copy template) MUST precede Step 6 (fill content)
+
+**NOTE:** Design process is internal — no intermediate design-data files are produced.
 
 ## Step 0: Precondition Check
 
-**MANDATORY:** Verify `.feature-analysis.md` exists.
+### Step 0 Input Parameters
 
-**IF missing → ABORT:** `ERROR: .feature-analysis.md not found. Run speccrew-fd-feature-analysis first.`
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `feature_analysis_path` | Yes | Path to `.feature-analysis.md` |
+| `prd_path` | Yes | Path to the Sub-PRD document |
+| `feature_id` | No | Feature identifier (e.g., `F-CRM-01`) |
+| `feature_name` | No | Feature name in English |
+| `feature_type` | No | `Page+API` or `API-only` |
+| `frontend_platforms` | No | List of frontend platforms |
+| `output_path` | No | Custom output path for Feature Spec (auto-generated if not provided) |
+| `skip_checkpoint` | No | Boolean, default `false`. Skip Checkpoint B if `true` (batch mode) |
 
-**Actions:**
-1. Read `.feature-analysis.md`
+### Step 0 Actions
+
+1. Read `.feature-analysis.md` at `feature_analysis_path`
 2. Verify Checkpoint A: `function_decomposition.passed == true`
-3. IF not passed → STOP
-4. Extract: feature_id, feature_name, feature_type, functions[], platforms[]
+3. IF not passed → ABORT: `ERROR: Checkpoint A not passed. Run speccrew-fd-feature-analysis first.`
+4. Extract key data:
+   - `feature_id`: From analysis file or parameter
+   - `feature_name`: From analysis file or parameter
+   - `feature_type`: From analysis file or parameter (`Page+API` or `API-only`)
+   - `functions[]`: Function breakdown list
+   - `platforms[]`: Frontend platforms list
 
-## Step 1: Determine Output Structure
+## Step 1: Frontend Design
 
-### 1.1 Single Feature Output (when feature_id provided)
-
-| Output | File Naming | Example |
-|--------|-------------|---------|
-| Single File | `{feature-id}-{feature-name}.feature-design-data.md` | `F-CRM-01-customer-list.feature-design-data.md` |
-
-### 1.2 Legacy Output (backward compatibility)
-
-When `feature_id` is NOT provided: Single PRD → Single file; Master-Sub PRD → Master + Sub files
-
-**Master Design Data MUST include:** overall overview, cross-module diagram, module boundaries, interface contracts, shared data structures.
-
-## Step 2: Frontend Design (Per Function)
-
-### 2.0 Conditional Execution
+### 1.0 Conditional Execution
 
 `feature_type = "Page+API"` → Execute design; `feature_type = "API-only"` → Skip; Not provided → Execute (backward compatibility)
 
@@ -118,7 +128,7 @@ Pattern M-C: Action Sheet
 +----------------------------------+
 ```
 
-### 2.1 UI Prototype
+### 1.1 UI Prototype
 
 Create ASCII wireframes showing layout, UI elements, navigation.
 
@@ -139,13 +149,13 @@ Create ASCII wireframes showing layout, UI elements, navigation.
 +--------------------------------------------------+
 ```
 
-### 2.2 Interface Element Descriptions
+### 1.2 Interface Element Descriptions
 
 | Element | Type | Behavior |
 |---------|------|----------|
 | {name} | {component type} | {behavior description} |
 
-### 2.3 Interaction Flow
+### 1.3 Interaction Flow
 
 Document: `User Action → Frontend Response → Backend API Call`
 
@@ -155,21 +165,21 @@ Document: `User Action → Frontend Response → Backend API Call`
 > - Interface identification: Every data exchange point = potential API endpoint
 > - Exception flows: Document alternative paths, not just happy path
 
-### 2.4 Backend API Mapping
+### 1.4 Backend API Mapping
 
 | Frontend Action | Backend API | Purpose |
 |-----------------|-------------|---------|
 | {action} | {API endpoint} | {data exchanged} |
 
-## Step 3: Backend Design (Per Function)
+## Step 2: Backend Design
 
-### 3.1 API/Interface List
+### 2.1 API/Interface List
 
 | Interface | Method | Description |
 |-----------|--------|-------------|
 | {name} | {GET/POST/PUT/DELETE} | {purpose} |
 
-### 3.2 Processing Logic Flow
+### 2.2 Processing Logic Flow
 
 | Stage | Description |
 |-------|-------------|
@@ -178,22 +188,22 @@ Document: `User Action → Frontend Response → Backend API Call`
 | Data Operations | What data to read/write |
 | Response | What data to return |
 
-### 3.3 Data Access Scheme
+### 2.3 Data Access Scheme
 
 | Operation | Data Target | Type |
 |-----------|-------------|------|
 | Read | {data} | [EXISTING]/[NEW] |
 | Write | {data} | [EXISTING]/[NEW] |
 
-### 3.4 Cross-Module Interactions
+### 2.4 Cross-Module Interactions
 
 | This Module | Interacts With | Interface | Data Exchanged |
 |-------------|----------------|-----------|----------------|
 | {module} | {other module} | {API/Event} | {what data} |
 
-## Step 4: Data Model Design
+## Step 3: Data Model & Business Rules
 
-### 4.1 New Data Structures
+### 3.1 New Data Structures
 
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
@@ -205,13 +215,13 @@ Document: `User Action → Frontend Response → Backend API Call`
 > - Semantic consistency: Align with domain glossary
 > - Relationships: Identify core relationships (1:1, 1:N, N:N)
 
-### 4.2 Modifications to Existing Data Structures
+### 3.2 Modifications to Existing Data Structures
 
 | Entity | Change Type | Details | Impact |
 |--------|-------------|---------|--------|
 | {entity} | Add/Modify/Remove field | {description} | {affected areas} |
 
-### 4.3 Data Relationships
+### 3.3 Data Relationships
 
 **New Relationships:** `EntityA --1:N--> EntityB`
 
@@ -219,13 +229,13 @@ Document: `User Action → Frontend Response → Backend API Call`
 |------------|-----------------|--------------|
 | {new} | {existing} | {1:1 / 1:N / N:M} |
 
-### 4.4 Data Source Descriptions
+### 3.4 Data Source Descriptions
 
 | Data | Source | Update Frequency |
 |------|--------|------------------|
 | {item} | {internal/external/user} | {real-time/periodic/on-demand} |
 
-## Step 5: Business Rules and Constraints
+### 3.5 Permission Rules
 
 > **ISA-95 Stage 6 Thinking — Information Descriptions**
 > - Validation: Field-level, cross-field, business logic rules
@@ -233,74 +243,182 @@ Document: `User Action → Frontend Response → Backend API Call`
 > - Permissions: Data access rules mapping to API authorization
 > - Traceability: Every rule traces back to PRD requirement
 
-### 5.1 Permission Rules
-
 | Function | Required Permission | Scope |
 |----------|---------------------|-------|
 | {function} | {permission} | {global/module/resource-specific} |
 
-### 5.2 Business Logic Rules
+### 3.6 Business Logic Rules
 
 | Rule ID | Description | Trigger | Action |
 |---------|-------------|---------|--------|
 | BR-{number} | {description} | {when applies} | {what happens} |
 
-### 5.3 Validation Rules
+### 3.7 Validation Rules
 
 | Field | Frontend Validation | Backend Validation |
 |-------|---------------------|---------------------|
 | {field} | {client rules} | {server rules} |
 
-## Step 6: Write Output Contract
+## Step 4: Checkpoint B — User Confirmation
 
-Write to `{feature-id}-{feature-name}.feature-design-data.md`:
+**Conditional Execution:** Skip if `skip_checkpoint=true`
 
-```markdown
-# Feature Design Data: {feature-name}
+### 4.1 Present Design Summary
 
-## Output Structure
-- Mode: {single-feature/legacy-master-sub}
-- Output path: {planned path}
-
-## Frontend Design
-### Platforms: {list}
-### UI Prototypes
-[Per-platform ASCII wireframes]
-### Interface Elements
-[Element tables]
-### Interaction Flows
-[Mermaid diagrams + descriptions]
-### Backend API Mapping
-[Action → API mapping tables]
-
-## Backend Design
-### API/Interface List
-[Interface tables]
-### Processing Logic
-[Logic flows]
-### Data Access Scheme
-[Operation tables]
-### Cross-Module Interactions
-[Cross-module tables]
-
-## Data Model
-### New Data Structures
-[Entity field tables]
-### Modified Data Structures
-[Modification tables]
-### Data Relationships
-[Relationship diagrams]
-### Data Sources
-[Source tables]
-
-## Business Rules
-### Permission Rules
-[Permission tables]
-### Business Logic Rules
-[Rule tables with BR-{number} IDs]
-### Validation Rules
-[Validation tables]
 ```
+╔══════════════════════════════════════════════════════════════╗
+║           FEATURE DESIGN SUMMARY - CHECKPOINT B              ║
+╠══════════════════════════════════════════════════════════════╣
+║ Feature: {feature_name} ({feature_id})                       ║
+╠══════════════════════════════════════════════════════════════╣
+║ FUNCTIONS DESIGNED                                           ║
+║ Total: {N} functions                                         ║
+║                                                              ║
+║ Function Breakdown:                                          ║
+║ • {Function 1} - [EXISTING/MODIFIED/NEW]                     ║
+║ • {Function 2} - [EXISTING/MODIFIED/NEW]                     ║
+║ • {Function 3} - [EXISTING/MODIFIED/NEW]                     ║
+╠══════════════════════════════════════════════════════════════╣
+║ SYSTEM RELATIONSHIP SUMMARY                                  ║
+║ • [EXISTING]: {count} - Reuse existing capabilities          ║
+║ • [MODIFIED]: {count} - Enhance existing features            ║
+║ • [NEW]: {count} - Create new functionality                  ║
+╠══════════════════════════════════════════════════════════════╣
+║ FRONTEND COMPONENTS                                          ║
+║ • Platforms: {platform list}                                 ║
+║ • UI Patterns: {list of wireframe patterns used}             ║
+║ • Total Functions with UI: {count}                           ║
+╠══════════════════════════════════════════════════════════════╣
+║ BACKEND INTERFACES                                           ║
+║ • Total APIs: {count}                                        ║
+║ • New APIs: {count}                                          ║
+║ • Modified APIs: {count}                                     ║
+║ • Cross-Module Interactions: {count}                         ║
+╠══════════════════════════════════════════════════════════════╣
+║ DATA ENTITIES                                                ║
+║ • New Entities: {count}                                      ║
+║ • Modified Entities: {count}                                 ║
+║ • Business Rules: {count}                                    ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+### 4.2 HARD STOP — 5 Confirmation Questions
+
+**STOP — DO NOT PROCEED until user confirms:**
+
+1. **Function Coverage**: "Does this design cover all functions from the analysis? Are any functions missing?"
+
+2. **System Relationship Markers**: "Are the [EXISTING]/[MODIFIED]/[NEW] markers accurate for each component?"
+
+3. **UI/UX Approach**: "Do the ASCII wireframes and interaction flows match your expectations?"
+
+4. **Backend Interface Scope**: "Are the API endpoints and cross-module interactions correctly identified?"
+
+5. **Data Model Completeness**: "Does the data model cover all fields and relationships needed?"
+
+**WAIT for user confirmation before proceeding to document generation.**
+
+### 4.3 Update Checkpoints
+
+After user confirms (or if skipped):
+
+```bash
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --checkpoint feature_design_review \
+  --passed true
+```
+
+Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
+
+## Step 5: Determine Output Path & Copy Template
+
+### 5.1 Determine Output Path
+
+**Single Feature Mode** (when `feature_id` provided):
+```
+{iteration_path}/02.feature-design/{feature_id}-{feature_name}-feature-spec.md
+```
+
+**Legacy Single Mode** (backward compatibility):
+```
+{iteration_path}/02.feature-design/[feature-name]-feature-spec.md
+```
+
+**Legacy Master-Sub Mode** (backward compatibility):
+- Master Spec: `{iteration_path}/02.feature-design/[master-name]-feature-spec.md`
+- Sub Specs: `{iteration_path}/02.feature-design/[sub-name]-feature-spec.md` (one per sub-feature)
+
+### 5.2 Copy Template
+
+1. Read template: `templates/FEATURE-SPEC-TEMPLATE.md` (relative path from skill directory)
+2. Replace top-level placeholders:
+   - `[Feature Name]` → actual feature name
+   - `{Feature ID}` → actual feature ID
+   - `{Feature Name}` → actual feature name
+   - `{Page+API / API-only}` → actual feature type
+   - `{Link to Sub-PRD document}` → `prd_path` value
+3. Create document using `create_file` with template content
+4. Verify section structure exists (Sections 1-6 with proper numbering)
+
+## Step 6: Fill Sections Using search_replace
+
+### Section Mapping Table
+
+| Template Section | Data Source |
+|------------------|-------------|
+| 1. Overview (Basic Information, Feature Scope) | `.feature-analysis.md` Feature Information + summary |
+| 1.3 Relationship to Existing System | `.feature-analysis.md` System Relationships |
+| 2. Function Details | Step 1 Frontend Design + Step 2 Backend Design results (internal) |
+| 2.1.x Frontend Prototype | Step 1.1 UI Prototype results |
+| 2.1.x Interaction Flow | Step 1.3 Interaction Flow results |
+| 2.1.x Backend Interface | Step 2.1-2.3 Backend Design results |
+| 2.1.x Data Definition | Step 3.1-3.4 Data Model results |
+| 3. Cross-Function Concerns | Step 2.4 Cross-Module results |
+| 4. Business Rules & Constraints | Step 3.5-3.7 Business Rules results |
+| 5. API Contract Summary | Aggregated from Step 2.1 API List |
+| 6. Notes | Contextual notes from analysis |
+
+### Filling Rules
+
+- Use `search_replace` for each section individually
+- Preserve all section titles and numbering
+- No applicable content → "N/A"
+- Multi-platform: Create separate sub-sections per platform
+
+### Legacy Master-Sub Mode
+
+If processing Master-Sub structure:
+- Repeat Step 5+6 for each sub-spec
+- Master spec contains: Overview, Cross-module diagram, shared data structures
+- Sub specs contain: Per-feature detailed design
+
+## Step 7: Mermaid Diagram Compliance
+
+Verify all Mermaid diagrams follow compliance rules:
+
+1. **NO style definitions** — No `classDef`, `style`, or CSS-like syntax
+2. **NO HTML tags** — No `<br/>`, `<b>`, or other HTML in labels
+3. **Use standard syntax only:**
+   - `sequenceDiagram` for interaction flows
+   - `flowchart TD` for processing logic
+   - Plain text labels with standard characters
+4. **Reference:** `speccrew-workspace/docs/rules/mermaid-rule.md`
+
+**Validation:** Before finalizing, scan all Mermaid blocks for non-compliant syntax.
+
+## Step 8: Update Checkpoints
+
+Set final checkpoint status:
+
+```bash
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --checkpoint feature_spec_review \
+  --passed true
+```
+
+Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review passed."
 
 ---
 
@@ -312,19 +430,30 @@ Write to `{feature-id}-{feature-name}.feature-design-data.md`:
 | Focus on WHAT not HOW | Describe what system does, not how it's implemented |
 | ASCII Wireframes Only | Use ASCII art for UI prototypes |
 | Mermaid Compatibility | Follow mermaid-rule.md guidelines |
-| Clear Markers | Use [EXISTING]/[MODIFIED]/[NEW] markers |
+| Clear Markers | Use [EXISTING]/[MODIFIED]/[NEW] consistently |
+| Template-First | Copy template before filling content |
+| search_replace Only | Never use create_file for section updates after template copy |
+| Checkpoint B | Get user confirmation before writing files (unless skipped) |
+| No Intermediate Files | Design process is internal — do NOT output any intermediate design-data artifacts |
 
 # Checklist
 
-- [ ] `.feature-analysis.md` verified
-- [ ] Checkpoint A passed
-- [ ] Output structure determined
+- [ ] `.feature-analysis.md` verified and exists
+- [ ] Checkpoint A passed (`function_decomposition.passed == true`)
+- [ ] All input parameters resolved (feature_id, feature_name, feature_type)
+- [ ] Template file `templates/FEATURE-SPEC-TEMPLATE.md` exists
 - [ ] **[API-only]** Frontend design skipped
-- [ ] **[Page+API]** ASCII wireframes and flows included
-- [ ] **[Multi-platform]** Per-platform designs
+- [ ] **[Page+API]** ASCII wireframes created for all platforms
+- [ ] **[Multi-platform]** Per-platform designs completed
 - [ ] Backend interfaces and logic documented
-- [ ] Data model with entities and modifications
-- [ ] Business rules documented
+- [ ] Data model with entities and modifications documented
+- [ ] Business rules (permissions, logic, validation) documented
 - [ ] ISA-95 Stage 4/5/6 thinking applied
-- [ ] `.feature-design-data.md` created
+- [ ] Checkpoint B passed: design summary confirmed with user (or skipped)
+- [ ] Output path determined
+- [ ] Template copied using `create_file`
+- [ ] All sections filled using `search_replace`
+- [ ] Mermaid diagrams verified for compliance
+- [ ] `.checkpoints.json` updated via script
 - [ ] No technology decisions included
+- [ ] No intermediate design-data artifact created

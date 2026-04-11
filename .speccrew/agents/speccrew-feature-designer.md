@@ -26,22 +26,18 @@ Phase 2: Knowledge Loading
   └── Read PRDs → Discover platforms → Extract Features
   └── Write .checkpoints.json → HARD STOP (user confirms Feature Registry)
         ↓
-Phase 3: Feature Design — Three-Stage Pipeline
+Phase 3: Feature Design — Two-Stage Pipeline
   └── 3a: Analyze (fd-feature-analyze)
   │     └── 1 Feature? → Direct skill invocation
   │     └── 2+ Features? → Batch dispatch workers (6/batch)
   │     └── Output: .feature-analysis.md per Feature
-  └── 3b: Design (fd-feature-design)
-  │     └── 1 Feature? → Direct skill invocation
-  │     └── 2+ Features? → Batch dispatch workers (6/batch)
-  │     └── Output: .feature-design-data.md per Feature
+  └── 3b: Design & Generate (fd-feature-design)
+  │     └── 1 Feature? → Direct skill invocation (with Checkpoint B)
+  │     └── 2+ Features? → Batch dispatch workers (6/batch, skip_checkpoint=true)
+  │     └── Output: {feature-id}-{feature-name}-feature-spec.md per Feature
   └── 3c: Confirm (HARD STOP for multi-Feature)
-  │     └── 1 Feature? → Checkpoint B handled inside generate skill
-  │     └── 2+ Features? → Agent presents batch summary → HARD STOP
-  └── 3d: Generate (fd-feature-generate)
-        └── 1 Feature? → Direct skill invocation (with Checkpoint B)
-        └── 2+ Features? → Batch dispatch workers (skip_checkpoint=true)
-        └── Output: {feature-id}-{feature-name}-feature-spec.md
+        └── 1 Feature? → Checkpoint B handled inside design skill
+        └── 2+ Features? → Agent presents batch summary → HARD STOP
         ↓
 Phase 4: API Contract Generation
   └── Dispatch API Contract workers (same batch pattern)
@@ -57,9 +53,8 @@ Phase 4: API Contract Generation
 | Phase 0 | STAGE GATE | PRD must be confirmed before starting. If not → STOP |
 | Phase 2 | HARD STOP | Feature Registry must be confirmed by user before Phase 3 |
 | Phase 3a | SKILL-ONLY | Analyze workers MUST use speccrew-fd-feature-analyze skill. Agent MUST NOT perform function decomposition itself |
-| Phase 3b | SKILL-ONLY | Design workers MUST use speccrew-fd-feature-design skill. Agent MUST NOT design features itself |
-| Phase 3c | HARD STOP (multi) | For 2+ Features: Agent MUST present batch summary and wait for user confirmation before generating |
-| Phase 3d | SKILL-ONLY | Generate workers MUST use speccrew-fd-feature-generate skill. Agent MUST NOT write Feature Spec documents itself |
+| Phase 3b | SKILL-ONLY | Design & Generate workers MUST use speccrew-fd-feature-design skill. Agent MUST NOT design features or write Feature Spec documents itself |
+| Phase 3c | HARD STOP (multi) | For 2+ Features: Agent MUST present batch summary and wait for user confirmation after Feature Specs are generated |
 | Phase 4 | SKILL-ONLY | API Contract workers MUST use speccrew-fd-api-contract skill |
 | Phase 4 | HARD STOP | Joint Confirmation must be confirmed by user before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT attempt to generate content manually as fallback |
@@ -71,7 +66,7 @@ Phase 4: API Contract Generation
 
 1. **Skill Invocation Failure**: Any skill call returns error → STOP. Do NOT generate content manually.
 2. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
-3. **Missing Intermediate Artifacts**: `.feature-analysis.md` missing before Phase 3b, or `.feature-design-data.md` missing before Phase 3d → STOP.
+3. **Missing Intermediate Artifacts**: `.feature-analysis.md` missing before Phase 3b → STOP.
 4. **User Rejection**: User rejects Feature Registry, batch design summary, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user.
 
@@ -324,15 +319,15 @@ When involving related business domains, read `speccrew-workspace/knowledges/biz
 - Technical architecture documents (handled by speccrew-system-designer)
 - Code conventions (handled by speccrew-system-designer/speccrew-dev)
 
-## Phase 3: Feature Design — Three-Stage Pipeline
+## Phase 3: Feature Design — Two-Stage Pipeline
 
 > ⚠️ **MANDATORY RULES FOR PHASE 3:**
 > 1. **DO NOT ask user which strategy to use** — the strategy is determined by Phase 2 extraction results.
 > 2. **DO NOT invoke skills directly** when there are multiple Features. You MUST dispatch `speccrew-task-worker` agents.
 > 3. **Dispatch granularity is PER FEATURE, not per module.** Each Feature gets its own worker per phase.
 > 4. **DO NOT generate Feature Spec documents yourself.** Your role is to DISPATCH workers.
-> 5. **Phase 3a → 3b → 3c → 3d is STRICTLY SERIAL.** Each phase must complete before the next begins.
-> 6. **Intermediate artifacts are MANDATORY.** .feature-analysis.md must exist before Phase 3b. .feature-design-data.md must exist before Phase 3d.
+> 5. **Phase 3a → 3b → 3c is STRICTLY SERIAL.** Each phase must complete before the next begins.
+> 6. **Intermediate artifacts are MANDATORY.** .feature-analysis.md must exist before Phase 3b.
 
 ---
 
@@ -388,15 +383,17 @@ If **2+ Features** in registry:
 
 ---
 
-### Phase 3b: Design — Feature Specification
+### Phase 3b: Design & Generate — Feature Spec Production
 
-**Purpose**: Transform function decomposition into complete feature specifications.
+**Purpose**: Transform function decomposition into complete Feature Spec documents in a single pass (design + document generation).
 
 **Prerequisite**: All Phase 3a outputs exist (`.feature-analysis.md` for each Feature)
 
 **Skill**: `speccrew-fd-feature-design/SKILL.md`
 
 #### Single Feature (Direct Invocation)
+
+If only **1 Feature** in registry:
 
 - Skill path: `speccrew-fd-feature-design/SKILL.md`
 - Parameters:
@@ -406,12 +403,14 @@ If **2+ Features** in registry:
   - `feature_name`: Feature name
   - `feature_type`: `Page+API` or `API-only`
   - `frontend_platforms`: Platform list
+  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+- Checkpoint B handled inside skill (user confirmation before writing)
 
 #### Multiple Features (Worker Dispatch)
 
 1. **Update DISPATCH-PROGRESS.json**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-stage --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_design
+   node speccrew-workspace/scripts/update-progress.js update-stage --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec
    ```
 
 2. **Dispatch Workers** (batch of 6):
@@ -424,22 +423,27 @@ If **2+ Features** in registry:
        - `feature_name`: Feature name
        - `feature_type`: `Page+API` or `API-only`
        - `frontend_platforms`: Platform list
+       - `output_path`: Path for final spec
+       - `skip_checkpoint`: `true` (batch mode — Checkpoint B deferred to Phase 3c)
 
-3. **Wait for batch completion**, update progress
+3. **Wait for batch completion**, update progress per worker
 
-**Output**: One `.feature-design-data.md` per Feature
+4. **Update `.checkpoints.json`** for each completed Feature:
+   - Set `feature_spec_status` = `completed`
+
+**Output**: One `{feature-id}-{feature-name}-feature-spec.md` per Feature
 
 ---
 
-### Phase 3c: Confirm — Batch Design Review (Multi-Feature Only)
+### Phase 3c: Confirm — Batch Spec Review (Multi-Feature Only)
 
 **Condition**: Execute ONLY when 2+ Features exist
 
-**Purpose**: Present batch design summary and obtain user confirmation before final generation.
+**Purpose**: Present batch Feature Spec summary and obtain user confirmation before proceeding to API Contract generation.
 
-1. **Read all `.feature-design-data.md` files**
+1. **Read all `feature-spec.md` files** generated in Phase 3b
 
-2. **Build Batch Design Summary**:
+2. **Build Batch Spec Summary**:
 
    | Feature ID | Feature Name | Functions | Frontend Components | APIs | Data Entities |
    |------------|--------------|-----------|---------------------|------|---------------|
@@ -449,7 +453,7 @@ If **2+ Features** in registry:
 
 3. **Present to User**:
    ```
-   📋 Batch Design Summary
+   📋 Batch Feature Spec Summary
    
    Total Features: {N}
    ├── Functions Designed: {total}
@@ -459,73 +463,23 @@ If **2+ Features** in registry:
    
    [Summary table above]
    
-   ⚠️ HARD STOP — Please review all designs before proceeding to document generation.
+   ⚠️ HARD STOP — Please review all Feature Specs before proceeding to API Contract generation.
    ```
 
 4. **HARD STOP**: Wait for user confirmation
    - If user requests modification for specific Feature → Re-dispatch design worker for that Feature only
-   - If user confirms → Update `.checkpoints.json` for all Features:
+   - If user confirms → Update `.checkpoints.json`:
      ```bash
      node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json --checkpoint feature_spec_review --passed true
      ```
 
 ---
 
-### Phase 3d: Generate — Document Assembly
-
-**Purpose**: Assemble final Feature Spec documents from design data.
-
-**Prerequisite**: 
-- Single Feature: Phase 3b complete
-- Multi-Feature: Phase 3c confirmation passed
-
-**Skill**: `speccrew-fd-feature-generate/SKILL.md`
-
-#### Single Feature (Direct Invocation)
-
-- Skill path: `speccrew-fd-feature-generate/SKILL.md`
-- Parameters:
-  - `feature_analysis_path`: Path to `.feature-analysis.md`
-  - `feature_design_data_path`: Path to `.feature-design-data.md`
-  - `feature_id`: Feature ID
-  - `feature_name`: Feature name
-  - `feature_type`: `Page+API` or `API-only`
-  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
-- Checkpoint B handled inside skill (user confirmation before writing)
-
-#### Multiple Features (Worker Dispatch)
-
-1. **Update DISPATCH-PROGRESS.json**:
-   ```bash
-   node speccrew-workspace/scripts/update-progress.js update-stage --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_generate
-   ```
-
-2. **Dispatch Workers** (batch of 6):
-   - Each worker receives:
-     - `skill_path`: `speccrew-fd-feature-generate/SKILL.md`
-     - `context`:
-       - `feature_analysis_path`: Path to `.feature-analysis.md`
-       - `feature_design_data_path`: Path to `.feature-design-data.md`
-       - `feature_id`: Feature ID
-       - `feature_name`: Feature name
-       - `feature_type`: `Page+API` or `API-only`
-       - `output_path`: Path for final spec
-       - `skip_checkpoint`: `true` (Checkpoint B already done in Phase 3c)
-
-3. **Wait for batch completion**
-
-4. **Update `.checkpoints.json`** for each completed Feature:
-   - Set `feature_spec_status` = `completed`
-
-**Output**: One `{feature-id}-{feature-name}-feature-spec.md` per Feature
-
----
-
 ### Phase 3 Error Handling
 
-When any worker (analyze/design/generate) reports failure:
+When any worker (analyze/design) reports failure:
 
-1. **Identify Phase**: Record which phase failed (3a/3b/3d) and which skill
+1. **Identify Phase**: Record which phase failed (3a/3b) and which skill
 
 2. **Update status**: Set the failed feature's status in `.checkpoints.json`:
    ```bash
