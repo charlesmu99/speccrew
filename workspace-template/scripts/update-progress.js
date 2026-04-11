@@ -225,7 +225,10 @@ function parseArgs() {
         description: null,
         startedAt: null,
         completedAt: null,
-        confirmedAt: null
+        confirmedAt: null,
+        featuresDir: null,
+        platforms: null,
+        force: false
     };
 
     // 第一个参数是命令
@@ -313,6 +316,18 @@ function parseArgs() {
             case '--overview':
             case '-Overview':
                 result.overview = true;
+                break;
+            case '--features-dir':
+            case '-Features-Dir':
+                result.featuresDir = args[++i];
+                break;
+            case '--platforms':
+            case '-Platforms':
+                result.platforms = args[++i];
+                break;
+            case '--force':
+            case '-Force':
+                result.force = true;
                 break;
         }
     }
@@ -785,6 +800,154 @@ function cmdUpdateWorkflow(args) {
     }
 }
 
+/**
+ * 命令：init-tasks - 扫描 feature-design 目录生成任务列表
+ */
+function cmdInitTasks(args) {
+    // 参数验证
+    if (!args.file || !args.stage || !args.featuresDir || !args.platforms) {
+        outputError('Usage: init-tasks --file <path> --stage <stage_name> --features-dir <dir> --platforms <comma-separated> [--force]');
+    }
+
+    const filePath = path.resolve(args.file);
+    const featuresDir = path.resolve(args.featuresDir);
+    const platforms = args.platforms.split(',').map(p => p.trim()).filter(p => p);
+    
+    // 验证 platforms 非空
+    if (platforms.length === 0) {
+        outputError('Platforms list cannot be empty');
+    }
+
+    // 验证 features-dir 存在
+    if (!fs.existsSync(featuresDir)) {
+        outputError(`Features directory not found: ${featuresDir}`);
+    }
+
+    // 扫描 .feature-spec.md 文件
+    const featureFiles = [];
+    const files = fs.readdirSync(featuresDir);
+    for (const file of files) {
+        if (file.endsWith('.feature-spec.md')) {
+            featureFiles.push(file);
+        }
+    }
+
+    if (featureFiles.length === 0) {
+        outputError(`No .feature-spec.md files found in: ${featuresDir}`);
+    }
+
+    // 从文件名提取 feature 信息
+    // 格式: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md
+    const featurePattern = /^(F-([A-Z]+)-\d+)-(.+)\.feature-spec\.md$/;
+    const features = [];
+
+    for (const file of featureFiles) {
+        const match = file.match(featurePattern);
+        if (match) {
+            features.push({
+                feature_id: match[1],      // F-APPT-001
+                module: match[2],           // APPT
+                name: match[3],             // 预约信息CRUD
+                file: file
+            });
+        }
+    }
+
+    if (features.length === 0) {
+        outputError('No valid feature files found. Expected format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md');
+    }
+
+    // 按 feature ID 排序
+    features.sort((a, b) => a.feature_id.localeCompare(b.feature_id));
+
+    // 检查目标文件是否已有 tasks
+    if (fs.existsSync(filePath)) {
+        const existingData = readJsonFile(filePath);
+        if (existingData.tasks && existingData.tasks.length > 0 && !args.force) {
+            outputError(`Progress file already has ${existingData.tasks.length} tasks. Use --force to overwrite.`);
+        }
+    }
+
+    // 生成任务列表
+    const tasks = [];
+    const now = getTimestamp();
+
+    // Module 排序顺序
+    const moduleOrder = ['APPT', 'BASE', 'CUST', 'EMP', 'ITEM', 'KNW', 'REPORT', 'REV', 'SERV'];
+    const getModuleIndex = (module) => {
+        const idx = moduleOrder.indexOf(module);
+        return idx === -1 ? 999 : idx;
+    };
+
+    // 按 module 分组
+    const featuresByModule = {};
+    for (const feature of features) {
+        if (!featuresByModule[feature.module]) {
+            featuresByModule[feature.module] = [];
+        }
+        featuresByModule[feature.module].push(feature);
+    }
+
+    // 每个 module 内按 feature ID 排序
+    for (const module of Object.keys(featuresByModule)) {
+        featuresByModule[module].sort((a, b) => a.feature_id.localeCompare(b.feature_id));
+    }
+
+    // 按 module 顺序生成任务
+    const sortedModules = Object.keys(featuresByModule).sort((a, b) => getModuleIndex(a) - getModuleIndex(b));
+
+    for (const module of sortedModules) {
+        for (const feature of featuresByModule[module]) {
+            for (const platform of platforms) {
+                tasks.push({
+                    id: `sd-${platform}-${feature.feature_id}`,
+                    name: `System Design - ${platform} - ${feature.feature_id} ${feature.name}`,
+                    status: 'pending',
+                    platform: platform,
+                    feature_id: feature.feature_id,
+                    module: feature.module,
+                    created_at: now
+                });
+            }
+        }
+    }
+
+    // 创建进度文件结构
+    const progressData = {
+        stage: args.stage,
+        created_at: now,
+        updated_at: now,
+        counts: calculateCounts(tasks),
+        tasks: tasks,
+        checkpoints: {}
+    };
+
+    // 确保目录存在
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // 获取锁并写入
+    let lockPath = null;
+    try {
+        lockPath = acquireLock(filePath);
+        atomicWriteJson(filePath, progressData);
+        outputSuccess(
+            `Generated ${tasks.length} tasks from ${features.length} features × ${platforms.length} platforms`,
+            {
+                file: filePath,
+                stage: args.stage,
+                features_count: features.length,
+                platforms: platforms,
+                counts: progressData.counts
+            }
+        );
+    } finally {
+        if (lockPath) releaseLock(lockPath);
+    }
+}
+
 // ============================================================================
 // 主入口
 // ============================================================================
@@ -803,6 +966,7 @@ function main() {
         console.error('  update-counts    Recalculate task counts');
         console.error('  write-checkpoint Write or update a checkpoint');
         console.error('  update-workflow  Update a workflow stage status');
+        console.error('  init-tasks      Generate tasks from feature-spec files');
         console.error('');
         console.error('Run "node update-progress.js <command> --help" for more information.');
         process.exit(1);
@@ -828,6 +992,9 @@ function main() {
                 break;
             case 'update-workflow':
                 cmdUpdateWorkflow(args);
+                break;
+            case 'init-tasks':
+                cmdInitTasks(args);
                 break;
             default:
                 outputError(`Unknown command: ${args.command}`);
