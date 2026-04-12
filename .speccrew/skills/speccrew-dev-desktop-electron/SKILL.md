@@ -1,14 +1,14 @@
 ---
-name: speccrew-dev-desktop
-description: Desktop Development SOP. Guide System Developer Agent to implement desktop application code (Electron/Tauri) according to system design documents. Reads design blueprints, extracts task checklist, and executes implementation task by task with local quality checks.
-tools: Bash, Edit, Write, Glob, Grep, Read
+name: speccrew-dev-desktop-electron
+description: SpecCrew Electron Desktop Development Skill. Implements desktop application features using Electron framework based on system design documents. Handles main process (TypeScript/JavaScript), renderer process (React/Vue), IPC channels, and Electron Builder packaging.
+tools: Read, Write, Glob, Grep, Bash
 ---
 
 # Trigger Scenarios
 
-- System Designer Agent has completed desktop system design, user requests implementation
-- User asks "Start desktop development", "Implement desktop app", "Code Electron/Tauri app"
-- Detailed design documents are confirmed in `03.system-design/{platform_id}/`
+- System Designer Agent has completed Electron desktop system design
+- User asks "Start Electron development", "Implement Electron app"
+- Design documents confirmed in `03.system-design/{platform_id}/`
 
 # Workflow
 
@@ -16,7 +16,7 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 > **These rules apply to Task Record document generation. Violation = task failure.**
 
-1. **FORBIDDEN: `create_file` for Task Record** — NEVER use `create_file` to write the Task Record document. It MUST be created by copying the template then filling sections with `search_replace`. `create_file` produces truncated output on large files.
+1. **FORBIDDEN: Full-file rewrite for Task Record** — After the Task Record is initially created in Step 3.1a, NEVER use `create_file` or full-content overwrite on it. All subsequent updates MUST use targeted `search_replace` on specific sections.
 
 2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire Task Record content in a single operation. Always use targeted `search_replace` on specific sections.
 
@@ -40,19 +40,19 @@ Read in order:
 
 ## Step 2: Analyze Existing Code Structure
 
-Use Glob/Grep to understand current codebase:
+Use Glob/Grep to understand current Electron codebase:
 
 | Target | Glob Pattern | Purpose |
 |--------|-------------|---------|
-| Main process | `src/main/**/*.{ts,js}` or `src-tauri/src/**/*.rs` | Understand main process structure |
-| Renderer process | `src/renderer/**/*.{tsx,vue,html}` or `src/**/*.{tsx,vue}` | Understand renderer structure |
-| IPC definitions | `src/main/ipc/**/*` or `src-tauri/src/commands/**/*.rs` | Understand IPC channel patterns |
-| Window management | `src/main/window/**/*` or patterns with `BrowserWindow` | Understand window patterns |
+| Main process | `src/main/**/*.{ts,js}` | Understand main process structure |
+| Renderer process | `src/renderer/**/*.{tsx,vue,html}` | Understand renderer structure |
+| IPC definitions | `src/main/ipc/**/*` | Understand IPC channel patterns |
+| Window management | `src/main/window/**/*` | Understand window patterns |
 | Preload scripts | `src/preload/**/*` or `preload.{ts,js}` | Understand preload patterns |
-| Native modules | `src/main/native/**/*` or binding files | Identify native dependencies |
-| State management | `src/renderer/stores/**/*` or `src/stores/**/*` | Understand store pattern |
-| API layer | `src/renderer/apis/**/*` or `src/apis/**/*` | Understand API encapsulation |
-| Configuration files | `package.json`, `tauri.conf.json`, `electron-builder.yml` | Build and config patterns |
+| Native modules | `src/main/native/**/*` | Identify native dependencies |
+| State management | `src/renderer/stores/**/*` | Understand store pattern |
+| API layer | `src/renderer/apis/**/*` | Understand API encapsulation |
+| Configuration files | `package.json`, `electron-builder.yml` | Build and config patterns |
 
 Document findings for reference in later steps.
 
@@ -64,7 +64,9 @@ Document findings for reference in later steps.
 
 #### 3.1a Copy Template to Task Record Path
 
-1. **Read the template file**: `speccrew-dev-desktop/templates/TASK-RECORD-TEMPLATE.md`
+> Note: This is the ONLY step where `create_file` is allowed for the Task Record. All later updates in Step 4-6 MUST use `search_replace` on individual sections.
+
+1. **Read the template file**: `templates/TASK-RECORD-TEMPLATE.md`
 2. **Replace top-level placeholders** (feature name, platform ID, iteration info)
 3. **Create the document** using `create_file`:
    - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[feature-name]-task.md`
@@ -80,7 +82,7 @@ Fill each section with task checklist and design metadata extracted from input d
 > - **MUST use `search_replace` to fill each section individually**
 > - **All section titles MUST be preserved**
 
-### 3.2 Desktop-Specific Task Types
+### 3.2 Electron-Specific Task Types
 
 **Conditional Task Selection:**
 
@@ -102,28 +104,28 @@ IF task involves security configuration THEN
 ```
 
 | Task Type | Description | Example |
-|-----------|-------------|---------||
+|-----------|-------------|---------|
 | Main Process Module | Backend logic running in main process | Window manager, IPC handlers, native integrations |
 | Renderer Page/Component | UI components in renderer process | React/Vue components, pages, layouts |
-| IPC Channel Handler | Communication bridge between processes | `ipcMain.handle`, `#[tauri::command]` |
+| IPC Channel Handler | Communication bridge between processes | `ipcMain.handle`, `ipcRenderer.invoke` |
 | Preload Script | Context bridge for secure renderer access | `contextBridge.exposeInMainWorld` |
-| Window Management | Window creation, lifecycle, multi-window | BrowserWindow, Window configuration |
+| Window Management | Window creation, lifecycle, multi-window | `BrowserWindow`, window configuration |
 | Native Integration | File system, system tray, notifications | Native API wrappers |
 | Menu/Shortcut | Application menus, keyboard shortcuts | Menu templates, global shortcuts |
-| Auto-Update | Update checking and installation | electron-updater, tauri-updater |
+| Auto-Update | Update checking and installation | `electron-updater` |
 | Security Hardening | Context isolation, CSP, permissions | Preload scripts, security configs |
 
 ### Task ID Prefix
 
-Use `DT-` prefix for desktop tasks: `DT-001`, `DT-002`, etc.
+Use `EL-` prefix for Electron tasks: `EL-001`, `EL-002`, etc.
 
 ### Task Checklist Table
 
 | Task ID | Module | Description | Target Files | IPC Channel | Native Integration | Dependencies | Status |
 |---------|--------|-------------|--------------|-------------|-------------------|--------------|--------|
-| DT-001 | MainProcess | Create window manager | `src/main/window/manager.ts` | - | Window creation | - | Pending |
-| DT-002 | IPC | Implement file operations handler | `src/main/ipc/file.ts` | `file:read`, `file:write` | File system | DT-001 | Pending |
-| DT-003 | Renderer | Create main window UI | `src/renderer/pages/Main.tsx` | `file:*` | - | DT-002 | Pending |
+| EL-001 | MainProcess | Create window manager | `src/main/window/manager.ts` | - | Window creation | - | Pending |
+| EL-002 | IPC | Implement file operations handler | `src/main/ipc/file.ts` | `file:read`, `file:write` | File system | EL-001 | Pending |
+| EL-003 | Renderer | Create main window UI | `src/renderer/pages/Main.tsx` | `file:*` | - | EL-002 | Pending |
 
 **Status**: Pending / In Progress / Completed / Blocked
 
@@ -143,7 +145,7 @@ Follow dependency order:
 
 ### 4.2 Coding Standards
 
-- **Main Process**: Follow conventions-dev.md for Electron/Tauri backend code
+- **Main Process**: Follow conventions-dev.md for Electron backend code
 - **Renderer Process**: Follow frontend conventions (React/Vue/etc.)
 - **IPC Channels**: Use exact channel names from design document
 - **Types**: Use TypeScript types defined in design document
@@ -165,18 +167,10 @@ After completing each task, run the following checks:
 
 ### 5.1 Build Verification
 
-**Electron**:
 ```bash
 npm run build:dev
 # or
 npm run electron:dev
-```
-
-**Tauri**:
-```bash
-npm run tauri dev
-# or
-npm run tauri build --debug
 ```
 
 ### 5.2 Lint Check
@@ -195,7 +189,7 @@ npx tsc --noEmit
 
 ### 5.4 Security Audit
 
-Perform security checks according to Security Audit Reference (see Reference Guides section).
+Perform security checks according to Security Audit Reference.
 
 ### 5.5 Unit Tests
 
@@ -223,7 +217,7 @@ If implementation deviates from design document:
 **Record in task file**:
 ```markdown
 ### Deviation Log
-- DT-002: Changed IPC payload structure from {original} to {new} because {reason}
+- EL-002: Changed IPC payload structure from {original} to {new} because {reason}
 ```
 
 ## Step 7: Record Technical Debt
@@ -243,9 +237,9 @@ If technical debt is identified:
 After all tasks complete, present summary:
 
 ```
-Desktop Development Complete: {feature-name}
+Electron Development Complete: {feature-name}
 Platform: {platform_id}
-Framework: {Electron/Tauri}
+Framework: Electron
 
 Tasks Completed: {count}
 ├── Main Process: {count}
@@ -276,7 +270,7 @@ At the end of Step 8 (or if the skill fails at any point), output a structured T
   - {file_path_1}
   - {file_path_2}
   - ...
-- **Summary**: Desktop module {module_name} implemented with {X} tasks completed
+- **Summary**: Electron module {module_name} implemented with {X} tasks completed
 ```
 
 ### Failure Report
@@ -298,17 +292,11 @@ If the skill fails at any step:
 ```
 
 **Error Category Definitions**:
-- `DEPENDENCY_MISSING`: Required Node.js/npm or Rust dependency not available
-- `BUILD_FAILURE`: Electron/Tauri build error, native compilation failure
-- `VALIDATION_ERROR`: ESLint, TypeScript type check, Rust clippy, or test failure
+- `DEPENDENCY_MISSING`: Required Node.js/npm dependency not available
+- `BUILD_FAILURE`: Electron build error, native compilation failure
+- `VALIDATION_ERROR`: ESLint, TypeScript type check, or test failure
 - `RUNTIME_ERROR`: App crash on launch, runtime exception, IPC communication failure
 - `BLOCKED`: Blocked by external dependency, native module issue, or unresolved design issue
-
-**Verify automatically:**
-1. All IPC channels working correctly
-2. Context isolation properly configured
-3. Native integrations working as expected
-4. No security concerns introduced
 
 ---
 
@@ -330,7 +318,7 @@ If the skill fails at any step:
 | Rule | Description |
 |------|-------------|
 | **Design Document READ-ONLY** | Design documents are reference only - do not modify. Record deviations in task file. |
-| **Actual Framework Syntax** | All code MUST use actual framework/library syntax from techs knowledge |
+| **Actual Framework Syntax** | All code MUST use actual Electron API syntax |
 | **Status Markers Required** | Use [EXISTING], [MODIFIED], [NEW] markers for all components, modules, and IPC handlers |
 | **Follow Techs Conventions** | Naming, directory structure, patterns must follow techs knowledge |
 | **Security First** | Never disable contextIsolation; never enable nodeIntegration in renderer |

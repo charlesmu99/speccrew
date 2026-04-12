@@ -54,7 +54,7 @@ Unterstützte IDEs: `qoder`, `cursor`, `claude`, `codex`
 ### CLI-Befehl-Kurzanleitung
 
 | Befehl | Beschreibung |
-|---------|-------------|
+|------|------|
 | `speccrew list` | Alle verfügbaren Agents und Skills auflisten |
 | `speccrew doctor` | Installationsintegrität prüfen |
 | `speccrew update` | Projektkonfiguration auf neueste Version aktualisieren |
@@ -62,7 +62,82 @@ Unterstützte IDEs: `qoder`, `cursor`, `claude`, `codex`
 
 ---
 
-## 2. Workflow-Übersicht
+## 2. Schnellstart in 5 Minuten nach der Installation
+
+Nach dem Ausführen von `speccrew init`, folgen Sie diesen Schritten, um schnell in den Arbeitszustand zu gelangen:
+
+### Schritt 1: Wählen Sie Ihre IDE
+
+| IDE | Initialisierungsbefehl | Anwendungsszenario |
+|-----|-----------|----------|
+| **Qoder** (Empfohlen) | `speccrew init --ide qoder` | Vollständige Agent-Orchestrierung, parallele Worker |
+| **Cursor** | `speccrew init --ide cursor` | Composer-basierte Workflows |
+| **Claude Code** | `speccrew init --ide claude` | CLI-first Entwicklung |
+| **Codex** | `speccrew init --ide codex` | OpenAI-Ökosystem-Integration |
+
+### Schritt 2: Wissensbasis initialisieren (Empfohlen)
+
+Für Projekte mit bestehendem Quellcode wird empfohlen, zuerst die Wissensbasis zu initialisieren, damit Agents Ihre Codebasis verstehen:
+
+```
+@speccrew-team-leader technische Wissensbasis initialisieren
+```
+
+Dann:
+
+```
+@speccrew-team-leader Geschäftswissen-Basis initialisieren
+```
+
+### Schritt 3: Starten Sie Ihre erste Aufgabe
+
+```
+@speccrew-product-manager Ich habe eine neue Anforderung: [beschreiben Sie Ihre Funktionsanforderung]
+```
+
+> **Tipp**: Wenn Sie unsicher sind, was zu tun ist, sagen Sie einfach `@speccrew-team-leader hilf mir beim Start` — der Team Leader erkennt automatisch Ihren Projektstatus und führt Sie.
+
+---
+
+## 3. Schnellentscheidungsbaum
+
+Unsicher, was zu tun ist? Finden Sie Ihr Szenario unten:
+
+- **Ich habe eine neue Funktionsanforderung**
+  → `@speccrew-product-manager Ich habe eine neue Anforderung: [beschreiben Sie Ihre Funktionsanforderung]`
+
+- **Ich möchte existentes Projekt-Wissen scannen**
+  → `@speccrew-team-leader technische Wissensbasis initialisieren`
+  → Dann: `@speccrew-team-leader Geschäftswissen-Basis initialisieren`
+
+- **Ich möchte frühere Arbeit fortsetzen**
+  → `@speccrew-team-leader Was ist der aktuelle Fortschritt?`
+
+- **Ich möchte den Systemgesundheitszustand prüfen**
+  → Im Terminal ausführen: `speccrew doctor`
+
+- **Ich bin unsicher, was zu tun ist**
+  → `@speccrew-team-leader hilf mir beim Start`
+  → Der Team Leader erkennt automatisch Ihren Projektstatus und führt Sie
+
+---
+
+## 4. Agent-Schnellreferenz
+
+| Rolle | Agent | Verantwortlichkeiten | Beispielbefehl |
+|------|-------|-----------------|-----------------|
+| Teamleiter | `@speccrew-team-leader` | Projektnavigation, Wissensbasis-Initialisierung, Statusprüfung | "Hilf mir beim Start" |
+| Produktmanager | `@speccrew-product-manager` | Anforderungsanalyse, PRD-Generierung | "Ich habe eine neue Anforderung: ..." |
+| Feature-Designer | `@speccrew-feature-designer` | Feature-Analyse, Spezifikationsdesign, API-Verträge | "Starte Feature-Design für Iteration X" |
+| Systemdesigner | `@speccrew-system-designer` | Architekturdesign, plattformspezifisches Design | "Starte Systemdesign für Iteration X" |
+| Systementwickler | `@speccrew-system-developer` | Entwicklungskoordination, Codegenerierung | "Starte Entwicklung für Iteration X" |
+| Testmanager | `@speccrew-test-manager` | Testplanung, Falldesign, Ausführung | "Starte Test für Iteration X" |
+
+> **Hinweis**: Sie müssen sich nicht alle Agents merken. Sprechen Sie einfach mit `@speccrew-team-leader` und er leitet Ihre Anfrage an den richtigen Agent weiter.
+
+---
+
+## 5. Workflow-Übersicht
 
 ### Vollständiges Flussdiagramm
 
@@ -89,21 +164,21 @@ flowchart LR
 
 ---
 
-## 3. Schritt Null: Wissensbasis-Initialisierung
+## 6. Schritt Null: Wissensbasis-Initialisierung
 
 Bevor Sie den formellen Engineering-Prozess starten, müssen Sie die Projektwissensbasis initialisieren.
 
-### 3.1 Technische Wissensbasis-Initialisierung
+### 6.1 Technische Wissensbasis-Initialisierung
 
 **Konversationsbeispiel**:
 ```
 @speccrew-team-leader technische Wissensbasis initialisieren
 ```
 
-**Dreiphasiger Prozess**:
-1. Plattform-Erkennung — Technologieplattformen im Projekt identifizieren
-2. Technische Dokumentation-Generierung — Technische Spezifikationsdokumente für jede Plattform generieren
-3. Index-Generierung — Wissensbasis-Index erstellen
+**Drei-Phasen-Prozess**:
+1. Plattformerkennung — Identifizieren technischer Plattformen im Projekt
+2. Technische Dokumentengenerierung — Generieren technischer Spezifikationsdokumente für jede Plattform
+3. Indexgenerierung — Erstellen des Wissensbasis-Index
 
 **Liefergegenstand**:
 ```
@@ -115,18 +190,18 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Indexdatei
 ```
 
-### 3.2 Geschäftswissen-Basis-Initialisierung
+### 6.2 Geschäftswissen-Basis-Initialisierung
 
 **Konversationsbeispiel**:
 ```
 @speccrew-team-leader Geschäftswissen-Basis initialisieren
 ```
 
-**Vierphasiger Prozess**:
-1. Feature-Inventur — Code scannen um alle funktionalen Features zu identifizieren
+**Vier-Phasen-Prozess**:
+1. Feature-Inventar — Code scannen, um alle Funktionsmerkmale zu identifizieren
 2. Feature-Analyse — Geschäftslogik für jedes Feature analysieren
-3. Modul-Zusammenfassung — Features nach Modul zusammenfassen
-4. System-Zusammenfassung — System-Level-Geschäftsübersicht generieren
+3. Modulzusammenfassung — Features nach Modul zusammenfassen
+4. Systemzusammenfassung — Systemweite Geschäftsübersicht generieren
 
 **Liefergegenstand**:
 ```
@@ -139,17 +214,17 @@ speccrew-workspace/knowledges/bizs/
 
 ---
 
-## 4. Phasenweiser Konversationsleitfaden
+## 7. Phasenweiser Konversationsleitfaden
 
-### 4.1 Phase 1: Anforderungsanalyse (Product Manager)
+### 7.1 Phase 1: Anforderungsanalyse (Product Manager)
 
-**Wie zu starten**:
+**So starten Sie**:
 ```
 @speccrew-product-manager Ich habe eine neue Anforderung: [beschreiben Sie Ihre Anforderung]
 ```
 
 **Agent-Workflow**:
-1. Systemübersicht lesen um existierende Module zu verstehen
+1. Systemübersicht lesen, um bestehende Module zu verstehen
 2. Benutzeranforderungen analysieren
 3. Strukturiertes PRD-Dokument generieren
 
@@ -157,34 +232,34 @@ speccrew-workspace/knowledges/bizs/
 ```
 iterations/{nummer}-{typ}-{name}/01.product-requirement/
 ├── [feature-name]-prd.md           # Produktanforderungsdokument
-└── [feature-name]-bizs-modeling.md # Geschäftsmodellierung (für komplexe Anforderungen)
+└── [feature-name]-bizs-modeling.md # Geschäftsmodellierung (bei komplexen Anforderungen)
 ```
 
 **Bestätigungs-Checkliste**:
-- [ ] Beschreibt die Anforderung Benutzerabsichten genau?
+- [ ] Beschreibt die Anforderung genau die Benutzerabsicht?
 - [ ] Sind Geschäftsregeln vollständig?
 - [ ] Sind Integrationspunkte mit bestehenden Systemen klar?
 - [ ] Sind Akzeptanzkriterien messbar?
 
 ---
 
-### 4.2 Phase 2: Feature Design (Feature Designer)
+### 7.2 Phase 2: Feature-Design (Feature Designer)
 
-**Wie zu starten**:
+**So starten Sie**:
 ```
-@speccrew-feature-designer Feature Design starten
+@speccrew-feature-designer Feature-Design starten
 ```
 
 **Agent-Workflow**:
 1. Bestätigtes PRD-Dokument automatisch lokalisieren
 2. Geschäftswissen-Basis laden
-3. Feature Design generieren (einschließlich UI-Wireframes, Interaktionsflüsse, Datendefinitionen, API-Verträge)
-4. Für mehrere PRDs Task Worker für paralleles Design verwenden
+3. Feature-Design generieren (inkl. UI-Wireframes, Interaktionsflüsse, Datendefinitionen, API-Verträge)
+4. Bei mehreren PRDs Task Worker für paralleles Design verwenden
 
 **Liefergegenstand**:
 ```
 iterations/{iter}/02.feature-design/
-└── [feature-name]-feature-spec.md  # Feature Design Dokument
+└── [feature-name]-feature-spec.md  # Feature-Design-Dokument
 ```
 
 **Bestätigungs-Checkliste**:
@@ -195,88 +270,88 @@ iterations/{iter}/02.feature-design/
 
 ---
 
-### 4.3 Phase 3: System Design (System Designer)
+### 7.3 Phase 3: Systemdesign (System Designer)
 
-**Wie zu starten**:
+**So starten Sie**:
 ```
-@speccrew-system-designer System Design starten
+@speccrew-system-designer Systemdesign starten
 ```
 
 **Agent-Workflow**:
 1. Feature Spec und API Contract lokalisieren
 2. Technische Wissensbasis laden (Tech-Stack, Architektur, Spezifikationen für jede Plattform)
-3. **Checkpoint A**: Framework-Evaluierung — Technische Lücken analysieren, neue Frameworks empfehlen (falls benötigt), auf Benutzerbestätigung warten
+3. **Checkpoint A**: Framework-Evaluierung — Technische Lücken analysieren, neue Frameworks empfehlen (falls erforderlich), auf Benutzerbestätigung warten
 4. DESIGN-OVERVIEW.md generieren
-5. Task Worker verwenden um Design für jede Plattform parallel zu dispatchen (Frontend/Backend/Mobile/Desktop)
-6. **Checkpoint B**: Gemeinsame Bestätigung — Zusammenfassung aller Plattform-Designs anzeigen, auf Benutzerbestätigung warten
+5. Task Worker verwenden, um Design für jede Plattform parallel zu verteilen (Frontend/Backend/Mobil/Desktop)
+6. **Checkpoint B**: Gemeinsame Bestätigung — Zusammenfassung aller Plattformdesigns anzeigen, auf Benutzerbestätigung warten
 
 **Liefergegenstand**:
 ```
 iterations/{iter}/03.system-design/
-├── DESIGN-OVERVIEW.md              # Design-Übersicht
+├── DESIGN-OVERVIEW.md              # Designübersicht
 ├── {platform-id}/
-│   ├── INDEX.md                    # Plattform-Design-Index
-│   └── {module}-design.md          # Pseudocode-Level Modul-Design
+│   ├── INDEX.md                    # Plattformdesign-Index
+│   └── {module}-design.md          # Pseudocode-Level-Moduldesign
 ```
 
 **Bestätigungs-Checkliste**:
 - [ ] Verwendet der Pseudocode tatsächliche Framework-Syntax?
 - [ ] Sind plattformübergreifende API-Verträge konsistent?
-- [ ] Ist Fehlerbehandlungsstrategie vereinheitlicht?
+- [ ] Ist Fehlerbehandlungsstrategie einheitlich?
 
 ---
 
-### 4.4 Phase 4: Entwicklungsimplementierung (System Developer)
+### 7.4 Phase 4: Entwicklungsimplementierung (System Developer)
 
-**Wie zu starten**:
+**So starten Sie**:
 ```
 @speccrew-system-developer Entwicklung starten
 ```
 
 **Agent-Workflow**:
-1. System Design Dokumente lesen
+1. Systemdesigndokumente lesen
 2. Technisches Wissen für jede Plattform laden
-3. **Checkpoint A**: Umgebungsvorprüfung — Runtime-Versionen, Abhängigkeiten, Dienstverfügbarkeit prüfen; bei Fehlschlag auf Benutzerlösung warten
-4. Task Worker verwenden um Entwicklung für jede Plattform parallel zu dispatchen
-5. Integrationsprüfung: API-Vertragsausrichtung, Datenkonsistenz
+3. **Checkpoint A**: Umgebungsvorabprüfung — Runtime-Versionen, Abhängigkeiten, Dienstverfügbarkeit prüfen; bei Fehler auf Benutzerlösung warten
+4. Task Worker verwenden, um Entwicklung für jede Plattform parallel zu verteilen
+5. Integrationsprüfung: API-Vertragsabgleich, Datenkonsistenz
 6. Lieferbericht ausgeben
 
 **Liefergegenstand**:
 ```
-# Quellcode in tatsächliches Projekt-Quellverzeichnis geschrieben
+# Quellcode wird in das tatsächliche Projektquellverzeichnis geschrieben
 iterations/{iter}/04.development/
 ├── {platform-id}/
-│   └── tasks/                      # Entwicklungsaufgabenprotokolle
+│   └── tasks/                      # Entwicklungsaufzeichungen
 └── delivery-report.md
 ```
 
 **Bestätigungs-Checkliste**:
 - [ ] Ist die Umgebung bereit?
-- [ ] Sind Integrationsprobleme im akzeptablen Bereich?
+- [ ] Liegen Integrationsprobleme im akzeptablen Bereich?
 - [ ] Entspricht der Code den Entwicklungsspezifikationen?
 
 ---
 
-### 4.5 Phase 5: Systemtest (Test Manager)
+### 7.5 Phase 5: Systemtest (Test Manager)
 
-**Wie zu starten**:
+**So starten Sie**:
 ```
 @speccrew-test-manager Test starten
 ```
 
-**Dreiphasiger Testprozess**:
+**Drei-Phasen-Testprozess**:
 
 | Phase | Beschreibung | Checkpoint |
 |-------|-------------|------------|
-| Testfall-Design | Testfälle basierend auf PRD und Feature Spec generieren | A: Fall-Abdeckungsstatistiken und Rückverfolgbarkeitsmatrix anzeigen, auf Benutzerbestätigung ausreichender Abdeckung warten |
-| Testcode-Generierung | Ausführbaren Testcode generieren | B: Generierte Testdateien und Fall-Mapping anzeigen, auf Benutzerbestätigung warten |
-| Testausführung und Bug-Reporting | Tests automatisch ausführen und Berichte generieren | Keiner (automatische Ausführung) |
+| Testfalldesign | Testfälle basierend auf PRD und Feature Spec generieren | A: Fallabdeckungsstatistik und Rückverfolgbarkeitsmatrix anzeigen, auf Benutzerbestätigung ausreichender Abdeckung warten |
+| Testcodegenerierung | Ausführbaren Testcode generieren | B: Generierte Testdateien und Fallzuordnung anzeigen, auf Benutzerbestätigung warten |
+| Testausführung und Bug-Bericht | Tests automatisch ausführen und Berichte generieren | Keine (automatische Ausführung) |
 
 **Liefergegenstand**:
 ```
 iterations/{iter}/05.system-test/
 ├── cases/
-│   └── {platform-id}/              # Testfall-Dokumente
+│   └── {platform-id}/              # Testfalldokumente
 ├── code/
 │   └── {platform-id}/              # Testcode-Plan
 ├── reports/
@@ -286,19 +361,19 @@ iterations/{iter}/05.system-test/
 ```
 
 **Bestätigungs-Checkliste**:
-- [ ] Ist Fall-Abdeckung vollständig?
+- [ ] Ist Fallabdeckung vollständig?
 - [ ] Ist Testcode ausführbar?
-- [ ] Ist Bug-Schweregrad-Bewertung genau?
+- [ ] Ist Bug-Schweregradbewertung genau?
 
 ---
 
-### 4.6 Phase 6: Archivierung
+### 7.6 Phase 6: Archivierung
 
-Iterationen werden bei Abschluss automatisch archiviert:
+Iterationen werden nach Abschluss automatisch archiviert:
 
 ```
 speccrew-workspace/iteration-archives/
-└── {nummer}-{typ}-{name}-{date}/
+└── {nummer}-{typ}-{name}-{datum}/
     ├── 01.product-requirement/
     ├── 02.feature-design/
     ├── 03.system-design/
@@ -308,11 +383,11 @@ speccrew-workspace/iteration-archives/
 
 ---
 
-## 5. Wissensbasis-Übersicht
+## 8. Wissensbasis-Übersicht
 
-### 5.1 Geschäftswissen-Basis (bizs)
+### 8.1 Geschäftswissen-Basis (bizs)
 
-**Zweck**: Projekt-Geschäftsfunktionsbeschreibungen, Modulaufteilungen, API-Merkmale speichern
+**Zweck**: Speicherung von Projektgeschäftsfunktionsbeschreibungen, Modulaufteilungen, API-Merkmalen
 
 **Verzeichnisstruktur**:
 ```
@@ -325,9 +400,9 @@ knowledges/bizs/
 
 **Verwendungsszenarien**: Product Manager, Feature Designer
 
-### 5.2 Technische Wissensbasis (techs)
+### 8.2 Technische Wissensbasis (techs)
 
-**Zweck**: Projekt-Technologie-Stack, Architekturkonventionen, Entwicklungsspezifikationen, Testspezifikationen speichern
+**Zweck**: Speicherung von Projekttechnologie-Stack, Architekturkonventionen, Entwicklungsspezifikationen, Testspezifikationen
 
 **Verzeichnisstruktur**:
 ```
@@ -343,21 +418,21 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Workflow-Fortschrittsverwaltung
+## 9. Workflow-Fortschrittsverwaltung
 
-Das virtuelle SpecCrew-Team folgt einem strengen Stufen-Validierungsmechanismus, bei dem jede Phase vom Benutzer bestätigt werden muss, bevor zur nächsten übergegangen wird. Es unterstützt auch wiederaufnehmbare Ausführung — beim Neustart nach Unterbrechung wird automatisch dort fortgefahren, wo aufgehört wurde.
+Das SpecCrew-Virtual-Team folgt einem strengen Stage-Gating-Mechanismus, bei dem jede Phase vom Benutzer bestätigt werden muss, bevor sie zur nächsten übergeht. Es unterstützt auch die Wiederaufnahme der Ausführung — beim Neustart nach Unterbrechung wird automatisch von der letzten Position fortgefahren.
 
-### 6.1 Drei-Ebenen-Fortschrittsdateien
+### 9.1 Drei-Schichten-Fortschrittsdateien
 
-Der Workflow verwaltet automatisch drei Arten von JSON-Fortschrittsdateien, die im Iterationsverzeichnis liegen:
+Der Workflow verwaltet automatisch drei Arten von JSON-Fortschrittsdateien, die sich im Iterationsverzeichnis befinden:
 
 | Datei | Speicherort | Zweck |
-|-------|-------------|-------|
-| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Erfasst den Status jeder Pipeline-Stufe |
-| `.checkpoints.json` | Unter jedem Phasenverzeichnis | Erfasst den Benutzer-Checkpoint-Bestätigungsstatus |
-| `DISPATCH-PROGRESS.json` | Unter jedem Phasenverzeichnis | Erfasst den elementweisen Fortschritt für parallele Aufgaben (Multi-Plattform/Multi-Modul) |
+|------|----------|---------|
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Zeichnet den Status jeder Pipeline-Phase auf |
+| `.checkpoints.json` | Unter jedem Phasenverzeichnis | Zeichnet Benutzer-Checkpoint-Bestätigungsstatus auf |
+| `DISPATCH-PROGRESS.json` | Unter jedem Phasenverzeichnis | Zeichnet Element-für-Element-Fortschritt für parallele Aufgaben (Multi-Plattform/Multi-Modul) auf |
 
-### 6.2 Phasenstatus-Fluss
+### 9.2 Phasenstatus-Fluss
 
 Jede Phase folgt diesem Statusfluss:
 
@@ -366,21 +441,21 @@ pending → in_progress → completed → confirmed
 ```
 
 - **pending**: Noch nicht gestartet
-- **in_progress**: Aktuell in Ausführung
+- **in_progress**: Derzeit in Ausführung
 - **completed**: Agent-Ausführung abgeschlossen, wartet auf Benutzerbestätigung
-- **confirmed**: Vom Benutzer über finalen Checkpoint bestätigt, nächste Phase kann starten
+- **confirmed**: Benutzer hat durch finalen Checkpoint bestätigt, nächste Phase kann starten
 
-### 6.3 Wiederaufnehmbare Ausführung
+### 9.3 Wiederaufnahme der Ausführung
 
 Beim Neustart eines Agents für eine Phase:
 
-1. **Automatische vorgelagerte Prüfung**: Überprüft, ob die vorherige Phase bestätigt ist, blockiert und informiert bei Nichtbestätigung
-2. **Checkpoint-Wiederherstellung**: Liest `.checkpoints.json`, überspringt bestandene Checkpoints, fährt ab dem letzten Unterbrechungspunkt fort
+1. **Automatische Upstream-Prüfung**: Überprüft, ob die vorherige Phase bestätigt ist, blockiert und fragt, wenn nicht
+2. **Checkpoint-Wiederherstellung**: Liest `.checkpoints.json`, übersprungene Checkpoints, setzt von letztem Unterbrechungspunkt fort
 3. **Parallele Aufgaben-Wiederherstellung**: Liest `DISPATCH-PROGRESS.json`, führt nur Aufgaben mit Status `pending` oder `failed` erneut aus, überspringt `completed` Aufgaben
 
-### 6.4 Aktuellen Fortschritt Anzeigen
+### 9.4 Aktuellen Fortschritt anzeigen
 
-Den Pipeline-Panorama-Status über den Team Leader Agent anzeigen:
+Zeigen Sie den Pipeline-Panorama-Status durch den Team Leader Agent:
 
 ```
 @speccrew-team-leader aktuellen Iterationsfortschritt anzeigen
@@ -397,29 +472,29 @@ Pipeline Status: i001-user-management
   05 System Test:    ⏳ Pending
 ```
 
-### 6.5 Abwärtskompatibilität
+### 9.5 Abwärtskompatibilität
 
 Der Fortschrittsdatei-Mechanismus ist vollständig abwärtskompatibel — wenn Fortschrittsdateien nicht existieren (z.B. in Legacy-Projekten oder neuen Iterationen), führen alle Agents normal gemäß der ursprünglichen Logik aus.
 
 ---
 
-## 7. Häufig gestellte Fragen (FAQ)
+## 10. Häufig gestellte Fragen (FAQ)
 
-### Q1: Was wenn der Agent nicht wie erwartet funktioniert?
+### F1: Was tun, wenn der Agent nicht wie erwartet funktioniert?
 
-1. `speccrew doctor` ausführen um Installationsintegrität zu prüfen
-2. Bestätigen dass die Wissensbasis initialisiert wurde
-3. Bestätigen dass die Liefergegenstände der vorherigen Phase im aktuellen Iterationsverzeichnis existieren
+1. `speccrew doctor` ausführen, um Installationsintegrität zu prüfen
+2. Bestätigen, dass die Wissensbasis initialisiert wurde
+3. Bestätigen, dass der Liefergegenstand der vorherigen Phase im aktuellen Iterationsverzeichnis existiert
 
-### Q2: Wie eine Phase überspringen?
+### F2: Wie überspringe ich eine Phase?
 
 **Nicht empfohlen** — Die Ausgabe jeder Phase ist die Eingabe für die nächste Phase.
 
-Wenn Sie überspringen müssen, bereiten Sie das Eingabedokument der entsprechenden Phase manuell vor und stellen Sie sicher dass es den Formatspezifikationen entspricht.
+Wenn Sie unbedingt überspringen müssen, bereiten Sie manuell das Eingabedokument der entsprechenden Phase vor und stellen Sie sicher, dass es den Formatspezifikationen entspricht.
 
-### Q3: Wie mehrere parallele Anforderungen handhaben?
+### F3: Wie handhabe ich mehrere parallele Anforderungen?
 
-Erstellen Sie unabhängige Iterationsverzeichnisse für jede Anforderung:
+Erstellen Sie für jede Anforderung unabhängige Iterationsverzeichnisse:
 ```
 iterations/
 ├── 001-feature-xxx/
@@ -429,9 +504,9 @@ iterations/
 
 Jede Iteration ist vollständig isoliert und beeinflusst andere nicht.
 
-### Q4: Wie SpecCrew-Version aktualisieren?
+### F4: Wie aktualisiere ich die SpecCrew-Version?
 
-Das Update erfolgt in zwei Schritten:
+Die Aktualisierung erfordert zwei Schritte:
 
 ```bash
 # Schritt 1: Globales CLI-Tool aktualisieren
@@ -442,15 +517,15 @@ cd /path/to/your-project
 speccrew update
 ```
 
-- `npm install -g speccrew@latest`: Aktualisiert das CLI-Tool selbst (neue Version kann neue Agent/Skill-Definitionen, Bugfixes usw. enthalten)
-- `speccrew update`: Synchronisiert die Agent- und Skill-Definitionsdateien im Projekt auf die neueste Version
-- `speccrew update --ide cursor`: Aktualisiert nur die Konfiguration der angegebenen IDE
+- `npm install -g speccrew@latest`: Aktualisiert das CLI-Tool selbst (neue Versionen können neue Agent/Skill-Definitionen, Bug-Fixes usw. enthalten)
+- `speccrew update`: Synchronisiert Agent- und Skill-Definitionsdateien in Ihrem Projekt auf die neueste Version
+- `speccrew update --ide cursor`: Aktualisiert nur die Konfiguration für eine bestimmte IDE
 
-> **Hinweis**: Beide Schritte müssen ausgeführt werden. Nur `speccrew update` auszuführen aktualisiert nicht das CLI-Tool selbst; nur `npm install` auszuführen aktualisiert nicht die Dateien im Projekt.
+> **Hinweis**: Beide Schritte sind erforderlich. Das nur `speccrew update` auszuführen, aktualisiert nicht das CLI-Tool selbst; das nur `npm install` auszuführen, aktualisiert nicht die Projektdateien.
 
-### Q5: `speccrew update` zeigt neue Version verfügbar an, aber `npm install -g speccrew@latest` installiert trotzdem die alte Version?
+### F5: `speccrew update` zeigt neue Version verfügbar, aber `npm install -g speccrew@latest` installiert immer noch die alte Version?
 
-Dies wird normalerweise durch den npm-Cache verursacht. Lösung:
+Dies wird normalerweise durch npm-Cache verursacht. Lösung:
 
 ```bash
 # npm-Cache leeren und neu installieren
@@ -461,34 +536,34 @@ npm install -g speccrew@latest
 npm list -g speccrew
 ```
 
-Wenn es immer noch nicht funktioniert, versuchen Sie die Installation mit einer spezifischen Versionsnummer:
+Wenn es immer noch nicht funktioniert, versuchen Sie die Installation mit einer bestimmten Versionsnummer:
 ```bash
 npm install -g speccrew@0.5.6
 ```
 
-### Q6: Wie historische Iterationen ansehen?
+### F6: Wie zeige ich historische Iterationen an?
 
-Nach Archivierung in `speccrew-workspace/iteration-archives/` ansehen, organisiert nach `{nummer}-{typ}-{name}-{date}/` Format.
+Nach der Archivierung in `speccrew-workspace/iteration-archives/` anzeigen, organisiert nach `{nummer}-{typ}-{name}-{datum}/` Format.
 
-### Q7: Muss die Wissensbasis regelmäßig aktualisiert werden?
+### F7: Muss die Wissensbasis regelmäßig aktualisiert werden?
 
-Neuinitialisierung ist in folgenden Situationen erforderlich:
-- Große Änderungen an der Projektstruktur
+Eine Neuinitialisierung ist in folgenden Situationen erforderlich:
+- Wesentliche Änderungen an der Projektstruktur
 - Technologie-Stack-Upgrade oder -Austausch
-| Hinzufügen/Entfernen von Geschäftsmodulen
+- Hinzufügen/Entfernen von Geschäftsmodulen
 
 ---
 
-## 8. Kurzreferenz
+## 11. Schnellreferenz
 
-### Agent-Start-Kurzreferenz
+### Agent-Start-Schnellreferenz
 
 | Phase | Agent | Start-Konversation |
 |-------|-------|-------------------|
 | Initialisierung | Team Leader | `@speccrew-team-leader technische Wissensbasis initialisieren` |
 | Anforderungsanalyse | Product Manager | `@speccrew-product-manager Ich habe eine neue Anforderung: [Beschreibung]` |
-| Feature Design | Feature Designer | `@speccrew-feature-designer Feature Design starten` |
-| System Design | System Designer | `@speccrew-system-designer System Design starten` |
+| Feature-Design | Feature Designer | `@speccrew-feature-designer Feature-Design starten` |
+| Systemdesign | System Designer | `@speccrew-system-designer Systemdesign starten` |
 | Entwicklung | System Developer | `@speccrew-system-developer Entwicklung starten` |
 | Systemtest | Test Manager | `@speccrew-test-manager Test starten` |
 
@@ -497,18 +572,18 @@ Neuinitialisierung ist in folgenden Situationen erforderlich:
 | Phase | Anzahl Checkpoints | Wichtige Prüfpunkte |
 |-------|----------------------|-----------------|
 | Anforderungsanalyse | 1 | Anforderungsgenauigkeit, Geschäftsregelvollständigkeit, Akzeptanzkriterien-Messbarkeit |
-| Feature Design | 1 | Szenario-Abdeckung, Interaktionsklarheit, Datenvollständigkeit, Ausnahmebehandlung |
-| System Design | 2 | A: Framework-Evaluierung; B: Pseudocode-Syntax, plattformübergreifende Konsistenz, Fehlerbehandlung |
+| Feature-Design | 1 | Szenarioabdeckung, Interaktionsklarheit, Datenvollständigkeit, Ausnahmebehandlung |
+| Systemdesign | 2 | A: Framework-Evaluierung; B: Pseudocode-Syntax, plattformübergreifende Konsistenz, Fehlerbehandlung |
 | Entwicklung | 1 | A: Umgebungsbereitschaft, Integrationsprobleme, Code-Spezifikationen |
-| Systemtest | 2 | A: Fall-Abdeckung; B: Testcode-Ausführbarkeit |
+| Systemtest | 2 | A: Fallabdeckung; B: Testcode-Ausführbarkeit |
 
-### Liefergegenstand-Pfad-Kurzreferenz
+### Liefergegenstand-Pfad-Schnellreferenz
 
 | Phase | Ausgabeverzeichnis | Dateiformat |
 |-------|-----------------|-------------|
 | Anforderungsanalyse | `iterations/{iter}/01.product-requirement/` | `[name]-prd.md`, `[name]-bizs-modeling.md` |
-| Feature Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
-| System Design | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
+| Feature-Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
+| Systemdesign | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Entwicklung | `iterations/{iter}/04.development/` | Quellcode + `delivery-report.md` |
 | Systemtest | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Archivierung | `iteration-archives/{iter}-{date}/` | Vollständige Iterationskopie |
@@ -517,6 +592,6 @@ Neuinitialisierung ist in folgenden Situationen erforderlich:
 
 ## Nächste Schritte
 
-1. `speccrew init --ide qoder` ausführen um Ihr Projekt zu initialisieren
-2. Schritt Null ausführen: Wissensbasis-Initialisierung
-3. Durchlaufen Sie jede Phase nach dem Workflow und genießen Sie die specification-driven Entwicklungserfahrung!
+1. Führen Sie `speccrew init --ide qoder` aus, um Ihr Projekt zu initialisieren
+2. Führen Sie Schritt Null aus: Wissensbasis-Initialisierung
+3. Arbeiten Sie sich durch den Workflow Phase für Phase vor und genießen Sie das spezifikationsgetriebene Entwicklungserlebnis!

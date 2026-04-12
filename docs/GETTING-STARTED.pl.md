@@ -11,11 +11,10 @@
   <a href="./GETTING-STARTED.it.md">Italiano</a> |
   <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a> |
-  <a href="./GETTING-STARTED.pl.md">Polski</a>
+  <a href="./GETTING-STARTED.ar.md">العربية</a>
 </p>
 
-Ten dokument pomaga szybko zrozumieć, jak korzystać z zespołu Agentów SpecCrew, aby ukończyć pełny cykl rozwoju od wymagań do dostarczenia, zgodnie ze standardowymi procesami inżynieryjnymi.
+Ten dokument pomaga szybko zrozumieć, jak korzystać z zespołu Agentów SpecCrew do ukończenia kompletnego rozwoju od wymagań do dostarczenia zgodnie ze standardowymi procesami inżynieryjnymi.
 
 ---
 
@@ -41,7 +40,7 @@ Obsługiwane IDE: `qoder`, `cursor`, `claude`, `codex`
 .
 ├── .qoder/
 │   ├── agents/          # Pliki definicji Agentów
-│   └── skills/          # Pliki definicji Umiejętności
+│   └── skills/          # Pliki definicji Skills
 ├── speccrew-workspace/  # Przestrzeń robocza
 │   ├── docs/            # Konfiguracje, zasady, szablony, rozwiązania
 │   ├── iterations/      # Bieżące iteracje
@@ -52,18 +51,93 @@ Obsługiwane IDE: `qoder`, `cursor`, `claude`, `codex`
 │       └── techs/       # Baza wiedzy technicznej
 ```
 
-### Podręczna lista poleceń CLI
+### Szybki podgląd poleceń CLI
 
 | Polecenie | Opis |
-|---------|-------------|
-| `speccrew list` | Lista wszystkich dostępnych Agentów i Umiejętności |
+|------|------|
+| `speccrew list` | Wyświetl wszystkich dostępnych Agentów i Skills |
 | `speccrew doctor` | Sprawdź integralność instalacji |
 | `speccrew update` | Aktualizuj konfigurację projektu do najnowszej wersji |
 | `speccrew uninstall` | Odinstaluj SpecCrew |
 
 ---
 
-## 2. Przegląd przepływu pracy
+## 2. Szybki start w 5 minut po instalacji
+
+Po wykonaniu `speccrew init`, postępuj zgodnie z tymi krokami, aby szybko przejść do stanu pracy:
+
+### Krok 1: Wybierz swoje IDE
+
+| IDE | Polecenie inicjalizacji | Scenariusz zastosowania |
+|-----|-----------|----------|
+| **Qoder** (Zalecane) | `speccrew init --ide qoder` | Pełna orkiestracja agentów, równoległe workery |
+| **Cursor** | `speccrew init --ide cursor` | Workflows oparte na Composer |
+| **Claude Code** | `speccrew init --ide claude` | Rozwój CLI-first |
+| **Codex** | `speccrew init --ide codex` | Integracja ekosystemu OpenAI |
+
+### Krok 2: Inicjalizacja bazy wiedzy (Zalecane)
+
+W przypadku projektów z istniejącym kodem źródłowym zaleca się najpierw zainicjowanie bazy wiedzy, aby agenci zrozumieli Twoją bazę kodu:
+
+```
+@speccrew-team-leader zainicjuj techniczną bazę wiedzy
+```
+
+Następnie:
+
+```
+@speccrew-team-leader zainicjuj biznesową bazę wiedzy
+```
+
+### Krok 3: Rozpocznij swoje pierwsze zadanie
+
+```
+@speccrew-product-manager Mam nowe wymaganie: [opisz swoje wymaganie funkcjonalne]
+```
+
+> **Wskazówka**: Jeśli nie jesteś pewien, co zrobić, po prostu powiedz `@speccrew-team-leader pomóż mi rozpocząć` — Team Leader automatycznie wykryje status projektu i Cię poprowadzi.
+
+---
+
+## 3. Szybkie drzewo decyzyjne
+
+Nie jesteś pewien, co zrobić? Znajdź swój scenariusz poniżej:
+
+- **Mam nowe wymaganie funkcjonalne**
+  → `@speccrew-product-manager Mam nowe wymaganie: [opisz swoje wymaganie funkcjonalne]`
+
+- **Chcę zeskanować wiedzę istniejącego projektu**
+  → `@speccrew-team-leader zainicjuj techniczną bazę wiedzy`
+  → Następnie: `@speccrew-team-leader zainicjuj biznesową bazę wiedzy`
+
+- **Chcę kontynuować poprzednią pracę**
+  → `@speccrew-team-leader jaki jest obecny postęp?`
+
+- **Chcę sprawdzić stan zdrowia systemu**
+  → Uruchom w terminalu: `speccrew doctor`
+
+- **Nie jestem pewien, co zrobić**
+  → `@speccrew-team-leader pomóż mi rozpocząć`
+  → Team Leader automatycznie wykryje status projektu i Cię poprowadzi
+
+---
+
+## 4. Szybki podgląd Agentów
+
+| Rola | Agent | Odpowiedzialności | Przykład polecenia |
+|------|-------|-----------------|-----------------|
+| Lider zespołu | `@speccrew-team-leader` | Nawigacja projektu, inicjalizacja bazy wiedzy, sprawdzanie statusu | "Pomóż mi rozpocząć" |
+| Kierownik produktu | `@speccrew-product-manager` | Analiza wymagań, generowanie PRD | "Mam nowe wymaganie: ..." |
+| Projektant funkcji | `@speccrew-feature-designer` | Analiza funkcji, projektowanie specyfikacji, kontrakty API | "Rozpocznij projektowanie funkcji dla iteracji X" |
+| Projektant systemu | `@speccrew-system-designer` | Projektowanie architektury, szczegółowe projektowanie platformy | "Rozpocznij projektowanie systemu dla iteracji X" |
+| Deweloper systemu | `@speccrew-system-developer` | Koordynacja rozwoju, generowanie kodu | "Rozpocznij rozwój dla iteracji X" |
+| Kierownik testów | `@speccrew-test-manager` | Planowanie testów, projektowanie przypadków, wykonanie | "Rozpocznij testy dla iteracji X" |
+
+> **Uwaga**: Nie musisz pamiętać wszystkich agentów. Po prostu porozmawiaj z `@speccrew-team-leader`, a on skieruje Twoje żądanie do odpowiedniego agenta.
+
+---
+
+## 5. Przegląd przepływu pracy
 
 ### Pełny diagram przepływu
 
@@ -90,23 +164,23 @@ flowchart LR
 
 ---
 
-## 3. Krok zerowy: Inicjalizacja bazy wiedzy
+## 6. Krok zerowy: Inicjalizacja bazy wiedzy
 
 Przed rozpoczęciem formalnego procesu inżynieryjnego musisz zainicjować bazę wiedzy projektu.
 
-### 3.1 Inicjalizacja bazy wiedzy technicznej
+### 6.1 Inicjalizacja technicznej bazy wiedzy
 
 **Przykład rozmowy**:
 ```
-@speccrew-team-leader zainicjuj bazę wiedzy technicznej
+@speccrew-team-leader zainicjuj techniczną bazę wiedzy
 ```
 
-**Trzyetapowy proces**:
-1. Wykrywanie platformy — Identyfikacja platform technologicznych w projekcie
-2. Generowanie dokumentacji technicznej — Generowanie dokumentów specyfikacji technicznej dla każdej platformy
-3. Generowanie indeksu — Ustanowienie indeksu bazy wiedzy
+**Trójfazowy proces**:
+1. Wykrywanie platformy — Zidentyfikuj platformy technologiczne w projekcie
+2. Generowanie dokumentacji technicznej — Generuj dokumenty specyfikacji technicznej dla każdej platformy
+3. Generowanie indeksu — Utwórz indeks bazy wiedzy
 
-**Dostarczalny**:
+**Produkt**:
 ```
 speccrew-workspace/knowledges/techs/{platform-id}/
 ├── tech-stack.md          # Definicja stosu technologicznego
@@ -116,20 +190,20 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Plik indeksu
 ```
 
-### 3.2 Inicjalizacja bazy wiedzy biznesowej
+### 6.2 Inicjalizacja biznesowej bazy wiedzy
 
 **Przykład rozmowy**:
 ```
-@speccrew-team-leader zainicjuj bazę wiedzy biznesowej
+@speccrew-team-leader zainicjuj biznesową bazę wiedzy
 ```
 
-**Czteroetapowy proces**:
-1. Inwentaryzacja funkcji — Skanowanie kodu w celu identyfikacji wszystkich funkcji
-2. Analiza funkcji — Analiza logiki biznesowej każdej funkcji
-3. Podsumowanie modułu — Podsumowanie funkcji według modułów
-4. Podsumowanie systemu — Generowanie przeglądu biznesowego na poziomie systemu
+**Czterofazowy proces**:
+1. Inwentaryzacja funkcji — Skanuj kod, aby zidentyfikować wszystkie funkcje
+2. Analiza funkcji — Analizuj logikę biznesową dla każdej funkcji
+3. Podsumowanie modułu — Podsumuj funkcje według modułu
+4. Podsumowanie systemu — Generuj przegląd biznesowy na poziomie systemu
 
-**Dostarczalny**:
+**Produkt**:
 ```
 speccrew-workspace/knowledges/bizs/
 ├── {platform-type}/
@@ -140,21 +214,21 @@ speccrew-workspace/knowledges/bizs/
 
 ---
 
-## 4. Przewodnik rozmowy faza po fazie
+## 7. Przewodnik rozmowy fazowej
 
-### 4.1 Faza 1: Analiza wymagań (Product Manager)
+### 7.1 Faza 1: Analiza wymagań (Product Manager)
 
-**Jak zacząć**:
+**Jak rozpocząć**:
 ```
-@speccrew-product-manager mam nowe wymaganie: [opisz swoje wymaganie]
+@speccrew-product-manager Mam nowe wymaganie: [opisz swoje wymaganie]
 ```
 
-**Przepływ pracy Agenta**:
+**Workflow Agenta**:
 1. Przeczytaj przegląd systemu, aby zrozumieć istniejące moduły
 2. Analizuj wymagania użytkownika
-3. Generuj ustrukturyzowany dokument PRD
+3. Generuj strukturyzowany dokument PRD
 
-**Dostarczalny**:
+**Produkt**:
 ```
 iterations/{numer}-{typ}-{nazwa}/01.product-requirement/
 ├── [feature-name]-prd.md           # Dokument wymagań produktu
@@ -169,20 +243,20 @@ iterations/{numer}-{typ}-{nazwa}/01.product-requirement/
 
 ---
 
-### 4.2 Faza 2: Projektowanie funkcji (Feature Designer)
+### 7.2 Faza 2: Projektowanie funkcji (Feature Designer)
 
-**Jak zacząć**:
+**Jak rozpocząć**:
 ```
 @speccrew-feature-designer rozpocznij projektowanie funkcji
 ```
 
-**Przepływ pracy Agenta**:
+**Workflow Agenta**:
 1. Automatycznie zlokalizuj potwierdzony dokument PRD
-2. Załaduj bazę wiedzy biznesowej
-3. Generuj projektowanie funkcji (w tym wireframes UI, przepływy interakcji, definicje danych, kontrakty API)
+2. Załaduj biznesową bazę wiedzy
+3. Generuj projekt funkcji (w tym wireframe'y UI, przepływy interakcji, definicje danych, kontrakty API)
 4. Dla wielu PRD użyj Task Worker do równoległego projektowania
 
-**Dostarczalny**:
+**Produkt**:
 ```
 iterations/{iter}/02.feature-design/
 └── [feature-name]-feature-spec.md  # Dokument projektowania funkcji
@@ -192,31 +266,31 @@ iterations/{iter}/02.feature-design/
 - [ ] Czy wszystkie scenariusze użytkownika są objęte?
 - [ ] Czy przepływy interakcji są jasne?
 - [ ] Czy definicje pól danych są kompletne?
-- [ ] Czy obsługa wyjątków jest wszechstronna?
+- [ ] Czy obsługa wyjątków jest kompleksowa?
 
 ---
 
-### 4.3 Faza 3: Projektowanie systemu (System Designer)
+### 7.3 Faza 3: Projektowanie systemu (System Designer)
 
-**Jak zacząć**:
+**Jak rozpocząć**:
 ```
 @speccrew-system-designer rozpocznij projektowanie systemu
 ```
 
-**Przepływ pracy Agenta**:
+**Workflow Agenta**:
 1. Zlokalizuj Feature Spec i API Contract
-2. Załaduj bazę wiedzy technicznej (stos technologiczny, architektura, specyfikacje dla każdej platformy)
-3. **Punkt kontrolny A**: Ocena frameworka — Analiza luk technicznych, rekomendacja nowych frameworków (jeśli potrzeba), oczekiwanie na potwierdzenie użytkownika
+2. Załaduj techniczną bazę wiedzy (stos technologiczny, architektura, specyfikacje dla każdej platformy)
+3. **Checkpoint A**: Ewaluacja frameworka — Analizuj luki techniczne, rekomenduj nowe frameworki (jeśli potrzeba), czekaj na potwierdzenie użytkownika
 4. Generuj DESIGN-OVERVIEW.md
-5. Użyj Task Worker do równoległego wysyłania projektowania dla każdej platformy (frontend/backend/mobile/desktop)
-6. **Punkt kontrolny B**: Wspólne potwierdzenie — Pokaż podsumowanie wszystkich projektów platform, oczekiwanie na potwierdzenie użytkownika
+5. Użyj Task Worker do równoległego rozprowadzania projektowania dla każdej platformy (frontend/backend/mobile/desktop)
+6. **Checkpoint B**: Wspólne potwierdzenie — Wyświetl podsumowanie wszystkich projektów platform, czekaj na potwierdzenie użytkownika
 
-**Dostarczalny**:
+**Produkt**:
 ```
 iterations/{iter}/03.system-design/
-├── DESIGN-OVERVIEW.md              # Przegląd projektu
+├── DESIGN-OVERVIEW.md              # Przegląd projektowania
 ├── {platform-id}/
-│   ├── INDEX.md                    # Indeks projektu platformy
+│   ├── INDEX.md                    # Indeks projektowania platformy
 │   └── {module}-design.md          # Projektowanie modułu na poziomie pseudokodu
 ```
 
@@ -227,53 +301,53 @@ iterations/{iter}/03.system-design/
 
 ---
 
-### 4.4 Faza 4: Implementacja rozwoju (System Developer)
+### 7.4 Faza 4: Rozwój (System Developer)
 
-**Jak zacząć**:
+**Jak rozpocząć**:
 ```
 @speccrew-system-developer rozpocznij rozwój
 ```
 
-**Przepływ pracy Agenta**:
+**Workflow Agenta**:
 1. Przeczytaj dokumenty projektowania systemu
 2. Załaduj wiedzę techniczną dla każdej platformy
-3. **Punkt kontrolny A**: Wstępna weryfikacja środowiska — Weryfikacja wersji runtime, zależności, dostępności usług; jeśli nie powiedzie się, oczekiwanie na rozwiązanie użytkownika
-4. Użyj Task Worker do równoległego wysyłania rozwoju dla każdej platformy
-5. Weryfikacja integracji: Wyrównanie kontraktów API, spójność danych
+3. **Checkpoint A**: Wstępna kontrola środowiska — Sprawdź wersje runtime, zależności, dostępność usług; czekaj na rozwiązanie użytkownika jeśli nie powiedzie się
+4. Użyj Task Worker do równoległego rozprowadzania rozwoju dla każdej platformy
+5. Kontrola integracji: wyrównanie kontraktów API, spójność danych
 6. Wygeneruj raport dostawy
 
-**Dostarczalny**:
+**Produkt**:
 ```
-# Kod źródłowy zapisany w rzeczywistym katalogu kodu źródłowego projektu
+# Kod źródłowy zapisywany w rzeczywistym katalogu źródłowym projektu
 iterations/{iter}/04.development/
 ├── {platform-id}/
-│   └── tasks/                      # Rekordy zadań rozwoju
+│   └── tasks/                      # Rejestry zadań rozwoju
 └── delivery-report.md
 ```
 
 **Lista kontrolna potwierdzenia**:
 - [ ] Czy środowisko jest gotowe?
-- [ ] Czy problemy integracji są w akceptowalnym zakresie?
+- [ ] Czy problemy integracyjne są w akceptowalnym zakresie?
 - [ ] Czy kod jest zgodny ze specyfikacjami rozwoju?
 
 ---
 
-### 4.5 Faza 5: Testowanie systemu (Test Manager)
+### 7.5 Faza 5: Testowanie systemu (Test Manager)
 
-**Jak zacząć**:
+**Jak rozpocząć**:
 ```
-@speccrew-test-manager rozpocznij testowanie
+@speccrew-test-manager rozpocznij testy
 ```
 
-**Trzyetapowy proces testowania**:
+**Trójfazowy proces testowania**:
 
-| Faza | Opis | Punkt kontrolny |
-|------|------|-------------------|
-| Projektowanie przypadków testowych | Generowanie przypadków testowych na podstawie PRD i Feature Spec | A: Pokaż statystyki pokrycia przypadków i macierz śledzenia, oczekiwanie na potwierdzenie użytkownika wystarczającego pokrycia |
-| Generowanie kodu testowego | Generowanie wykonywalnego kodu testowego | B: Pokaż wygenerowane pliki testowe i mapowanie przypadków, oczekiwanie na potwierdzenie użytkownika |
-| Wykonanie testu i raport błędów | Automatyczne wykonanie testów i generowanie raportów | Brak (wykonanie automatyczne) |
+| Faza | Opis | Checkpoint |
+|-------|-------------|------------|
+| Projektowanie przypadków testowych | Generuj przypadki testowe na podstawie PRD i Feature Spec | A: Wyświetl statystyki pokrycia przypadków i macierz śledzenia, czekaj na potwierdzenie użytkownika wystarczającego pokrycia |
+| Generowanie kodu testowego | Generuj wykonywalny kod testowy | B: Wyświetl wygenerowane pliki testowe i mapowanie przypadków, czekaj na potwierdzenie użytkownika |
+| Wykonanie testów i raportowanie błędów | Automatycznie wykonuj testy i generuj raporty | Brak (automatyczne wykonanie) |
 
-**Dostarczalny**:
+**Produkt**:
 ```
 iterations/{iter}/05.system-test/
 ├── cases/
@@ -289,11 +363,11 @@ iterations/{iter}/05.system-test/
 **Lista kontrolna potwierdzenia**:
 - [ ] Czy pokrycie przypadków jest kompletne?
 - [ ] Czy kod testowy jest wykonywalny?
-- [ ] Czy ocena ważności błędów jest dokładna?
+- [ ] Czy ocena poważności błędów jest dokładna?
 
 ---
 
-### 4.6 Faza 6: Archiwizacja
+### 7.6 Faza 6: Archiwizacja
 
 Iteracje są automatycznie archiwizowane po ukończeniu:
 
@@ -309,11 +383,11 @@ speccrew-workspace/iteration-archives/
 
 ---
 
-## 5. Przegląd bazy wiedzy
+## 8. Przegląd bazy wiedzy
 
-### 5.1 Baza wiedzy biznesowej (bizs)
+### 8.1 Biznesowa baza wiedzy (bizs)
 
-**Cel**: Przechowywanie opisów funkcji biznesowych projektu, podziałów modułów, charakterystyk API
+**Cel**: Przechowuj opisy funkcji biznesowych projektu, podziały modułów, cechy API
 
 **Struktura katalogów**:
 ```
@@ -326,9 +400,9 @@ knowledges/bizs/
 
 **Scenariusze użycia**: Product Manager, Feature Designer
 
-### 5.2 Baza wiedzy technicznej (techs)
+### 8.2 Techniczna baza wiedzy (techs)
 
-**Cel**: Przechowywanie stosu technologicznego projektu, konwencji architektonicznych, specyfikacji rozwoju, specyfikacji testów
+**Cel**: Przechowuj stos technologiczny projektu, konwencje architektoniczne, specyfikacje rozwoju, specyfikacje testów
 
 **Struktura katalogów**:
 ```
@@ -344,73 +418,73 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Zarządzanie Postępem Przepływu Pracy
+## 9. Zarządzanie postępem przepływu pracy
 
-Wirtualny zespół SpecCrew stosuje ścisły mechanizm bramek fazowych, gdzie każda faza musi zostać potwierdzona przez użytkownika przed przejściem do następnej. Obsługuje również wznawialne wykonywanie — po ponownym uruchomieniu po przerwaniu, automatycznie kontynuuje od miejsca przerwania.
+Wirtualny zespół SpecCrew przestrzega ścisłego mechanizmu bramowania etapów, gdzie każda faza musi zostać potwierdzona przez użytkownika przed przejściem do następnej. Obsługuje również wznawialne wykonanie — po ponownym uruchomieniu po przerwaniu automatycznie kontynuuje od miejsca, w którym przerwał.
 
-### 6.1 Trójwarstwowe Pliki Postępu
+### 9.1 Trzywarstwowe pliki postępu
 
-Przepływ pracy automatycznie utrzymuje trzy typy plików postępu JSON, zlokalizowanych w katalogu iteracji:
+Workflow automatycznie utrzymuje trzy typy plików postępu JSON, zlokalizowane w katalogu iteracji:
 
 | Plik | Lokalizacja | Cel |
 |------|----------|---------|
-| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Rejestruje status każdego etapu pipeline |
-| `.checkpoints.json` | Pod każdym katalogiem fazy | Rejestruje status potwierdzenia punktów kontrolnych użytkownika |
-| `DISPATCH-PROGRESS.json` | Pod każdym katalogiem fazy | Rejestruje postęp punkt po punkcie dla zadań równoległych (wieloplatformowych/wielomodułowych) |
+| `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Rejestruje status każdej fazy pipeline'u |
+| `.checkpoints.json` | Pod każdym katalogiem fazy | Rejestruje status potwierdzenia checkpointów użytkownika |
+| `DISPATCH-PROGRESS.json` | Pod każdym katalogiem fazy | Rejestruje postęp element po elemencie dla równoległych zadań (multi-platforma/multi-moduł) |
 
-### 6.2 Przebieg Statusu Fazy
+### 9.2 Przepływ statusu fazy
 
-Każda faza podąża za tym przebiegiem statusu:
+Każda faza następuje po tym przepływie statusu:
 
 ```
 pending → in_progress → completed → confirmed
 ```
 
 - **pending**: Jeszcze nie rozpoczęte
-- **in_progress**: Obecnie wykonywane
-- **completed**: Wykonanie Agenta zakończone, oczekiwanie na potwierdzenie użytkownika
-- **confirmed**: Użytkownik potwierdził przez końcowy punkt kontrolny, następna faza może się rozpocząć
+- **in_progress**: W trakcie wykonania
+- **completed**: Wykonanie agenta zakończone, oczekiwanie na potwierdzenie użytkownika
+- **confirmed**: Użytkownik potwierdził przez końcowy checkpoint, następna faza może się rozpocząć
 
-### 6.3 Wznawialne Wykonywanie
+### 9.3 Wznawialne wykonanie
 
 Podczas ponownego uruchamiania Agenta dla fazy:
 
-1. **Automatyczna kontrola upstream**: Weryfikuje czy poprzednia faza jest potwierdzona, blokuje i informuje jeśli nie
-2. **Odzyskiwanie punktów kontrolnych**: Odczytuje `.checkpoints.json`, pomija przekroczone punkty kontrolne, kontynuuje od ostatniego punktu przerwania
-3. **Odzyskiwanie zadań równoległych**: Odczytuje `DISPATCH-PROGRESS.json`, ponownie wykonuje tylko zadania ze statusem `pending` lub `failed`, pomija zadania `completed`
+1. **Automatyczne sprawdzanie upstream**: Weryfikuje czy poprzednia faza jest potwierdzona, blokuje i monituje jeśli nie
+2. **Odzyskiwanie Checkpoint**: Odczytuje `.checkpoints.json`, pomija przejście checkpoints, kontynuuje od ostatniego punktu przerwania
+3. **Odzyskiwanie równoległych zadań**: Odczytuje `DISPATCH-PROGRESS.json`, ponownie wykonuje tylko zadania ze statusem `pending` lub `failed`, pomija zadania `completed`
 
-### 6.4 Wyświetlanie Bieżącego Postępu
+### 9.4 Wyświetlanie bieżącego postępu
 
-Wyświetl status panoramy pipeline przez Agenta Team Leader:
+Wyświetl panoramiczny status pipeline'u przez Agenta Team Leader:
 
 ```
 @speccrew-team-leader wyświetl bieżący postęp iteracji
 ```
 
-Team Leader odczyta pliki postępu i wyświetli podsumowanie statusu podobne do:
+Team Leader odczyta pliki postępu i wyświetli przegląd statusu podobny do:
 
 ```
 Pipeline Status: i001-user-management
-  01 PRD:            ✅ Potwierdzone
-  02 Feature Design: 🔄 W toku (Punkt kontrolny A przekroczony)
-  03 System Design:  ⏳ Oczekujące
-  04 Development:    ⏳ Oczekujące
-  05 System Test:    ⏳ Oczekujące
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
 ```
 
-### 6.5 Wsteczna Kompatybilność
+### 9.5 Wsteczna kompatybilność
 
 Mechanizm plików postępu jest w pełni wstecznie kompatybilny — jeśli pliki postępu nie istnieją (np. w starszych projektach lub nowych iteracjach), wszyscy Agenci będą wykonywać normalnie zgodnie z oryginalną logiką.
 
 ---
 
-## 7. Często zadawane pytania (FAQ)
+## 10. Często zadawane pytania (FAQ)
 
-### P1: Co zrobić, jeśli Agent nie działa zgodnie z oczekiwaniami?
+### P1: Co zrobić jeśli Agent nie działa zgodnie z oczekiwaniami?
 
-1. Uruchom `speccrew doctor`, aby sprawdzić integralność instalacji
-2. Potwierdź, że baza wiedzy została zainicjowana
-3. Potwierdź, że dostarczalny poprzedniej fazy istnieje w bieżącym katalogu iteracji
+1. Uruchom `speccrew doctor` aby sprawdzić integralność instalacji
+2. Potwierdź że baza wiedzy została zainicjowana
+3. Potwierdź że produkt poprzedniej fazy istnieje w bieżącym katalogu iteracji
 
 ### P2: Jak pominąć fazę?
 
@@ -438,82 +512,86 @@ Aktualizacja wymaga dwóch kroków:
 # Krok 1: Zaktualizuj globalne narzędzie CLI
 npm install -g speccrew@latest
 
-# Krok 2: Zsynchronizuj Agentów i Skille w katalogu projektu
+# Krok 2: Synchronizuj Agents i Skills w katalogu projektu
 cd /path/to/your-project
 speccrew update
 ```
 
-- `npm install -g speccrew@latest`: Aktualizuje samo narzędzie CLI (nowe wersje mogą zawierać nowe definicje Agentów/Skilli, poprawki błędów itp.)
-- `speccrew update`: Synchronizuje pliki definicji Agentów i Skilli w projekcie do najnowszej wersji
-- `speccrew update --ide cursor`: Aktualizuje konfigurację tylko dla konkretnego IDE
+- `npm install -g speccrew@latest`: Aktualizuje samo narzędzie CLI (nowe wersje mogą zawierać nowe definicje Agent/Skill, poprawki błędów itp.)
+- `speccrew update`: Synchronizuje pliki definicji Agent i Skill w Twoim projekcie do najnowszej wersji
+- `speccrew update --ide cursor`: Aktualizuje konfigurację tylko dla określonego IDE
 
-> **Uwaga**: Oba kroki są wymagane. Uruchomienie tylko `speccrew update` nie zaktualizuje samego narzędzia CLI; uruchomienie tylko `npm install` nie zaktualizuje plików projektu.
+> **Uwaga**: Oba kroki są wymagane. Uruchomienie samego `speccrew update` nie zaktualizuje samego narzędzia CLI; uruchomienie samego `npm install` nie zaktualizuje plików projektu.
 
-### P5: `speccrew update` pokazuje nową wersję, ale po instalacji nadal jest stara?
+### P5: `speccrew update` pokazuje nową wersję dostępną ale `npm install -g speccrew@latest` nadal instaluje starą wersję?
 
-Zazwyczaj jest to spowodowane pamięcią podręczną npm. Rozwiązanie:
+Jest to zwykle spowodowane pamięcią podręczną npm. Rozwiązanie:
+
 ```bash
+# Wyczyść pamięć podręczną npm i zainstaluj ponownie
 npm cache clean --force
 npm install -g speccrew@latest
+
+# Zweryfikuj wersję
 npm list -g speccrew
 ```
-Jeśli nadal nie działa, zainstaluj określoną wersję:
+
+Jeśli nadal nie działa, spróbuj zainstalować z określonym numerem wersji:
 ```bash
 npm install -g speccrew@0.5.6
 ```
 
 ### P6: Jak wyświetlić historyczne iteracje?
 
-Po zarchiwizowaniu przejrzyj w `speccrew-workspace/iteration-archives/`, zorganizowane w formacie `{numer}-{typ}-{nazwa}-{data}/`.
+Po archiwizacji wyświetl w `speccrew-workspace/iteration-archives/`, zorganizowane według formatu `{numer}-{typ}-{nazwa}-{data}/`.
 
-### P7: Czy baza wiedzy wymaga regularnej aktualizacji?
+### P7: Czy baza wiedzy wymaga regularnych aktualizacji?
 
 Ponowna inicjalizacja jest wymagana w następujących sytuacjach:
-- Znaczne zmiany w strukturze projektu
+- Znaczące zmiany w strukturze projektu
 - Aktualizacja lub wymiana stosu technologicznego
 - Dodanie/usunięcie modułów biznesowych
 
 ---
 
-## 8. Szybka referencja
+## 11. Szybki podgląd
 
-### Szybka referencja uruchamiania Agentów
+### Szybki podgląd uruchamiania Agentów
 
-| Faza | Agent | Rozmowa początkowa |
-|------|-------|-------------------|
-
-| Inicjalizacja | Team Leader | `@speccrew-team-leader zainicjuj bazę wiedzy technicznej` |
-| Analiza wymagań | Product Manager | `@speccrew-product-manager mam nowe wymaganie: [opis]` |
+| Faza | Agent | Rozpocznij rozmowę |
+|-------|-------|-------------------|
+| Inicjalizacja | Team Leader | `@speccrew-team-leader zainicjuj techniczną bazę wiedzy` |
+| Analiza wymagań | Product Manager | `@speccrew-product-manager Mam nowe wymaganie: [opis]` |
 | Projektowanie funkcji | Feature Designer | `@speccrew-feature-designer rozpocznij projektowanie funkcji` |
 | Projektowanie systemu | System Designer | `@speccrew-system-designer rozpocznij projektowanie systemu` |
 | Rozwój | System Developer | `@speccrew-system-developer rozpocznij rozwój` |
-| Testowanie systemu | Test Manager | `@speccrew-test-manager rozpocznij testowanie` |
+| Testowanie systemu | Test Manager | `@speccrew-test-manager rozpocznij testy` |
 
-### Lista kontrolna punktów kontrolnych
+### Lista kontrolna Checkpointów
 
-| Faza | Liczba punktów kontrolnych | Kluczowe elementy weryfikacji |
-|------|---------------------------|------------------------------|
+| Faza | Liczba Checkpointów | Kluczowe elementy kontrolne |
+|-------|----------------------|-----------------|
 | Analiza wymagań | 1 | Dokładność wymagań, kompletność reguł biznesowych, mierzalność kryteriów akceptacji |
 | Projektowanie funkcji | 1 | Pokrycie scenariuszy, jasność interakcji, kompletność danych, obsługa wyjątków |
-| Projektowanie systemu | 2 | A: Ocena frameworka; B: Składnia pseudokodu, spójność międzyplatformowa, obsługa błędów |
-| Rozwój | 1 | A: Gotowość środowiska, problemy integracji, specyfikacje kodu |
+| Projektowanie systemu | 2 | A: Ewaluacja frameworka; B: Składnia pseudokodu, spójność między platformami, obsługa błędów |
+| Rozwój | 1 | A: Gotowość środowiska, problemy integracyjne, specyfikacje kodu |
 | Testowanie systemu | 2 | A: Pokrycie przypadków; B: Wykonywalność kodu testowego |
 
-### Szybka referencja ścieżek dostarczalnych
+### Szybki podgląd ścieżek produktów
 
 | Faza | Katalog wyjściowy | Format pliku |
-|------|------------------|-------------|
+|-------|-----------------|-------------|
 | Analiza wymagań | `iterations/{iter}/01.product-requirement/` | `[name]-prd.md`, `[name]-bizs-modeling.md` |
 | Projektowanie funkcji | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | Projektowanie systemu | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Rozwój | `iterations/{iter}/04.development/` | Kod źródłowy + `delivery-report.md` |
 | Testowanie systemu | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
-| Archiwizacja | `iteration-archives/{iter}-{data}/` | Pełna kopia iteracji |
+| Archiwizacja | `iteration-archives/{iter}-{date}/` | Kompletna kopia iteracji |
 
 ---
 
 ## Następne kroki
 
-1. Uruchom `speccrew init --ide qoder`, aby zainicjować swój projekt
-2. Wykonaj Krok zerowy: Inicjalizacja bazy wiedzy
-3. Przechodź przez każdą fazę zgodnie z przepływem pracy, ciesząc się doświadczeniem rozwoju opartego na specyfikacjach!
+1. Uruchom `speccrew init --ide qoder` aby zainicjować swój projekt
+2. Wykonaj Krok Zerowy: Inicjalizacja bazy wiedzy
+3. Postępuj zgodnie z workflowem faza po fazie, ciesz się rozwojem opartym na specyfikacjach!

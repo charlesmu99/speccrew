@@ -1,4 +1,4 @@
-# SpecCrew Kom godt i gang-guide
+# SpecCrew Hurtig Start Guide
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
@@ -14,11 +14,11 @@
   <a href="./GETTING-STARTED.ar.md">العربية</a>
 </p>
 
-Dette dokument hjælper dig med hurtigt at forstå, hvordan du bruger SpecCrew's agent-team til trin for trin at gennemføre komplet udvikling fra krav til levering i henhold til standardiserede ingeniørarbejdsgange.
+Dette dokument hjælper dig med hurtigt at forstå, hvordan du bruger SpecCrews Agent-team til at fuldføre den komplette udvikling fra krav til levering efter standard engineering-processer.
 
 ---
 
-## 1. Forberedelse
+## 1. Forudsætninger
 
 ### Installer SpecCrew
 
@@ -26,7 +26,7 @@ Dette dokument hjælper dig med hurtigt at forstå, hvordan du bruger SpecCrew's
 npm install -g speccrew
 ```
 
-### Initialiser projekt
+### Initialiser Projekt
 
 ```bash
 speccrew init --ide qoder
@@ -34,47 +34,122 @@ speccrew init --ide qoder
 
 Understøttede IDE'er: `qoder`, `cursor`, `claude`, `codex`
 
-### Mappestruktur efter initialisering
+### Mappestruktur Efter Initialisering
 
 ```
 .
 ├── .qoder/
 │   ├── agents/          # Agent definitionsfiler
 │   └── skills/          # Skill definitionsfiler
-├── speccrew-workspace/  # Arbejdsområde
-│   ├── docs/            # Konfiguration, regler, skabeloner, løsninger
-│   ├── iterations/      # Igangværende iterationer
+├── speccrew-workspace/  # Workspace
+│   ├── docs/            # Konfigurationer, regler, skabeloner, løsninger
+│   ├── iterations/      # Nuværende kørende iterationer
 │   ├── iteration-archives/  # Arkiverede iterationer
-│   └── knowledges/      # Videnbase
+│   └── knowledges/      # Vidensbase
 │       ├── base/        # Basisinformation (diagnoserapporter, teknisk gæld)
-│       ├── bizs/        # Forretningsvidenbase
-│       └── techs/       # Teknisk videnbase
+│       ├── bizs/        # Forretningsvidensbase
+│       └── techs/       # Teknisk vidensbase
 ```
 
-### CLI-kommando hurtigreference
+### CLI Kommando Hurtig Reference
 
 | Kommando | Beskrivelse |
 |------|------|
-| `speccrew list` | List alle tilgængelige agenter og skills |
-| `speccrew doctor` | Tjek installationsfuldstændighed |
-| `speccrew update` | Opdater projektkonfiguration til seneste version |
+| `speccrew list` | List alle tilgængelige Agenter og Skills |
+| `speccrew doctor` | Kontroller installationsintegritet |
+| `speccrew update` | Opdater projektkonfiguration til nyeste version |
 | `speccrew uninstall` | Afinstaller SpecCrew |
 
 ---
 
-## 2. Arbejdsgangsoverblik
+## 2. Hurtig Start på 5 Minutter Efter Installation
 
-### Komplet flowdiagram
+Efter kørsel af `speccrew init`, følg disse trin for hurtigt at komme i arbejdstilstand:
+
+### Trin 1: Vælg Din IDE
+
+| IDE | Initialiseringskommando | Anvendelsesscenarie |
+|-----|-----------|----------|
+| **Qoder** (Anbefalet) | `speccrew init --ide qoder` | Fuld agent-orkestrering, parallelle workers |
+| **Cursor** | `speccrew init --ide cursor` | Composer-baserede workflows |
+| **Claude Code** | `speccrew init --ide claude` | CLI-først udvikling |
+| **Codex** | `speccrew init --ide codex` | OpenAI økosystemintegration |
+
+### Trin 2: Initialiser Vidensbase (Anbefalet)
+
+For projekter med eksisterende kildekode anbefales det at initialisere vidensbasen først, så agenter forstår din kodebase:
+
+```
+@speccrew-team-leader initialiser teknisk vidensbase
+```
+
+Derefter:
+
+```
+@speccrew-team-leader initialiser forretningsvidensbase
+```
+
+### Trin 3: Start Din Første Opgave
+
+```
+@speccrew-product-manager Jeg har et nyt krav: [beskriv dit funktionskrav]
+```
+
+> **Tip**: Hvis du er usikker på hvad du skal gøre, sig blot `@speccrew-team-leader hjælp mig med at komme i gang` — Team Leader vil automatisk registrere din projektstatus og vejlede dig.
+
+---
+
+## 3. Hurtigt Beslutningstræ
+
+Usikker på hvad du skal gøre? Find dit scenarie nedenfor:
+
+- **Jeg har et nyt funktionskrav**
+  → `@speccrew-product-manager Jeg har et nyt krav: [beskriv dit funktionskrav]`
+
+- **Jeg vil scanne eksisterende projektviden**
+  → `@speccrew-team-leader initialiser teknisk vidensbase`
+  → Derefter: `@speccrew-team-leader initialiser forretningsvidensbase`
+
+- **Jeg vil fortsætte tidligere arbejde**
+  → `@speccrew-team-leader hvad er den aktuelle fremgang?`
+
+- **Jeg vil kontrollere systemets sundhedstilstand**
+  → Kør i terminal: `speccrew doctor`
+
+- **Jeg er usikker på hvad jeg skal gøre**
+  → `@speccrew-team-leader hjælp mig med at komme i gang`
+  → Team Leader vil automatisk registrere din projektstatus og vejlede dig
+
+---
+
+## 4. Agent Hurtig Reference
+
+| Rolle | Agent | Ansvarsområder | Kommandoeksempel |
+|------|-------|-----------------|-----------------|
+| Teamleder | `@speccrew-team-leader` | Projektnavigation, vidensbaseinitialisering, statuskontrol | "Hjælp mig med at komme i gang" |
+| Produktchef | `@speccrew-product-manager` | Kravanalyse, PRD-generering | "Jeg har et nyt krav: ..." |
+| Funktionsdesigner | `@speccrew-feature-designer` | Funktionsanalyse, specifikationsdesign, API-kontrakter | "Start funktionsdesign for iteration X" |
+| Systemdesigner | `@speccrew-system-designer` | Arkitekturdesign, platformsdetaljeret design | "Start systemdesign for iteration X" |
+| Systemudvikler | `@speccrew-system-developer` | Udviklingskoordinering, kodegenerering | "Start udvikling for iteration X" |
+| Testchef | `@speccrew-test-manager` | Testplanlægning, casestudier, udførelse | "Start test for iteration X" |
+
+> **Bemærk**: Du behøver ikke huske alle agenter. Bare tal med `@speccrew-team-leader`, og den vil rute din anmodning til den rigtige agent.
+
+---
+
+## 5. Workflow Oversigt
+
+### Komplet Flowdiagram
 
 ```mermaid
 flowchart LR
-    PRD[Fase 1<br/>Kravanalyse<br/>Product Manager] --> FD[Fase 2<br/>Funktionsdesign<br/>Feature Designer]
-    FD --> SD[Fase 3<br/>Systemdesign<br/>System Designer]
-    SD --> DEV[Fase 4<br/>Udvikling<br/>System Developer]
-    DEV --> TEST[Fase 5<br/>Systemtest<br/>Test Manager]
-    TEST --> ARCHIVE[Fase 6<br/>Arkivering]
+    PRD[Trin 1<br/>Kravanalyse<br/>Product Manager] --> FD[Trin 2<br/>Funktionsdesign<br/>Feature Designer]
+    FD --> SD[Trin 3<br/>Systemdesign<br/>System Designer]
+    SD --> DEV[Trin 4<br/>Udvikling<br/>System Developer]
+    DEV --> TEST[Trin 5<br/>Systemtest<br/>Test Manager]
+    TEST --> ARCHIVE[Trin 6<br/>Arkivering]
     
-    KB[(Videnbase<br/>Gennemgående)] -.-> PRD
+    KB[(Vidensbase<br/>Gennem Hele Processen)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
@@ -83,52 +158,52 @@ flowchart LR
 
 ### Kerneprincipper
 
-1. **Faseafhængighed**: Hver fases output er input til næste fase
-2. **Checkpoint-bekræftelse**: Hver fase har bekræftelsespunkter, brugerbekræftelse kræves før næste fase
-3. **Videnbasedrevet**: Videnbasen bruges gennemgående til at levere kontekst til alle faser
+1. **Trinafhængigheder**: Hvert trins resultat er input til næste trin
+2. **Checkpoint-bekræftelse**: Hvert trin har et bekræftelsespunkt, der kræver brugergodkendelse før fortsættelse til næste trin
+3. **Vidensbase-drevet**: Vidensbasen kører gennem hele processen og giver kontekst til alle trin
 
 ---
 
-## 3. Videnbase Initialisering
+## 6. Trin Nul: Vidensbaseinitialisering
 
-Før du starter den formelle ingeniørarbejdsgang, skal du initialisere projektvidenbasen.
+Før du starter den formelle engineering-proces, skal du initialisere projektets vidensbase.
 
-### 3.1 Teknisk Videnbase Initialisering
+### 6.1 Teknisk Vidensbaseinitialisering
 
-**Dialogeksempel**:
+**Samtaleeksempel**:
 ```
-@speccrew-team-leader initialiser teknisk videnbase
+@speccrew-team-leader initialiser teknisk vidensbase
 ```
 
-**3-trins proces**:
-1. Platformsdetektion — Identificer tekniske platforme i projektet
+**Tre-faset proces**:
+1. Platformdetektering — Identificer tekniske platforme i projektet
 2. Teknisk dokumentgeneration — Generer tekniske specifikationsdokumenter for hver platform
-3. Indeksgeneration — Byg videnbaseindeks
+3. Indexgeneration — Etabler vidensbaseindex
 
-**Output**:
+**Resultat**:
 ```
 speccrew-workspace/knowledges/techs/{platform-id}/
-├── tech-stack.md          # Teknologistakdefinition
-├── architecture.md        # Arkitekturaftaler
-├── dev-spec.md            # Udviklingsspecifikation
-├── test-spec.md           # Tests specifikation
-└── INDEX.md               # Indeksfil
+├── tech-stack.md          # Teknologi-stack-definition
+├── architecture.md        # Arkitekturkonventioner
+├── dev-spec.md            # Udviklingsspecifikationer
+├── test-spec.md           # Tests specifikationer
+└── INDEX.md               # Indexfil
 ```
 
-### 3.2 Forretningsvidenbase Initialisering
+### 6.2 Forretningsvidensbaseinitialisering
 
-**Dialogeksempel**:
+**Samtaleeksempel**:
 ```
-@speccrew-team-leader initialiser forretningsvidenbase
+@speccrew-team-leader initialiser forretningsvidensbase
 ```
 
-**4-trins proces**:
-1. Funktionsoversigt — Scan kode for at identificere alle funktioner
+**Fire-faset proces**:
+1. Funktionsliste — Scan kode for at identificere alle funktioner
 2. Funktionsanalyse — Analyser forretningslogik for hver funktion
 3. Modulopsummering — Opsummer funktioner efter modul
 4. Systemopsummering — Generer systemniveau forretningsoverblik
 
-**Output**:
+**Resultat**:
 ```
 speccrew-workspace/knowledges/bizs/
 ├── {platform-type}/
@@ -139,140 +214,140 @@ speccrew-workspace/knowledges/bizs/
 
 ---
 
-## 4. Fase-for-Fase Dialogguide
+## 7. Trin-for-Trin Samtaleguide
 
-### 4.1 Fase 1: Kravanalyse (Product Manager)
+### 7.1 Trin 1: Kravanalyse (Product Manager)
 
 **Sådan startes**:
 ```
 @speccrew-product-manager Jeg har et nyt krav: [beskriv dit krav]
 ```
 
-**Agent arbejdsgang**:
+**Agent Workflow**:
 1. Læs systemoversigt for at forstå eksisterende moduler
-2. Analyser brugerkrav
+2. Analyser brugers krav
 3. Generer struktureret PRD-dokument
 
-**Output**:
+**Resultat**:
 ```
-iterations/{sekvens}-{type}-{navn}/01.product-requirement/
+iterations/{nummer}-{type}-{navn}/01.product-requirement/
 ├── [feature-name]-prd.md           # Produktkravdokument
 └── [feature-name]-bizs-modeling.md # Forretningsmodellering (for komplekse krav)
 ```
 
 **Bekræftelsespunkter**:
-- [ ] Beskriver kravene præcist brugerens hensigt
-- [ ] Er forretningsregler komplette
-- [ ] Er integrationspunkter med eksisterende system tydelige
-- [ ] Er acceptkriterier målbare
+- [ ] Beskriver kravet nøjagtigt brugerens hensigt?
+- [ ] Er forretningsregler komplette?
+- [ ] Er integrationspunkter med eksisterende systemer klare?
+- [ ] Er acceptkriterier målbare?
 
 ---
 
-### 4.2 Fase 2: Funktionsdesign (Feature Designer)
+### 7.2 Trin 2: Funktionsdesign (Feature Designer)
 
 **Sådan startes**:
 ```
 @speccrew-feature-designer start funktionsdesign
 ```
 
-**Agent arbejdsgang**:
-1. Find automatisk bekræftet PRD-dokument
-2. Indlæs forretningsvidenbase
-3. Generer funktionsdesign (inkl. UI-wireframes, interaktionsflow, datadefinition, API-kontrakt)
-4. Ved flere PRD'er, parallelt design via Task Worker
+**Agent Workflow**:
+1. Automatisk lokalisering af bekræftet PRD-dokument
+2. Indlæs forretningsvidensbase
+3. Generer funktionsdesign (inklusive UI-wireframes, interaktionsflows, datadefinitioner, API-kontrakter)
+4. For flere PRD'er, brug Task Worker til parallelt design
 
-**Output**:
+**Resultat**:
 ```
 iterations/{iter}/02.feature-design/
-└── [feature-name]-feature-spec.md  # Funktionsdesigndokument
+└── [feature-name]-feature-spec.md  # Funktionsdesign-dokument
 ```
 
 **Bekræftelsespunkter**:
-- [ ] Er alle brugerscenarier dækket
-- [ ] Er interaktionsflowet klart
-- [ ] Er datafeltdefinitioner komplette
-- [ ] Er undtagelseshåndtering korrekt
+- [ ] Er alle brugerscenarier dækket?
+- [ ] Er interaktionsflows klare?
+- [ ] Er datafeltdefinitioner komplette?
+- [ ] Er undtagelseshåndtering omfattende?
 
 ---
 
-### 4.3 Fase 3: Systemdesign (System Designer)
+### 7.3 Trin 3: Systemdesign (System Designer)
 
 **Sådan startes**:
 ```
 @speccrew-system-designer start systemdesign
 ```
 
-**Agent arbejdsgang**:
-1. Find Feature Spec og API-kontrakt
-2. Indlæs teknisk videnbase (teknologistak, arkitektur, specifikationer for hver ende)
-3. **Checkpoint A**: Framework-evaluering — Analyser teknologiforskelle, anbefal nye frameworks (hvis nødvendigt), vent på brugerbekræftelse
+**Agent Workflow**:
+1. Lokaliser Feature Spec og API Contract
+2. Indlæs teknisk vidensbase (teknologi-stack, arkitektur, specifikationer for hver platform)
+3. **Checkpoint A**: Framework-evaluering — Analyser tekniske kløfter, anbefal nye frameworks (hvis nødvendigt), vent på brugerbekræftelse
 4. Generer DESIGN-OVERVIEW.md
-5. Parallel dispatch af design for hver ende via Task Worker (frontend/backend/mobil/desktop)
-6. **Checkpoint B**: Fælles bekræftelse — Vis designoversigt for alle platforme, vent på brugerbekræftelse
+5. Brug Task Worker til parallelt at distribuere design for hver platform (frontend/backend/mobil/desktop)
+6. **Checkpoint B**: Fælles bekræftelse — Vis resume af alle platformdesign, vent på brugerbekræftelse
 
-**Output**:
+**Resultat**:
 ```
 iterations/{iter}/03.system-design/
 ├── DESIGN-OVERVIEW.md              # Designoversigt
 ├── {platform-id}/
-│   ├── INDEX.md                    # Designindeks for hver platform
-│   └── {module}-design.md          # Moduldesign på pseudokode-niveau
+│   ├── INDEX.md                    # Platformdesignindex
+│   └── {module}-design.md          # Pseudokode-niveau moduldesign
 ```
 
 **Bekræftelsespunkter**:
-- [ ] Bruger pseudokoden faktisk framework-syntaks
-- [ ] Er API-kontrakter på tværs af ender konsistente
-- [ ] Er fejlhåndteringsstrategier ensartede
+- [ ] Bruger pseudokoden faktisk frameworks syntaks?
+- [ ] Er cross-platform API-kontrakter konsistente?
+- [ ] Er fejlhåndteringsstrategi ensartet?
 
 ---
 
-### 4.4 Fase 4: Udviklingsimplementering (System Developer)
+### 7.4 Trin 4: Udvikling (System Developer)
 
 **Sådan startes**:
 ```
 @speccrew-system-developer start udvikling
 ```
 
-**Agent arbejdsgang**:
+**Agent Workflow**:
 1. Læs systemdesigndokumenter
-2. Indlæs teknisk viden for hver ende
-3. **Checkpoint A**: Miljø-precheck — Tjek runtime-versioner, afhængigheder, service tilgængelighed, vent på brugerløsning ved fejl
-4. Parallel dispatch af udvikling for hver ende via Task Worker
-5. Integrationstjek: API-kontraktjustering, datakonsistens
-6. Output leverancerapport
+2. Indlæs teknisk viden for hver platform
+3. **Checkpoint A**: Miljøforhåndskontrol — Kontroller runtime-versioner, afhængigheder, servicetilgængelighed; vent på brugerløsning hvis det fejler
+4. Brug Task Worker til parallelt at distribuere udvikling for hver platform
+5. Integrationskontrol: API-kontraktjustering, datakonsistens
+6. Output leveringsrapport
 
-**Output**:
+**Resultat**:
 ```
-# Kildekode skrives til projektets faktiske kildekodemappe
+# Kildekode skrives til projektets faktiske kildemappe
 iterations/{iter}/04.development/
 ├── {platform-id}/
-│   └── tasks/                      # Udviklingsopgaveoptegnelser
+│   └── tasks/                      # Udviklingsopgaveregistre
 └── delivery-report.md
 ```
 
 **Bekræftelsespunkter**:
-- [ ] Er miljøet klar
-- [ ] Er integrationsproblemer inden for acceptabelt område
-- [ ] Overholder kode udviklingsspecifikationen
+- [ ] Er miljøet klar?
+- [ ] Er integrationsproblemer inden for acceptabelt område?
+- [ ] Overholder koden udviklingsspecifikationerne?
 
 ---
 
-### 4.5 Fase 5: Systemtest (Test Manager)
+### 7.5 Trin 5: Systemtest (Test Manager)
 
 **Sådan startes**:
 ```
 @speccrew-test-manager start test
 ```
 
-**3-trins testproces**:
+**Tre-faset testproces**:
 
 | Fase | Beskrivelse | Checkpoint |
-|------|------|------------|
-| Testcasdesign | Generer testcases baseret på PRD og Feature Spec | A: Vis case dækningsstatistik og sporingsmatrix, vent på brugerbekræftelse |
-| Testkodegeneration | Generer eksekverbar testkode | B: Vis genererede testfiler og casemapping, vent på brugerbekræftelse |
-| Testudførelse og bug-rapport | Kør test automatisk, generer rapport | Ingen (automatisk udførelse) |
+|-------|-------------|------------|
+| Testcasedesign | Generer testcases baseret på PRD og Feature Spec | A: Vis testcase-dækningsstatistik og sporbarhedsmatrix, vent på brugerbekræftelse af tilstrækkelig dækning |
+| Testkodegenerering | Generer eksekverbar testkode | B: Vis genererede testfiler og casemapping, vent på brugerbekræftelse |
+| Testudførelse og Bug-rapportering | Kør automatisk tests og generer rapporter | Ingen (automatisk udførelse) |
 
-**Output**:
+**Resultat**:
 ```
 iterations/{iter}/05.system-test/
 ├── cases/
@@ -282,23 +357,23 @@ iterations/{iter}/05.system-test/
 ├── reports/
 │   └── test-report-{date}.md       # Testrapport
 └── bugs/
-    └── BUG-{id}-{title}.md         # Bug-rapport (én fil pr. bug)
+    └── BUG-{id}-{title}.md         # Bug-rapporter (én fil pr. bug)
 ```
 
 **Bekræftelsespunkter**:
-- [ ] Er casedækningen komplet
-- [ ] Er testkoden køreklar
-- [ ] Er bug-alvorlighedsbedømmelse præcis
+- [ ] Er casedækning komplet?
+- [ ] Er testkode kørbar?
+- [ ] Er bug-alvorlighedsvurdering præcis?
 
 ---
 
-### 4.6 Fase 6: Arkivering
+### 7.6 Trin 6: Arkivering
 
-Automatisk arkivering efter iterationen er fuldført:
+Iterationer arkiveres automatisk efter fuldførelse:
 
 ```
 speccrew-workspace/iteration-archives/
-└── {sekvens}-{type}-{navn}-{dato}/
+└── {nummer}-{type}-{navn}-{dato}/
     ├── 01.product-requirement/
     ├── 02.feature-design/
     ├── 03.system-design/
@@ -308,11 +383,11 @@ speccrew-workspace/iteration-archives/
 
 ---
 
-## 5. Videnbasebeskrivelse
+## 8. Vidensbase Oversigt
 
-### 5.1 Forretningsvidenbase (bizs)
+### 8.1 Forretningsvidensbase (bizs)
 
-**Formål**: Gem projektets forretningsfunktionsbeskrivelser, modulopdeling, API-karakteristika
+**Formål**: Gem projektets forretningsfunktionsbeskrivelser, modulopdelinger, API-karakteristika
 
 **Mappestruktur**:
 ```
@@ -323,11 +398,11 @@ knowledges/bizs/
 └── system-overview.md
 ```
 
-**Brugsscenarier**: Product Manager, Feature Designer
+**Anvendelsesscenarier**: Product Manager, Feature Designer
 
-### 5.2 Teknisk Videnbase (techs)
+### 8.2 Teknisk Vidensbase (techs)
 
-**Formål**: Gem projektets teknologistak, arkitekturaftaler, udviklingsspecifikationer, tests specifikationer
+**Formål**: Gem projektets teknologi-stack, arkitekturkonventioner, udviklingsspecifikationer, tests specifikationer
 
 **Mappestruktur**:
 ```
@@ -339,87 +414,87 @@ knowledges/techs/{platform-id}/
 └── INDEX.md
 ```
 
-**Brugsscenarier**: System Designer, System Developer, Test Manager
+**Anvendelsesscenarier**: System Designer, System Developer, Test Manager
 
 ---
 
-## 6. Arbejdsgangsforløbsstyring
+## 9. Workflow Fremskridtshåndtering
 
-Det virtuelle SpecCrew-team følger en streng fase-gate-mekanisme, hvor hver fase skal bekræftes af brugeren før der fortsættes til den næste. Det understøtter også genoptagelig udførelse — når det genstartes efter afbrydelse, fortsætter det automatisk fra hvor det slap.
+SpecCrew virtuelle team følger en streng fase-gating-mekanisme, hvor hver fase skal bekræftes af brugeren, før den går videre til næste. Den understøtter også genoptagelig udførelse — når den genstartes efter afbrydelse, fortsætter den automatisk fra hvor den slap.
 
-### 6.1 Tremedlagsforløbsfiler
+### 9.1 Tre-lags Fremskridtsfiler
 
-Arbejdsgangen vedligeholder automatisk tre typer JSON-forløbsfiler, placeret i iterationsmappen:
+Workflowet vedligeholder automatisk tre typer JSON-fremskridtsfiler, placeret i iterationsmappen:
 
 | Fil | Placering | Formål |
 |------|----------|---------|
 | `WORKFLOW-PROGRESS.json` | `iterations/{iter}/` | Registrerer status for hver pipeline-fase |
-| `.checkpoints.json` | Under hver fasemappe | Registrerer brugerens checkpoint-bekræftelsesstatus |
-| `DISPATCH-PROGRESS.json` | Under hver fasemappe | Registrerer punkt-for-punkt forløb for parallelle opgaver (multi-platform/multi-modul) |
+| `.checkpoints.json` | Under hver fasemappe | Registrerer brugercheckpoint-bekræftelsesstatus |
+| `DISPATCH-PROGRESS.json` | Under hver fasemappe | Registrerer element-for-element fremskridt for parallelle opgaver (multi-platform/multi-modul) |
 
-### 6.2 Fasestatusforløb
+### 9.2 Fasestatus Flow
 
-Hver fase følger dette statusforløb:
+Hver fase følger denne status flow:
 
 ```
 pending → in_progress → completed → confirmed
 ```
 
-- **pending**: Ikke startet endnu
-- **in_progress**: Udføres i øjeblikket
-- **completed**: Agent-udførelse afsluttet, venter på brugerbekræftelse
-- **confirmed**: Bruger bekræftet gennem sidste checkpoint, næste fase kan starte
+- **pending**: Endnu ikke startet
+- **in_progress**: Under udførelse
+- **completed**: Agent-udførelse fuldført, venter på brugerbekræftelse
+- **confirmed**: Bruger bekræftet via endeligt checkpoint, næste fase kan starte
 
-### 6.3 Genoptagelig Udførelse
+### 9.3 Genoptagelig Udførelse
 
-Når en Agent genstartes for en fase:
+Når du genstarter en Agent for en fase:
 
-1. **Automatisk opstrømskontrol**: Verificerer om den forrige fase er bekræftet, blokerer og informerer hvis ikke
-2. **Checkpoint-gendannelse**: Læser `.checkpoints.json`, springer over passerede checkpoints, fortsætter fra det sidste afbrydelsespunkt
-3. **Parallel opgavegendannelse**: Læser `DISPATCH-PROGRESS.json`, udfører kun opgaver med `pending` eller `failed` status igen, springer over `completed` opgaver
+1. **Automatisk upstream-kontrol**: Verificerer om forrige fase er bekræftet, blokerer og prompter hvis ikke
+2. **Checkpoint-genopretning**: Læser `.checkpoints.json`, springer beståede checkpoints over, fortsætter fra sidste afbrydelsespunkt
+3. **Parallelle opgave-genopretning**: Læser `DISPATCH-PROGRESS.json`, genudfører kun opgaver med `pending` eller `failed` status, springer `completed` opgaver over
 
-### 6.4 Vis Nuværende Forløb
+### 9.4 Se Nuværende Fremskridt
 
-Vis pipeline-panorama-status gennem Team Leader Agent:
+Se pipeline-panoramastatus via Team Leader Agent:
 
 ```
-@speccrew-team-leader vis nuværende iterationsforløb
+@speccrew-team-leader se nuværende iterationsfremskridt
 ```
 
-Team Leader vil læse forløbsfilerne og vise en statusoversigt svarende til:
+Team Leader vil læse fremskridtsfilerne og vise en statusoversigt svarende til:
 
 ```
 Pipeline Status: i001-user-management
-  01 PRD:            ✅ Bekræftet
-  02 Feature Design: 🔄 I gang (Checkpoint A passeret)
-  03 System Design:  ⏳ Afventer
-  04 Development:    ⏳ Afventer
-  05 System Test:    ⏳ Afventer
+  01 PRD:            ✅ Confirmed
+  02 Feature Design: 🔄 In Progress (Checkpoint A passed)
+  03 System Design:  ⏳ Pending
+  04 Development:    ⏳ Pending
+  05 System Test:    ⏳ Pending
 ```
 
-### 6.5 Bagudkompatibilitet
+### 9.5 Bagudkompatibilitet
 
-Forløbsfilms-mekanismen er fuldt bagudkompatibel — hvis forløbsfiler ikke findes (f.eks. i ældre projekter eller nye iterationer), vil alle Agenter udføre normalt i henhold til den oprindelige logik.
+Fremskridtsfil-mekanismen er fuldt bagudkompatibel — hvis fremskridtsfiler ikke eksisterer (f.eks. i ældre projekter eller nye iterationer), vil alle Agenter køre normalt ifølge den oprindelige logik.
 
 ---
 
-## 7. Ofte Stillede Spørgsmål (FAQ)
+## 10. Ofte Stillede Spørgsmål (FAQ)
 
-### Q1: Hvad hvis agenten ikke fungerer som forventet?
+### S1: Hvad gør jeg hvis Agenten ikke fungerer som forventet?
 
-1. Kør `speccrew doctor` for at tjekke installationsfuldstændighed
-2. Bekræft at videnbasen er initialiseret
-3. Bekræft at der er output fra forrige fase i nuværende iterationsmappe
+1. Kør `speccrew doctor` for at kontrollere installationsintegritet
+2. Bekræft at vidensbasen er blevet initialiseret
+3. Bekræft at resultatet fra forrige fase findes i den aktuelle iterationsmappe
 
-### Q2: Hvordan springer jeg en fase over?
+### S2: Hvordan springer jeg en fase over?
 
-**Anbefales ikke at springe over**, hver fases output er input til næste fase.
+**Anbefales ikke** — Hver fases output er input til næste fase.
 
-Hvis det er nødvendigt, skal du manuelt forberede inputdokumenter for den pågældende fase og sikre, at formatet overholder specifikationen.
+Hvis du skal springe over, skal du manuelt forberede inputdokumentet for den tilsvarende fase og sikre, at det overholder formatspecifikationerne.
 
-### Q3: Hvordan håndteres flere krav parallelt?
+### S3: Hvordan håndterer jeg flere parallelle krav?
 
-Opret uafhængig iterationsmappe for hvert krav:
+Opret uafhængige iterationsmapper for hvert krav:
 ```
 iterations/
 ├── 001-feature-xxx/
@@ -427,63 +502,65 @@ iterations/
 └── 003-feature-zzz/
 ```
 
-Hver iteration er fuldstændig isoleret og påvirker ikke hinanden.
+Hver iteration er fuldstændigt isoleret og påvirker ikke andre.
 
-### Q4: Hvordan opdateres SpecCrew-versionen?
+### S4: Hvordan opdaterer jeg SpecCrew-versionen?
 
-Opdatering sker i to trin:
+Opdatering kræver to trin:
 
 ```bash
 # Trin 1: Opdater det globale CLI-værktøj
 npm install -g speccrew@latest
 
-# Trin 2: Synkroniser Agenter og Skills i projektbiblioteket
+# Trin 2: Synkroniser Agenter og Skills i din projektmappe
 cd /path/to/your-project
 speccrew update
 ```
 
-- `npm install -g speccrew@latest`: Opdaterer selve CLI-værktøjet (ny version kan indeholde nye Agent/Skill-definitioner, fejlrettelser osv.)
-- `speccrew update`: Synkroniserer projektets Agent- og Skill-definitionsfilér til den nyeste version
-- `speccrew update --ide cursor`: Opdaterer kun konfigurationen for det angivne IDE
+- `npm install -g speccrew@latest`: Opdaterer CLI-værktøjet selv (nye versioner kan indeholde nye Agent/Skill-definitioner, fejlrettelser osv.)
+- `speccrew update`: Synkroniserer Agent- og Skill-definitions filer i dit projekt til nyeste version
+- `speccrew update --ide cursor`: Opdaterer kun konfiguration for specifik IDE
 
-> **Bemærk**: Begge trin skal udføres. Kun at køre `speccrew update` opdaterer ikke selve CLI-værktøjet; kun at køre `npm install` opdaterer ikke filerne i projektet.
+> **Bemærk**: Begge trin er påkrævet. Kun at køre `speccrew update` vil ikke opdatere CLI-værktøjet selv; kun at køre `npm install` vil ikke opdatere projektfiler.
 
-### Q5: `speccrew update` viser ny version, men efter installation er det stadig den gamle?
+### S5: `speccrew update` viser ny version tilgængelig men `npm install -g speccrew@latest` installerer stadig den gamle version?
 
-Normalt forårsaget af npm cache. Løsning:
+Dette skyldes normalt npm-cache. Løsning:
 
 ```bash
+# Ryd npm-cache og geninstaller
 npm cache clean --force
 npm install -g speccrew@latest
+
+# Verificer version
 npm list -g speccrew
 ```
 
-Hvis det stadig ikke virker, angiv versionsnummeret:
+Hvis det stadig ikke virker, prøv at installere med specifikt versionsnummer:
 ```bash
 npm install -g speccrew@0.5.6
 ```
 
-### Q6: Hvordan vises historiske iterationer?
+### S6: Hvordan ser jeg historiske iterationer?
 
-Efter arkivering, se i `speccrew-workspace/iteration-archives/`, organiseret efter `{sekvens}-{type}-{navn}-{dato}/` format.
+Efter arkivering, se i `speccrew-workspace/iteration-archives/`, organiseret efter `{nummer}-{type}-{navn}-{dato}/` format.
 
-### Q7: Skal videnbasen opdateres regelmæssigt?
+### S7: Skal vidensbasen opdateres regelmæssigt?
 
-Følgende situationer kræver re-initialisering:
-- Projektstruktur ændres væsentligt
-- Teknologistak opgraderes eller udskiftes
-- Forretningsmoduler tilføjes/slettes
+Geninitialisering er påkrævet i følgende situationer:
+- Større ændringer i projektstruktur
+- Teknologi-stack-opgradering eller udskiftning
+- Tilføjelse/fjernelse af forretningsmoduler
 
 ---
 
-## 8. Hurtigreference
+## 11. Hurtig Reference
 
-### Agent Start Hurtigreferencetabel
+### Agent Start Hurtig Reference
 
-| Fase | Agent | Startdialog |
-|------|-------|----------|
-
-| Initialisering | Team Leader | `@speccrew-team-leader initialiser teknisk videnbase` |
+| Fase | Agent | Start Samtale |
+|-------|-------|-------------------|
+| Initialisering | Team Leader | `@speccrew-team-leader initialiser teknisk vidensbase` |
 | Kravanalyse | Product Manager | `@speccrew-product-manager Jeg har et nyt krav: [beskrivelse]` |
 | Funktionsdesign | Feature Designer | `@speccrew-feature-designer start funktionsdesign` |
 | Systemdesign | System Designer | `@speccrew-system-designer start systemdesign` |
@@ -492,18 +569,18 @@ Følgende situationer kræver re-initialisering:
 
 ### Checkpoint Tjekliste
 
-| Fase | Antal Checkpoints | Nøglekontrolpunkter |
-|------|-----------------|------------|
-| Kravanalyse | 1 | Kravnøjagtighed, forretningsreglers fuldstændighed, acceptkriteriers målbarehed |
-| Funktionsdesign | 1 | Scenariedækning, interaktionsklarhed, datafuldstændighed, undtagelseshåndtering |
-| Systemdesign | 2 | A: Framework-evaluering; B: Pseudokode syntaks, cross-ender konsistens, fejlhåndtering |
-| Udvikling | 1 | A: Miljø klar, integrationsproblemer, kode specifikation |
-| Systemtest | 2 | A: Casedækning; B: Testkode køreklarhed |
+| Fase | Antal Checkpoints | Vigtige Kontrolpunkter |
+|-------|----------------------|-----------------|
+| Kravanalyse | 1 | Kravnøjagtighed, forretningsregelkomplethed, acceptkriteriemålbarhed |
+| Funktionsdesign | 1 | Scenariedækning, interaktionsklarhed, datakomplethed, undtagelseshåndtering |
+| Systemdesign | 2 | A: Framework-evaluering; B: Pseudokode syntaks, cross-platform konsistens, fejlhåndtering |
+| Udvikling | 1 | A: Miljøklarhed, integrationsproblemer, kodespecifikationer |
+| Systemtest | 2 | A: Casedækning; B: Testkode-kørbarhed |
 
-### Output Sti Hurtigreference
+### Resultatsti Hurtig Reference
 
-| Fase | Output Mappe | Filformat |
-|------|----------|----------|
+| Fase | Output-mappe | Filformat |
+|-------|-----------------|-------------|
 | Kravanalyse | `iterations/{iter}/01.product-requirement/` | `[name]-prd.md`, `[name]-bizs-modeling.md` |
 | Funktionsdesign | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | Systemdesign | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
@@ -513,8 +590,8 @@ Følgende situationer kræver re-initialisering:
 
 ---
 
-## Næste Skridt
+## Næste Trin
 
 1. Kør `speccrew init --ide qoder` for at initialisere dit projekt
-2. Udfør Videnbase Initialisering
-3. Følg arbejdsgangen fase for fase og nyd specifikationsdrevet udvikling!
+2. Udfør Trin Nul: Vidensbaseinitialisering
+3. Gå frem fase for fase ifølge workflowet, nyd den specifikationsdrevne udviklingsoplevelse!
