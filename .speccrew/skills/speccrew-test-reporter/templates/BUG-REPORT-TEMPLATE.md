@@ -1,6 +1,7 @@
 # Bug Report: {Bug Title}
 
 ## Bug Information
+
 | Item | Value |
 |------|-------|
 | Bug ID | BUG-{feature}-{seq} |
@@ -9,38 +10,60 @@
 | Status | Open |
 | Platform | {platform_id} |
 | Detected Date | {date} |
-| Detected By | speccrew-test-execute |
+| Detected By | speccrew-test-reporter |
 
 ## Description
+
 {brief_description_of_the_bug}
 
 ## Reproduction Steps
+
 1. {step_1}
 2. {step_2}
 3. {step_3}
 
 ## Expected Result
+
 {expected_result_from_test_case}
 
 ## Actual Result
+
 {actual_result_observed}
 
 ## Error Log
+
 ```
 {relevant_error_log_or_stack_trace}
 ```
 
 ## Environment
+
 | Item | Value |
 |------|-------|
 | OS | {os} |
 | Runtime | {runtime_version} |
 | Related Module | {module_name} |
 
+## Root Cause Analysis
+
+### Error Category
+
+{syntax_logic_integration_environment_performance}
+
+### Impact Assessment
+
+{what_functionality_is_affected}
+
+### Likely Cause
+
+{probable_source_of_the_issue}
+
 ## Suggested Fix Direction
+
 {analysis_of_likely_root_cause_and_suggested_fix_approach}
 
 ## Related Files
+
 - Test File: {test_file_path}
 - Source File: {likely_source_file} (if identifiable)
 

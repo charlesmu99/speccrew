@@ -1,6 +1,7 @@
 # Test Execution Report: {Feature Name}
 
 ## 1. Execution Summary
+
 | Item | Value |
 |------|-------|
 | Feature Name | {feature_name} |
@@ -8,9 +9,10 @@
 | Test Framework | {framework} |
 | Execution Date | {date} |
 | Total Duration | {duration} |
-| Executor | speccrew-test-execute |
+| Executor | speccrew-test-reporter |
 
 ## 2. Results Overview
+
 | Metric | Count | Percentage |
 |--------|-------|------------|
 | Total | {total} | 100% |
@@ -20,6 +22,7 @@
 | Skipped | {skipped} | {skip_rate}% |
 
 ## 3. Results by Test Dimension
+
 | Dimension | Total | Passed | Failed | Pass Rate |
 |-----------|-------|--------|--------|-----------|
 | Happy Path | {n} | {n} | {n} | {rate}% |
@@ -30,16 +33,19 @@
 | Data Validation | {n} | {n} | {n} | {rate}% |
 
 ## 4. Failed Test Details
+
 | TC ID | Test Name | Failure Type | Error Message | Bug Report |
 |-------|-----------|-------------|---------------|------------|
 | {tc_id} | {test_name} | FAIL/ERROR | {message} | {bug_report_link} |
 
 ## 5. Coverage Status
+
 | Requirement ID | Test Case IDs | Status |
 |---------------|---------------|--------|
 | {req_id} | {tc_ids} | Pass/Fail/Partial |
 
 ## 6. Environment Information
+
 | Item | Value |
 |------|-------|
 | OS | {os} |
@@ -48,6 +54,7 @@
 | Dependencies | {key_dependencies} |
 
 ## 7. Recommendations
+
 - {recommendation_1}
 - {recommendation_2}
 
