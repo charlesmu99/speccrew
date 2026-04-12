@@ -35,7 +35,7 @@
 
 ## SpecCrew란 무엇인가요?
 
-SpecCrew는 임베디드 가상 AI 개발 팀 프레임워크입니다. 전문 소프트웨어 엔지니어링 워크플로우(PRD → Feature Design → System Design → Dev → Test)를 재사용 가능한 Agent 워크플로우로 변환하여, 개발 팀이 명세 기반 개발(SDD)을 달성할 수 있도록 도와주며, 특히 기존 프로젝트에 적합합니다.
+SpecCrew는 임베디드 가상 AI 개발 팀 프레임워크입니다. 전문 소프트웨어 엔지니어링 워크플로우(PRD → Feature Design → System Design → Dev → Deployment → Test)를 재사용 가능한 Agent 워크플로우로 변환하여, 개발 팀이 명세 기반 개발(SDD)을 달성할 수 있도록 도와주며, 특히 기존 프로젝트에 적합합니다.
 
 Agent와 Skill을 기존 프로젝트에 통합함으로써 프로젝트 문서 시스템과 가상 소프트웨어 팀을 빠르게 초기화하고, 표준 엔지니어링 프로세스에 따라 기능 추가 및 수정을 단계별로 구현할 수 있습니다.
 
@@ -122,7 +122,7 @@ Stage 4: 시스템 집계 → 시스템 파노라마 생성
 **해결**: 전체 소프트웨어 엔지니어링 수명주기를 커버:
 ```
 PRD (요구사항) → Feature Design (기능 설계) → API Contract (계약)
-    → System Design (시스템 설계) → Dev (개발) → Test (테스트)
+    → System Design (시스템 설계) → Dev (개발) → Deployment (배포) → Test (테스트)
 ```
 - 각 단계의 산출물은 다음 단계의 입력
 - 각 단계는 진행 전 사용자 확인 필요
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>인터페이스 계약]
     C --> D[System Design<br/>시스템 설계]
     D --> E[Dev<br/>구현]
-    E --> F[System Test<br/>테스트]
-    F --> G[Archive<br/>보관]
+    E --> F[Deployment<br/>배포]
+    F --> G[System Test<br/>테스트]
+    G --> H[Archive<br/>보관]
     
-    H[Knowledge<br/>저장소] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>저장소] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### 각 단계 설명
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | 기능 설계 문서 + API 계약 | ✅ 필수 |
 | System Design | System Designer | Feature Spec | 프론트엔드/백엔드 설계 문서 | ✅ 필수 |
 | Dev | Dev | Design | 코드 + 작업 기록 | ✅ 필수 |
-| System Test | Test Manager | Dev 산출물 + Feature Spec | 테스트 케이스 + 테스트 코드 + 테스트 보고서 + 버그 보고서 | ✅ 필수 |
+| Deployment | System Deployer | Dev 산출물 | 배포 보고서 + 실행 중인 애플리케이션 | ✅ 필수 |
+| System Test | Test Manager | Deployment 산출물 + Feature Spec | 테스트 케이스 + 테스트 코드 + 테스트 보고서 + 버그 보고서 | ✅ 필수 |
 
 ---
 
@@ -260,8 +264,9 @@ speccrew update --ide claude
 2. **Feature Design**: 기능 설계자 Agent가 기능 설계 문서 + API 계약 생성
 3. **System Design**: 시스템 설계자 Agent가 플랫폼별(프론트엔드/백엔드/모바일/데스크톱) 시스템 설계 문서 생성
 4. **Dev**: 시스템 개발자 Agent가 플랫폼별 병렬 개발 구현
-5. **System Test**: 테스트 관리자 Agent가 3단계 테스트 조정 (케이스 설계 → 코드 생성 → 실행 보고서)
-6. **Archive**: 반복 보관
+5. **Deployment**: 시스템 배포자 Agent가 빌드, 데이터베이스 마이그레이션, 서비스 시작, 스모크 테스트 실행
+6. **System Test**: 테스트 관리자 Agent가 3단계 테스트 조정 (케이스 설계 → 코드 생성 → 실행 보고서)
+7. **Archive**: 반복 보관
 
 > 각 단계의 산출물은 다음 단계로 진행하기 전 사용자 확인이 필요합니다.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # 기능 설계
     │       ├── 03.system-design/    # 시스템 설계
     │       ├── 04.development/      # 개발 단계
-    │       ├── 05.system-test/      # 시스템 테스트
-    │       └── 06.delivery/         # 전달 단계
+    │       ├── 05.deployment/       # 배포 단계
+    │       ├── 06.system-test/      # 시스템 테스트
+    │       └── 07.delivery/         # 전달 단계
     │
     ├── iteration-archives/          # 반복 보관
     │

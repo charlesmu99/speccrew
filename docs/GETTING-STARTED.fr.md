@@ -146,13 +146,15 @@ flowchart LR
     PRD[Phase 1<br/>Analyse des Exigences<br/>Product Manager] --> FD[Phase 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Phase 3<br/>Conception Système<br/>System Designer]
     SD --> DEV[Phase 4<br/>Développement<br/>System Developer]
-    DEV --> TEST[Phase 5<br/>Test Système<br/>Test Manager]
-    TEST --> ARCHIVE[Phase 6<br/>Archive]
+    DEV --> DEPLOY[Phase 5<br/>Déploiement<br/>System Deployer]
+    DEPLOY --> TEST[Phase 6<br/>Test Système<br/>Test Manager]
+    TEST --> ARCHIVE[Phase 7<br/>Archive]
     
     KB[(Base de Connaissances<br/>Tout au Long)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,40 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Phase 5 : Test Système (Test Manager)
+### 7.5 Phase 5 : Déploiement (System Deployer)
+
+**Comment Démarrer** :
+```
+@speccrew-system-deployer démarrer le déploiement
+```
+
+**Flux de Travail de l'Agent** :
+1. Vérifier que la phase de développement est terminée (Stage Gate)
+2. Charger la base de connaissances technique (configuration de build, configuration de migration de base de données, commandes de démarrage de service)
+3. **Checkpoint** : Pré-vérification Environnement — Vérifier les outils de build, les versions runtime, la disponibilité des dépendances
+4. Exécuter les compétences de déploiement en séquence : Build → Migrate → Startup → Smoke Test
+5. Produire le rapport de déploiement
+
+> 💡 **Astuce** : Pour les projets sans base de données, l'étape de migration est automatiquement ignorée ; pour les applications clientes (desktop/mobile), le mode de vérification de processus est utilisé à la place des vérifications de santé HTTP.
+
+**Livrable** :
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Plan de déploiement
+│   └── deployment-log.md           # Journal d'exécution du déploiement
+└── deployment-report.md            # Rapport d'achèvement du déploiement
+```
+
+**Liste de Vérification de Confirmation** :
+- [ ] Le build est-il terminé avec succès ?
+- [ ] Tous les scripts de migration de base de données ont-ils été exécutés avec succès (si applicable) ?
+- [ ] L'application démarre-t-elle normalement et passe-t-elle les vérifications de santé ?
+- [ ] Tous les tests de fumée sont-ils passés ?
+
+---
+
+### 7.6 Phase 6 : Test Système (Test Manager)
 
 **Comment Démarrer** :
 ```
@@ -349,7 +384,7 @@ iterations/{iter}/04.development/
 
 **Livrable** :
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Documents de cas de test
 ├── code/
@@ -367,7 +402,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Phase 6 : Archivage
+### 7.7 Phase 7 : Archivage
 
 Les itérations sont automatiquement archivées après achèvement :
 
@@ -378,7 +413,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +505,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 Compatibilité Descendante
@@ -565,6 +602,7 @@ Une ré-initialisation est requise dans les situations suivantes :
 | Feature Design | Feature Designer | `@speccrew-feature-designer démarrer la conception de fonctionnalités` |
 | Conception Système | System Designer | `@speccrew-system-designer démarrer la conception système` |
 | Développement | System Developer | `@speccrew-system-developer démarrer le développement` |
+| Déploiement | System Deployer | `@speccrew-system-deployer démarrer le déploiement` |
 | Test Système | Test Manager | `@speccrew-test-manager démarrer les tests` |
 
 ### Liste de Vérification des Checkpoints
@@ -575,6 +613,7 @@ Une ré-initialisation est requise dans les situations suivantes :
 | Feature Design | 1 | Couverture de scénario, clarté d'interaction, complétude des données, gestion des exceptions |
 | Conception Système | 2 | A : Évaluation du framework ; B : Syntaxe pseudocode, cohérence cross-plateforme, gestion d'erreurs |
 | Développement | 1 | A : Préparation environnement, problèmes d'intégration, spécifications de code |
+| Déploiement | 1 | Build réussi, migration terminée, démarrage service, tests de fumée passés |
 | Test Système | 2 | A : Couverture de cas ; B : Exécutabilité du code de test |
 
 ### Référence Rapide des Chemins de Livrables
@@ -585,7 +624,8 @@ Une ré-initialisation est requise dans les situations suivantes :
 | Feature Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | Conception Système | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Développement | `iterations/{iter}/04.development/` | Code source + `delivery-report.md` |
-| Test Système | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| Déploiement | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| Test Système | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Archivage | `iteration-archives/{iter}-{date}/` | Copie complète de l'itération |
 
 ---

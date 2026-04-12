@@ -35,7 +35,7 @@
 
 ## What is SpecCrew?
 
-SpecCrew is an embedded virtual AI development team framework. It transforms professional software engineering workflows (PRD → Feature Design → System Design → Dev → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD), especially suitable for existing projects.
+SpecCrew is an embedded virtual AI development team framework. It transforms professional software engineering workflows (PRD → Feature Design → System Design → Dev → Deployment → Test) into reusable Agent workflows, helping development teams achieve Specification-Driven Development (SDD), especially suitable for existing projects.
 
 By integrating Agents and Skills into existing projects, teams can quickly initialize project documentation systems and virtual software teams, implementing new features and modifications following standard engineering workflows.
 
@@ -121,8 +121,8 @@ Development only needs to "fill in the flesh" based on the specific tech stack, 
 
 **Solution**: Cover the full software engineering lifecycle:
 ```
-PRD (Requirements) → Solution (Planning) → API Contract
-    → Design → Dev (Development) → Test (Testing)
+PRD (Requirements) → Feature Design (Planning) → API Contract
+    → System Design → Dev (Development) → Deployment → Test (Testing)
 ```
 - Each phase's output is the next phase's input
 - Each step requires human confirmation before proceeding
@@ -165,20 +165,23 @@ PRD (Requirements) → Solution (Planning) → API Contract
 
 ```mermaid
 graph LR
-    A[PRD<br/>Requirements] --> B[Solution<br/>Technical Planning]
+    A[PRD<br/>Requirements] --> B[Feature Design<br/>Technical Planning]
     B --> C[API Contract<br/>Interface Contract]
-    C --> D[Design<br/>Detailed Design]
+    C --> D[System Design<br/>Detailed Design]
     D --> E[Dev<br/>Implementation]
-    E --> F[System Test<br/>Testing]
-    F --> G[Archive<br/>Archiving]
+    E --> F[Deployment<br/>Deployment]
+    F --> G[System Test<br/>Testing]
+    G --> H[Archive<br/>Archiving]
     
-    H[Knowledge<br/>Repository] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repository] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Phase Descriptions
@@ -186,10 +189,11 @@ graph LR
 | Phase | Agent | Input | Output | Human Confirmation |
 |-------|-------|-------|--------|-------------------|
 | PRD | PM | User Requirements | Product Requirements Document | ✅ Required |
-| Solution | Planner | PRD | Technical Solution + API Contract | ✅ Required |
-| Design | Designer | Solution | Frontend/Backend Design Documents | ✅ Required |
+| Feature Design | Feature Designer | PRD | Feature Design Document + API Contract | ✅ Required |
+| System Design | System Designer | Feature Spec | Frontend/Backend Design Documents | ✅ Required |
 | Dev | Dev | Design | Code + Task Records | ✅ Required |
-| System Test | Test Manager | Dev Output + Feature Spec | Test Cases + Test Code + Test Report + Bug Report | ✅ Required |
+| Deployment | System Deployer | Dev Output | Deployment Report + Running Application | ✅ Required |
+| System Test | Test Manager | Deployment Output + Feature Spec | Test Cases + Test Code + Test Report + Bug Report | ✅ Required |
 
 ---
 
@@ -260,8 +264,9 @@ Follow the standard engineering workflow step by step:
 2. **Feature Design**: Feature Designer Agent generates feature design document + API contract
 3. **System Design**: System Designer Agent generates system design documents by platform (frontend/backend/mobile/desktop)
 4. **Dev**: System Developer Agent implements development by platform in parallel
-5. **System Test**: Test Manager Agent coordinates three-phase testing (case design → code generation → execution report)
-6. **Archive**: Archive iteration
+5. **Deployment**: System Deployer Agent executes build, database migration, service startup, and smoke test
+6. **System Test**: Test Manager Agent coordinates three-phase testing (case design → code generation → execution report)
+7. **Archive**: Archive iteration
 
 > Each phase's deliverables require human confirmation before proceeding to the next phase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Development phase
-    │       ├── 05.system-test/      # System testing
-    │       └── 06.delivery/         # Delivery phase
+    │       ├── 05.deployment/       # Deployment phase
+    │       ├── 06.system-test/      # System testing
+    │       └── 07.delivery/         # Delivery phase
     │
     ├── iteration-archives/          # Iteration archives
     │

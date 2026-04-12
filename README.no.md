@@ -35,7 +35,7 @@
 
 ## Hva er SpecCrew?
 
-SpecCrew er et innebygd virtuelt AI-utviklingsteam-rammeverk. Det transformerer profesjonelle programvareingeniør-arbeidsflyter (PRD → Feature Design → System Design → Dev → Test) til gjenbrukbare Agent-arbeidsflyter, og hjelper utviklingsteam å oppnå Specification-Driven Development (SDD), spesielt egnet for eksisterende prosjekter.
+SpecCrew er et innebygd virtuelt AI-utviklingsteam-rammeverk. Det transformerer profesjonelle programvareingeniør-arbeidsflyter (PRD → Feature Design → System Design → Dev → Deployment → Test) til gjenbrukbare Agent-arbeidsflyter, og hjelper utviklingsteam å oppnå Specification-Driven Development (SDD), spesielt egnet for eksisterende prosjekter.
 
 Ved å integrere Agenter og Skills i eksisterende prosjekter, kan team raskt initialisere prosjektdokumentasjonssystemer og virtuelle programvareteam, og implementere nye funksjoner og modifikasjoner i henhold til standard ingeniørarbeidsflyter.
 
@@ -122,7 +122,7 @@ Utvikling trenger kun å "fylle kjøttet" basert på den spesifikke tech-stacken
 **Løsning**: Dekker hele programvareingeniør-livssyklusen:
 ```
 PRD (Krav) → Feature Design (Funksjonsdesign) → API Contract (Kontrakt)
-    → System Design (Systemdesign) → Dev (Utvikling) → Test (Testing)
+    → System Design (Systemdesign) → Dev (Utvikling) → Deployment (Utrulling) → Test (Testing)
 ```
 - Hver fases utdata er neste fases inndata
 - Hvert trinn krever menneskelig bekreftelse før fortsettelse
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Grensesnittkontrakt]
     C --> D[System Design<br/>Systemdesign]
     D --> E[Dev<br/>Implementering]
-    E --> F[System Test<br/>Testing]
-    F --> G[Archive<br/>Arkivering]
+    E --> F[Deployment<br/>Utrulling]
+    F --> G[System Test<br/>Testing]
+    G --> H[Archive<br/>Arkivering]
     
-    H[Knowledge<br/>Depot] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Depot] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Fasebeskrivelser
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Feature Design Dokument + API Kontrakt | ✅ Påkrevd |
 | System Design | System Designer | Feature Spec | Frontend/Backend Design-dokumenter | ✅ Påkrevd |
 | Dev | Dev | Design | Kode + Oppgaveregistreringer | ✅ Påkrevd |
-| System Test | Test Manager | Dev Utdata + Feature Spec | Testtilfeller + Testkode + Testrapport + Bug-rapport | ✅ Påkrevd |
+| Deployment | System Deployer | Dev Utdata | Utrullingsrapport + Kjørende Applikasjon | ✅ Påkrevd |
+| System Test | Test Manager | Deployment Utdata + Feature Spec | Testtilfeller + Testkode + Testrapport + Bug-rapport | ✅ Påkrevd |
 
 ---
 
@@ -260,8 +264,9 @@ Følg standard ingeniørarbeidsflyt trinn for trinn:
 2. **Feature Design**: Feature Designer Agent genererer feature design dokument + API kontrakt
 3. **System Design**: System Designer Agent genererer system design dokumenter per plattform (frontend/backend/mobil/desktop)
 4. **Dev**: System Utvikler Agent implementerer utvikling per plattform parallelt
-5. **System Test**: Testleder Agent koordinerer trefase-testing (tilfelledesign → kodegenerering → utførelsesrapport)
-6. **Archive**: Arkiver iterasjon
+5. **Deployment**: System Utruller Agent utfører bygging, databasemigrering, tjenestestart og røyktest
+6. **System Test**: Testleder Agent koordinerer trefase-testing (tilfelledesign → kodegenerering → utførelsesrapport)
+7. **Archive**: Arkiver iterasjon
 
 > Hver fases leveranser krever menneskelig bekreftelse før fortsettelse til neste fase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Utviklingsfase
-    │       ├── 05.system-test/      # Systemtesting
-    │       └── 06.delivery/         # Leveransefase
+    │       ├── 05.deployment/       # Utrullingsfase
+    │       ├── 06.system-test/      # Systemtesting
+    │       └── 07.delivery/         # Leveransefase
     │
     ├── iteration-archives/          # Iterasjonsarkiver
     │

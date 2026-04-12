@@ -146,13 +146,15 @@ flowchart LR
     PRD[Φάση 1<br/>Ανάλυση Απαιτήσεων<br/>Product Manager] --> FD[Φάση 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Φάση 3<br/>System Design<br/>System Designer]
     SD --> DEV[Φάση 4<br/>Ανάπτυξη<br/>System Developer]
-    DEV --> TEST[Φάση 5<br/>Συστημικές Δοκιμές<br/>Test Manager]
-    TEST --> ARCHIVE[Φάση 6<br/>Αρχειοθέτηση]
+    DEV --> DEPLOY[Φάση 5<br/>Ανάπτυξη<br/>System Deployer]
+    DEPLOY --> TEST[Φάση 6<br/>Συστημικές Δοκιμές<br/>Test Manager]
+    TEST --> ARCHIVE[Φάση 7<br/>Αρχειοθέτηση]
     
     KB[(Βάση Γνώσης<br/>Όλη η Διαδικασία)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,40 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Φάση 5: Συστημικές Δοκιμές (Test Manager)
+### 7.5 Φάση 5: Ανάπτυξη (System Deployer)
+
+**Πώς να ξεκινήσετε**:
+```
+@speccrew-system-deployer έναρξη ανάπτυξης
+```
+
+**Ροή Εργασίας Agent**:
+1. Επαληθεύστε ότι η φάση ανάπτυξης έχει ολοκληρωθεί (Stage Gate)
+2. Φόρτωση τεχνικής βάσης γνώσης (διαμόρφωση build, διαμόρφωση μεταφοράς βάσης δεδομένων, εντολές εκκίνησης υπηρεσίας)
+3. **Checkpoint**: Προ-έλεγχος περιβάλλοντος — Επαλήθευση εργαλείων build, εκδόσεων runtime, διαθεσιμότητας εξαρτήσεων
+4. Εκτέλεση δεξιοτήτων ανάπτυξης με τη σειρά: Build → Μεταφορά Βάσης Δεδομένων → Εκκίνηση Υπηρεσίας → Smoke Test
+5. Έξοδος αναφοράς ανάπτυξης
+
+> 💡 **Συμβουλή**: Για έργα χωρίς βάση δεδομένων, το βήμα μεταφοράς παρακάμπτεται αυτόματα; για εφαρμογές πελάτη (desktop/mobil), χρησιμοποιείται λειτουργία επαλήθευσης διεργασίας αντί για έλεγχο υγείας HTTP.
+
+**Παράγωγο**:
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Σχέδιο ανάπτυξης
+│   └── deployment-log.md           # Αρχείο εκτέλεσης ανάπτυξης
+└── deployment-report.md            # Αναφορά ολοκλήρωσης ανάπτυξης
+```
+
+**Λίστα Ελέγχου Επιβεβαίωσης**:
+- [ ] Το build ολοκληρώθηκε επιτυχώς;
+- [ ] Όλα τα σενάρια μεταφοράς βάσης δεδομένων εκτελέστηκαν επιτυχώς (αν υπάρχουν);
+- [ ] Η εφαρμογή ξεκίνησε και πέρασε τον έλεγχο υγείας;
+- [ ] Όλα τα smoke tests πέρασαν;
+
+---
+
+### 7.6 Φάση 6: Συστημικές Δοκιμές (Test Manager)
 
 **Πώς να ξεκινήσετε**:
 ```
@@ -349,7 +384,7 @@ iterations/{iter}/04.development/
 
 **Παράγωγο**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Έγγραφα περιπτώσεων δοκιμής
 ├── code/
@@ -367,7 +402,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Φάση 6: Αρχειοθέτηση
+### 7.7 Φάση 7: Αρχειοθέτηση
 
 Οι επαναλήψεις αρχειοθετούνται αυτόματα μετά την ολοκλήρωση:
 
@@ -378,7 +413,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---

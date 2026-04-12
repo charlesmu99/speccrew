@@ -146,13 +146,15 @@ flowchart LR
     PRD[フェーズ1<br/>要件分析<br/>Product Manager] --> FD[フェーズ2<br/>機能設計<br/>Feature Designer]
     FD --> SD[フェーズ3<br/>システム設計<br/>System Designer]
     SD --> DEV[フェーズ4<br/>開発実装<br/>System Developer]
-    DEV --> TEST[フェーズ5<br/>システムテスト<br/>Test Manager]
-    TEST --> ARCHIVE[フェーズ6<br/>アーカイブ]
+    DEV --> DEPLOY[フェーズ5<br/>デプロイ実施<br/>System Deployer]
+    DEPLOY --> TEST[フェーズ6<br/>システムテスト<br/>Test Manager]
+    TEST --> ARCHIVE[フェーズ7<br/>アーカイブ]
     
     KB[(ナレッジベース<br/>全体を通して)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,42 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 フェーズ5:システムテスト(Test Manager)
+### 7.5 フェーズ5:デプロイ実施(System Deployer)
+
+**開始方法**:
+
+```
+@speccrew-system-deployer デプロイを開始
+```
+
+**エージェントワークフロー**:
+1. 開発フェーズが完了したことを検証(Stage Gate)
+2. テクニカルナレッジベースをロード(ビルド構成、データベースマイグレーション構成、サービス起動コマンド)
+3. **チェックポイント**:環境プレチェック — ビルドツール、ランタイムバージョン、依存関係の可用性を検証
+4. 順番にデプロイスキルを実行:ビルド(Build)→ データベースマイグレーション(Migrate)→ サービス起動(Startup)→ スモークテスト(Smoke Test)
+5. デプロイレポートを出力
+
+> 💡 **ヒント**:データベースのないプロジェクトの場合、マイグレーションステップは自動的にスキップされます。クライアントアプリケーション(デスクトップ/モバイル)の場合、HTTPヘルスチェックの代わりにプロセス検証モードが使用されます。
+
+**成果物**:
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # デプロイ計画
+│   └── deployment-log.md           # デプロイ実行ログ
+└── deployment-report.md            # デプロイ完了レポート
+```
+
+**確認ポイント**:
+- [ ] ビルドが正常に完了したか
+- [ ] データベースマイグレーションスクリプトがすべて正常に実行されたか(該当する場合)
+- [ ] アプリケーションが正常に起動しヘルスチェックに合格したか
+- [ ] スモークテストがすべて合格したか
+
+---
+
+### 7.6 フェーズ6:システムテスト(Test Manager)
 
 **開始方法**:
 ```
@@ -349,7 +386,7 @@ iterations/{iter}/04.development/
 
 **成果物**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # テストケースドキュメント
 ├── code/
@@ -367,7 +404,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 フェーズ6:アーカイブ
+### 7.7 フェーズ7:アーカイブ
 
 イテレーション完了後自動的にアーカイブ:
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 下位互換性
@@ -565,6 +604,7 @@ npm install -g speccrew@0.5.6
 | 機能設計 | Feature Designer | `@speccrew-feature-designer 機能設計を開始` |
 | システム設計 | System Designer | `@speccrew-system-designer システム設計を開始` |
 | 開発 | System Developer | `@speccrew-system-developer 開発を開始` |
+| デプロイ | System Deployer | `@speccrew-system-deployer デプロイを開始` |
 | システムテスト | Test Manager | `@speccrew-test-manager テストを開始` |
 
 ### チェックポイントチェックリスト
@@ -575,6 +615,7 @@ npm install -g speccrew@0.5.6
 | 機能設計 | 1 | シナリオカバレッジ、インタラクションの明確さ、データの完全性、例外処理 |
 | システム設計 | 2 | A: フレームワーク評価; B: 擬似コード構文、クロスプラットフォーム一貫性、エラー処理 |
 | 開発 | 1 | A: 環境の準備、統合問題、コード規約 |
+| デプロイ | 1 | ビルド成功、マイグレーション完了、サービス起動、スモークテスト合格 |
 | システムテスト | 2 | A: ケースカバレッジ; B: テストコードの実行可能性 |
 
 ### 成果物パスクイックリファレンス
@@ -585,7 +626,8 @@ npm install -g speccrew@0.5.6
 | 機能設計 | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | システム設計 | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | 開発 | `iterations/{iter}/04.development/` | ソースコード + `delivery-report.md` |
-| システムテスト | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| デプロイ | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| システムテスト | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | アーカイブ | `iteration-archives/{iter}-{date}/` | 完全なイテレーションコピー |
 
 ---

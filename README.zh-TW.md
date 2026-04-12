@@ -35,7 +35,7 @@
 
 ## 什麼是 SpecCrew？
 
-SpecCrew 是一套嵌入式的虛擬 AI 開發團隊框架。它將專業的軟體工程流程（PRD → Feature Design → System Design → Dev → Test）轉化為可複用的 Agent 工作流，幫助開發團隊實現規範驅動開發（SDD），特別適合已有專案。
+SpecCrew 是一套嵌入式的虛擬 AI 開發團隊框架。它將專業的軟體工程流程（PRD → Feature Design → System Design → Dev → Deployment → Test）轉化為可複用的 Agent 工作流，幫助開發團隊實現規範驅動開發（SDD），特別適合已有專案。
 
 通過將 Agent 和 Skill 整合到現有專案，即可快速初始化專案文檔體系和虛擬軟體團隊，按照標準工程流程分步實現功能的新增和修改。
 
@@ -122,7 +122,7 @@ Stage 4: 系統聚合 → 生成系統全景圖
 **解決**：覆蓋軟體工程全環節：
 ```
 PRD（需求）→ Feature Design（功能設計）→ API Contract（契約）
-    → System Design（系統設計）→ Dev（開發）→ Test（測試）
+    → System Design（系統設計）→ Dev（開發）→ Deployment（部署）→ Test（測試）
 ```
 - 每個環節產出物是下一環節的輸入
 - 每步需人工確認後方可執行
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>介面契約]
     C --> D[System Design<br/>系統設計]
     D --> E[Dev<br/>開發實現]
-    E --> F[System Test<br/>系統測試]
-    F --> G[Archive<br/>歸檔]
+    E --> F[Deployment<br/>部署實施]
+    F --> G[System Test<br/>系統測試]
+    G --> H[Archive<br/>歸檔]
     
-    H[Knowledge<br/>知識庫] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>知識庫] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### 各階段說明
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | 功能設計文檔 + 介面契約 | ✅ 必需 |
 | System Design | System Designer | Feature Spec | 前端/後端設計文檔 | ✅ 必需 |
 | Dev | Dev | Design | 程式碼 + 任務記錄 | ✅ 必需 |
-| System Test | Test Manager | Dev 產出 + Feature Spec | 測試案例 + 測試程式碼 + 測試報告 + Bug 報告 | ✅ 必需 |
+| Deployment | System Deployer | Dev 產出 | 部署報告 + 運行應用 | ✅ 必需 |
+| System Test | Test Manager | Deployment 產出 + Feature Spec | 測試案例 + 測試程式碼 + 測試報告 + Bug 報告 | ✅ 必需 |
 
 ---
 
@@ -260,8 +264,9 @@ speccrew update --ide claude
 2. **Feature Design**：由功能設計師 Agent 生成功能設計文檔 + API 契約
 3. **System Design**：由系統設計師 Agent 按端（前端/後端/移動端/桌面端）生成系統設計文檔
 4. **Dev**：由系統開發者 Agent 按端並行實現開發
-5. **System Test**：由測試管理員 Agent 協調三階段測試（案例設計 → 程式碼生成 → 執行報告）
-6. **Archive**：歸檔迭代
+5. **Deployment**：由系統部署者 Agent 執行構建、資料庫遷移、服務啟動和煙霧測試
+6. **System Test**：由測試管理員 Agent 協調三階段測試（案例設計 → 程式碼生成 → 執行報告）
+7. **Archive**：歸檔迭代
 
 > 每個階段產出物需人工確認後方可進入下一階段。
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # 功能設計
     │       ├── 03.system-design/    # 系統設計
     │       ├── 04.development/      # 開發階段
-    │       ├── 05.system-test/      # 系統測試
-    │       └── 06.delivery/         # 交付階段
+    │       ├── 05.deployment/       # 部署階段
+    │       ├── 06.system-test/      # 系統測試
+    │       └── 07.delivery/         # 交付階段
     │
     ├── iteration-archives/          # 迭代歸檔
     │

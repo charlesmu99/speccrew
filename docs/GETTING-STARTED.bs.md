@@ -146,13 +146,15 @@ flowchart LR
     PRD[Faza 1<br/>Analiza Zahtjeva<br/>Product Manager] --> FD[Faza 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Faza 3<br/>System Design<br/>System Designer]
     SD --> DEV[Faza 4<br/>Razvoj<br/>System Developer]
-    DEV --> TEST[Faza 5<br/>Sistemsko Testiranje<br/>Test Manager]
-    TEST --> ARCHIVE[Faza 6<br/>Arhiviranje]
+    DEV --> DEPLOY[Faza 5<br/>Raspoređivanje<br/>System Deployer]
+    DEPLOY --> TEST[Faza 6<br/>Sistemsko Testiranje<br/>Test Manager]
+    TEST --> ARCHIVE[Faza 7<br/>Arhiviranje]
     
     KB[(Baza Znanja<br/>Kroz Cijeli Proces)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 

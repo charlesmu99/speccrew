@@ -146,13 +146,15 @@ flowchart LR
     PRD[পর্যায় 1<br/>প্রয়োজনীয়তা বিশ্লেষণ<br/>Product Manager] --> FD[পর্যায় 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[পর্যায় 3<br/>System Design<br/>System Designer]
     SD --> DEV[পর্যায় 4<br/>বিকাশ<br/>System Developer]
-    DEV --> TEST[পর্যায় 5<br/>সিস্টেম টেস্টিং<br/>Test Manager]
-    TEST --> ARCHIVE[পর্যায় 6<br/>আর্কাইভিং]
+    DEV --> DEPLOY[পর্যায় 5<br/>স্থাপনা<br/>System Deployer]
+    DEPLOY --> TEST[পর্যায় 6<br/>সিস্টেম টেস্টিং<br/>Test Manager]
+    TEST --> ARCHIVE[পর্যায় 7<br/>আর্কাইভিং]
     
     KB[(নলেজ বেস<br/>সমগ্র প্রক্রিয়া জুড়ে)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 

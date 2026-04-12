@@ -35,7 +35,7 @@
 
 ## ¿Qué es SpecCrew?
 
-SpecCrew es un framework de equipo de desarrollo virtual de IA integrado. Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Feature Design → System Design → Dev → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD), especialmente adecuado para proyectos existentes.
+SpecCrew es un framework de equipo de desarrollo virtual de IA integrado. Transforma flujos de trabajo profesionales de ingeniería de software (PRD → Feature Design → System Design → Dev → Despliegue → Test) en flujos de trabajo de Agentes reutilizables, ayudando a los equipos de desarrollo a lograr el Desarrollo Impulsado por Especificaciones (SDD), especialmente adecuado para proyectos existentes.
 
 Al integrar Agentes y Skills en proyectos existentes, los equipos pueden inicializar rápidamente sistemas de documentación de proyectos y equipos de software virtuales, implementando nuevas funciones y modificaciones siguiendo flujos de trabajo de ingeniería estándar.
 
@@ -121,8 +121,8 @@ El desarrollo solo necesita "llenar la carne" basándose en el stack técnico es
 
 **Solución**: Cubrir el ciclo de vida completo de ingeniería de software:
 ```
-PRD (Requisitos) → Solution (Planificación) → API Contract
-    → Design → Dev (Desarrollo) → Test (Pruebas)
+PRD (Requisitos) → Feature Design (Planificación) → API Contract
+    → System Design → Dev (Desarrollo) → Deployment (Despliegue) → Test (Pruebas)
 ```
 - La salida de cada fase es la entrada de la siguiente fase
 - Cada paso requiere confirmación humana antes de proceder
@@ -165,20 +165,23 @@ PRD (Requisitos) → Solution (Planificación) → API Contract
 
 ```mermaid
 graph LR
-    A[PRD<br/>Requisitos] --> B[Solution<br/>Planificación Técnica]
+    A[PRD<br/>Requisitos] --> B[Feature Design<br/>Planificación Técnica]
     B --> C[API Contract<br/>Contrato de Interfaz]
-    C --> D[Design<br/>Diseño Detallado]
+    C --> D[System Design<br/>Diseño Detallado]
     D --> E[Dev<br/>Implementación]
-    E --> F[System Test<br/>Pruebas del Sistema]
-    F --> G[Archive<br/>Archivado]
+    E --> F[Deployment<br/>Despliegue]
+    F --> G[System Test<br/>Pruebas del Sistema]
+    G --> H[Archive<br/>Archivado]
     
-    H[Knowledge<br/>Repositorio] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repositorio] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Descripciones de Fases
@@ -186,10 +189,11 @@ graph LR
 | Fase | Agente | Entrada | Salida | Confirmación Humana |
 |------|--------|---------|--------|---------------------|
 | PRD | PM | Requisitos del Usuario | Documento de Requisitos del Producto | ✅ Requerido |
-| Solution | Planner | PRD | Solución Técnica + Contrato API | ✅ Requerido |
-| Design | Designer | Solution | Documentos de Diseño Frontend/Backend | ✅ Requerido |
+| Feature Design | Feature Designer | PRD | Documento Feature Design + Contrato API | ✅ Requerido |
+| System Design | System Designer | Feature Spec | Documentos de Diseño Frontend/Backend | ✅ Requerido |
 | Dev | Dev | Design | Código + Registros de Tareas | ✅ Requerido |
-| System Test | Test Manager | Salida Dev + Feature Spec | Casos de Prueba + Código de Prueba + Reporte de Pruebas + Reporte de Bugs | ✅ Requerido |
+| Deployment | System Deployer | Salida Dev | Reporte de Despliegue + Aplicación en Ejecución | ✅ Requerido |
+| System Test | Test Manager | Salida Deployment + Feature Spec | Casos de Prueba + Código de Prueba + Reporte de Pruebas + Reporte de Bugs | ✅ Requerido |
 
 ---
 
@@ -260,8 +264,9 @@ Siga el flujo de trabajo de ingeniería estándar paso a paso:
 2. **Feature Design**: El Agent Feature Designer genera el documento de diseño de funcionalidades + contrato API
 3. **System Design**: El Agent System Designer genera documentos de diseño del sistema por plataforma (frontend/backend/móvil/escritorio)
 4. **Dev**: El Agent System Developer implementa el desarrollo por plataforma en paralelo
-5. **System Test**: El Agent Test Manager coordina las pruebas de tres fases (diseño de casos → generación de código → reporte de ejecución)
-6. **Archive**: Archivar iteración
+5. **Deployment**: El Agent System Deployer ejecuta construcción, migración de base de datos, inicio de servicios y pruebas de humo
+6. **System Test**: El Agent Test Manager coordina las pruebas de tres fases (diseño de casos → generación de código → reporte de ejecución)
+7. **Archive**: Archivar iteración
 
 > Los entregables de cada fase requieren confirmación humana antes de proceder a la siguiente fase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Diseño de características
     │       ├── 03.system-design/    # Diseño del sistema
     │       ├── 04.development/      # Fase de desarrollo
-    │       ├── 05.system-test/      # Pruebas del sistema
-    │       └── 06.delivery/         # Fase de entrega
+    │       ├── 05.deployment/       # Fase de despliegue
+    │       ├── 06.system-test/      # Pruebas del sistema
+    │       └── 07.delivery/         # Fase de entrega
     │
     ├── iteration-archives/          # Archivos de iteración
     │

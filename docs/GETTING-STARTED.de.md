@@ -146,13 +146,15 @@ flowchart LR
     PRD[Phase 1<br/>Anforderungsanalyse<br/>Product Manager] --> FD[Phase 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Phase 3<br/>System Design<br/>System Designer]
     SD --> DEV[Phase 4<br/>Entwicklung<br/>System Developer]
-    DEV --> TEST[Phase 5<br/>Systemtest<br/>Test Manager]
-    TEST --> ARCHIVE[Phase 6<br/>Archivierung]
+    DEV --> DEPLOY[Phase 5<br/>Bereitstellung<br/>System Deployer]
+    DEPLOY --> TEST[Phase 6<br/>Systemtest<br/>Test Manager]
+    TEST --> ARCHIVE[Phase 7<br/>Archivierung]
     
     KB[(Wissensbasis<br/>Durchgehend)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,42 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Phase 5: Systemtest (Test Manager)
+### 7.5 Phase 5: Bereitstellung (System Deployer)
+
+**So starten Sie**:
+
+```
+@speccrew-system-deployer Bereitstellung starten
+```
+
+**Agent-Workflow**:
+1. Verifizieren dass die Entwicklungsphase abgeschlossen ist (Stage Gate)
+2. Technische Wissensbasis laden (Build-Konfiguration, Datenbank-Migrationskonfiguration, Service-Start-Befehle)
+3. **Checkpoint**: Umgebungsvorabprüfung — Build-Tools, Runtime-Versionen, Abhängigkeitsverfügbarkeit verifizieren
+4. Bereitstellungsskills sequenziell ausführen: Build → Datenbankmigration → Service-Start → Smoke-Test
+5. Bereitstellungsbericht ausgeben
+
+> 💡 **Hinweis**: Für Projekte ohne Datenbank wird der Migrationsschritt automatisch übersprungen; für Client-Anwendungen (Desktop/Mobile) wird Prozess-Verifizierungsmodus statt HTTP-Gesundheitsprüfung verwendet.
+
+**Liefergegenstand**:
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Bereitstellungsplan
+│   └── deployment-log.md           # Bereitstellungsausführungslog
+└── deployment-report.md            # Bereitstellungsabschlussbericht
+```
+
+**Bestätigungs-Checkliste**:
+- [ ] Build erfolgreich abgeschlossen?
+- [ ] Alle Datenbankmigrationsskripte erfolgreich ausgeführt (falls zutreffend)?
+- [ ] Anwendung startet normal und besteht Gesundheitsprüfung?
+- [ ] Alle Smoke-Tests bestanden?
+
+---
+
+### 7.6 Phase 6: Systemtest (Test Manager)
 
 **So starten Sie**:
 ```
@@ -349,7 +386,7 @@ iterations/{iter}/04.development/
 
 **Liefergegenstand**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Testfalldokumente
 ├── code/
@@ -367,7 +404,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Phase 6: Archivierung
+### 7.7 Phase 7: Archivierung
 
 Iterationen werden nach Abschluss automatisch archiviert:
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 Abwärtskompatibilität
@@ -565,6 +604,7 @@ Eine Neuinitialisierung ist in folgenden Situationen erforderlich:
 | Feature-Design | Feature Designer | `@speccrew-feature-designer Feature-Design starten` |
 | Systemdesign | System Designer | `@speccrew-system-designer Systemdesign starten` |
 | Entwicklung | System Developer | `@speccrew-system-developer Entwicklung starten` |
+| Bereitstellung | System Deployer | `@speccrew-system-deployer Bereitstellung starten` |
 | Systemtest | Test Manager | `@speccrew-test-manager Test starten` |
 
 ### Checkpoint-Checkliste
@@ -575,6 +615,7 @@ Eine Neuinitialisierung ist in folgenden Situationen erforderlich:
 | Feature-Design | 1 | Szenarioabdeckung, Interaktionsklarheit, Datenvollständigkeit, Ausnahmebehandlung |
 | Systemdesign | 2 | A: Framework-Evaluierung; B: Pseudocode-Syntax, plattformübergreifende Konsistenz, Fehlerbehandlung |
 | Entwicklung | 1 | A: Umgebungsbereitschaft, Integrationsprobleme, Code-Spezifikationen |
+| Bereitstellung | 1 | Build erfolgreich, Migration abgeschlossen, Dienste gestartet, Smoke-Tests bestanden |
 | Systemtest | 2 | A: Fallabdeckung; B: Testcode-Ausführbarkeit |
 
 ### Liefergegenstand-Pfad-Schnellreferenz
@@ -585,7 +626,8 @@ Eine Neuinitialisierung ist in folgenden Situationen erforderlich:
 | Feature-Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | Systemdesign | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Entwicklung | `iterations/{iter}/04.development/` | Quellcode + `delivery-report.md` |
-| Systemtest | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| Bereitstellung | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| Systemtest | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Archivierung | `iteration-archives/{iter}-{date}/` | Vollständige Iterationskopie |
 
 ---

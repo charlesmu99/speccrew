@@ -35,7 +35,7 @@
 
 ## Qu'est-ce que SpecCrew ?
 
-SpecCrew est un framework d'équipe de développement IA virtuelle intégré. Il transforme les flux de travail d'ingénierie logicielle professionnels (PRD → Feature Design → System Design → Dev → Test) en flux de travail Agent réutilisables, aidant les équipes de développement à réaliser le Development piloté par les spécifications (SDD), particulièrement adapté aux projets existants.
+SpecCrew est un framework d'équipe de développement IA virtuelle intégré. Il transforme les flux de travail d'ingénierie logicielle professionnels (PRD → Feature Design → System Design → Dev → Déploiement → Test) en flux de travail Agent réutilisables, aidant les équipes de développement à réaliser le Development piloté par les spécifications (SDD), particulièrement adapté aux projets existants.
 
 En intégrant des Agents et des Skills dans des projets existants, les équipes peuvent rapidement initialiser les systèmes de documentation de projet et les équipes logicielles virtuelles, en implémentant de nouvelles fonctionnalités et modifications selon des flux de travail d'ingénierie standard.
 
@@ -122,7 +122,7 @@ Le développement doit seulement "remplir la chair" basé sur la pile technologi
 **Solution** : Couvrir tout le cycle de vie de l'ingénierie logicielle :
 ```
 PRD (Exigences) → Feature Design (Conception Fonctionnelle) → API Contract (Contrat)
-    → System Design (Conception Système) → Dev (Développement) → Test (Tests)
+    → System Design (Conception Système) → Dev (Développement) → Déploiement → Test (Tests)
 ```
 - La sortie de chaque phase est l'entrée de la phase suivante
 - Chaque étape nécessite une confirmation humaine avant de procéder
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Contrat d'Interface]
     C --> D[System Design<br/>Conception Système]
     D --> E[Dev<br/>Implémentation]
-    E --> F[System Test<br/>Tests]
-    F --> G[Archive<br/>Archivage]
+    E --> F[Déploiement<br/>Déploiement]
+    F --> G[System Test<br/>Tests]
+    G --> H[Archive<br/>Archivage]
     
-    H[Knowledge<br/>Référentiel] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Référentiel] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Descriptions des Phases
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Document Feature Design + Contrat API | ✅ Requise |
 | System Design | System Designer | Feature Spec | Documents de Conception Frontend/Backend | ✅ Requise |
 | Dev | Dev | Design | Code + Enregistrements de Tâches | ✅ Requise |
-| System Test | Test Manager | Sortie Dev + Feature Spec | Cas de Test + Code de Test + Rapport de Test + Rapport de Bug | ✅ Requise |
+| Déploiement | System Deployer | Sortie Dev | Rapport de Déploiement + Application en Cours | ✅ Requise |
+| System Test | Test Manager | Sortie Déploiement + Feature Spec | Cas de Test + Code de Test + Rapport de Test + Rapport de Bug | ✅ Requise |
 
 ---
 
@@ -260,8 +264,9 @@ Suivez le flux de travail d'ingénierie standard étape par étape :
 2. **Feature Design** : L'Agent Feature Designer génère le document de conception fonctionnelle + contrat API
 3. **System Design** : L'Agent System Designer génère les documents de conception système par plateforme (frontend/backend/mobile/desktop)
 4. **Dev** : L'Agent System Developer implémente le développement par plateforme en parallèle
-5. **System Test** : L'Agent Test Manager coordonne les tests en trois phases (conception de cas → génération de code → rapport d'exécution)
-6. **Archive** : Archiver l'itération
+5. **Déploiement** : L'Agent System Deployer exécute la construction, la migration de base de données, le démarrage des services et les tests de fumée
+6. **System Test** : L'Agent Test Manager coordonne les tests en trois phases (conception de cas → génération de code → rapport d'exécution)
+7. **Archive** : Archiver l'itération
 
 > Les livrables de chaque phase nécessitent une confirmation humaine avant de passer à la phase suivante.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Conception fonctionnelle
     │       ├── 03.system-design/    # Conception système
     │       ├── 04.development/      # Phase de développement
-    │       ├── 05.system-test/      # Test système
-    │       └── 06.delivery/         # Phase de livraison
+    │       ├── 05.deployment/       # Phase de déploiement
+    │       ├── 06.system-test/      # Test système
+    │       └── 07.delivery/         # Phase de livraison
     │
     ├── iteration-archives/          # Archives d'itération
     │

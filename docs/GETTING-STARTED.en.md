@@ -146,13 +146,15 @@ flowchart LR
     PRD[Phase 1<br/>Requirements Analysis<br/>Product Manager] --> FD[Phase 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Phase 3<br/>System Design<br/>System Designer]
     SD --> DEV[Phase 4<br/>Development<br/>System Developer]
-    DEV --> TEST[Phase 5<br/>System Testing<br/>Test Manager]
-    TEST --> ARCHIVE[Phase 6<br/>Archive]
+    DEV --> DEPLOY[Phase 5<br/>Deployment<br/>System Deployer]
+    DEPLOY --> TEST[Phase 6<br/>System Testing<br/>Test Manager]
+    TEST --> ARCHIVE[Phase 7<br/>Archive]
     
     KB[(Knowledge Base<br/>Throughout)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,40 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Phase 5: System Testing (Test Manager)
+### 7.5 Phase 5: Deployment (System Deployer)
+
+**How to Start**:
+```
+@speccrew-system-deployer start deployment
+```
+
+**Agent Workflow**:
+1. Verify development phase is complete (Stage Gate)
+2. Load technical knowledge base (build configuration, database migration configuration, service startup commands)
+3. **Checkpoint**: Environment Pre-check — Verify build tools, runtime versions, dependency availability
+4. Execute deployment skills in sequence: Build → Migrate → Startup → Smoke Test
+5. Output deployment report
+
+> 💡 **Tip**: For projects without databases, the migration step is automatically skipped; for client applications (desktop/mobile), process verification mode is used instead of HTTP health checks.
+
+**Deliverable**:
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Deployment plan
+│   └── deployment-log.md           # Deployment execution log
+└── deployment-report.md            # Deployment completion report
+```
+
+**Confirmation Checklist**:
+- [ ] Is build completed successfully?
+- [ ] Are all database migration scripts executed successfully (if applicable)?
+- [ ] Does the application start normally and pass health checks?
+- [ ] Are all smoke tests passed?
+
+---
+
+### 7.6 Phase 6: System Testing (Test Manager)
 
 **How to Start**:
 ```
@@ -349,7 +384,7 @@ iterations/{iter}/04.development/
 
 **Deliverable**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Test case documents
 ├── code/
@@ -367,7 +402,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Phase 6: Archive
+### 7.7 Phase 7: Archive
 
 Iterations are automatically archived upon completion:
 
@@ -378,7 +413,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +505,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 Backward Compatibility
@@ -565,6 +602,7 @@ Re-initialization is required in the following situations:
 | Feature Design | Feature Designer | `@speccrew-feature-designer start feature design` |
 | System Design | System Designer | `@speccrew-system-designer start system design` |
 | Development | System Developer | `@speccrew-system-developer start development` |
+| Deployment | System Deployer | `@speccrew-system-deployer start deployment` |
 | System Testing | Test Manager | `@speccrew-test-manager start testing` |
 
 ### Checkpoint Checklist
@@ -575,6 +613,7 @@ Re-initialization is required in the following situations:
 | Feature Design | 1 | Scenario coverage, interaction clarity, data completeness, exception handling |
 | System Design | 2 | A: Framework evaluation; B: Pseudocode syntax, cross-platform consistency, error handling |
 | Development | 1 | A: Environment readiness, integration issues, code specifications |
+| Deployment | 1 | Build success, migration complete, service startup, smoke test passed |
 | System Testing | 2 | A: Case coverage; B: Test code runnability |
 
 ### Deliverable Path Quick Reference
@@ -585,7 +624,8 @@ Re-initialization is required in the following situations:
 | Feature Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | System Design | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Development | `iterations/{iter}/04.development/` | Source code + `delivery-report.md` |
-| System Testing | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| Deployment | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| System Testing | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Archive | `iteration-archives/{iter}-{date}/` | Complete iteration copy |
 
 ---

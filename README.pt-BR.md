@@ -35,7 +35,7 @@
 
 ## O que é SpecCrew?
 
-SpecCrew é um framework de equipe de desenvolvimento de IA virtual incorporado. Ele transforma fluxos de trabalho de engenharia de software profissional (PRD → Feature Design → System Design → Dev → Test) em fluxos de trabalho de Agent reutilizáveis, ajudando equipes de desenvolvimento a alcançar o Specification-Driven Development (SDD), especialmente adequado para projetos existentes.
+SpecCrew é um framework de equipe de desenvolvimento de IA virtual incorporado. Ele transforma fluxos de trabalho de engenharia de software profissional (PRD → Feature Design → System Design → Dev → Deployment → Test) em fluxos de trabalho de Agent reutilizáveis, ajudando equipes de desenvolvimento a alcançar o Specification-Driven Development (SDD), especialmente adequado para projetos existentes.
 
 Ao integrar Agents e Skills em projetos existentes, as equipes podem inicializar rapidamente sistemas de documentação de projetos e equipes de software virtuais, implementando novas funcionalidades e modificações seguindo fluxos de trabalho de engenharia padrão.
 
@@ -122,7 +122,7 @@ O desenvolvimento só precisa "preencher a carne" com base na stack tecnológica
 **Solução**: Cobrir todo o ciclo de vida da engenharia de software:
 ```
 PRD (Requisitos) → Feature Design (Design de Funcionalidade) → API Contract (Contrato)
-    → System Design (Design de Sistema) → Dev (Desenvolvimento) → Test (Testes)
+    → System Design (Design de Sistema) → Dev (Desenvolvimento) → Deployment (Implantação) → Test (Testes)
 ```
 - A saída de cada fase é a entrada da próxima fase
 - Cada passo requer confirmação humana antes de prosseguir
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Contrato de Interface]
     C --> D[System Design<br/>Design de Sistema]
     D --> E[Dev<br/>Implementação]
-    E --> F[System Test<br/>Testes]
-    F --> G[Archive<br/>Arquivamento]
+    E --> F[Deployment<br/>Implantação]
+    F --> G[System Test<br/>Testes]
+    G --> H[Archive<br/>Arquivamento]
     
-    H[Knowledge<br/>Repositório] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repositório] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Descrições das Fases
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Documento Feature Design + Contrato API | ✅ Obrigatória |
 | System Design | System Designer | Feature Spec | Documentos de Design Frontend/Backend | ✅ Obrigatória |
 | Dev | Dev | Design | Código + Registros de Tarefas | ✅ Obrigatória |
-| System Test | Test Manager | Saída Dev + Feature Spec | Casos de Teste + Código de Teste + Relatório de Teste + Relatório de Bugs | ✅ Obrigatória |
+| Deployment | System Deployer | Saída Dev | Relatório de Implantação + Aplicação em Execução | ✅ Obrigatória |
+| System Test | Test Manager | Saída Deployment + Feature Spec | Casos de Teste + Código de Teste + Relatório de Teste + Relatório de Bugs | ✅ Obrigatória |
 
 ---
 
@@ -260,8 +264,9 @@ Siga o fluxo de trabalho de engenharia padrão passo a passo:
 2. **Feature Design**: O Agent Feature Designer gera documento feature design + contrato API
 3. **System Design**: O Agent System Designer gera documentos system design por plataforma (frontend/backend/mobile/desktop)
 4. **Dev**: O Agent System Developer implementa desenvolvimento por plataforma em paralelo
-5. **System Test**: O Agent Test Manager coordena testes em três fases (design de casos → geração de código → relatório de execução)
-6. **Archive**: Arquivar iteração
+5. **Deployment**: O Agent System Deployer executa build, migração de banco de dados, inicialização de serviços e testes de fumaça
+6. **System Test**: O Agent Test Manager coordena testes em três fases (design de casos → geração de código → relatório de execução)
+7. **Archive**: Arquivar iteração
 
 > Os entregáveis de cada fase requerem confirmação humana antes de prosseguir para a próxima fase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Fase de desenvolvimento
-    │       ├── 05.system-test/      # Testes de sistema
-    │       └── 06.delivery/         # Fase de entrega
+    │       ├── 05.deployment/       # Fase de implantação
+    │       ├── 06.system-test/      # Testes de sistema
+    │       └── 07.delivery/         # Fase de entrega
     │
     ├── iteration-archives/          # Arquivos de iteração
     │

@@ -146,13 +146,15 @@ flowchart LR
     PRD[Trin 1<br/>Kravanalyse<br/>Product Manager] --> FD[Trin 2<br/>Funktionsdesign<br/>Feature Designer]
     FD --> SD[Trin 3<br/>Systemdesign<br/>System Designer]
     SD --> DEV[Trin 4<br/>Udvikling<br/>System Developer]
-    DEV --> TEST[Trin 5<br/>Systemtest<br/>Test Manager]
-    TEST --> ARCHIVE[Trin 6<br/>Arkivering]
+    DEV --> DEPLOY[Trin 5<br/>Udrulning<br/>System Deployer]
+    DEPLOY --> TEST[Trin 6<br/>Systemtest<br/>Test Manager]
+    TEST --> ARCHIVE[Trin 7<br/>Arkivering]
     
     KB[(Vidensbase<br/>Gennem Hele Processen)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,40 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Trin 5: Systemtest (Test Manager)
+### 7.5 Trin 5: Udrulning (System Deployer)
+
+**Sådan startes**:
+```
+@speccrew-system-deployer start udrulning
+```
+
+**Agent Workflow**:
+1. Verificer at udviklingsfasen er fuldført (Stage Gate)
+2. Indlæs teknisk vidensbase (build-konfiguration, database-migreringskonfiguration, servicestart-kommandoer)
+3. **Checkpoint**: Miljøforhåndskontrol — Verificer build-værktøjer, runtime-versioner, afhængighedstilgængelighed
+4. Udfør udrulningsskills i rækkefølge: Build → Database-migrering → Servicestart → Smoke Test
+5. Output udrulningsrapport
+
+> 💡 **Tip**: For projekter uden database springes migreringstrinnet automatisk over; for klient-applikationer (desktop/mobil) bruges proces-verifikationsmode i stedet for HTTP-sundhedstjek.
+
+**Resultat**:
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Udrulningsplan
+│   └── deployment-log.md           # Udrulnings-eksekveringslog
+└── deployment-report.md            # Udrulnings-fuldførelsesrapport
+```
+
+**Bekræftelsespunkter**:
+- [ ] Er bygningen fuldført succesfuldt?
+- [ ] Er alle database-migreringsskripter udført succesfuldt (hvis relevant)?
+- [ ] Er applikationen startet og bestået sundhedstjek?
+- [ ] Er alle smoke tests bestået?
+
+---
+
+### 7.6 Trin 6: Systemtest (Test Manager)
 
 **Sådan startes**:
 ```
@@ -349,7 +384,7 @@ iterations/{iter}/04.development/
 
 **Resultat**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Testcasedokumenter
 ├── code/
@@ -367,7 +402,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Trin 6: Arkivering
+### 7.7 Trin 7: Arkivering
 
 Iterationer arkiveres automatisk efter fuldførelse:
 
@@ -378,7 +413,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +505,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 Bagudkompatibilitet
@@ -565,6 +602,7 @@ Geninitialisering er påkrævet i følgende situationer:
 | Funktionsdesign | Feature Designer | `@speccrew-feature-designer start funktionsdesign` |
 | Systemdesign | System Designer | `@speccrew-system-designer start systemdesign` |
 | Udvikling | System Developer | `@speccrew-system-developer start udvikling` |
+| Udrulning | System Deployer | `@speccrew-system-deployer start udrulning` |
 | Systemtest | Test Manager | `@speccrew-test-manager start test` |
 
 ### Checkpoint Tjekliste
@@ -575,6 +613,7 @@ Geninitialisering er påkrævet i følgende situationer:
 | Funktionsdesign | 1 | Scenariedækning, interaktionsklarhed, datakomplethed, undtagelseshåndtering |
 | Systemdesign | 2 | A: Framework-evaluering; B: Pseudokode syntaks, cross-platform konsistens, fejlhåndtering |
 | Udvikling | 1 | A: Miljøklarhed, integrationsproblemer, kodespecifikationer |
+| Udrulning | 1 | Build-succes, migreringsfuldførelse, servicestart, smoke test bestået |
 | Systemtest | 2 | A: Casedækning; B: Testkode-kørbarhed |
 
 ### Resultatsti Hurtig Reference
@@ -585,7 +624,8 @@ Geninitialisering er påkrævet i følgende situationer:
 | Funktionsdesign | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | Systemdesign | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Udvikling | `iterations/{iter}/04.development/` | Kildekode + `delivery-report.md` |
-| Systemtest | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| Udrulning | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| Systemtest | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Arkivering | `iteration-archives/{iter}-{date}/` | Komplet iterationskopi |
 
 ---

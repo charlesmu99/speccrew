@@ -146,13 +146,15 @@ flowchart LR
     PRD[المرحلة 1<br/>تحليل المتطلبات<br/>Product Manager] --> FD[المرحلة 2<br/>تصميم الوظائف<br/>Feature Designer]
     FD --> SD[المرحلة 3<br/>تصميم النظام<br/>System Designer]
     SD --> DEV[المرحلة 4<br/>التطوير<br/>System Developer]
-    DEV --> TEST[المرحلة 5<br/>اختبار النظام<br/>Test Manager]
-    TEST --> ARCHIVE[المرحلة 6<br/>الأرشفة]
+    DEV --> DEPLOY[المرحلة 5<br/>النشر<br/>System Deployer]
+    DEPLOY --> TEST[المرحلة 6<br/>اختبار النظام<br/>Test Manager]
+    TEST --> ARCHIVE[المرحلة 7<br/>الأرشفة]
     
     KB[(قاعدة المعرفة<br/>طوال العملية)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,40 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 المرحلة 5: اختبار النظام (Test Manager)
+### 7.5 المرحلة 5: النشر (System Deployer)
+
+**كيفية البدء**:
+```
+@speccrew-system-deployer ابدأ النشر
+```
+
+**سير عمل Agent**:
+1. التحقق من اكتمال مرحلة التطوير (Stage Gate)
+2. تحميل قاعدة المعرفة التقنية (تكوين البناء، تكوين هجرة قاعدة البيانات، أوامر تشغيل الخدمة)
+3. **Checkpoint**: فحص مسبق للبيئة — التحقق من أدوات البناء، إصدارات runtime، توفر التبعيات
+4. تنفيذ مهارات النشر بالتسلسل: البناء (Build) → هجرة قاعدة البيانات (Migrate) → تشغيل الخدمة (Startup) → الاختبار الدخاني (Smoke Test)
+5. إخراج تقرير النشر
+
+> 💡 **نصيحة**: للمشاريع بدون قاعدة بيانات، يتم تخطي خطوة الهجرة تلقائياً؛ للتطبيقات العميلة (سطح المكتب/المحمول)، يتم استخدام وضع التحقق من العملية بدلاً من فحص الصحة HTTP.
+
+**المخرج**:
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # خطة النشر
+│   └── deployment-log.md           # سجل تنفيذ النشر
+└── deployment-report.md            # تقرير اكتمال النشر
+```
+
+**قائمة مراجعة التأكيد**:
+- [ ] هل تم البناء بنجاح؟
+- [ ] هل تم تنفيذ جميع سكربتات هجرة قاعدة البيانات بنجاح (إن وجدت)؟
+- [ ] هل تم تشغيل التطبيق واجتاز فحص الصحة؟
+- [ ] هل اجتاز الاختبار الدخاني بالكامل؟
+
+---
+
+### 7.6 المرحلة 6: اختبار النظام (Test Manager)
 
 **كيفية البدء**:
 ```
@@ -349,7 +384,7 @@ iterations/{iter}/04.development/
 
 **المخرج**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # وثائق حالات الاختبار
 ├── code/
@@ -367,7 +402,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 المرحلة 6: الأرشفة
+### 7.7 المرحلة 7: الأرشفة
 
 يتم أرشفة التكرارات تلقائياً بعد الاكتمال:
 
@@ -378,7 +413,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +505,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 التوافق مع الإصدارات السابقة
@@ -565,6 +602,7 @@ npm install -g speccrew@0.5.6
 | تصميم الوظائف | Feature Designer | `@speccrew-feature-designer ابدأ تصميم الوظائف` |
 | تصميم النظام | System Designer | `@speccrew-system-designer ابدأ تصميم النظام` |
 | التطوير | System Developer | `@speccrew-system-developer ابدأ التطوير` |
+| النشر | System Deployer | `@speccrew-system-deployer ابدأ النشر` |
 | اختبار النظام | Test Manager | `@speccrew-test-manager ابدأ الاختبار` |
 
 ### قائمة مراجعة Checkpoint
@@ -575,6 +613,7 @@ npm install -g speccrew@0.5.6
 | تصميم الوظائف | 1 | تغطية السيناريو، وضوح التفاعل، اكتمال البيانات، معالجة الاستثناءات |
 | تصميم النظام | 2 | أ: تقييم الإطار؛ ب: بناء pseudocode، اتساق عبر المنصات، معالجة الأخطاء |
 | التطوير | 1 | أ: جاهزية البيئة، مشاكل التكامل، مواصفات الكود |
+| النشر | 1 | نجاح البناء، اكتمال الهجرة، تشغيل الخدمة، اجتياز الاختبار الدخاني |
 | اختبار النظام | 2 | أ: تغطية الحالات؛ ب: قابلية تشغيل كود الاختبار |
 
 ### مرجع سريع لمسارات المخرجات
@@ -585,7 +624,8 @@ npm install -g speccrew@0.5.6
 | تصميم الوظائف | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | تصميم النظام | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | التطوير | `iterations/{iter}/04.development/` | الكود المصدري + `delivery-report.md` |
-| اختبار النظام | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| النشر | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| اختبار النظام | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | الأرشفة | `iteration-archives/{iter}-{date}/` | نسخة تكرار كاملة |
 
 ---

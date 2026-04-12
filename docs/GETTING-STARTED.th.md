@@ -146,13 +146,15 @@ flowchart LR
     PRD[ระยะที่ 1<br/>การวิเคราะห์ความต้องการ<br/>Product Manager] --> FD[ระยะที่ 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[ระยะที่ 3<br/>System Design<br/>System Designer]
     SD --> DEV[ระยะที่ 4<br/>การพัฒนา<br/>System Developer]
-    DEV --> TEST[ระยะที่ 5<br/>การทดสอบระบบ<br/>Test Manager]
-    TEST --> ARCHIVE[ระยะที่ 6<br/>การเก็บถาวร]
+    DEV --> DEPLOY[ระยะที่ 5<br/>การปรับใช้<br/>System Deployer]
+    DEPLOY --> TEST[ระยะที่ 6<br/>การทดสอบระบบ<br/>Test Manager]
+    TEST --> ARCHIVE[ระยะที่ 7<br/>การเก็บถาวร]
     
     KB[(ฐานความรู้<br/>ตลอดกระบวนการ)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 

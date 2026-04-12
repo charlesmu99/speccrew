@@ -146,13 +146,15 @@ flowchart LR
     PRD[Fase 1<br/>Analisi Requisiti<br/>Product Manager] --> FD[Fase 2<br/>Feature Design<br/>Feature Designer]
     FD --> SD[Fase 3<br/>System Design<br/>System Designer]
     SD --> DEV[Fase 4<br/>Sviluppo<br/>System Developer]
-    DEV --> TEST[Fase 5<br/>Test di Sistema<br/>Test Manager]
-    TEST --> ARCHIVE[Fase 6<br/>Archiviazione]
+    DEV --> DEPLOY[Fase 5<br/>Distribuzione<br/>System Deployer]
+    DEPLOY --> TEST[Fase 6<br/>Test di Sistema<br/>Test Manager]
+    TEST --> ARCHIVE[Fase 7<br/>Archiviazione]
     
     KB[(Base di Conoscenza<br/>Per Tutto il Processo)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,42 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 Fase 5: Test di Sistema (Test Manager)
+### 7.5 Fase 5: Distribuzione (System Deployer)
+
+**Come Avviare**:
+
+```
+@speccrew-system-deployer avvia distribuzione
+```
+
+**Workflow dell'Agente**:
+1. Verificare che la fase di sviluppo sia completata (Stage Gate)
+2. Caricare la base di conoscenza tecnica (configurazione build, configurazione migrazione database, comandi avvio servizi)
+3. **Checkpoint**: Pre-verifica Ambiente — Verificare strumenti di build, versioni runtime, disponibilità dipendenze
+4. Eseguire le skill di distribuzione in sequenza: Build → Migrazione Database → Avvio Servizi → Smoke Test
+5. Emettere rapporto di distribuzione
+
+> 💡 **Suggerimento**: Per progetti senza database, il passaggio di migrazione viene saltato automaticamente; per applicazioni client (desktop/mobile), viene utilizzata la modalità di verifica processo invece del controllo salute HTTP.
+
+**Deliverable**:
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # Piano di distribuzione
+│   └── deployment-log.md           # Log esecuzione distribuzione
+└── deployment-report.md            # Rapporto distribuzione completata
+```
+
+**Checklist di Conferma**:
+- [ ] Il build è stato completato con successo?
+- [ ] Tutti gli script di migrazione database sono stati eseguiti con successo (se applicabile)?
+- [ ] L'applicazione si avvia normalmente e supera il controllo salute?
+- [ ] Tutti gli smoke test sono passati?
+
+---
+
+### 7.6 Fase 6: Test di Sistema (Test Manager)
 
 **Come Avviare**:
 ```
@@ -349,7 +386,7 @@ iterations/{iter}/04.development/
 
 **Deliverable**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # Documenti casi di test
 ├── code/
@@ -367,7 +404,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 Fase 6: Archiviazione
+### 7.7 Fase 7: Archiviazione
 
 Le iterazioni vengono archiviate automaticamente dopo il completamento:
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 Compatibilità all'Indietro
@@ -565,6 +604,7 @@ Dopo l'archiviazione, visualizzare in `speccrew-workspace/iteration-archives/`, 
 | Feature Design | Feature Designer | `@speccrew-feature-designer avvia feature design` |
 | System Design | System Designer | `@speccrew-system-designer avvia system design` |
 | Sviluppo | System Developer | `@speccrew-system-developer avvia sviluppo` |
+| Distribuzione | System Deployer | `@speccrew-system-deployer avvia distribuzione` |
 | Test di Sistema | Test Manager | `@speccrew-test-manager avvia test` |
 
 ### Checklist Checkpoint
@@ -575,6 +615,7 @@ Dopo l'archiviazione, visualizzare in `speccrew-workspace/iteration-archives/`, 
 | Feature Design | 1 | Copertura scenari, chiarezza interazione, completezza dati, gestione eccezioni |
 | System Design | 2 | A: Valutazione framework; B: Sintassi pseudocodice, consistenza cross-piattaforma, gestione errori |
 | Sviluppo | 1 | A: Pronto ambiente, problemi integrazione, specifiche codice |
+| Distribuzione | 1 | Build riuscito, migrazione completata, servizi avviati, smoke test passati |
 | Test di Sistema | 2 | A: Copertura casi; B: Eseguibilità codice test |
 
 ### Riferimento Rapido Percorsi Deliverable
@@ -585,7 +626,8 @@ Dopo l'archiviazione, visualizzare in `speccrew-workspace/iteration-archives/`, 
 | Feature Design | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | System Design | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | Sviluppo | `iterations/{iter}/04.development/` | Codice sorgente + `delivery-report.md` |
-| Test di Sistema | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| Distribuzione | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| Test di Sistema | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | Archiviazione | `iteration-archives/{iter}-{date}/` | Copia completa dell'iterazione |
 
 ---

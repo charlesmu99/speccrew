@@ -35,7 +35,7 @@
 
 ## 什么是 SpecCrew？
 
-SpecCrew 是一套嵌入式的虚拟 AI 开发团队框架。它将专业的软件工程流程（PRD → Feature Design → System Design → Dev → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD），特别适合已有项目。
+SpecCrew 是一套嵌入式的虚拟 AI 开发团队框架。它将专业的软件工程流程（PRD → Feature Design → System Design → Dev → Deployment → Test）转化为可复用的 Agent 工作流，帮助开发团队实现规范驱动开发（SDD），特别适合已有项目。
 
 通过将 Agent 和 Skill 集成到现有项目，即可快速初始化项目文档体系和虚拟软件团队，按照标准工程流程分步实现功能的新增和修改。
 
@@ -122,7 +122,7 @@ Stage 4: 系统聚合 → 生成系统全景图
 **解决**：覆盖软件工程全环节：
 ```
 PRD（需求）→ Feature Design（功能设计）→ API Contract（契约）
-    → System Design（系统设计）→ Dev（开发）→ Test（测试）
+    → System Design（系统设计）→ Dev（开发）→ Deployment（部署）→ Test（测试）
 ```
 - 每个环节产出物是下一环节的输入
 - 每步需人工确认后方可执行
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>接口契约]
     C --> D[System Design<br/>系统设计]
     D --> E[Dev<br/>开发实现]
-    E --> F[System Test<br/>系统测试]
-    F --> G[Archive<br/>归档]
+    E --> F[Deployment<br/>部署实施]
+    F --> G[System Test<br/>系统测试]
+    G --> H[Archive<br/>归档]
     
-    H[Knowledge<br/>知识库] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>知识库] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### 各阶段说明
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | 功能设计文档 + 接口契约 | ✅ 必需 |
 | System Design | System Designer | Feature Spec | 前端/后端设计文档 | ✅ 必需 |
 | Dev | Dev | Design | 代码 + 任务记录 | ✅ 必需 |
-| System Test | Test Manager | Dev 产出 + Feature Spec | 测试用例 + 测试代码 + 测试报告 + Bug 报告 | ✅ 必需 |
+| Deployment | System Deployer | Dev 产出 | 部署报告 + 运行应用 | ✅ 必需 |
+| System Test | Test Manager | Deployment 产出 + Feature Spec | 测试用例 + 测试代码 + 测试报告 + Bug 报告 | ✅ 必需 |
 
 ---
 
@@ -260,8 +264,9 @@ speccrew update --ide claude
 2. **Feature Design**：由功能设计师 Agent 生成功能设计文档 + API 契约
 3. **System Design**：由系统设计师 Agent 按端（前端/后端/移动端/桌面端）生成系统设计文档
 4. **Dev**：由系统开发者 Agent 按端并行实现开发
-5. **System Test**：由测试管理员 Agent 协调三阶段测试（用例设计 → 代码生成 → 执行报告）
-6. **Archive**：归档迭代
+5. **Deployment**：由系统部署者 Agent 执行构建、数据库迁移、服务启动和烟雾测试
+6. **System Test**：由测试管理员 Agent 协调三阶段测试（用例设计 → 代码生成 → 执行报告）
+7. **Archive**：归档迭代
 
 > 每个阶段产出物需人工确认后方可进入下一阶段。
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # 功能设计
     │       ├── 03.system-design/    # 系统设计
     │       ├── 04.development/      # 开发阶段
-    │       ├── 05.system-test/      # 系统测试
-    │       └── 06.delivery/         # 交付阶段
+    │       ├── 05.deployment/       # 部署阶段
+    │       ├── 06.system-test/      # 系统测试
+    │       └── 07.delivery/         # 交付阶段
     │
     ├── iteration-archives/          # 迭代归档
     │

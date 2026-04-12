@@ -35,7 +35,7 @@
 
 ## SpecCrew คืออะไร?
 
-SpecCrew เป็นเฟรมเวิร์กทีมพัฒนา AI เสมือนแบบฝังตัว มันแปลงเวิร์กโฟลว์วิศวกรรมซอฟต์แวร์มืออาชีพ (PRD → Feature Design → System Design → Dev → Test) เป็นเวิร์กโฟลว์ Agent ที่นำกลับมาใช้ใหม่ได้ ช่วยให้ทีมพัฒนาบรรลุ Specification-Driven Development (SDD) โดยเฉพาะเหมาะสำหรับโปรเจกต์ที่มีอยู่แล้ว
+SpecCrew เป็นเฟรมเวิร์กทีมพัฒนา AI เสมือนแบบฝังตัว มันแปลงเวิร์กโฟลว์วิศวกรรมซอฟต์แวร์มืออาชีพ (PRD → Feature Design → System Design → Dev → Deployment → Test) เป็นเวิร์กโฟลว์ Agent ที่นำกลับมาใช้ใหม่ได้ ช่วยให้ทีมพัฒนาบรรลุ Specification-Driven Development (SDD) โดยเฉพาะเหมาะสำหรับโปรเจกต์ที่มีอยู่แล้ว
 
 โดยการรวม Agent และ Skill เข้ากับโปรเจกต์ที่มีอยู่ ทีมสามารถเริ่มต้นระบบเอกสารโปรเจกต์และทีมซอฟต์แวร์เสมือนได้อย่างรวดเร็ว ดำเนินการเพิ่มและแก้ไขคุณสมบัติใหม่ตามเวิร์กโฟลว์วิศวกรรมมาตรฐาน
 
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>สัญญาอินเทอร์เฟซ]
     C --> D[System Design<br/>การออกแบบระบบ]
     D --> E[Dev<br/>การใช้งาน]
-    E --> F[System Test<br/>การทดสอบ]
-    F --> G[Archive<br/>การเก็บถาวร]
+    E --> F[Deployment<br/>การปรับใช้]
+    F --> G[System Test<br/>การทดสอบ]
+    G --> H[Archive<br/>การเก็บถาวร]
     
-    H[Knowledge<br/>รีโพสิทอรี] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>รีโพสิทอรี] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### คำอธิบายแต่ละเฟส
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | เอกสาร Feature Design + สัญญา API | ✅ จำเป็น |
 | System Design | System Designer | Feature Spec | เอกสารการออกแบบ Frontend/Backend | ✅ จำเป็น |
 | Dev | Dev | Design | โค้ด + บันทึกงาน | ✅ จำเป็น |
-| System Test | Test Manager | เอาต์พุต Dev + Feature Spec | เคสทดสอบ + โค้ดทดสอบ + รายงานการทดสอบ + รายงาน Bug | ✅ จำเป็น |
+| Deployment | System Deployer | เอาต์พุต Dev | รายงานการปรับใช้ + แอปพลิเคชันที่ทำงาน | ✅ จำเป็น |
+| System Test | Test Manager | เอาต์พุต Deployment + Feature Spec | เคสทดสอบ + โค้ดทดสอบ + รายงานการทดสอบ + รายงาน Bug | ✅ จำเป็น |
 
 ---
 
@@ -260,8 +264,9 @@ speccrew update --ide claude
 2. **Feature Design**: Agent Feature Designer สร้างเอกสาร Feature Design + สัญญา API
 3. **System Design**: Agent System Designer สร้างเอกสาร System Design ตามแพลตฟอร์ม (frontend/backend/moble/desktop)
 4. **Dev**: Agent System Developer ใช้งานการพัฒนาตามแพลตฟอร์มแบบขนาน
-5. **System Test**: Agent Test Manager ประสานการทดสอบสามเฟส (การออกแบบเคส → การสร้างโค้ด → รายงานการดำเนินการ)
-6. **Archive**: เก็บถาวรการวนซ้ำ
+5. **Deployment**: Agent System Deployer ดำเนินการ build, database migration, service startup และ smoke test
+6. **System Test**: Agent Test Manager ประสานการทดสอบสามเฟส (การออกแบบเคส → การสร้างโค้ด → รายงานการดำเนินการ)
+7. **Archive**: เก็บถาวรการวนซ้ำ
 
 > ผลลัพธ์ของแต่ละเฟสต้องการการยืนยันจากมนุษย์ก่อนดำเนินการต่อไปยังเฟสถัดไป
 

@@ -146,13 +146,15 @@ flowchart LR
     PRD[1단계<br/>요구사항 분석<br/>Product Manager] --> FD[2단계<br/>기능 설계<br/>Feature Designer]
     FD --> SD[3단계<br/>시스템 설계<br/>System Designer]
     SD --> DEV[4단계<br/>개발 구현<br/>System Developer]
-    DEV --> TEST[5단계<br/>시스템 테스트<br/>Test Manager]
-    TEST --> ARCHIVE[6단계<br/>보관]
+    DEV --> DEPLOY[5단계<br/>배포 실행<br/>System Deployer]
+    DEPLOY --> TEST[6단계<br/>시스템 테스트<br/>Test Manager]
+    TEST --> ARCHIVE[7단계<br/>보관]
     
     KB[(지식 기반<br/>전체 과정)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,42 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 5단계: 시스템 테스트 (Test Manager)
+### 7.5 5단계: 배포 실행 (System Deployer)
+
+**시작 방법**:
+
+```
+@speccrew-system-deployer 배포 시작
+```
+
+**Agent 워크플로우**:
+1. 개발 단계 완료 검증 (Stage Gate)
+2. 기술 지식 기반 로드 (빌드 구성, 데이터베이스 마이그레이션 구성, 서비스 시작 명령)
+3. **체크포인트**: 환경 사전 검사 — 빌드 도구, 런타임 버전, 종속성 가용성 검증
+4. 순차적으로 배포 스킬 실행: 빌드(Build) → 데이터베이스 마이그레이션(Migrate) → 서비스 시작(Startup) → 스모크 테스트(Smoke Test)
+5. 배포 보고서 출력
+
+> 💡 **팁**: 데이터베이스가 없는 프로젝트의 경우 마이그레이션 단계는 자동으로 건너뜁니다. 클라이언트 애플리케이션(데스크톱/모바일)의 경우 HTTP 헬스 체크 대신 프로세스 검증 모드를 사용합니다.
+
+**산출물**:
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # 배포 계획
+│   └── deployment-log.md           # 배포 실행 로그
+└── deployment-report.md            # 배포 완료 보고서
+```
+
+**확인 체크리스트**:
+- [ ] 빌드가 정상적으로 완료되었는가
+- [ ] 데이터베이스 마이그레이션 스크립트가 모두 정상 실행되었는가 (해당하는 경우)
+- [ ] 애플리케이션이 정상적으로 시작되고 헬스 체크를 통과했는가
+- [ ] 스모크 테스트가 모두 통과했는가
+
+---
+
+### 7.6 6단계: 시스템 테스트 (Test Manager)
 
 **시작 방법**:
 ```
@@ -349,7 +386,7 @@ iterations/{iter}/04.development/
 
 **산출물**:
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # 테스트 케이스 문서
 ├── code/
@@ -367,7 +404,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 6단계: 보관
+### 7.7 7단계: 보관
 
 반복 완료 후 자동 보관:
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 하위 호환성
@@ -565,6 +604,7 @@ npm install -g speccrew@0.5.6
 | 기능 설계 | Feature Designer | `@speccrew-feature-designer 기능 설계 시작` |
 | 시스템 설계 | System Designer | `@speccrew-system-designer 시스템 설계 시작` |
 | 개발 | System Developer | `@speccrew-system-developer 개발 시작` |
+| 배포 | System Deployer | `@speccrew-system-deployer 배포 시작` |
 | 시스템 테스트 | Test Manager | `@speccrew-test-manager 테스트 시작` |
 
 ### 체크포인트 체크리스트
@@ -575,6 +615,7 @@ npm install -g speccrew@0.5.6
 | 기능 설계 | 1 | 시나리오 커버리지, 상호작용 명확성, 데이터 완전성, 예외 처리 |
 | 시스템 설계 | 2 | A: 프레임워크 평가; B: 의사코드 구문, 크로스플랫폼 일관성, 오류 처리 |
 | 개발 | 1 | A: 환경 준비, 통합 문제, 코드 규약 |
+| 배포 | 1 | 빌드 성공, 마이그레이션 완료, 서비스 시작, 스모크 테스트 통과 |
 | 시스템 테스트 | 2 | A: 케이스 커버리지; B: 테스트 코드 실행 가능성 |
 
 ### 산출물 경로 빠른 참조
@@ -585,7 +626,8 @@ npm install -g speccrew@0.5.6
 | 기능 설계 | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | 시스템 설계 | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | 개발 | `iterations/{iter}/04.development/` | 소스 코드 + `delivery-report.md` |
-| 시스템 테스트 | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| 배포 | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| 시스템 테스트 | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | 보관 | `iteration-archives/{iter}-{date}/` | 전체 반복 복사본 |
 
 ---

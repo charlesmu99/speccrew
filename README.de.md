@@ -35,7 +35,7 @@
 
 ## Was ist SpecCrew?
 
-SpecCrew ist ein eingebettetes virtuelles KI-Entwicklungsteam-Framework. Es verwandelt professionelle Software-Engineering-Workflows (PRD → Feature Design → System Design → Dev → Test) in wiederverwendbare Agent-Workflows und hilft Entwicklungsteams, Specification-Driven Development (SDD) zu erreichen, besonders geeignet für bestehende Projekte.
+SpecCrew ist ein eingebettetes virtuelles KI-Entwicklungsteam-Framework. Es verwandelt professionelle Software-Engineering-Workflows (PRD → Feature Design → System Design → Dev → Deployment → Test) in wiederverwendbare Agent-Workflows und hilft Entwicklungsteams, Specification-Driven Development (SDD) zu erreichen, besonders geeignet für bestehende Projekte.
 
 Durch die Integration von Agents und Skills in bestehende Projekte können Teams schnell Projektdokumentationssysteme und virtuelle Softwareteams initialisieren und neue Funktionen sowie Änderungen nach Standard-Engineering-Workflows schrittweise implementieren.
 
@@ -122,7 +122,7 @@ Die Entwicklung muss nur noch auf Basis des spezifischen Tech-Stacks "Fleisch ei
 **Lösung**: Abdeckung des vollständigen Software-Engineering-Lebenszyklus:
 ```
 PRD (Anforderungen) → Feature Design (Funktionsdesign) → API Contract (Vertrag)
-    → System Design (Systemdesign) → Dev (Entwicklung) → Test (Tests)
+    → System Design (Systemdesign) → Dev (Entwicklung) → Deployment (Bereitstellung) → Test (Tests)
 ```
 - Jede Phasenausgabe ist die Eingabe der nächsten Phase
 - Jeder Schritt erfordert menschliche Bestätigung vor dem Fortfahren
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Schnittstellenvertrag]
     C --> D[System Design<br/>Systemdesign]
     D --> E[Dev<br/>Implementierung]
-    E --> F[System Test<br/>Tests]
-    F --> G[Archive<br/>Archivierung]
+    E --> F[Deployment<br/>Bereitstellung]
+    F --> G[System Test<br/>Tests]
+    G --> H[Archive<br/>Archivierung]
     
-    H[Knowledge<br/>Repository] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repository] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Phasenbeschreibungen
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Feature Design Dokument + API Vertrag | ✅ Erforderlich |
 | System Design | System Designer | Feature Spec | Frontend/Backend Design-Dokumente | ✅ Erforderlich |
 | Dev | Dev | Design | Code + Aufgabenprotokolle | ✅ Erforderlich |
-| System Test | Test Manager | Dev-Ausgabe + Feature Spec | Testfälle + Testcode + Testbericht + Bug-Bericht | ✅ Erforderlich |
+| Deployment | System Deployer | Dev-Ausgabe | Bereitstellungsbericht + Laufende Anwendung | ✅ Erforderlich |
+| System Test | Test Manager | Deployment-Ausgabe + Feature Spec | Testfälle + Testcode + Testbericht + Bug-Bericht | ✅ Erforderlich |
 
 ---
 
@@ -260,8 +264,9 @@ Folgen Sie dem Standard-Engineering-Workflow Schritt für Schritt:
 2. **Feature Design**: Feature Designer Agent generiert Feature Design Dokument + API Vertrag
 3. **System Design**: System Designer Agent generiert System Design Dokumente nach Plattform (Frontend/Backend/Mobile/Desktop)
 4. **Dev**: System Developer Agent implementiert Entwicklung nach Plattform parallel
-5. **System Test**: Test Manager Agent koordiniert dreiphasiges Testen (Fall-Design → Code-Generierung → Ausführungsbericht)
-6. **Archive**: Iteration archivieren
+5. **Deployment**: System Deployer Agent führt Build, Datenbankmigration, Service-Start und Smoke-Test durch
+6. **System Test**: Test Manager Agent koordiniert dreiphasiges Testen (Fall-Design → Code-Generierung → Ausführungsbericht)
+7. **Archive**: Iteration archivieren
 
 > Die Liefergegenstände jeder Phase erfordern menschliche Bestätigung vor dem Fortfahren zur nächsten Phase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature Design
     │       ├── 03.system-design/    # System Design
     │       ├── 04.development/      # Entwicklungsphase
-    │       ├── 05.system-test/      # Systemtest
-    │       └── 06.delivery/         # Lieferphase
+    │       ├── 05.deployment/       # Bereitstellungsphase
+    │       ├── 06.system-test/      # Systemtest
+    │       └── 07.delivery/         # Lieferphase
     │
     ├── iteration-archives/          # Iterationsarchive
     │

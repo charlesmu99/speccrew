@@ -146,13 +146,15 @@ flowchart LR
     PRD[階段一<br/>需求分析<br/>Product Manager] --> FD[階段二<br/>功能設計<br/>Feature Designer]
     FD --> SD[階段三<br/>系統設計<br/>System Designer]
     SD --> DEV[階段四<br/>開發實現<br/>System Developer]
-    DEV --> TEST[階段五<br/>系統測試<br/>Test Manager]
-    TEST --> ARCHIVE[階段六<br/>歸檔]
+    DEV --> DEPLOY[階段五<br/>部署實施<br/>System Deployer]
+    DEPLOY --> TEST[階段六<br/>系統測試<br/>Test Manager]
+    TEST --> ARCHIVE[階段七<br/>歸檔]
     
     KB[(知識庫<br/>貫穿始終)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,14 +334,49 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 階段五:系統測試(Test Manager)
+### 7.5 階段五：部署實施（System Deployer）
 
-**如何啟動**:
+**如何啟動**：
+
+```
+@speccrew-system-deployer 開始部署
+```
+
+**Agent 工作流程**：
+1. 驗證開發階段已完成（Stage Gate）
+2. 加載技術知識庫（構建配置、資料庫遷移配置、服務啟動命令）
+3. **Checkpoint**：環境預檢 — 驗證構建工具、運行時版本、依賴可用性
+4. 按順序執行部署技能：構建（Build）→ 資料庫遷移（Migrate）→ 服務啟動（Startup）→ 煙霧測試（Smoke Test）
+5. 輸出部署報告
+
+> 💡 **提示**：對於無資料庫的專案，遷移步驟會自動跳過；對於客戶端應用（桌面/行動端），會使用程序驗證模式替代 HTTP 健康檢查。
+
+**產出物**：
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # 部署計劃
+│   └── deployment-log.md           # 部署執行日誌
+└── deployment-report.md            # 部署完成報告
+```
+
+**確認要點**：
+- [ ] 構建是否成功完成
+- [ ] 資料庫遷移腳本是否全部執行成功（如適用）
+- [ ] 應用是否正常啟動並通過健康檢查
+- [ ] 煙霧測試是否全部通過
+
+---
+
+### 7.6 階段六：系統測試（Test Manager）
+
+**如何啟動**：
 ```
 @speccrew-test-manager 開始測試
 ```
 
-**三階段測試流程**:
+**三階段測試流程**：
 
 | 階段 | 說明 | Checkpoint |
 |------|------|------------|
@@ -347,9 +384,9 @@ iterations/{iter}/04.development/
 | 測試程式碼生成 | 生成可執行的測試程式碼 | B:展示生成的測試檔案和用例映射,等待使用者確認 |
 | 測試執行與 Bug 報告 | 自動執行測試,生成報告 | 無(自動執行) |
 
-**產出物**:
+**產出物**：
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # 測試用例文檔
 ├── code/
@@ -360,14 +397,14 @@ iterations/{iter}/05.system-test/
     └── BUG-{id}-{title}.md         # Bug 報告(每個 Bug 一個檔案)
 ```
 
-**確認要點**:
+**確認要點**：
 - [ ] 用例覆蓋是否完整
 - [ ] 測試程式碼是否可運行
 - [ ] Bug 嚴重程度判定是否準確
 
 ---
 
-### 7.6 階段六:歸檔
+### 7.7 階段七：歸檔
 
 迭代完成後自動歸檔:
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 向下相容
@@ -565,6 +604,7 @@ npm install -g speccrew@0.5.6
 | 功能設計 | Feature Designer | `@speccrew-feature-designer 開始功能設計` |
 | 系統設計 | System Designer | `@speccrew-system-designer 開始系統設計` |
 | 開發實現 | System Developer | `@speccrew-system-developer 開始開發` |
+| 部署實施 | System Deployer | `@speccrew-system-deployer 開始部署` |
 | 系統測試 | Test Manager | `@speccrew-test-manager 開始測試` |
 
 ### Checkpoint 檢查清單
@@ -575,6 +615,7 @@ npm install -g speccrew@0.5.6
 | 功能設計 | 1 | 場景覆蓋、交互清晰度、資料完整性、異常處理 |
 | 系統設計 | 2 | A: 框架評估;B: 偽程式碼語法、跨端一致性、錯誤處理 |
 | 開發實現 | 1 | A: 環境就緒、集成問題、程式碼規約 |
+| 部署實施 | 1 | 構建成功、遷移完成、服務啟動、煙霧測試通過 |
 | 系統測試 | 2 | A: 用例覆蓋;B: 測試程式碼可運行性 |
 
 ### 產出物路徑速查
@@ -585,7 +626,8 @@ npm install -g speccrew@0.5.6
 | 功能設計 | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | 系統設計 | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | 開發實現 | `iterations/{iter}/04.development/` | 源程式碼 + `delivery-report.md` |
-| 系統測試 | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| 部署實施 | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| 系統測試 | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | 歸檔 | `iteration-archives/{iter}-{date}/` | 完整迭代副本 |
 
 ---

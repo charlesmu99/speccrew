@@ -146,13 +146,15 @@ flowchart LR
     PRD[阶段一<br/>需求分析<br/>Product Manager] --> FD[阶段二<br/>功能设计<br/>Feature Designer]
     FD --> SD[阶段三<br/>系统设计<br/>System Designer]
     SD --> DEV[阶段四<br/>开发实现<br/>System Developer]
-    DEV --> TEST[阶段五<br/>系统测试<br/>Test Manager]
-    TEST --> ARCHIVE[阶段六<br/>归档]
+    DEV --> DEPLOY[阶段五<br/>部署实施<br/>System Deployer]
+    DEPLOY --> TEST[阶段六<br/>系统测试<br/>Test Manager]
+    TEST --> ARCHIVE[阶段七<br/>归档]
     
     KB[(知识库<br/>贯穿始终)] -.-> PRD
     KB -.-> FD
     KB -.-> SD
     KB -.-> DEV
+    KB -.-> DEPLOY
     KB -.-> TEST
 ```
 
@@ -332,7 +334,42 @@ iterations/{iter}/04.development/
 
 ---
 
-### 7.5 阶段五：系统测试（Test Manager）
+### 7.5 阶段五：部署实施（System Deployer）
+
+**如何启动**：
+
+```
+@speccrew-system-deployer 开始部署
+```
+
+**Agent 工作流程**：
+1. 验证开发阶段已完成（Stage Gate）
+2. 加载技术知识库（构建配置、数据库迁移配置、服务启动命令）
+3. **Checkpoint**：环境预检 — 验证构建工具、运行时版本、依赖可用性
+4. 按顺序执行部署技能：构建（Build）→ 数据库迁移（Migrate）→ 服务启动（Startup）→ 烟雾测试（Smoke Test）
+5. 输出部署报告
+
+> 💡 **提示**：对于无数据库的项目，迁移步骤会自动跳过；对于客户端应用（桌面/移动端），会使用进程验证模式替代 HTTP 健康检查。
+
+**产出物**：
+
+```
+iterations/{iter}/05.deployment/
+├── {platform-id}/
+│   ├── deployment-plan.md          # 部署计划
+│   └── deployment-log.md           # 部署执行日志
+└── deployment-report.md            # 部署完成报告
+```
+
+**确认要点**：
+- [ ] 构建是否成功完成
+- [ ] 数据库迁移脚本是否全部执行成功（如适用）
+- [ ] 应用是否正常启动并通过健康检查
+- [ ] 烟雾测试是否全部通过
+
+---
+
+### 7.6 阶段六：系统测试（Test Manager）
 
 **如何启动**：
 ```
@@ -349,7 +386,7 @@ iterations/{iter}/04.development/
 
 **产出物**：
 ```
-iterations/{iter}/05.system-test/
+iterations/{iter}/06.system-test/
 ├── cases/
 │   └── {platform-id}/              # 测试用例文档
 ├── code/
@@ -367,7 +404,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 7.6 阶段六：归档
+### 7.7 阶段七：归档
 
 迭代完成后自动归档：
 
@@ -378,7 +415,8 @@ speccrew-workspace/iteration-archives/
     ├── 02.feature-design/
     ├── 03.system-design/
     ├── 04.development/
-    └── 05.system-test/
+    ├── 05.deployment/
+    └── 06.system-test/
 ```
 
 ---
@@ -469,7 +507,8 @@ Pipeline Status: i001-user-management
   02 Feature Design: 🔄 In Progress (Checkpoint A passed)
   03 System Design:  ⏳ Pending
   04 Development:    ⏳ Pending
-  05 System Test:    ⏳ Pending
+  05 Deployment:     ⏳ Pending
+  06 System Test:    ⏳ Pending
 ```
 
 ### 9.5 向下兼容
@@ -565,6 +604,7 @@ npm install -g speccrew@0.5.6
 | 功能设计 | Feature Designer | `@speccrew-feature-designer 开始功能设计` |
 | 系统设计 | System Designer | `@speccrew-system-designer 开始系统设计` |
 | 开发实现 | System Developer | `@speccrew-system-developer 开始开发` |
+| 部署实施 | System Deployer | `@speccrew-system-deployer 开始部署` |
 | 系统测试 | Test Manager | `@speccrew-test-manager 开始测试` |
 
 ### Checkpoint 检查清单
@@ -575,6 +615,7 @@ npm install -g speccrew@0.5.6
 | 功能设计 | 1 | 场景覆盖、交互清晰度、数据完整性、异常处理 |
 | 系统设计 | 2 | A: 框架评估；B: 伪代码语法、跨端一致性、错误处理 |
 | 开发实现 | 1 | A: 环境就绪、集成问题、代码规约 |
+| 部署实施 | 1 | 构建成功、迁移完成、服务启动、烟雾测试通过 |
 | 系统测试 | 2 | A: 用例覆盖；B: 测试代码可运行性 |
 
 ### 产出物路径速查
@@ -585,7 +626,8 @@ npm install -g speccrew@0.5.6
 | 功能设计 | `iterations/{iter}/02.feature-design/` | `[name]-feature-spec.md` |
 | 系统设计 | `iterations/{iter}/03.system-design/` | `DESIGN-OVERVIEW.md`, `{platform}/INDEX.md`, `{platform}/{module}-design.md` |
 | 开发实现 | `iterations/{iter}/04.development/` | 源代码 + `delivery-report.md` |
-| 系统测试 | `iterations/{iter}/05.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
+| 部署实施 | `iterations/{iter}/05.deployment/` | `deployment-plan.md`, `deployment-log.md`, `deployment-report.md` |
+| 系统测试 | `iterations/{iter}/06.system-test/` | `cases/`, `code/`, `reports/`, `bugs/` |
 | 归档 | `iteration-archives/{iter}-{date}/` | 完整迭代副本 |
 
 ---

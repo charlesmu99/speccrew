@@ -35,7 +35,7 @@
 
 ## ما هو SpecCrew؟
 
-SpecCrew هو إطار عمل مدمج لفريق تطوير افتراضي بالذكاء الاصطناعي. يحول سير عمل هندسة البرمجيات المهنية (PRD → Feature Design → System Design → Dev → Test) إلى سير عمل وكلاء (Agent) قابلة لإعادة الاستخدام، مما يساعد فرق التطوير على تحقيق التطوير المدفوع بالمواصفات (SDD)، ومناسب بشكل خاص للمشاريع الحالية.
+SpecCrew هو إطار عمل مدمج لفريق تطوير افتراضي بالذكاء الاصطناعي. يحول سير عمل هندسة البرمجيات المهنية (PRD → Feature Design → System Design → Dev → Deployment → Test) إلى سير عمل وكلاء (Agent) قابلة لإعادة الاستخدام، مما يساعد فرق التطوير على تحقيق التطوير المدفوع بالمواصفات (SDD)، ومناسب بشكل خاص للمشاريع الحالية.
 
 من خلال دمج الوكلاء والمهارات في المشاريع الحالية، يمكن للفرق تهيئة أنظمة توثيق المشاريع وفريق البرمجيات الافتراضي بسرعة، وتنفيذ الميزات الجديدة والتعديلات باتباع سير عمل الهندسة القياسية.
 
@@ -121,8 +121,8 @@ Information Flows → Categories of Information → Information Descriptions
 
 **الحل**: تغطية دورة حياة هندسة البرمجيات الكاملة:
 ```
-PRD (المتطلبات) → Solution (التخطيط) → API Contract
-    → Design → Dev (التطوير) → Test (الاختبار)
+PRD (المتطلبات) → Feature Design (تصميم الميزات) → API Contract (عقد الواجهة)
+    → System Design (التصميم التفصيلي) → Dev (التطوير) → Deployment (النشر) → Test (الاختبار)
 ```
 - مخرجات كل مرحلة هي مدخلات المرحلة التالية
 - كل خطوة تتطلب تأكيداً بشرياً قبل المتابعة
@@ -165,20 +165,23 @@ PRD (المتطلبات) → Solution (التخطيط) → API Contract
 
 ```mermaid
 graph LR
-    A[PRD<br/>المتطلبات] --> B[Solution<br/>التخطيط التقني]
+    A[PRD<br/>المتطلبات] --> B[Feature Design<br/>تصميم الميزات]
     B --> C[API Contract<br/>عقد الواجهة]
-    C --> D[Design<br/>التصميم التفصيلي]
+    C --> D[System Design<br/>التصميم التفصيلي]
     D --> E[Dev<br/>التنفيذ]
-    E --> F[System Test<br/>اختبار النظام]
-    F --> G[Archive<br/>الأرشفة]
+    E --> F[Deployment<br/>النشر]
+    F --> G[System Test<br/>اختبار النظام]
+    G --> H[Archive<br/>الأرشفة]
     
-    H[Knowledge<br/>المستودع] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>المستودع] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### أوصاف المراحل
@@ -186,10 +189,11 @@ graph LR
 | المرحلة | الوكيل | المدخلات | المخرجات | التأكيد البشري |
 |---------|--------|----------|----------|---------------|
 | PRD | PM | متطلبات المستخدم | وثيقة متطلبات المنتج | ✅ مطلوب |
-| Solution | Planner | PRD | الحل التقني + عقد API | ✅ مطلوب |
-| Design | Designer | Solution | مستندات التصميم الأمامي/الخلفي | ✅ مطلوب |
+| Feature Design | Feature Designer | PRD | وثيقة تصميم الميزات + عقد API | ✅ مطلوب |
+| System Design | System Designer | Feature Spec | مستندات التصميم الأمامي/الخلفي | ✅ مطلوب |
 | Dev | Dev | Design | الكود + سجلات المهام | ✅ مطلوب |
-| System Test | Test Manager | مخرجات Dev + Feature Spec | حالات الاختبار + كود الاختبار + تقرير الاختبار + تقرير الأخطاء | ✅ مطلوب |
+| Deployment | System Deployer | مخرجات Dev | تقرير النشر + التطبيق المشغل | ✅ مطلوب |
+| System Test | Test Manager | مخرجات Deployment + Feature Spec | حالات الاختبار + كود الاختبار + تقرير الاختبار + تقرير الأخطاء | ✅ مطلوب |
 
 ---
 
@@ -260,8 +264,9 @@ speccrew update --ide claude
 2. **Feature Design**: يقوم Feature Designer Agent بإنشاء وثيقة تصميم الميزات + عقد API
 3. **System Design**: يقوم System Designer Agent بإنشاء مستندات تصميم النظام حسب المنصة (واجهة/خلفية/محمول/سطح مكتب)
 4. **Dev**: يقوم System Developer Agent بتنفيذ التطوير حسب المنصة بالتوازي
-5. **System Test**: يقوم Test Manager Agent بتنسيق اختبار ثلاثي المراحل (تصميم الحالات → توليد الكود → تقرير التنفيذ)
-6. **Archive**: أرشفة التكرار
+5. **Deployment**: يقوم System Deployer Agent بتنفيذ البناء وهجرات قاعدة البيانات وتشغيل الخدمة والاختبار الدخاني
+6. **System Test**: يقوم Test Manager Agent بتنسيق اختبار ثلاثي المراحل (تصميم الحالات → توليد الكود → تقرير التنفيذ)
+7. **Archive**: أرشفة التكرار
 
 > تتطلب مخرجات كل مرحلة تأكيداً بشرياً قبل الانتقال إلى المرحلة التالية.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # تصميم الميزات
     │       ├── 03.system-design/    # تصميم النظام
     │       ├── 04.development/      # مرحلة التطوير
-    │       ├── 05.system-test/      # اختبار النظام
-    │       └── 06.delivery/         # مرحلة التسليم
+    │       ├── 05.deployment/       # مرحلة النشر
+    │       ├── 06.system-test/      # اختبار النظام
+    │       └── 07.delivery/         # مرحلة التسليم
     │
     ├── iteration-archives/          # أرشيف التكرار
     │

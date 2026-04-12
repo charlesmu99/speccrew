@@ -35,7 +35,7 @@
 
 ## Hvad er SpecCrew?
 
-SpecCrew er et indlejret virtuelt AI-udviklingsteam-framework. Det omdanner professionelle software engineering-workflows (PRD → Feature Design → System Design → Dev → Test) til genanvendelige Agent-workflows og hjælper udviklingsteams med at opnå Specification-Driven Development (SDD), især velegnet til eksisterende projekter.
+SpecCrew er et indlejret virtuelt AI-udviklingsteam-framework. Det omdanner professionelle software engineering-workflows (PRD → Feature Design → System Design → Dev → Deployment → Test) til genanvendelige Agent-workflows og hjælper udviklingsteams med at opnå Specification-Driven Development (SDD), især velegnet til eksisterende projekter.
 
 Ved at integrere Agents og Skills i eksisterende projekter kan teams hurtigt initialisere projektdokumentationssystemer og virtuelle softwareteams og implementere nye funktioner og ændringer efter standard engineering-workflows.
 
@@ -122,7 +122,7 @@ Udvikling behøver kun at "udfylde kødet" baseret på den specifikke tech-stack
 **Løsning**: Dækker hele software engineering-livscyklussen:
 ```
 PRD (Krav) → Feature Design (Funktionsdesign) → API Contract (Kontrakt)
-    → System Design (Systemdesign) → Dev (Udvikling) → Test (Test)
+    → System Design (Systemdesign) → Dev (Udvikling) → Deployment (Udrulning) → Test (Test)
 ```
 - Hver fasers output er næste fasers input
 - Hvert trin kræver menneskelig bekræftelse før fortsættelse
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Grænsefladekontrakt]
     C --> D[System Design<br/>Systemdesign]
     D --> E[Dev<br/>Implementering]
-    E --> F[System Test<br/>Test]
-    F --> G[Archive<br/>Arkivering]
+    E --> F[Deployment<br/>Udrulning]
+    F --> G[System Test<br/>Test]
+    G --> H[Archive<br/>Arkivering]
     
-    H[Knowledge<br/>Repository] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repository] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Fasebeskrivelser
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Feature Design Dokument + API Kontrakt | ✅ Påkrævet |
 | System Design | System Designer | Feature Spec | Frontend/Backend Design-dokumenter | ✅ Påkrævet |
 | Dev | Dev | Design | Kode + Opgaveregistreringer | ✅ Påkrævet |
-| System Test | Test Manager | Dev Output + Feature Spec | Testcases + Testkode + Testrapport + Bug-rapport | ✅ Påkrævet |
+| Deployment | System Deployer | Dev Output | Udrulningsrapport + Kørende Applikation | ✅ Påkrævet |
+| System Test | Test Manager | Deployment Output + Feature Spec | Testcases + Testkode + Testrapport + Bug-rapport | ✅ Påkrævet |
 
 ---
 
@@ -260,8 +264,9 @@ Følg standard engineering-workflow trin for trin:
 2. **Feature Design**: Feature Designer Agent genererer feature design dokument + API kontrakt
 3. **System Design**: System Designer Agent genererer system design dokumenter pr. platform (frontend/backend/mobil/desktop)
 4. **Dev**: System Developer Agent implementerer udvikling pr. platform parallelt
-5. **System Test**: Test Manager Agent koordinerer tre-fase test (case-design → kode-generering → eksekveringsrapport)
-6. **Archive**: Arkiver iteration
+5. **Deployment**: System Deployer Agent udfører build, database migrationer, servicestart og smoke test
+6. **System Test**: Test Manager Agent koordinerer tre-fase test (case-design → kode-generering → eksekveringsrapport)
+7. **Archive**: Arkiver iteration
 
 > Hver phases leverancer kræver menneskelig bekræftelse før fortsættelse til næste fase.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Udviklingsfase
-    │       ├── 05.system-test/      # System test
-    │       └── 06.delivery/         # Leveringsfase
+    │       ├── 05.deployment/       # Udrulningsfase
+    │       ├── 06.system-test/      # System test
+    │       └── 07.delivery/         # Leveringsfase
     │
     ├── iteration-archives/          # Iterationsarkiver
     │

@@ -35,7 +35,7 @@
 
 ## Šta je SpecCrew?
 
-SpecCrew je ugrađeni virtuelni AI razvojni okvir. Transformiše profesionalne softverske inženjerske tokove rada (PRD → Feature Design → System Design → Dev → Test) u višekorisne tokove rada Agenta, pomažući razvojnim timovima da postignu Specification-Driven Development (SDD), posebno pogodan za postojeće projekte.
+SpecCrew je ugrađeni virtuelni AI razvojni okvir. Transformiše profesionalne softverske inženjerske tokove rada (PRD → Feature Design → System Design → Dev → Deployment → Test) u višekorisne tokove rada Agenta, pomažući razvojnim timovima da postignu Specification-Driven Development (SDD), posebno pogodan za postojeće projekte.
 
 Integracijom Agenata i Vještina u postojeće projekte, timovi mogu brzo inicijalizirati sisteme dokumentacije projekta i virtuelne softverske timove, implementirajući nove funkcionalnosti i modifikacije prema standardnim inženjerskim tokovima rada.
 
@@ -122,7 +122,7 @@ Razvoj samo treba da "popuni meso" na osnovu specifičnog tehničkog steka, osig
 **Rješenje**: Pokrivanje cijelog životnog ciklusa softverskog inženjerstva:
 ```
 PRD (Zahtjevi) → Feature Design (Dizajn funkcionalnosti) → API Contract (Ugovor)
-    → System Design (Sistemski dizajn) → Dev (Razvoj) → Test (Testiranje)
+    → System Design (Sistemski dizajn) → Dev (Razvoj) → Deployment (Raspoređivanje) → Test (Testiranje)
 ```
 - Izlaz svake faze je ulaz sljedeće faze
 - Svaki korak zahtijeva ljudsku potvrdu prije nastavka
@@ -169,16 +169,19 @@ graph LR
     B --> C[API Contract<br/>Ugovor interfejsa]
     C --> D[System Design<br/>Sistemski dizajn]
     D --> E[Dev<br/>Implementacija]
-    E --> F[System Test<br/>Testiranje]
-    F --> G[Archive<br/>Arhiviranje]
+    E --> F[Deployment<br/>Raspoređivanje]
+    F --> G[System Test<br/>Testiranje]
+    G --> H[Archive<br/>Arhiviranje]
     
-    H[Knowledge<br/>Repozitorij] -.-> A
-    H -.-> B
-    H -.-> D
-    H -.-> E
+    I[Knowledge<br/>Repozitorij] -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
     
-    E -.-> H
-    F -.-> H
+    E -.-> I
+    F -.-> I
+    G -.-> I
 ```
 
 ### Opisi faza
@@ -189,7 +192,8 @@ graph LR
 | Feature Design | Feature Designer | PRD | Dokument Feature Design + API ugovor | ✅ Potrebna |
 | System Design | System Designer | Feature Spec | Dokumenti dizajna Frontend/Backend | ✅ Potrebna |
 | Dev | Dev | Design | Kod + Zapisi zadataka | ✅ Potrebna |
-| System Test | Test Manager | Izlaz Dev + Feature Spec | Test slučajevi + Test kod + Test izvještaj + Izvještaj bugova | ✅ Potrebna |
+| Deployment | System Deployer | Izlaz Dev | Izvještaj o raspoređivanju + Pokrenuta aplikacija | ✅ Potrebna |
+| System Test | Test Manager | Izlaz Deployment + Feature Spec | Test slučajevi + Test kod + Test izvještaj + Izvještaj bugova | ✅ Potrebna |
 
 ---
 
@@ -260,8 +264,9 @@ Prati standardni inženjerski tok rada korak po korak:
 2. **Feature Design**: Agent Feature Designer generiše dokument feature design + API ugovor
 3. **System Design**: Agent System Designer generiše dokumente system design po platformama (frontend/backend/mobile/desktop)
 4. **Dev**: Agent System Developer implementira razvoj po platformama paralelno
-5. **System Test**: Agent Test Manager koordinira trofazno testiranje (dizajn slučajeva → generisanje koda → izvještaj izvršavanja)
-6. **Archive**: Arhiviraj iteraciju
+5. **Deployment**: Agent System Deployer izvršava izgradnju, migracije baze podataka, pokretanje servisa i smoke test
+6. **System Test**: Agent Test Manager koordinira trofazno testiranje (dizajn slučajeva → generisanje koda → izvještaj izvršavanja)
+7. **Archive**: Arhiviraj iteraciju
 
 > Rezultati svake faze zahtijevaju ljudsku potvrdu prije prelaska na sljedeću fazu.
 
@@ -330,8 +335,9 @@ your-project/
     │       ├── 02.feature-design/   # Feature design
     │       ├── 03.system-design/    # System design
     │       ├── 04.development/      # Faza razvoja
-    │       ├── 05.system-test/      # Sistemsko testiranje
-    │       └── 06.delivery/         # Faza isporuke
+    │       ├── 05.deployment/       # Faza raspoređivanja
+    │       ├── 06.system-test/      # Sistemsko testiranje
+    │       └── 07.delivery/         # Faza isporuke
     │
     ├── iteration-archives/          # Arhive iteracija
     │
