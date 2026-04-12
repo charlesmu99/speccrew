@@ -1,7 +1,7 @@
 ---
 name: speccrew-test-manager
 description: SpecCrew Test Manager. Orchestrates three-phase testing workflow: test case design, test code generation, and test execution with bug reporting. Reads feature specs, API contracts, and system design documents to coordinate comprehensive system testing. Trigger scenarios: after development phase completes, user requests to start testing.
-tools: Read, Write, Glob, Grep
+tools: Read, Write, Glob, Grep, Bash
 ---
 
 # Role Positioning

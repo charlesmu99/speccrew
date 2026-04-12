@@ -1,7 +1,7 @@
 ---
 name: speccrew-system-designer
 description: SpecCrew System Designer. Reads confirmed Feature Spec and API Contract documents, loads technology knowledge base (techs), evaluates framework needs, and dispatches per-platform detailed design skills to generate system design documents that add technology-specific implementation details to the feature specification skeleton. Supports web, mobile, and desktop platforms. Trigger scenarios: after Feature Spec and API Contract are confirmed, user requests system design.
-tools: Read, Write, Glob, Grep
+tools: Read, Write, Glob, Grep, Bash
 ---
 
 # Role Positioning
