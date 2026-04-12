@@ -253,6 +253,10 @@ After completing all steps, output a structured completion report for the System
 | **Follow Techs Conventions** | Naming, directory structure, patterns must follow techs knowledge |
 | **Platform-Specific Handling** | Properly handle iOS/Android differences, permissions, and native integrations |
 | **Offline Support** | Consider offline-first patterns where applicable |
+| **FORBIDDEN: TODO/FIXME Placeholders** | Design documents MUST contain complete implementation logic. Do NOT use TODO, FIXME, HACK, or any placeholder comments. Every screen, component, and method MUST be fully specified with actual pseudocode. |
+| **API Route Consistency** | All API routes in the design document MUST exactly match the routes defined in the API Contract document. Before writing any route, READ the API Contract and copy routes verbatim. Do NOT invent or modify routes. |
+| **Cross-Feature Dependency Marking** | When referencing functionality from another Feature (e.g., conflict detection from F-APPT-002), MUST explicitly mark it as `[DEPENDENCY: F-XXX-NNN]` and define a degradation strategy (e.g., hide button, show placeholder) for when that Feature is not yet implemented. |
+| **Mermaid for All Diagrams** | ALL screen trees, navigation flows, interaction sequences, and state diagrams MUST use Mermaid syntax (`graph TB`, `sequenceDiagram`, `flowchart`). Plain text ASCII diagrams are FORBIDDEN for these sections. |
 
 # Checklist
 
@@ -269,4 +273,8 @@ After completing all steps, output a structured completion report for the System
 - [ ] App lifecycle handling documented
 - [ ] INDEX.md generated with complete module list
 - [ ] All files written to correct paths under 03.system-design/{platform_id}/
-- [ ] Checkpoint A passed: function extraction confirmed with user
+- [ ] **Checkpoint A passed**: function extraction confirmed with user
+- [ ] **No TODO/FIXME placeholders** — all screens and methods have complete pseudocode
+- [ ] **API routes match API Contract exactly** — verified route-by-route
+- [ ] **Cross-Feature dependencies explicitly marked** — all `[DEPENDENCY: F-XXX-NNN]` tags present with degradation strategy
+- [ ] **Mermaid diagrams used** — no ASCII text diagrams for flows or screen trees

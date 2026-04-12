@@ -263,6 +263,10 @@ After completing all steps, output a structured completion report for the System
 | **One Module Per Function Group** | Each module design document maps to one or more related Feature Spec functions |
 | **Status Markers Required** | Use [EXISTING], [MODIFIED], [NEW] markers for all components and store modules |
 | **Follow Techs Conventions** | Naming, directory structure, patterns must follow techs knowledge |
+| **FORBIDDEN: TODO/FIXME Placeholders** | Design documents MUST contain complete implementation logic. Do NOT use TODO, FIXME, HACK, or any placeholder comments. Every component, method, and interaction MUST be fully specified with actual pseudocode. |
+| **API Route Consistency** | All API routes in the design document MUST exactly match the routes defined in the API Contract document. Before writing any route, READ the API Contract and copy routes verbatim. Do NOT invent or modify routes. |
+| **Cross-Feature Dependency Marking** | When referencing functionality from another Feature (e.g., conflict detection from F-APPT-002), MUST explicitly mark it as `[DEPENDENCY: F-XXX-NNN]` and define a degradation strategy (e.g., hide button, show placeholder) for when that Feature is not yet implemented. |
+| **Mermaid for All Diagrams** | ALL component trees, interaction flows, and state management diagrams MUST use Mermaid syntax (`graph TB`, `sequenceDiagram`, `flowchart`). Plain text ASCII diagrams are FORBIDDEN for these sections. |
 
 # Checklist
 
@@ -277,3 +281,7 @@ After completing all steps, output a structured completion report for the System
 - [ ] INDEX.md generated with complete module list
 - [ ] All files written to correct paths under 03.system-design/{platform_id}/
 - [ ] Checkpoint A passed: function extraction confirmed with user
+- [ ] **No TODO/FIXME placeholders** — all components and methods have complete pseudocode
+- [ ] **API routes match API Contract exactly** — verified route-by-route
+- [ ] **Cross-Feature dependencies explicitly marked** — all `[DEPENDENCY: F-XXX-NNN]` tags present with degradation strategy
+- [ ] **Mermaid diagrams used** — no ASCII text diagrams for flows or component trees

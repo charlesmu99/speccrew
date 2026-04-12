@@ -266,6 +266,9 @@ After completing all steps, output a structured completion report for the System
 | **Explicit Transaction Boundaries** | Transaction boundaries must be explicitly marked |
 | **Exception Code Mapping** | Exception handling must map to API Contract error codes |
 | **Follow Techs Conventions** | Naming, directory structure, patterns from techs knowledge |
+| **FORBIDDEN: TODO/FIXME Placeholders** | Design documents MUST contain complete implementation logic. Do NOT use TODO, FIXME, HACK, or any placeholder comments. Every method, validation rule, and business logic MUST be fully specified with actual pseudocode. |
+| **API Route Consistency** | All API routes in the design document MUST exactly match the routes defined in the API Contract document. Before writing any route, READ the API Contract and copy routes verbatim. Do NOT invent or modify routes. |
+| **Cross-Feature Dependency Marking** | When referencing functionality from another Feature (e.g., conflict detection from F-APPT-002), MUST explicitly mark it as `[DEPENDENCY: F-XXX-NNN]` and define a degradation strategy for when that Feature is not yet implemented. |
 
 # Mermaid Diagram Requirements
 
@@ -296,3 +299,6 @@ When generating Mermaid diagrams, follow compatibility guidelines:
 - [ ] INDEX.md generated with complete module list
 - [ ] All files written to correct paths under 03.system-design/{platform_id}/
 - [ ] All Mermaid diagrams follow compatibility guidelines
+- [ ] **No TODO/FIXME placeholders** — all methods have complete pseudocode implementation
+- [ ] **API routes match API Contract exactly** — verified route-by-route
+- [ ] **Cross-Feature dependencies explicitly marked** — all `[DEPENDENCY: F-XXX-NNN]` tags present with degradation strategy
