@@ -111,6 +111,24 @@ erDiagram
 
 ### Migration Patterns
 
+#### Migration Configuration
+
+<!-- AI-TAG: MIGRATION_CONFIG -->
+<!-- Backend only. Extract from project's actual migration setup. -->
+
+| Config Item | Value |
+|-------------|-------|
+| Migration Tool | migration_tool (e.g., Flyway / Liquibase / Alembic / Prisma Migrate / TypeORM migrations / Knex migrations) |
+| Script Language | script_language (e.g., SQL / XML / YAML / TypeScript / Python) |
+| Script Directory | migration_script_dir (e.g., `src/main/resources/db/migration/`) |
+| Naming Convention | migration_naming (e.g., `V{version}__{description}.sql` for Flyway) |
+| Seed Data Directory | seed_data_dir (e.g., `src/main/resources/db/seed/`, or "N/A" if not used) |
+| Seed Data Format | seed_data_format (e.g., SQL INSERT / JSON fixtures / CSV) |
+| Execution Command | migration_run_cmd (e.g., `mvn flyway:migrate` / `npx prisma migrate dev`) |
+| Validation Command | migration_validate_cmd (e.g., `mvn flyway:validate` / `npx prisma migrate diff`) |
+
+#### Migration Workflow
+
 <!-- AI-TAG: MIGRATION_PATTERNS -->
 <!-- Backend only. If this platform is frontend or mobile, write 'Not applicable - database operations are handled at the backend layer.' -->
 
@@ -127,6 +145,23 @@ TestMigration --> ApplyMigration["Apply to Production"]
 {{#each migration_sources}}
 - [{{name}}](file://{{path}}#L{{start}}-L{{end}})
 {{/each}}
+
+#### Deployment Configuration
+
+<!-- AI-TAG: DEPLOYMENT_CONFIG -->
+<!-- Backend only. Extract from project's actual deployment/startup setup. -->
+
+| Config Item | Value |
+|-------------|-------|
+| Build Command | build_cmd (e.g., `mvn package -DskipTests` / `npm run build`) |
+| Start Command | start_cmd (e.g., `java -jar target/app.jar` / `npm start`) |
+| Health Check URL | health_url (e.g., `http://localhost:8080/actuator/health`) |
+| Health Check Timeout | health_timeout (e.g., 30s) |
+| Stop Command | stop_cmd (e.g., `kill $PID` / Ctrl+C) |
+| Verification Mode | verification_mode (e.g., `http` for server, `process` for desktop/mobile, `log` for log-based) |
+| Process Name | process_name (e.g., `MyApp.exe` / `com.example.myapp`, for process mode. "N/A" for server) |
+| Log File Path | log_file_path (e.g., `logs/app.log` / `~/Library/Logs/MyApp.log`, for log mode. "N/A" if not applicable) |
+| Success Log Pattern | success_log_pattern (e.g., `"Application started"` / `"Ready"`, for log mode. "N/A" if not applicable) |
 
 ### Query Optimization
 

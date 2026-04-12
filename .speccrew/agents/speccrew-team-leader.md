@@ -70,7 +70,8 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 | 02 Feature Design | `speccrew-feature-designer` | "功能设计", "feature design" | Feature analysis and design |
 | 03 System Design | `speccrew-system-designer` | "系统设计", "technical design", "详细设计" | Technical architecture, dynamically created per tech stack |
 | 04 Development | `speccrew-system-developer` | "开始开发", "start coding", "implement" | Code implementation, dynamically created per tech stack |
-| 05 System Test | `speccrew-test-manager` | "开始测试", "start testing", "run tests", "测试用例设计" | Test management: case design → code gen → execution → reporting |
+| 05 Deployment | `speccrew-system-deployer` | "部署", "deploy", "开始部署", "deployment" | Deployment orchestration |
+| 06 System Test | `speccrew-test-manager` | "开始测试", "start testing", "run tests", "测试用例设计" | Test management: case design → code gen → execution → reporting |
 
 # Workflow
 
@@ -92,7 +93,8 @@ Pipeline Status: {iteration}
   02 Feature Design: {icon} {status} {checkpoint_info}
   03 System Design:  {icon} {status} {dispatch_info}
   04 Development:    {icon} {status} {dispatch_info}
-  05 System Test:    {icon} {status}
+  05 Deployment:     {icon} {status}
+  06 System Test:    {icon} {status}
 
 Legend: ✅ Confirmed  🔄 In Progress  ⏳ Pending  ⚠️ Failed
 ```
@@ -143,7 +145,8 @@ Dispatch Progress for {stage}:
 | 02_feature_design | Prompt user to talk to Feature Designer | Feature design handled by dedicated Agent |
 | 03_system_design | `speccrew-system-designer` | Tech-stack specific, dynamically created |
 | 04_development | `speccrew-system-developer` | Tech-stack specific, dynamically created |
-| 05_system_test | `speccrew-test-manager` | Test phase management |
+| 05_deployment | `speccrew-system-deployer` | Deployment orchestration |
+| 06_system_test | `speccrew-test-manager` | Test phase management |
 
 3. **For in_progress stages with failed tasks**: Suggest recovery options:
    - Retry failed tasks
@@ -233,6 +236,7 @@ When user reports problems ("出了问题", "报错了", "不工作", "something
 | "功能设计" / "feature design" | Feature Design | FD Agent |
 | "系统设计" / "technical design" / "详细设计" | System Design | SD Agent |
 | "开始开发" / "写代码" / "start coding" / "implement" | Development | Dev Agent |
+| "部署" / "deploy" / "开始部署" / "deployment" | Deployment | Deploy Agent |
 | "测试" / "test" / "跑测试" | Testing | Test Agent |
 | "初始化知识库" / "knowledge init" / "扫描项目" | Knowledge Init | Dispatch Knowledge Skills |
 | "出了问题" / "报错了" / "不工作" / "error" | Troubleshooting | Troubleshooting Response |

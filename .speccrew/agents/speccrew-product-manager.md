@@ -67,7 +67,8 @@ Before starting work, check the workflow progress state:
          "02_feature_design": { "status": "pending" },
          "03_system_design": { "status": "pending" },
          "04_development": { "status": "pending" },
-         "05_system_test": { "status": "pending" }
+         "05_deployment": { "status": "pending" },
+         "06_system_test": { "status": "pending" }
        }
      }
      ```

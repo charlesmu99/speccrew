@@ -132,9 +132,12 @@ flowchart TD
 
 ### 4.4 Migration Requirements
 
-| Migration | Type | Description |
-|-----------|------|-------------|
-| {migration-name} | CREATE TABLE/ALTER TABLE/ADD INDEX | {what changes} |
+<!-- AI-NOTE: File Path and Script Name MUST follow the migration naming convention 
+     and script directory defined in conventions-data.md Migration Configuration -->
+
+| Migration | Type | Script Name | File Path | Description |
+|-----------|------|-------------|-----------|-------------|
+| {migration-name} | CREATE TABLE/ALTER TABLE/ADD INDEX | {e.g., V001__create_user.sql} | {e.g., src/main/resources/db/migration/} | {what changes} |
 
 ## 5. Transaction Design
 

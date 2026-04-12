@@ -117,7 +117,7 @@ Execute tasks in dependency order.
 
 1. **Mark task as 🔄 In Progress**
 2. **Implement the code** following design specification
-3. **Run local checks** (Step 5)
+3. **Run local checks** (Step 6)
 4. **Update status to ✅ Complete** if checks pass
 5. **Record deviations** if implementation differs from design
 
@@ -127,7 +127,33 @@ Execute tasks in dependency order.
 - Describe issue clearly to user
 - Wait for user decision: return to design phase OR proceed with documented deviation
 
-## Step 5: Local Checks
+## Step 5: Database Migration Verification
+
+> This step applies ONLY when the task checklist contains Database Migration tasks.
+> If no migration tasks exist, skip to Step 6.
+
+### 5.1 Verify Migration Scripts
+
+After all migration-related tasks in Step 4 are complete:
+
+1. **Check script existence**: Verify all migration scripts listed in the design document's "Migration Requirements" table have been created at the specified paths
+2. **Check naming convention**: Verify script names follow the pattern defined in conventions-data.md Migration Configuration
+3. **Check script content**: Each script must contain valid SQL/DDL (or tool-specific syntax) that matches the Table Schema defined in the design document
+
+### 5.2 Verify Migration Order
+
+1. **Dependency check**: Migration scripts with table dependencies must be ordered correctly (e.g., referenced table created before foreign key table)
+2. **Version sequence**: Migration version numbers must be sequential with no gaps
+
+### 5.3 Report Migration Summary
+
+Add to the task record:
+
+| Script Name | Path | Type | Tables Affected | Status |
+|-------------|------|------|----------------|--------|
+| {name} | {path} | CREATE/ALTER | {tables} | Created/Verified |
+
+## Step 6: Local Checks
 
 After completing each task, run quality checks:
 
@@ -155,7 +181,7 @@ When task is blocked (compile fail, test fail, env issue):
 3. **Check environment**: `.env` variables, database connectivity
 4. **Record diagnosis**: symptom → investigation steps → root cause → resolution
 
-## Step 6: Record Deviations
+## Step 7: Record Deviations
 
 If implementation differs from design, record in task file "Deviation Log" section:
 
@@ -167,7 +193,7 @@ If implementation differs from design, record in task file "Deviation Log" secti
 | BE-003 | Use JWT library A | Used JWT library B | Library A has security vulnerability |
 ```
 
-## Step 7: Handle Technical Debt
+## Step 8: Handle Technical Debt
 
 If accepting suboptimal solutions, write to tech-debt directory:
 
@@ -175,7 +201,7 @@ If accepting suboptimal solutions, write to tech-debt directory:
 
 Use the unified tech_debt document template defined in the workspace document templates configuration.
 
-## Step 8: Completion Notification
+## Step 9: Completion Notification
 
 When all tasks complete, update task record and notify user:
 
@@ -205,7 +231,7 @@ Ready for testing phase.
 
 ## Task Completion Report
 
-At the end of Step 8 (or if the skill fails at any point), output a structured Task Completion Report:
+At the end of Step 9 (or if the skill fails at any point), output a structured Task Completion Report:
 
 ### Success Report
 
@@ -219,6 +245,9 @@ At the end of Step 8 (or if the skill fails at any point), output a structured T
   - {file_path_1}
   - {file_path_2}
   - ...
+- **Migration Scripts**: {count} scripts at {migration_dir}
+  - {script_1_name}: {type} ({tables})
+  - {script_2_name}: {type} ({tables})
 - **Summary**: Backend module {module_name} implemented with {X} tasks completed
 ```
 

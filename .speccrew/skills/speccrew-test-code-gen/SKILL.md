@@ -307,7 +307,7 @@ Output the code plan document for traceability:
 1. **Read the template**: `templates/TEST-CODE-PLAN-TEMPLATE.md`
 2. **Replace top-level placeholders** (feature name, platform, date, etc.)
 3. **Create the document** using `create_file`:
-   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/code/{platform_id}/[feature]-test-code-plan.md`
    - Content: Template with top-level placeholders replaced
 4. **Verify**: Document has complete section structure
 
@@ -376,7 +376,7 @@ Upon completion (success or failure), output the following report format:
 - **Platform**: <platform_id, e.g., "web-vue">
 - **Phase**: test_code_gen
 - **Output Files**:
-  - `speccrew-workspace/iterations/{iteration}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+  - `speccrew-workspace/iterations/{iteration}/06.system-test/code/{platform_id}/[feature]-test-code-plan.md`
   - <list of generated test source files>
 - **Summary**: Test code generation completed with {file_count} files covering {case_count} test cases
 ```

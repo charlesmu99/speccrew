@@ -180,8 +180,8 @@ Backend Designer Agent:
 
 | Deliverable | Path | Format | Description |
 |-------------|------|--------|-------------|
-| Test Case Document | `iterations/iXXX/05.tests/cases/[feature-name]-test-cases.md` | Per template | Includes acceptance and unit tests |
-| Test Report | `iterations/iXXX/05.tests/reports/[feature-name]-test-report.md` | Structured report | Includes pass rate, failure details |
+| Test Case Document | `iterations/iXXX/06.system-test/cases/[feature-name]-test-cases.md` | Per template | Includes acceptance and unit tests |
+| Test Report | `iterations/iXXX/06.system-test/reports/[feature-name]-test-report.md` | Structured report | Includes pass rate, failure details |
 
 ---
 
@@ -204,7 +204,8 @@ knowledge/                          iterations/iXXX/
 │                                         ├── 04.development/
 │                                         │ ├── {platform_id}/ ←── Dev Agent output (frontend/backend/mobile/desktop)
 │                Dev Agent                              │
-│                                         └── 05.tests/
+│                                         ├── 05.deployment/
+│                                         └── 06.system-test/
 └── techs/conventions/testing.md        ├── cases/    ←── Test Agent output
                    Test Agent ────────────────── └── reports/
 ```

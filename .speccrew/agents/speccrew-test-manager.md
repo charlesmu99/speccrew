@@ -188,19 +188,19 @@ node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspac
 ```
 
 **Validation Rules:**
-- Verify `stages.04_development.status == "confirmed"` in the output
-- If not confirmed → **STOP** with message: "Development stage has not been confirmed. Please complete and confirm the development stage before starting system test."
+- Verify `stages.05_deployment.status == "confirmed"` in the output
+- If not confirmed → **STOP** with message: "Deployment stage has not been confirmed. Please complete and confirm the deployment stage before starting system test."
 
 **Update Current Stage**:
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 05_system_test --status in_progress
+node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 06_system_test --status in_progress
 ```
 
 ### Step 0.2: Check Resume State (断点续传)
 
 **Read Checkpoints** (if file exists):
 ```bash
-node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --checkpoints
+node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.checkpoints.json --checkpoints
 ```
 
 **Resume Decision Matrix:**
@@ -221,7 +221,7 @@ node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspac
 
 **Read Dispatch Progress Summary** (if file exists):
 ```bash
-node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --summary
+node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --summary
 ```
 
 **Parse Task Status by Phase:**
@@ -325,7 +325,7 @@ Locate all required input documents:
 ### 1.3 Check Existing Test Artifacts
 
 Check if test artifacts already exist:
-- Check path: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/`
+- Check path: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/`
 - Look for existing: `cases/`, `code/`, `reports/`, `bugs/` directories
 
 ### 1.4 User Confirmation
@@ -470,7 +470,7 @@ Each task entry in DISPATCH-PROGRESS.json contains:
 
 Before dispatching, create dispatch tracking:
 ```bash
-node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --stage 05_system_test --tasks '[{"id":"test-case-{platform_id}","platform":"{platform_id}","phase":"test_case_design","skill":"speccrew-test-case-design","status":"pending"}]'
+node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --stage 06_system_test --tasks '[{"id":"test-case-{platform_id}","platform":"{platform_id}","phase":"test_case_design","skill":"speccrew-test-case-design","status":"pending"}]'
 ```
 Or use `--tasks-file` to load from a JSON file.
 
@@ -498,11 +498,11 @@ Dispatch `speccrew-task-worker` agents for `speccrew-test-case-design` for each 
 For each completed worker, parse Task Completion Report and update:
 - On SUCCESS:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status completed --output "{output_path}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status completed --output "{output_path}"
   ```
 - On FAILED:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status failed --error "{error_message}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-case-{platform_id} --status failed --error "{error_message}"
   ```
 
 ### 3.4 Re-dispatch Failed Tasks
@@ -511,7 +511,7 @@ After all initial workers complete:
 
 1. **Query failed tasks:**
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --status failed
+   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --status failed
    ```
 
 2. **For each failed task (max 2 re-dispatches, total 3 attempts):**
@@ -520,7 +520,7 @@ After all initial workers complete:
 
 3. **After max attempts, mark permanently failed:**
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "Max re-dispatch attempts (3) exceeded"
+   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "Max re-dispatch attempts (3) exceeded"
    ```
 
 ### 3.5 Checkpoint A: Test Case Review
@@ -544,11 +544,11 @@ After test case design completes for all platforms:
 **Write Checkpoint File:**
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_case_coverage --passed true --description "Test case coverage review (Checkpoint A)"
+node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_case_coverage --passed true --description "Test case coverage review (Checkpoint A)"
 ```
 
 **Output Path:**
-- `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/cases/{platform_id}/[feature]-test-cases.md`
+- `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/cases/{platform_id}/[feature]-test-cases.md`
 
 ## Phase 4: Test Code Generation
 
@@ -584,7 +584,7 @@ Invoke Skill directly:
 
 Append new tasks for test_code_gen phase by reading existing file and adding tasks:
 ```bash
-node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS-test-code-gen.json --stage 05_system_test --tasks '[{"id":"test-code-{platform_id}","platform":"{platform_id}","phase":"test_code_gen","skill":"speccrew-test-code-gen","status":"pending"}]'
+node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS-test-code-gen.json --stage 06_system_test --tasks '[{"id":"test-code-{platform_id}","platform":"{platform_id}","phase":"test_code_gen","skill":"speccrew-test-code-gen","status":"pending"}]'
 ```
 > **Note**: In practice, maintain a single DISPATCH-PROGRESS.json with all phases by merging task arrays.
 
@@ -604,11 +604,11 @@ Dispatch `speccrew-task-worker` agents for `speccrew-test-code-gen` for each pla
 For each completed worker, parse Task Completion Report:
 - On SUCCESS:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status completed --output "{output_path}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status completed --output "{output_path}"
   ```
 - On FAILED:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status failed --error "{error_message}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-code-{platform_id} --status failed --error "{error_message}"
   ```
 
 ### 4.4 Review Verification (MANDATORY)
@@ -673,12 +673,12 @@ After test code generation completes for all platforms:
 **Update Checkpoint File:**
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_code_review --passed true --description "Test code generation review (Checkpoint B)"
+node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_code_review --passed true --description "Test code generation review (Checkpoint B)"
 ```
 
 **Output:**
 - Test code: Written to project source test directories
-- Test code plan: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md`
+- Test code plan: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/code/{platform_id}/[feature]-test-code-plan.md`
 
 ## Phase 5: Test Execution & Bug Reporting
 
@@ -716,11 +716,11 @@ Execute tests and generate reports:
 For each completed worker, parse Task Completion Report:
 - On SUCCESS:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-run-{platform_id} --status completed --output "{output_path}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-run-{platform_id} --status completed --output "{output_path}"
   ```
 - On FAILED:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/DISPATCH-PROGRESS.json --task-id test-run-{platform_id} --status failed --error "{error_message}"
+  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --task-id test-run-{platform_id} --status failed --error "{error_message}"
   ```
 
 ### 5.3 Stage 2: Test Reporter Dispatch
@@ -763,8 +763,8 @@ For each deviation identified:
 - Link to related feature requirement
 
 **Output Paths:**
-- Test Report: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/reports/[feature]-test-report.md`
-- Bug Reports: `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/bugs/[feature]-bug-{序号}.md`
+- Test Report: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/reports/[feature]-test-report.md`
+- Bug Reports: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/bugs/[feature]-bug-{序号}.md`
 
 ## Phase 6: Delivery Summary
 
@@ -809,30 +809,30 @@ Provide clear recommendation:
 **Update Checkpoint File:**
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/.checkpoints.json --stage 05_system_test --checkpoint test_execution_report --passed true --description "Test execution final report"
+node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_execution_report --passed true --description "Test execution final report"
 ```
 
 **Update Workflow Progress:**
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 05_system_test --status confirmed --output "05.system-test/cases/,05.system-test/code/,05.system-test/reports/,05.system-test/bugs/"
+node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/WORKFLOW-PROGRESS.json --stage 06_system_test --status confirmed --output "06.system-test/cases/,06.system-test/code/,06.system-test/reports/,06.system-test/bugs/"
 ```
 
-> **Note**: `current_stage` does not advance — 05_system_test is the final stage of the pipeline.
+> **Note**: `current_stage` does not advance — 06_system_test is the final stage of the pipeline.
 
 # Deliverables
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| Test Case Documents | `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/cases/{platform_id}/[feature]-test-cases.md` | Based on template from `speccrew-test-case-design/templates/TEST-CASE-DESIGN-TEMPLATE.md` |
-| Test Code Plan | `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/code/{platform_id}/[feature]-test-code-plan.md` | Based on template from `speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md` |
-| Test Execution Results | `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/results/{platform_id}/[feature]-test-execution-results.md` | Based on template from `speccrew-test-runner/templates/TEST-EXECUTION-RESULT-TEMPLATE.md` |
-| Test Report | `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/reports/[feature]-test-report.md` | Based on template from `speccrew-test-reporter/templates/TEST-REPORT-TEMPLATE.md` |
-| Bug Reports | `speccrew-workspace/iterations/{number}-{type}-{name}/05.system-test/bugs/[feature]-bug-{序号}.md` | Based on template from `speccrew-test-reporter/templates/BUG-REPORT-TEMPLATE.md` |
+| Test Case Documents | `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/cases/{platform_id}/[feature]-test-cases.md` | Based on template from `speccrew-test-case-design/templates/TEST-CASE-DESIGN-TEMPLATE.md` |
+| Test Code Plan | `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/code/{platform_id}/[feature]-test-code-plan.md` | Based on template from `speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md` |
+| Test Execution Results | `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/results/{platform_id}/[feature]-test-execution-results.md` | Based on template from `speccrew-test-runner/templates/TEST-EXECUTION-RESULT-TEMPLATE.md` |
+| Test Report | `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/reports/[feature]-test-report.md` | Based on template from `speccrew-test-reporter/templates/TEST-REPORT-TEMPLATE.md` |
+| Bug Reports | `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/bugs/[feature]-bug-{序号}.md` | Based on template from `speccrew-test-reporter/templates/BUG-REPORT-TEMPLATE.md` |
 
 # Pipeline Position
 
-**Upstream**: System Developer (receives `04.development/` output and source code)
+**Upstream**: Deployment (receives `05.deployment/` output and deployed system)
 
 **Downstream**: Delivery phase (produces test reports and bug reports)
 

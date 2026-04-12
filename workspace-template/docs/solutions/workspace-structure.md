@@ -20,8 +20,9 @@ SpecCrew-workspace/
 │       ├── 03.system-design/      # 系统设计
 │       ├── 04.development/        # 开发阶段
 │       │   └── tech-debt/         # 技术债记录（统一目录）
-│       ├── 05.test/               # 测试阶段
-│       └── 06.delivery/           # 交付阶段
+│       ├── 05.deployment/         # 部署阶段
+│       ├── 06.system-test/        # 系统测试阶段
+│       └── 07.delivery/           # 交付阶段
 │
 ├── iteration-archives/            # 迭代归档
 │   └── {序号}-{类型}-{名称}-{日期}/  # 如 001-feature-order-20260322
@@ -85,8 +86,9 @@ iterations/
 │   ├── 03.system-design/          # 系统设计
 │   ├── 04.development/            # 开发阶段
 │   │   └── tech-debt/             # 技术债记录（统一目录）
-│   ├── 05.test/                   # 测试阶段
-│   └── 06.delivery/               # 交付阶段
+│   ├── 05.deployment/             # 部署阶段
+│   ├── 06.system-test/            # 系统测试阶段
+│   └── 07.delivery/               # 交付阶段
 │
 └── 002-bugfix-payment/            # 支付修复迭代（后启动）
     └── ...
@@ -101,7 +103,8 @@ iterations/
 | 特性设计 | `02.feature-design/` | 特性规格、API 契约、交互设计 |
 | 系统设计 | `03.system-design/` | 详细设计、数据库设计、接口设计 |
 | 开发 | `04.development/` | 代码实现、开发日志、技术债记录 |
-| 测试 | `05.test/` | 测试用例、测试报告 |
+| 部署 | `05.deployment/` | 部署配置、部署日志 |
+| 系统测试 | `06.system-test/` | 测试用例、测试报告 |
 
 #### Stage 4 详细目录结构 (`04.development/`)
 
@@ -117,7 +120,62 @@ iterations/
 
 > ⚠️ **MANDATORY**: All Stage 4 outputs MUST use `04.development/` as the top-level directory.
 > The following variants are **FORBIDDEN**: `04.dev-report/`, `04.dev-reports/`, `04.implementation/`, or any other `04.*` name.
-| 交付 | `06.delivery/` | 部署文档、验收报告、交付清单 |
+
+#### Stage 5 详细目录结构 (`05.deployment/`)
+
+```
+05.deployment/
+├── .checkpoints.json                  # Stage progress checkpoints
+├── DISPATCH-PROGRESS.json             # Task dispatch and execution tracking
+├── {platform_id}/                     # Grouped by platform
+│   ├── deployment-plan.md             # Deployment plan for platform
+│   └── deployment-log.md              # Deployment execution log
+└── delivery-report.md                 # Deployment completion report
+```
+
+#### Stage 6 详细目录结构 (`06.system-test/`)
+
+```
+06.system-test/
+├── .checkpoints.json                  # Stage progress checkpoints
+├── DISPATCH-PROGRESS.json             # Task dispatch and execution tracking
+├── cases/                             # Test case documents
+│   └── {platform_id}/
+│       └── [feature]-test-cases.md
+├── code/                              # Test code plans
+│   └── {platform_id}/
+│       └── [feature]-test-code-plan.md
+├── results/                           # Test execution results
+│   └── {platform_id}/
+│       └── [feature]-test-execution-results.md
+├── reports/                           # Test reports
+│   └── [feature]-test-report.md
+└── bugs/                              # Bug reports
+    └── [feature]-bug-{序号}.md
+```
+
+#### Stage 7 详细目录结构 (`07.delivery/`)
+
+```
+07.delivery/
+├── .checkpoints.json                  # Stage progress checkpoints
+├── deployment-guide.md                # Deployment guide
+├── acceptance-report.md               # Acceptance report
+└── delivery-checklist.md              # Delivery checklist
+```
+
+**迭代阶段说明**：
+
+| 阶段 | 目录 | 说明 |
+|------|------|------|
+| 原始需求 | `00.docs/` | 用户需求的原始文档，保持原样 |
+| 产品需求 | `01.product-requirement/` | 产品需求文档，需求分析和规格说明 |
+| 特性设计 | `02.feature-design/` | 特性规格、API 契约、交互设计 |
+| 系统设计 | `03.system-design/` | 详细设计、数据库设计、接口设计 |
+| 开发 | `04.development/` | 代码实现、开发日志、技术债记录 |
+| 部署 | `05.deployment/` | 部署配置、部署日志 |
+| 系统测试 | `06.system-test/` | 测试用例、测试报告 |
+| 交付 | `07.delivery/` | 部署文档、验收报告、交付清单 |
 ```
 
 **迭代命名规范**：
@@ -330,4 +388,4 @@ techs/
 1. **迭代与知识分离**：`iterations/` 存放单次迭代产出，`knowledges/` 存放跨迭代共享知识
 2. **元数据集中管理**：诊断报告、同步状态统一放在 `knowledges/base/`
 3. **架构知识合并**：架构约定合并到 `techs/{platform}/architecture.md`，减少目录层级
-4. **阶段目录有序**：迭代阶段使用数字前缀（00.docs ~ 06.delivery），便于排序和理解
+4. **阶段目录有序**：迭代阶段使用数字前缀（00.docs ~ 07.delivery），便于排序和理解

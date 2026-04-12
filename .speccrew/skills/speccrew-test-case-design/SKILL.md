@@ -260,7 +260,7 @@ For any uncovered acceptance criteria:
 
 **Test Case Design Document:**
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/05.tests/cases/[feature-name]-test-case-design.md
+speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/cases/[feature-name]-test-case-design.md
 ```
 
 ### 7.2 Read Template
@@ -334,7 +334,7 @@ Upon completion (success or failure), output the following report format:
 - **Platform**: <platform_id, e.g., "web-vue">
 - **Phase**: test_case_design
 - **Output Files**:
-  - `speccrew-workspace/iterations/{iteration}/05.system-test/cases/{platform_id}/[feature]-test-cases.md`
+  - `speccrew-workspace/iterations/{iteration}/06.system-test/cases/{platform_id}/[feature]-test-cases.md`
 - **Summary**: Test case design completed with {count} test cases covering {dimensions} dimensions
 ```
 
