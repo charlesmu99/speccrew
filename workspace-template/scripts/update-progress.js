@@ -129,6 +129,21 @@ function acquireLock(filePath) {
             fs.closeSync(fd);
             return lockPath;
         } catch (error) {
+            // 检查是否为锁文件已存在的错误
+            if (error.code === 'EEXIST') {
+                try {
+                    const lockStat = fs.statSync(lockPath);
+                    const ageSeconds = (Date.now() - lockStat.mtimeMs) / 1000;
+                    if (ageSeconds > 60) {
+                        console.error(`Warning: Stale lock file detected (age: ${Math.round(ageSeconds)}s), removing: ${lockPath}`);
+                        fs.unlinkSync(lockPath);
+                        // 不消耗重试次数，继续下一次循环尝试获取锁
+                        continue;
+                    }
+                } catch (statErr) {
+                    // 锁文件在 stat 时已被删除，继续重试即可
+                }
+            }
             retryCount++;
             if (retryCount >= maxRetries) {
                 throw new Error(`Failed to acquire file lock for '${filePath}' after ${maxRetries} attempts`);
