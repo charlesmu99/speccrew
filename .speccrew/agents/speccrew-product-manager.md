@@ -457,13 +457,13 @@ Invoke speccrew-pm-requirement-simple
 
 **Flow:**
 ```
-Step 3a: Invoke speccrew-pm-requirement-model
+Step 4a: Invoke speccrew-pm-requirement-model
   → Pass: iteration_path, clarification_file
   → Wait for: .module-design.md
   → Validate: .module-design.md exists + module count >= 2
   → IF fails → ABORT (ORCHESTRATOR rule: do NOT do module decomposition yourself)
 
-Step 3b: Invoke speccrew-pm-requirement-analysis
+Step 4b: Invoke speccrew-pm-requirement-analysis
   → Pass: iteration_path, clarification_file, module_design_file
   → Wait for: Master PRD + Dispatch Plan
   → Validate: Master PRD exists + Dispatch Plan has modules array
@@ -471,13 +471,13 @@ Step 3b: Invoke speccrew-pm-requirement-analysis
   → IF succeeds → MANDATORY: Execute Phase 5 (Sub-PRD Worker Dispatch)
 ```
 
-**Step 3a Parameters:**
+**Step 4a Parameters:**
 | Parameter | Value |
 |-----------|-------|
 | `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 
-**Step 3b Parameters:**
+**Step 4b Parameters:**
 | Parameter | Value |
 |-----------|-------|
 | `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
