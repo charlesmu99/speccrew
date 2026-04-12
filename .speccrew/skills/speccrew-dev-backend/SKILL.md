@@ -201,6 +201,17 @@ If accepting suboptimal solutions, write to tech-debt directory:
 
 Use the unified tech_debt document template defined in the workspace document templates configuration.
 
+#### Helper Scripts Output
+
+All temporary/helper scripts (validation, data init, environment setup, etc.) MUST be saved to:
+```
+iterations/{iter}/04.development/{platform_id}/scripts/
+```
+
+**Exception**: Application source scripts (migrations, seeds) go to the project source directory per conventions-data.md.
+
+Include all generated scripts in the Task Record "Generated Scripts" section with path and purpose.
+
 ## Step 9: Completion Notification
 
 When all tasks complete, update task record and notify user:

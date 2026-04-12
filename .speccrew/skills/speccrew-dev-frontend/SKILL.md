@@ -206,6 +206,17 @@ Tech Debt: {count}
 Task Record: speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/{feature-name}-tasks.md
 ```
 
+#### Helper Scripts Output
+
+All temporary/helper scripts (validation, data init, environment setup, mock data, etc.) MUST be saved to:
+```
+iterations/{iter}/04.development/{platform_id}/scripts/
+```
+
+**Exception**: Application source scripts (build configs, etc.) go to the project source directory per conventions-dev.md.
+
+Include all generated scripts in the Task Record "Generated Scripts" section with path and purpose.
+
 ## Task Completion Report
 
 At the end of Step 6 (or if the skill fails at any point), output a structured Task Completion Report:

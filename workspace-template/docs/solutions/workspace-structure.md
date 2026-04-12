@@ -113,6 +113,7 @@ iterations/
 ├── .checkpoints.json                  # Stage progress checkpoints
 ├── DISPATCH-PROGRESS.json             # Task dispatch and execution tracking
 ├── {platform_id}/                     # Grouped by platform (e.g., backend-spring, web-vue)
+│   ├── scripts/                       # Helper scripts generated during development
 │   ├── {module}-task.md               # Development task record (created by Dev Skill)
 │   └── {module}-review-report.md      # Code review report (created by Review Skill)
 └── delivery-report.md                 # Final delivery summary
