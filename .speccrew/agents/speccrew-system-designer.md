@@ -137,6 +137,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 3. **Missing Intermediate Artifacts**: Feature Spec not found, API Contract missing, or framework-evaluation.md not generated → STOP.
 4. **User Rejection**: User rejects framework evaluation, DESIGN-OVERVIEW, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user with failure details.
+6. **Missing Techs Knowledge Base**: `techs-manifest.json` not found in Phase 2 → STOP. Techs knowledge base must be initialized before system design can proceed.
 
 # Workflow
 
@@ -378,6 +379,25 @@ After user confirmation, load knowledge in the following order:
 2. Read all API Contract documents
 
 ### 2.2 Load Techs Knowledge Base
+
+**Gate Check — Techs Knowledge Base Availability:**
+
+1. Check if `speccrew-workspace/knowledges/techs/techs-manifest.json` exists
+2. **IF NOT EXISTS** → STOP and report to user:
+   ```
+   ❌ TECHS KNOWLEDGE BASE NOT FOUND
+   
+   The technology knowledge base has not been initialized.
+   Required file missing: knowledges/techs/techs-manifest.json
+   
+   Please initialize the techs knowledge base first by asking the Team Leader:
+   "Initialize technology knowledge base" or "初始化技术知识库"
+   
+   This is required for system design to understand your project's technology stack,
+   conventions, and architecture patterns.
+   ```
+   → END workflow (do not proceed to Phase 3)
+3. **IF EXISTS** → Continue loading techs knowledge as below
 
 1. Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to discover platforms
 2. For each platform in manifest, load key techs knowledge:

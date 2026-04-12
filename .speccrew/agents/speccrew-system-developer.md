@@ -161,6 +161,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 6. **Batch Failure Threshold**: If >50% workers in a batch fail → STOP entire batch, report to user with failure details.
 7. **Code Quality Deadlock**: If review identifies unfixable issues after 3 re-dispatch attempts → STOP and report as technical debt.
 8. **Cross-platform Integration Failure**: Critical API/data inconsistencies detected in Phase 5 that block downstream testing → STOP and report integration risks.
+9. **Missing Techs Knowledge Base**: `techs-manifest.json` not found in Step 2 → STOP. Techs knowledge base must be initialized before development can proceed.
 
 ## TIMESTAMP INTEGRITY
 
@@ -337,6 +338,25 @@ For each platform_id identified:
 - From legacy format: use `{module}` as feature_id (e.g., `crm` from `crm-design.md`)
 
 ## Step 2: Load Techs Knowledge
+
+**Gate Check — Techs Knowledge Base Availability:**
+
+1. Check if `speccrew-workspace/knowledges/techs/techs-manifest.json` exists
+2. **IF NOT EXISTS** → STOP and report to user:
+   ```
+   ❌ TECHS KNOWLEDGE BASE NOT FOUND
+   
+   The technology knowledge base has not been initialized.
+   Required file missing: knowledges/techs/techs-manifest.json
+   
+   Please initialize the techs knowledge base first by asking the Team Leader:
+   "Initialize technology knowledge base" or "初始化技术知识库"
+   
+   This is required for development to understand your project's technology stack,
+   coding conventions, and architecture patterns.
+   ```
+   → END workflow (do not proceed to Step 3)
+3. **IF EXISTS** → Continue loading techs knowledge as below
 
 Load development-focused techs knowledge following the Developer section of agent-knowledge-map:
 
