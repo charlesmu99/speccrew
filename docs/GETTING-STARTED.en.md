@@ -62,7 +62,82 @@ Supported IDEs: `qoder`, `cursor`, `claude`, `codex`
 
 ---
 
-## 2. Workflow Overview
+## 2. Your First 5 Minutes
+
+After running `speccrew init`, follow these steps to get productive immediately:
+
+### Step 1: Choose Your IDE
+
+| IDE | Init Command | Best For |
+|-----|-------------|----------|
+| **Qoder** (Recommended) | `speccrew init --ide qoder` | Full agent orchestration, parallel workers |
+| **Cursor** | `speccrew init --ide cursor` | Composer-based workflows |
+| **Claude Code** | `speccrew init --ide claude` | CLI-first development |
+| **Codex** | `speccrew init --ide codex` | OpenAI ecosystem integration |
+
+### Step 2: Initialize Knowledge Base (Recommended)
+
+For existing projects, initialize knowledge base first so agents understand your codebase:
+
+```
+@speccrew-team-leader Initialize technical knowledge base
+```
+
+Then:
+
+```
+@speccrew-team-leader Initialize business knowledge base
+```
+
+### Step 3: Start Your First Task
+
+```
+@speccrew-product-manager I have a new requirement: [describe your feature]
+```
+
+> **Tip**: If unsure what to do, just say `@speccrew-team-leader Help me get started` — the Team Leader will auto-detect your project status and guide you.
+
+---
+
+## 3. Quick Decision Tree
+
+Not sure what to do? Find your scenario below:
+
+- **I have a new feature requirement**
+  → `@speccrew-product-manager I have a new requirement: [describe your feature]`
+
+- **I want to scan existing project knowledge**
+  → `@speccrew-team-leader initialize technical knowledge base`
+  → Then: `@speccrew-team-leader initialize business knowledge base`
+
+- **I want to continue previous work**
+  → `@speccrew-team-leader what is the current progress?`
+
+- **I want to check system health**
+  → Run in terminal: `speccrew doctor`
+
+- **I'm not sure what to do**
+  → `@speccrew-team-leader help me get started`
+  → Team Leader will auto-detect your project status and guide you
+
+---
+
+## 4. Agent Quick Reference
+
+| Role | Agent | Responsibilities | Example Command |
+|------|-------|-----------------|-----------------|
+| Team Leader | `@speccrew-team-leader` | Project navigation, knowledge init, status check | "Help me get started" |
+| Product Manager | `@speccrew-product-manager` | Requirements analysis, PRD generation | "I have a new requirement: ..." |
+| Feature Designer | `@speccrew-feature-designer` | Feature analysis, spec design, API contracts | "Start feature design for iteration X" |
+| System Designer | `@speccrew-system-designer` | Architecture design, platform-specific design | "Start system design for iteration X" |
+| System Developer | `@speccrew-system-developer` | Development coordination, code generation | "Start development for iteration X" |
+| Test Manager | `@speccrew-test-manager` | Test planning, case design, execution | "Start testing for iteration X" |
+
+> **Note**: You don't need to remember all agents. Just talk to `@speccrew-team-leader` and it will route your request to the right agent.
+
+---
+
+## 5. Workflow Overview
 
 ### Complete Flowchart
 
@@ -89,11 +164,11 @@ flowchart LR
 
 ---
 
-## 3. Step Zero: Knowledge Base Initialization
+## 6. Step Zero: Knowledge Base Initialization
 
 Before starting the formal engineering process, you need to initialize the project knowledge base.
 
-### 3.1 Technical Knowledge Base Initialization
+### 6.1 Technical Knowledge Base Initialization
 
 **Conversation Example**:
 ```
@@ -115,7 +190,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 └── INDEX.md               # Index file
 ```
 
-### 3.2 Business Knowledge Base Initialization
+### 6.2 Business Knowledge Base Initialization
 
 **Conversation Example**:
 ```
@@ -139,9 +214,9 @@ speccrew-workspace/knowledges/bizs/
 
 ---
 
-## 4. Phase-by-Phase Conversation Guide
+## 7. Phase-by-Phase Conversation Guide
 
-### 4.1 Phase 1: Requirements Analysis (Product Manager)
+### 7.1 Phase 1: Requirements Analysis (Product Manager)
 
 **How to Start**:
 ```
@@ -168,7 +243,7 @@ iterations/{number}-{type}-{name}/01.product-requirement/
 
 ---
 
-### 4.2 Phase 2: Feature Design (Feature Designer)
+### 7.2 Phase 2: Feature Design (Feature Designer)
 
 **How to Start**:
 ```
@@ -195,7 +270,7 @@ iterations/{iter}/02.feature-design/
 
 ---
 
-### 4.3 Phase 3: System Design (System Designer)
+### 7.3 Phase 3: System Design (System Designer)
 
 **How to Start**:
 ```
@@ -226,7 +301,7 @@ iterations/{iter}/03.system-design/
 
 ---
 
-### 4.4 Phase 4: Development Implementation (System Developer)
+### 7.4 Phase 4: Development Implementation (System Developer)
 
 **How to Start**:
 ```
@@ -257,7 +332,7 @@ iterations/{iter}/04.development/
 
 ---
 
-### 4.5 Phase 5: System Testing (Test Manager)
+### 7.5 Phase 5: System Testing (Test Manager)
 
 **How to Start**:
 ```
@@ -292,7 +367,7 @@ iterations/{iter}/05.system-test/
 
 ---
 
-### 4.6 Phase 6: Archive
+### 7.6 Phase 6: Archive
 
 Iterations are automatically archived upon completion:
 
@@ -308,9 +383,9 @@ speccrew-workspace/iteration-archives/
 
 ---
 
-## 5. Knowledge Base Overview
+## 8. Knowledge Base Overview
 
-### 5.1 Business Knowledge Base (bizs)
+### 8.1 Business Knowledge Base (bizs)
 
 **Purpose**: Store project business function descriptions, module divisions, API characteristics
 
@@ -325,7 +400,7 @@ knowledges/bizs/
 
 **Usage Scenarios**: Product Manager, Feature Designer
 
-### 5.2 Technical Knowledge Base (techs)
+### 8.2 Technical Knowledge Base (techs)
 
 **Purpose**: Store project technology stack, architecture conventions, development specifications, testing specifications
 
@@ -343,11 +418,11 @@ knowledges/techs/{platform-id}/
 
 ---
 
-## 6. Workflow Progress Management
+## 9. Workflow Progress Management
 
 The SpecCrew virtual team follows a strict stage-gating mechanism where each phase must be confirmed by the user before proceeding to the next. It also supports resumable execution — when restarted after interruption, it automatically continues from where it left off.
 
-### 6.1 Three-Layer Progress Files
+### 9.1 Three-Layer Progress Files
 
 The workflow automatically maintains three types of JSON progress files, located in the iteration directory:
 
@@ -357,7 +432,7 @@ The workflow automatically maintains three types of JSON progress files, located
 | `.checkpoints.json` | Under each phase directory | Records user checkpoint confirmation status |
 | `DISPATCH-PROGRESS.json` | Under each phase directory | Records item-by-item progress for parallel tasks (multi-platform/multi-module) |
 
-### 6.2 Stage Status Flow
+### 9.2 Stage Status Flow
 
 Each phase follows this status flow:
 
@@ -370,7 +445,7 @@ pending → in_progress → completed → confirmed
 - **completed**: Agent execution completed, awaiting user confirmation
 - **confirmed**: User confirmed through final checkpoint, next phase can start
 
-### 6.3 Resumable Execution
+### 9.3 Resumable Execution
 
 When restarting an Agent for a phase:
 
@@ -378,7 +453,7 @@ When restarting an Agent for a phase:
 2. **Checkpoint recovery**: Reads `.checkpoints.json`, skips passed checkpoints, continues from the last interruption point
 3. **Parallel task recovery**: Reads `DISPATCH-PROGRESS.json`, only re-executes tasks with `pending` or `failed` status, skips `completed` tasks
 
-### 6.4 Viewing Current Progress
+### 9.4 Viewing Current Progress
 
 View the pipeline panorama status through the Team Leader Agent:
 
@@ -397,13 +472,13 @@ Pipeline Status: i001-user-management
   05 System Test:    ⏳ Pending
 ```
 
-### 6.5 Backward Compatibility
+### 9.5 Backward Compatibility
 
 The progress file mechanism is fully backward compatible — if progress files do not exist (e.g., in legacy projects or new iterations), all Agents will execute normally according to the original logic.
 
 ---
 
-## 7. Frequently Asked Questions (FAQ)
+## 10. Frequently Asked Questions (FAQ)
 
 ### Q1: What if the Agent doesn't work as expected?
 
@@ -479,7 +554,7 @@ Re-initialization is required in the following situations:
 
 ---
 
-## 8. Quick Reference
+## 11. Quick Reference
 
 ### Agent Start Quick Reference
 

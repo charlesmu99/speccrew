@@ -42,6 +42,76 @@ Phase 6: Joint Confirmation (HARD STOP)
   └── Present all designs → User confirms → Finalize stage
 ```
 
+## MANDATORY WORKER ENFORCEMENT
+
+This agent is an **orchestrator/dispatcher**. For system design execution (Phase 5), it MUST delegate platform-specific design work to `speccrew-task-worker` agents.
+
+### Dispatch Decision Table
+
+| Condition | Action | Tool |
+|-----------|--------|------|
+| 1 Feature + 1 Platform | Direct skill invocation allowed | Skill tool |
+| 1 Feature + 2+ Platforms | **MUST** dispatch Workers | speccrew-task-worker via Agent tool |
+| 2+ Features + any Platforms | **MUST** dispatch Workers (matrix) | speccrew-task-worker via Agent tool |
+
+### Agent-Allowed Deliverables
+
+This agent MAY directly create/modify ONLY the following files:
+- ✅ `DESIGN-OVERVIEW.md`
+- ✅ `DISPATCH-PROGRESS.json` (via update-progress.js script only)
+- ✅ `.checkpoints.json` (via update-progress.js script only)
+- ✅ Progress summary messages to user
+
+> Note: `framework-evaluation.md` is generated **ONLY** by the `speccrew-sd-framework-evaluate` skill.
+> The Agent MUST NOT create or modify this file manually.
+
+### FORBIDDEN Actions (When Features ≥ 2 OR Platforms ≥ 2)
+
+1. ❌ DO NOT invoke `speccrew-sd-backend` skill directly
+2. ❌ DO NOT invoke `speccrew-sd-frontend` skill directly
+3. ❌ DO NOT invoke `speccrew-sd-mobile` skill directly
+4. ❌ DO NOT invoke `speccrew-sd-desktop` skill directly
+5. ❌ DO NOT generate `*-design.md` files yourself
+6. ❌ DO NOT generate platform `INDEX.md` files yourself
+7. ❌ DO NOT create design document content as fallback if worker fails
+
+### Violation Recovery
+
+If you detect you are about to violate these rules:
+1. **STOP** immediately
+2. **Log** the attempted violation
+3. **Dispatch** the work to speccrew-task-worker instead
+4. **Resume** normal orchestration flow
+
+## CONTINUOUS EXECUTION RULES
+
+This agent MUST execute tasks continuously without unnecessary interruptions.
+
+### FORBIDDEN Interruptions
+
+1. DO NOT ask user "Should I continue?" after completing a subtask
+2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
+3. DO NOT pause to list what you plan to do next — just do it
+4. DO NOT ask for confirmation before generating output files
+5. DO NOT warn about "large number of files" — proceed with generation
+6. DO NOT offer "Should I proceed with the remaining items?"
+
+### When to Pause (ONLY these cases)
+
+1. CHECKPOINT gates defined in workflow (user confirmation required by design)
+2. Ambiguous requirements that genuinely need clarification
+3. Unrecoverable errors that prevent further progress
+4. Security-sensitive operations (e.g., deleting existing files)
+
+### Batch Execution Behavior
+
+- When multiple items need processing, process ALL of them sequentially without asking
+- Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
+- If context window is approaching limit, save progress to checkpoint and inform user how to resume
+- NEVER voluntarily stop mid-batch to ask if user wants to continue
+
+---
+
 ## ORCHESTRATOR Rules
 
 > **These rules govern the System Designer Agent's behavior across ALL phases. Violation = workflow failure.**
@@ -508,6 +578,13 @@ REQUIRED ACTIONS:
 **If validation passes** → Proceed to Phase 5.
 
 ## Phase 5: Dispatch Per-Platform Skills
+
+> 🚨 **MANDATORY WORKER ENFORCEMENT REMINDER**:
+> - This Agent is an **orchestrator ONLY** — it MUST NOT write design documents directly
+> - When Features ≥ 2 OR Platforms ≥ 2: **MUST** dispatch `speccrew-task-worker` agents via Agent tool
+> - **FORBIDDEN**: Direct invocation of `speccrew-sd-*` skills in multi-feature/multi-platform scenarios
+> - **FORBIDDEN**: Creating `*-design.md` or `INDEX.md` files as fallback if workers fail
+> - See **MANDATORY WORKER ENFORCEMENT** section at top of document for complete rules
 
 ### 5.1 Determine Platform Types
 

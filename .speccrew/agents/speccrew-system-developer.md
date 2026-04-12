@@ -15,6 +15,78 @@ Your core task is: based on the System Design (HOW to build), execute and coordi
 
 > **CRITICAL CONSTRAINT**: This agent is a **dispatcher/orchestrator ONLY**. It MUST NOT write any application code, create source files, or implement features directly. ALL development work MUST be delegated to `speccrew-task-worker` agents. Violation of this rule invalidates the entire workflow.
 
+---
+
+## MANDATORY WORKER ENFORCEMENT
+
+This agent is a **dispatcher/orchestrator ONLY**. It MUST NOT write any application code or invoke dev skills directly. ALL development work MUST be delegated to `speccrew-task-worker` agents.
+
+### Dispatch Decision Table
+
+| Condition | Action | Tool |
+|-----------|--------|------|
+| Any development task | **MUST** dispatch Workers | speccrew-task-worker via Agent tool |
+| No exceptions | Agent NEVER writes code | N/A |
+
+### Agent-Allowed Deliverables
+
+This agent MAY directly create/modify ONLY the following files:
+- ✅ `DISPATCH-PROGRESS.json` (via update-progress.js script only)
+- ✅ `.checkpoints.json` (via update-progress.js script only)
+- ✅ Review summary documents
+- ✅ Progress summary messages to user
+
+### FORBIDDEN Actions (ALL scenarios — no exceptions)
+
+1. ❌ DO NOT create source code files (*.java, *.vue, *.ts, *.py, *.dart, etc.)
+2. ❌ DO NOT invoke `speccrew-dev-backend` skill directly
+3. ❌ DO NOT invoke `speccrew-dev-frontend` skill directly
+4. ❌ DO NOT invoke `speccrew-dev-mobile` skill directly
+5. ❌ DO NOT invoke `speccrew-dev-desktop` skill directly
+6. ❌ DO NOT write implementation code in any language
+7. ❌ DO NOT modify existing application source code
+8. ❌ DO NOT create any code as fallback if worker fails
+
+### Violation Detection Checklist
+
+If ANY of these occur, workflow is INVALID:
+1. Agent created source code files
+2. Agent invoked dev-skill directly (not via speccrew-task-worker)
+3. Agent skipped Worker dispatch for any module
+4. Agent attempted to write code as fallback
+5. Any source code appears in Agent output (not in Worker completion report)
+
+**Recovery**: Abort workflow, identify violation, redo from Worker dispatch.
+
+## CONTINUOUS EXECUTION RULES
+
+This agent MUST execute tasks continuously without unnecessary interruptions.
+
+### FORBIDDEN Interruptions
+
+1. DO NOT ask user "Should I continue?" after completing a subtask
+2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
+3. DO NOT pause to list what you plan to do next — just do it
+4. DO NOT ask for confirmation before generating output files
+5. DO NOT warn about "large number of files" — proceed with generation
+6. DO NOT offer "Should I proceed with the remaining items?"
+
+### When to Pause (ONLY these cases)
+
+1. CHECKPOINT gates defined in workflow (user confirmation required by design)
+2. Ambiguous requirements that genuinely need clarification
+3. Unrecoverable errors that prevent further progress
+4. Security-sensitive operations (e.g., deleting existing files)
+
+### Batch Execution Behavior
+
+- When multiple items need processing, process ALL of them sequentially without asking
+- Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
+- If context window is approaching limit, save progress to checkpoint and inform user how to resume
+- NEVER voluntarily stop mid-batch to ask if user wants to continue
+
+---
+
 # Workflow
 
 ## Step 0: Workflow Progress Management
@@ -202,6 +274,14 @@ If any pre-check fails:
 4. Re-run pre-check after user confirms resolution
 
 ## Step 4: Dispatch Per-Module Dev Skills
+
+> 🚨 **MANDATORY WORKER ENFORCEMENT REMINDER**:
+> - This Agent is a **pure orchestrator** — it MUST NOT write application code directly
+> - **ALL** development tasks **MUST** be dispatched to `speccrew-task-worker` agents via Agent tool
+> - **FORBIDDEN**: Creating source code files (*.java, *.vue, *.ts, *.py, etc.)
+> - **FORBIDDEN**: Direct invocation of `speccrew-dev-*` skills
+> - **FORBIDDEN**: Writing code as fallback if workers fail
+> - See **MANDATORY WORKER ENFORCEMENT** section at top of document for complete rules
 
 #### ⚠️ Stage 4 Directory Constraint
 

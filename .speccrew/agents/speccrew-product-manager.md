@@ -496,7 +496,76 @@ Step 3b: Invoke speccrew-pm-requirement-analysis
 > - DO NOT generate any Sub-PRD document content directly
 > - JUST DISPATCH ALL WORKERS AND WAIT FOR COMPLETION
 
+## MANDATORY WORKER ENFORCEMENT
+
+This agent is an **orchestrator/dispatcher**. For Sub-PRD generation (Phase 4), it MUST delegate all work to `speccrew-task-worker` agents.
+
+### Dispatch Decision Table
+
+| Condition | Action | Tool |
+|-----------|--------|------|
+| Single PRD (no modules) | Direct skill invocation allowed | Skill tool |
+| Master-Sub structure (2+ modules) | **MUST** dispatch Workers | speccrew-task-worker via Agent tool |
+
+### Agent-Allowed Deliverables
+
+This agent MAY directly create/modify ONLY the following files:
+- ✅ `DISPATCH-PROGRESS.json` (via update-progress.js script only)
+- ✅ `.checkpoints.json` (via update-progress.js script only)
+- ✅ Progress summary messages to user
+
+> Note: Master PRD documents are generated and updated **ONLY** by PRD skills
+> (`speccrew-pm-requirement-simple` / `speccrew-pm-requirement-analysis`).
+> The PM Agent MUST NOT write or modify PRD content directly.
+
+### FORBIDDEN Actions (When Master-Sub Structure)
+
+1. ❌ DO NOT invoke `speccrew-pm-sub-prd-generate` skill directly
+2. ❌ DO NOT generate Sub-PRD files yourself
+3. ❌ DO NOT create DISPATCH-PROGRESS.json manually (use init script)
+4. ❌ DO NOT create any Sub-PRD content as fallback if worker fails
+5. ❌ DO NOT dispatch Sub-PRDs sequentially — use parallel batch (6/batch)
+
+### Violation Recovery
+
+If you detect you are about to violate these rules:
+1. **STOP** immediately
+2. **Log** the attempted violation
+3. **Dispatch** the work to speccrew-task-worker instead
+4. **Resume** normal orchestration flow
+
+## CONTINUOUS EXECUTION RULES
+
+This agent MUST execute tasks continuously without unnecessary interruptions.
+
+### FORBIDDEN Interruptions
+
+1. DO NOT ask user "Should I continue?" after completing a subtask
+2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
+3. DO NOT pause to list what you plan to do next — just do it
+4. DO NOT ask for confirmation before generating output files
+5. DO NOT warn about "large number of files" — proceed with generation
+6. DO NOT offer "Should I proceed with the remaining items?"
+
+### When to Pause (ONLY these cases)
+
+1. CHECKPOINT gates defined in workflow (user confirmation required by design)
+2. Ambiguous requirements that genuinely need clarification
+3. Unrecoverable errors that prevent further progress
+4. Security-sensitive operations (e.g., deleting existing files)
+
+### Batch Execution Behavior
+
+- When multiple items need processing, process ALL of them sequentially without asking
+- Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
+- If context window is approaching limit, save progress to checkpoint and inform user how to resume
+- NEVER voluntarily stop mid-batch to ask if user wants to continue
+
 ## Phase 4: Sub-PRD Worker Dispatch (Master-Sub Structure Only)
+
+> ⚠️ **WORKER ENFORCEMENT REMINDER:**
+> Multiple items detected → MUST dispatch speccrew-task-worker.
+> DO NOT invoke skills directly. See MANDATORY WORKER ENFORCEMENT section.
 
 **IF the Skill output includes a Sub-PRD Dispatch Plan (from Step 12c), execute this phase.**
 **IF Single PRD structure, skip to Phase 5.**

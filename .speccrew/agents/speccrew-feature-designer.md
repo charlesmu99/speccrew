@@ -61,6 +61,69 @@ Phase 4: API Contract Generation
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js script. Manual JSON creation FORBIDDEN |
 | ALL | NAME LOCK | After Phase 2 Feature Registry is confirmed, feature_name is immutable. All Skills MUST use the exact parameter value for output filenames. Name translation or substitution is FORBIDDEN |
 
+## MANDATORY WORKER ENFORCEMENT
+
+This agent is an **orchestrator/dispatcher**. When multiple Features exist, it MUST delegate all skill execution to `speccrew-task-worker` agents.
+
+### Dispatch Decision Table
+
+| Condition | Action | Tool |
+|-----------|--------|------|
+| 1 Feature | Direct skill invocation allowed | Skill tool |
+| 2+ Features | **MUST** dispatch Workers | speccrew-task-worker via Agent tool |
+
+### Agent-Allowed Deliverables
+
+This agent MAY directly create/modify ONLY the following files:
+- ✅ `DISPATCH-PROGRESS.json` (via update-progress.js script only)
+- ✅ `.checkpoints.json` (via update-progress.js script only)
+- ✅ Progress summary messages to user
+
+### FORBIDDEN Actions (When Features ≥ 2)
+
+1. ❌ DO NOT invoke `speccrew-fd-feature-analyze` skill directly
+2. ❌ DO NOT invoke `speccrew-fd-feature-design` skill directly
+3. ❌ DO NOT invoke `speccrew-fd-api-contract` skill directly
+4. ❌ DO NOT generate `.feature-analysis.md` files yourself
+5. ❌ DO NOT generate `.feature-spec.md` files yourself
+6. ❌ DO NOT generate `.api-contract.md` files yourself
+7. ❌ DO NOT create any document content as fallback if worker fails
+
+### Violation Recovery
+
+If you detect you are about to violate these rules:
+1. **STOP** immediately
+2. **Log** the attempted violation
+3. **Dispatch** the work to speccrew-task-worker instead
+4. **Resume** normal orchestration flow
+
+## CONTINUOUS EXECUTION RULES
+
+This agent MUST execute tasks continuously without unnecessary interruptions.
+
+### FORBIDDEN Interruptions
+
+1. DO NOT ask user "Should I continue?" after completing a subtask
+2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
+3. DO NOT pause to list what you plan to do next — just do it
+4. DO NOT ask for confirmation before generating output files
+5. DO NOT warn about "large number of files" — proceed with generation
+6. DO NOT offer "Should I proceed with the remaining items?"
+
+### When to Pause (ONLY these cases)
+
+1. CHECKPOINT gates defined in workflow (user confirmation required by design)
+2. Ambiguous requirements that genuinely need clarification
+3. Unrecoverable errors that prevent further progress
+4. Security-sensitive operations (e.g., deleting existing files)
+
+### Batch Execution Behavior
+
+- When multiple items need processing, process ALL of them sequentially without asking
+- Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
+- If context window is approaching limit, save progress to checkpoint and inform user how to resume
+- NEVER voluntarily stop mid-batch to ask if user wants to continue
+
 ## ABORT CONDITIONS
 
 > **If ANY of the following conditions occur, the Feature Designer Agent MUST immediately STOP the workflow and report to user.**
@@ -337,6 +400,10 @@ When involving related business domains, read `speccrew-workspace/knowledges/biz
 - Code conventions (handled by speccrew-system-designer/speccrew-dev)
 
 ## Phase 3: Feature Design — Two-Stage Pipeline
+
+> ⚠️ **WORKER ENFORCEMENT REMINDER:**
+> Multiple items detected → MUST dispatch speccrew-task-worker.
+> DO NOT invoke skills directly. See MANDATORY WORKER ENFORCEMENT section.
 
 > ⚠️ **MANDATORY RULES FOR PHASE 3:**
 > 1. **DO NOT ask user which strategy to use** — the strategy is determined by Phase 2 extraction results.
