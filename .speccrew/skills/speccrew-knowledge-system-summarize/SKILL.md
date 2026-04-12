@@ -364,6 +364,33 @@ Aggregate source file references from all module overview documents:
 
 ---
 
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-system-summarize",
+  "output_files": [
+    "{output_path}/system-overview.md"
+  ],
+  "summary": "System overview generated from {module_count} modules across {platform_count} platforms",
+  "metrics": {
+    "platforms_covered": 0,
+    "modules_summarized": 0,
+    "system_overview_generated": true
+  },
+  "errors": [],
+  "next_steps": [
+    "Review system-overview.md for completeness",
+    "Run speccrew-pm-requirement-assess if requirement assessment is needed"
+  ]
+}
+```
+
+---
+
 ## Checklist
 
 - [ ] All {{module_name}}-overview.md files discovered

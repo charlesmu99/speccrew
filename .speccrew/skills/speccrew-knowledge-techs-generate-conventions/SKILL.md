@@ -590,6 +590,42 @@ Wherever possible, include concrete examples:
 
 ---
 
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-techs-generate-conventions",
+  "output_files": [
+    "{output_path}/INDEX.md",
+    "{output_path}/tech-stack.md",
+    "{output_path}/architecture.md",
+    "{output_path}/conventions-design.md",
+    "{output_path}/conventions-dev.md",
+    "{output_path}/conventions-unit-test.md",
+    "{output_path}/conventions-system-test.md",
+    "{output_path}/conventions-build.md",
+    "{output_path}/conventions-data.md",
+    "{completed_dir}/{platform_id}.analysis-conventions.json"
+  ],
+  "summary": "Convention documents generated for {platform_id} with {coverage_percent}% topic coverage",
+  "metrics": {
+    "convention_categories": 0,
+    "rules_documented": 0,
+    "code_examples_included": 0
+  },
+  "errors": [],
+  "next_steps": [
+    "Run speccrew-knowledge-techs-generate-ui-style for frontend platforms",
+    "Review analysis-conventions.json for topic coverage gaps"
+  ]
+}
+```
+
+---
+
 ## Checklist
 
 ### Pre-Generation

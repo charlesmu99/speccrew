@@ -326,6 +326,32 @@ Frontend (React): `[OrderDetail.tsx](../../../../../src/pages/order/OrderDetail.
 
 ---
 
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-module-summarize",
+  "output_files": [
+    "{module_path}/{module_name}-overview.md"
+  ],
+  "summary": "Module overview completed with entities, dependencies, and business rules extracted from {feature_count} features",
+  "metrics": {
+    "modules_processed": 1,
+    "documents_generated": 1,
+    "features_covered": 0
+  },
+  "errors": [],
+  "next_steps": [
+    "Run speccrew-knowledge-system-summarize to aggregate all modules into system overview"
+  ]
+}
+```
+
+---
+
 ## Checklist
 
 - [ ] Step 1: Prerequisites read (template, initial overview, feature details)

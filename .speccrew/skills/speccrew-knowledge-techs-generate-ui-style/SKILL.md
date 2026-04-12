@@ -366,6 +366,41 @@ Platform UI Style Documents Generated: {platform_id}
 - Any path MUST output the done file and analysis file
 - Never report "completed" with missing mandatory files
 
+---
+
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-techs-generate-ui-style",
+  "output_files": [
+    "{output_path}/ui-style/ui-style-guide.md",
+    "{output_path}/ui-style/page-types/page-type-summary.md",
+    "{output_path}/ui-style/components/component-library.md",
+    "{output_path}/ui-style/layouts/page-layouts.md",
+    "{output_path}/ui-style/styles/color-system.md",
+    "{completed_dir}/{platform_id}.analysis-ui-style.json",
+    "{completed_dir}/{platform_id}.done-ui-style.json"
+  ],
+  "summary": "UI style documents generated for {platform_id} at {ui_analysis_level} analysis level",
+  "metrics": {
+    "components_documented": 0,
+    "style_patterns_captured": 0,
+    "design_tokens_extracted": 0
+  },
+  "errors": [],
+  "next_steps": [
+    "Review ui-style-guide.md for design system completeness",
+    "Coordinate with bizs-ui-style-extract for business pattern integration"
+  ]
+}
+```
+
+---
+
 ## Checklist
 
 ### Pre-Generation
