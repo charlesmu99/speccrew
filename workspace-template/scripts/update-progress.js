@@ -915,8 +915,10 @@ function cmdInitKnowledgeTasks(args) {
         const filePath = path.join(featuresDir, file);
         try {
             const data = readJsonFile(filePath);
-            if (data.platform_id) {
-                featuresDataByPlatform[data.platform_id] = data;
+            // Support both platformId (camelCase) and platform_id (snake_case)
+            const platformId = data.platformId || data.platform_id;
+            if (platformId) {
+                featuresDataByPlatform[platformId] = data;
             }
         } catch (e) {
             outputError(`Failed to parse features file ${file}: ${e.message}`);
@@ -942,11 +944,9 @@ function cmdInitKnowledgeTasks(args) {
         } else {
             // Look up features from features-*.json files
             const platformData = featuresDataByPlatform[platform_id];
-            if (platformData && platformData.modules && platformData.modules[module_name]) {
-                const moduleData = platformData.modules[module_name];
-                if (moduleData.features && Array.isArray(moduleData.features)) {
-                    featuresToProcess = moduleData.features;
-                }
+            if (platformData && platformData.features && Array.isArray(platformData.features)) {
+                // Filter features by module name
+                featuresToProcess = platformData.features.filter(f => f.module === module_name);
             }
         }
 
