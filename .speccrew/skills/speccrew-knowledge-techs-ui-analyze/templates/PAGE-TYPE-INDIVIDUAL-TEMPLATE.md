@@ -9,6 +9,8 @@ output_path: page-types/
 
 **Files Referenced in This Document**
 
+| # | File | Source |
+|---|------|--------|
 {{source_files}}
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}

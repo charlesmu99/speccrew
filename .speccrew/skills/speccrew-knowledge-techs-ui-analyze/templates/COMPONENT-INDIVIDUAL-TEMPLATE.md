@@ -9,7 +9,9 @@ output_path: components/
 
 **Source Files Referenced**
 
-{{component_source_path}}
+| # | File | Source |
+|---|------|--------|
+| 1 | {{component_name}} | [View]({{component_source_path}}) |
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 

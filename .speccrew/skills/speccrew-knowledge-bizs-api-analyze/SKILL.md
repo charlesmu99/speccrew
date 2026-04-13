@@ -440,6 +440,10 @@ Fill each section using `search_replace` with extracted data from source code an
 - 示例（文档在 `speccrew-workspace/knowledges/bizs/admin-api/system/user/`）：
   - `[Source](../../../../../yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java)`
 
+**Source Column Rules:**
+- Project source file: use `[Source](../../relative/path/to/file)` with valid relative path
+- External framework/library class (e.g. Spring Security, MyBatis Plus): write plain text like `Spring Security` or `Framework` — do NOT wrap in link syntax
+
 **Document Link Format:**
 - Format: `[Doc]({dynamic_prefix}{documentPath})`
 - 动态前缀：与 Source Link 使用相同计算方法

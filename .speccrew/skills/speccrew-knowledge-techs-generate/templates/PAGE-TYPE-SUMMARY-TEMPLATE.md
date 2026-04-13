@@ -3,7 +3,9 @@
 
 **Files Referenced in This Document**
 
-- [views_dir](relative_pathviews_source_path)
+| # | File | Source |
+|---|------|--------|
+| 1 | views_dir | [View](relative_pathviews_source_path) |
 
 ---
 

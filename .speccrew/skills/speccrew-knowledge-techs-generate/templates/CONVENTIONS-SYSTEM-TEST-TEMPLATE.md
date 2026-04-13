@@ -2,8 +2,10 @@
 
 **Files Referenced in This Document**
 
+| # | File | Source |
+|---|------|--------|
 {{#each source_files}}
-- [{{name}}]({{path}})
+| {{@index}} | {{name}} | [View]({{path}}) |
 {{/each}}
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}

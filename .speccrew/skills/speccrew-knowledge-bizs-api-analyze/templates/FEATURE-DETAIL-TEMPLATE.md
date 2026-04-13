@@ -9,10 +9,12 @@
 
 **Files Referenced in This Document**
 
-- [{Controller}.java](../../{controllerSourcePath})
-- [{Service}.java](../../{serviceSourcePath})
-- [{Entity}.java](../../{entitySourcePath})
-- [{DTO}.java](../../{dtoSourcePath})
+| # | File | Source |
+|---|------|--------|
+| 1 | {Controller} | [View](../../{controllerSourcePath}) |
+| 2 | {Service} | [View](../../{serviceSourcePath}) |
+| 3 | {Entity} | [View](../../{entitySourcePath}) |
+| 4 | {DTO} | [View](../../{dtoSourcePath}) |
 
 ---
 

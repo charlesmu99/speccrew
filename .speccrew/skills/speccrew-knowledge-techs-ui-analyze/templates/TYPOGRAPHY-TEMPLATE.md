@@ -8,6 +8,8 @@ output_file: styles/typography.md
 
 **Files Referenced in This Document**
 
+| # | File | Source |
+|---|------|--------|
 {{source_files}}
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}

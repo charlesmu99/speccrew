@@ -490,16 +490,18 @@ For root INDEX.md (one level less deep):
 
 **1. File Reference Block**
 
-Place at the beginning of each document (using pure Markdown format for VS Code preview compatibility):
+Place at the beginning of each document (using table format for VS Code preview compatibility):
 
 ```markdown
 **Files Referenced in This Document**
 
-- [package.json](../../../../yudao-ui/yudao-ui-admin-vue3/package.json)
-- [tsconfig.json](../../../../yudao-ui/yudao-ui-admin-vue3/tsconfig.json)
+| # | File | Source |
+|---|------|--------|
+| 1 | package.json | [View](../../../../yudao-ui/yudao-ui-admin-vue3/package.json) |
+| 2 | tsconfig.json | [View](../../../../yudao-ui/yudao-ui-admin-vue3/tsconfig.json) |
 ```
 
-> **Note**: Previously used `<cite>` HTML tags have been removed because they prevent Markdown links from rendering correctly in VS Code preview.
+> **Note**: Table format is used instead of list format because LLM-generated content may merge list items into a single line, breaking link rendering in VS Code preview.
 
 **2. Diagram Source Annotation**
 

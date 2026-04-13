@@ -9,10 +9,12 @@
 
 **Files Referenced in This Document**
 
-- [{Controller}.cs](../../{controllerSourcePath})
-- [{Service}.cs](../../{serviceSourcePath})
-- [{Repository}.cs](../../{repositorySourcePath})
-- [{Entity}.cs](../../{entitySourcePath})
+| # | File | Source |
+|---|------|--------|
+| 1 | {Controller} | [View](../../{controllerSourcePath}) |
+| 2 | {Service} | [View](../../{serviceSourcePath}) |
+| 3 | {Repository} | [View](../../{repositorySourcePath}) |
+| 4 | {Entity} | [View](../../{entitySourcePath}) |
 
 ---
 
