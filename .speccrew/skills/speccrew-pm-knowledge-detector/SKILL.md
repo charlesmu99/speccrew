@@ -29,7 +29,9 @@ Detect business knowledge base availability and completeness status. Scans the s
 
 | Variable | Type | Description | Required |
 |----------|------|-------------|----------|
-| `workspace_path` | string | Path to speccrew workspace (e.g., `speccrew-workspace`) | **Yes** |
+| `workspace_path` | string | Absolute path to speccrew workspace (e.g., `speccrew-workspace`) | **Yes** |
+| `sync_state_bizs_dir` | string | Absolute path to `knowledges/base/sync-state/knowledge-bizs/` directory | **Yes** |
+| `configs_dir` | string | Absolute path to `docs/configs/` directory | **Yes** |
 
 ## Output JSON
 
@@ -72,7 +74,7 @@ flowchart TD
 
 Check if the system overview file exists:
 
-1. Construct path: `{workspace_path}/knowledges/bizs/system-overview.md`
+1. Path: `{workspace_path}/knowledges/bizs/system-overview.md`
 2. Attempt to read the file
 3. Set `has_system_overview` = true if exists, false otherwise
 4. Set `system_overview_path` = path if exists, null otherwise
@@ -83,7 +85,7 @@ Check if the system overview file exists:
 
 Scan the sync-state directory for feature inventory files:
 
-1. Construct path: `{workspace_path}/knowledges/base/sync-state/knowledge-bizs/`
+1. Use provided path: `{sync_state_bizs_dir}/`
 2. Glob pattern: `features-*.json`
 3. Collect all matching files into `features_files` array
 4. Set `has_features` = true if any files found
@@ -94,7 +96,7 @@ Scan the sync-state directory for feature inventory files:
 
 Scan for entry directory configuration files:
 
-1. Use same sync-state path
+1. Use provided path: `{sync_state_bizs_dir}/`
 2. Glob pattern: `entry-dirs-*.json`
 3. Collect all matching files into `entry_dirs_files` array
 4. Set `has_entry_dirs` = true if any files found
@@ -136,6 +138,8 @@ Return the complete JSON output.
 2. **Fast execution**: Use Glob for scanning, avoid deep file reads
 3. **Graceful handling**: Return empty arrays if directories don't exist
 4. **Path format**: All returned paths should be relative to workspace_path
+
+> **MANDATORY**: Use the provided absolute paths directly. DO NOT construct or derive paths yourself.
 
 ## Task Completion Report
 

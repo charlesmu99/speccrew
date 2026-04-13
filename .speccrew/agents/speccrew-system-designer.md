@@ -143,13 +143,18 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 ## Phase 0: Workflow Progress Management
 
+> **Path Variables** (provided by caller as absolute paths):
+> - `workspace_path`: Absolute path to speccrew-workspace directory
+> - `update_progress_script`: `{workspace_path}/scripts/update-progress.js`
+> - `iterations_dir`: `{workspace_path}/iterations`
+
 ### Step 0.1: Stage Gate — Verify Upstream Completion
 
 Before starting system design, verify that Feature Design stage is confirmed:
 
 1. **Read WORKFLOW-PROGRESS.json overview**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --overview
+   node {update_progress_script} read --file {iterations_dir}/{current}/WORKFLOW-PROGRESS.json --overview
    ```
 
 2. **Validate upstream stage**: Check `stages.02_feature_design.status == "confirmed"` in the output
@@ -160,7 +165,7 @@ Before starting system design, verify that Feature Design stage is confirmed:
    - Read `02_feature_design.outputs` to get Feature Spec and API Contract paths
    - Update stage status:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status in_progress
+     node {update_progress_script} update-workflow --file {iterations_dir}/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status in_progress
      ```
 
 ### Step 0.2: Check Resume State (断点续传)
@@ -169,7 +174,7 @@ Check if there's existing progress to resume:
 
 1. **Read checkpoints** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --checkpoints
+   node {update_progress_script} read --file {iterations_dir}/{current}/03.system-design/.checkpoints.json --checkpoints
    ```
 
 2. **Determine resume point** based on passed checkpoints:
@@ -184,7 +189,7 @@ Check dispatch progress for parallel task execution:
 
 1. **Read dispatch progress summary** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --summary
+   node {update_progress_script} read --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --summary
    ```
 
 2. **List task statuses**:
@@ -263,8 +268,8 @@ When user requests to start system design (and Phase 0 gates are passed):
 
 Use Glob to find relevant documents in the current iteration:
 
-- Feature Spec pattern: `speccrew-workspace/iterations/{current}/02.feature-design/*-feature-spec.md`
-- API Contract pattern: `speccrew-workspace/iterations/{current}/02.feature-design/*-api-contract.md`
+- Feature Spec pattern: `{iterations_dir}/{current}/02.feature-design/*-feature-spec.md`
+- API Contract pattern: `{iterations_dir}/{current}/02.feature-design/*-api-contract.md`
 
 **文件命名格式说明**:
 - **新格式**（细粒度 Feature）: 文件名以 Feature ID 开头，格式为 `{feature-id}-{feature-name}-feature-spec.md`
@@ -311,7 +316,7 @@ Use Glob to find relevant documents in the current iteration:
 ### 1.3 Check Existing System Design Documents
 
 Check if system design documents already exist:
-- Check path: `speccrew-workspace/iterations/{current}/03.system-design/`
+- Check path: `{iterations_dir}/{current}/03.system-design/`
 
 ### 1.4 Present Design Scope to User
 
@@ -382,7 +387,7 @@ After user confirmation, load knowledge in the following order:
 
 **Gate Check — Techs Knowledge Base Availability:**
 
-1. Check if `speccrew-workspace/knowledges/techs/techs-manifest.json` exists
+1. Check if `{workspace_path}/knowledges/techs/techs-manifest.json` exists
 2. **IF NOT EXISTS** → STOP and report to user:
    ```
    ❌ TECHS KNOWLEDGE BASE NOT FOUND
@@ -399,7 +404,7 @@ After user confirmation, load knowledge in the following order:
    → END workflow (do not proceed to Phase 3)
 3. **IF EXISTS** → Continue loading techs knowledge as below
 
-1. Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to discover platforms
+1. Read `{workspace_path}/knowledges/techs/techs-manifest.json` to discover platforms
 2. For each platform in manifest, load key techs knowledge:
    - `knowledges/techs/{platform_id}/tech-stack.md`
    - `knowledges/techs/{platform_id}/architecture.md`
@@ -422,8 +427,8 @@ After user confirmation, load knowledge in the following order:
 | `feature_spec_paths` | All Feature Spec paths from Feature Registry | Feature Spec documents to analyze |
 | `api_contract_paths` | All API Contract paths from Feature Registry | API Contract documents to analyze |
 | `techs_knowledge_paths` | Platform knowledge paths loaded in Phase 2 | Technology stack knowledge per platform |
-| `iteration_path` | `speccrew-workspace/iterations/{current}` | Current iteration directory |
-| `output_path` | `speccrew-workspace/iterations/{current}/03.system-design/framework-evaluation.md` | Output report path |
+| `iteration_path` | `{iterations_dir}/{current}` | Current iteration directory |
+| `output_path` | `{iterations_dir}/{current}/03.system-design/framework-evaluation.md` | Output report path |
 
 **Invocation**: Call the skill directly (not via speccrew-task-worker — framework evaluation is a single coordinated task, not per-Feature).
 
@@ -498,7 +503,7 @@ Proceed to Phase 4? (确认/取消)
 ## Phase 4: Generate DESIGN-OVERVIEW.md (L1)
 
 Create the top-level overview at:
-`speccrew-workspace/iterations/{current}/03.system-design/DESIGN-OVERVIEW.md`
+`{iterations_dir}/{current}/03.system-design/DESIGN-OVERVIEW.md`
 
 ### Template Structure
 
@@ -628,7 +633,7 @@ Before dispatching, create or update dispatch tracking:
    # Step 1: Write tasks JSON to temp file inside iteration directory
    # Create .tasks-temp.json with the task array content
    # Step 2: Initialize with --tasks-file
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks-file speccrew-workspace/iterations/{current}/03.system-design/.tasks-temp.json
+   node {update_progress_script} init --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks-file {iterations_dir}/{current}/03.system-design/.tasks-temp.json
    # Step 3: Delete .tasks-temp.json after successful init
    ```
 
@@ -645,7 +650,7 @@ Before dispatching, create or update dispatch tracking:
 2. **Check existing progress** (from Step 0.3) — skip `completed` tasks
 3. **Update status** to `in_progress` for tasks being dispatched:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+   node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
    ```
 
 ### 5.3 Single Feature Spec + Single Platform
@@ -654,7 +659,7 @@ When there is only one Feature Spec and one platform:
 
 1. **Update task status to `in_progress`**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+   node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
    ```
 
 2. Call skill directly with parameters:
@@ -672,11 +677,11 @@ When there is only one Feature Spec and one platform:
 3. **Parse Task Completion Report** from skill output:
    - If `Status: SUCCESS`:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
+     node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
      ```
    - If `Status: FAILED`:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
+     node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
      ```
 
 ### 5.4 Parallel Execution (Feature × Platform)
@@ -707,7 +712,7 @@ Each worker receives:
 
 **Before dispatch**: Update each task status to `in_progress`:
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
+node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
 ```
 
 **Parallel execution example** (2 features × 3 platforms = 6 workers):
@@ -726,11 +731,11 @@ After each worker completes, parse its **Task Completion Report** and update:
 
 - On SUCCESS:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
+  node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status completed --output "{output_path}"
   ```
 - On FAILED:
   ```bash
-  node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
+  node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
   ```
 
 Wait for all workers to complete before proceeding to Phase 6.
@@ -745,7 +750,7 @@ When any platform design worker reports failure:
 
 2. **Update DISPATCH-PROGRESS.json**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
+   node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status failed --error "{error_message}"
    ```
 
 3. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.
@@ -891,14 +896,14 @@ After user confirms:
 
 1. **Write checkpoints**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint framework_evaluation --passed true
-   node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint design_overview --passed true
-   node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint joint_confirmation --passed true
+   node {update_progress_script} write-checkpoint --file {iterations_dir}/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint framework_evaluation --passed true
+   node {update_progress_script} write-checkpoint --file {iterations_dir}/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint design_overview --passed true
+   node {update_progress_script} write-checkpoint --file {iterations_dir}/{current}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint joint_confirmation --passed true
    ```
 
 2. **Update WORKFLOW-PROGRESS.json**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status confirmed --output "DESIGN-OVERVIEW.md, platform-indexes, module-designs"
+   node {update_progress_script} update-workflow --file {iterations_dir}/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status confirmed --output "DESIGN-OVERVIEW.md, platform-indexes, module-designs"
    ```
 
 3. **Designs become baseline** for Dev phase
@@ -907,9 +912,9 @@ After user confirms:
 
 | Deliverable | Path | Template |
 |-------------|------|----------|
-| Design Overview | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/DESIGN-OVERVIEW.md` | Inline (see Phase 4) |
-| Platform Index | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md` | `speccrew-sd-frontend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-backend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-mobile/templates/INDEX-TEMPLATE.md`, or `speccrew-sd-desktop/templates/INDEX-TEMPLATE.md` |
-| Module Design | `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md` | `speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md`, `speccrew-sd-backend/templates/SD-BACKEND-TEMPLATE.md`, `speccrew-sd-mobile/templates/SD-MOBILE-TEMPLATE.md`, or `speccrew-sd-desktop/templates/SD-DESKTOP-TEMPLATE.md` |
+| Design Overview | `{iterations_dir}/{number}-{type}-{name}/03.system-design/DESIGN-OVERVIEW.md` | Inline (see Phase 4) |
+| Platform Index | `{iterations_dir}/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md` | `speccrew-sd-frontend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-backend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-mobile/templates/INDEX-TEMPLATE.md`, or `speccrew-sd-desktop/templates/INDEX-TEMPLATE.md` |
+| Module Design | `{iterations_dir}/{number}-{type}-{name}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md` | `speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md`, `speccrew-sd-backend/templates/SD-BACKEND-TEMPLATE.md`, `speccrew-sd-mobile/templates/SD-MOBILE-TEMPLATE.md`, or `speccrew-sd-desktop/templates/SD-DESKTOP-TEMPLATE.md` |
 
 **输出文件命名规则**:
 

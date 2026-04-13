@@ -61,21 +61,26 @@ Stage 4: System Summary
 | `head_commit` | (incremental only) Git HEAD commit hash | `HEAD` |
 | `changed_files` | (incremental only) Pre-computed changed file list | — |
 | `max_concurrent_workers` | Maximum parallel Worker Agents | `5` |
-| `graph_root` | Graph data output root path | `speccrew-workspace/knowledges/bizs/graph` |
-| `graph_write_script_path` | Path to graph-write script file | `{graph_write_skill_path}/scripts/graph-write.js` |
-| `completed_dir` | Marker file output directory for Worker results | `{sync_state_path}/completed` |
+| `workspace_path` | **(required)** Absolute path to speccrew-workspace directory | — |
+| `sync_state_bizs_dir` | **(required)** Absolute path to `knowledges/base/sync-state/knowledge-bizs/` | — |
+| `ide_skills_dir` | **(required)** Absolute path to IDE skills directory (e.g., `.qoder/skills`, `.cursor/skills`) | — |
+| `configs_dir` | **(required)** Absolute path to `docs/configs/` directory | — |
+| `graph_root` | Graph data output root path (absolute path preferred) | `{workspace_path}/knowledges/bizs/graph` |
+| `completed_dir` | Marker file output directory for Worker results (absolute path required) | `{sync_state_bizs_dir}/completed` |
+
+> **MANDATORY**: All path parameters MUST be absolute paths provided by the caller. DO NOT use ListDir to search for script locations. DO NOT construct paths by guessing or relative path resolution.
 
 > **Note**: Ensure `graph_root` directory exists before first execution. If it does not exist, create it: `mkdir -p "{graph_root}"` (or equivalent on Windows: `New-Item -ItemType Directory -Path "{graph_root}" -Force`).
 
 ## Output
 
-- Entry directories: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform}.json`
-- Feature inventory: `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-{platform}.json`
-- Feature docs: `speccrew-workspace/knowledges/bizs/{platform}/{module}/features/*.md`
-- Module overviews: `speccrew-workspace/knowledges/bizs/{platform}/{module}/*-overview.md`
-- UI style patterns: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/` (page-types/, components/, layouts/)
-- System overview: `speccrew-workspace/knowledges/bizs/system-overview.md`
-- Graph data: `speccrew-workspace/knowledges/bizs/graph/`
+- Entry directories: `{sync_state_bizs_dir}/entry-dirs-{platform}.json`
+- Feature inventory: `{sync_state_bizs_dir}/features-{platform}.json`
+- Feature docs: `{workspace_path}/knowledges/bizs/{platform}/{module}/features/*.md`
+- Module overviews: `{workspace_path}/knowledges/bizs/{platform}/{module}/*-overview.md`
+- UI style patterns: `{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/` (page-types/, components/, layouts/)
+- System overview: `{workspace_path}/knowledges/bizs/system-overview.md`
+- Graph data: `{workspace_path}/knowledges/bizs/graph/`
 
 ## Workflow Overview
 
@@ -194,7 +199,7 @@ flowchart TB
 
 > For detailed entry identification logic, exclusion rules, JSON format, and validation rules, refer to the `speccrew-knowledge-bizs-identify-entries` skill documentation.
 
-**Output**: `{speccrew_workspace}/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform_id}.json`
+**Output**: `{sync_state_bizs_dir}/entry-dirs-{platform_id}.json`
 
 **JSON Format**:
 ```json
@@ -223,19 +228,17 @@ flowchart TB
 > **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)**, NOT delegated to a Worker Agent.
 > Worker Agents do not have `run_in_terminal` capability, which is required for script execution.
 
-**Prerequisite**: Stage 1a completed. `entry-dirs-{platform_id}.json` files exist in `{sync_state_path}/knowledge-bizs/`.
+**Prerequisite**: Stage 1a completed. `entry-dirs-{platform_id}.json` files exist in `{sync_state_bizs_dir}/`.
 
 **Action** (dispatch executes directly via `run_in_terminal`):
 
-1. **Read platform mapping**: Read `speccrew-workspace/docs/configs/platform-mapping.json` and `tech-stack-mappings.json` for platform configuration
-2. **Locate the inventory script**: Find `generate-inventory.js` in the `speccrew-knowledge-bizs-init-features` skill's scripts directory:
+1. **Read platform mapping**: Read `{configs_dir}/platform-mapping.json` and `{configs_dir}/tech-stack-mappings.json` for platform configuration
+2. **Execute inventory script** for each platform:
+   ```
+   node "{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "{sync_state_bizs_dir}/entry-dirs-{platform_id}.json"
+   ```
    - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js`
-   - Where `{ide_skills_dir}` is the IDE-specific skills directory (e.g., `.qoder/skills/`, `.cursor/skills/`, `.vscode/skills/`, `.speccrew/skills/`)
-   - Use `ListDir` to locate the script if the exact path is unknown
-3. **Execute inventory script** for each platform:
-   ```
-   node "{path_to_generate_inventory_js}" --entryDirsFile "{entry_dirs_file_path}"
-   ```
+   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
 
 **Script Parameters**:
 - `--entryDirsFile`: Path to the `entry-dirs-{platform_id}.json` file generated in Stage 1a (required)
@@ -248,7 +251,7 @@ flowchart TB
 - `--excludeDirs`: Additional directories to exclude
 
 **Output**:
-- `{speccrew_workspace}/knowledges/base/sync-state/knowledge-bizs/features-{platform_id}.json` — Per-platform feature inventory files
+- `{sync_state_bizs_dir}/features-{platform_id}.json` — Per-platform feature inventory files
 - Each file contains: platform metadata, modules list, and flat features array with `analyzed` status
 
 **Features JSON Structure**:
@@ -291,17 +294,16 @@ flowchart TB
 
 **Prerequisite**: Stage 1b completed.
 
-**Skip condition**: If no `features-*.new.json` files exist in `{sync_state_path}/knowledge-bizs/`, skip this Stage entirely and proceed to Stage 2.
+**Skip condition**: If no `features-*.new.json` files exist in `{sync_state_bizs_dir}/`, skip this Stage entirely and proceed to Stage 2.
 
 **Action** (dispatch executes directly via `run_in_terminal`):
 
-1. **Locate the merge script**: Find `merge-features.js` in the `speccrew-knowledge-bizs-dispatch` skill's scripts directory:
+1. **Execute merge script**:
+   ```
+   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js" --syncStatePath "{sync_state_bizs_dir}" --completedDir "{completed_dir}" --projectRoot "{source_path}"
+   ```
    - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js`
-
-2. **Execute merge script**:
-   ```
-   node "{path_to_merge_features_js}" --syncStatePath "{sync_state_path}/knowledge-bizs" --completedDir "{completed_dir}" --projectRoot "{project_root}"
-   ```
+   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
 
 3. **Read output JSON** from stdout and report merge results:
    - Added features: new source files discovered
@@ -374,15 +376,12 @@ node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.
 
 **Step 1: Get Next Batch**
 
-1. **Locate the script**: Find `batch-orchestrator.js` in the `speccrew-knowledge-bizs-dispatch` skill's scripts directory:
+1. **Execute get-batch**:
+   ```
+   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch --syncStatePath "{sync_state_bizs_dir}" --batchSize 5
+   ```
    - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js`
-   - Where `{ide_skills_dir}` is the IDE-specific skills directory (e.g., `.qoder/skills/`, `.cursor/skills/`, `.vscode/skills/`, `.speccrew/skills/`)
-   - Use `ListDir` to locate the script if the exact path is unknown
-
-2. **Execute get-batch**:
-   ```
-   node "{path_to_batch_orchestrator_js}" get-batch --syncStatePath "{sync_state_path}" --batchSize 5
-   ```
+   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
 
 - If output `action` is `"done"` → All features processed. Exit Stage 2, proceed to Stage 3.
 - If output `action` is `"process"` → The `batch` array contains features to analyze. Proceed to Step 2.
@@ -422,6 +421,8 @@ After each analyze worker completes (writes `.done.json` marker), immediately di
     "api_analysis_path": "<feature.documentPath>",
     "platform_id": "<feature.platform_id>",
     "output_dir": "<completed_dir_absolute_path>",
+    "workspace_path": "<workspace_path_absolute_path>",
+    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
     "module": "<feature.module>",
     "fileName": "<feature.fileName>",
     "sourcePath": "<feature.sourcePath>",
@@ -446,6 +447,8 @@ After each analyze worker completes (writes `.done.json` marker), immediately di
     "platform_type": "<feature.platform_type>",
     "platform_subtype": "<feature.platform_subtype>",
     "completed_dir": "<completed_dir_absolute_path>",
+    "workspace_path": "<workspace_path_absolute_path>",
+    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
     "sourceFile": "<feature.sourceFile>",
     "status": "<analysis_status>",
     "analysisNotes": "<analysis_notes>",
@@ -468,7 +471,7 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 ```json
 {
   "skill_name": "speccrew-knowledge-bizs-ui-analyze",
-  "instructions": "请分析以下源代码文件，生成详细的功能文档。\n\n⚠️ CRITICAL - Template Fill-in Workflow (MANDATORY):\n1. First, copy the analysis template to documentPath (template structure = document skeleton)\n2. Then fill each Section using search_replace to replace placeholders with actual data\n3. NEVER use create_file to rewrite the entire document — this destroys template structure\n4. NEVER delete or skip any template Section — if no data available, fill with \"N/A\"\n5. NEVER create custom Section structures — use ONLY the template's predefined Sections\n\n要求:\n- 读取源代码文件，理解相关功能接口\n- 生成详细的文档到 documentPath\n- 创建两个标记文件到 completed_dir\n- 使用 {skill_name} 技能完成此任务",
+  "instructions": "请分析以下源代码文件，生成详细的功能文档。\n\n⚠️ CRITICAL - Template Fill-in Workflow (MANDATORY):\n1. First, copy the analysis template to documentPath (template structure = document skeleton)\n2. Then fill each Section using search_replace to replace placeholders with actual data\n3. NEVER use create_file to rewrite the entire document — this destroys template structure\n4. NEVER delete or skip any template Section — if no data available, fill with "N/A"\n5. NEVER create custom Section structures — use ONLY the template's predefined Sections\n\n要求:\n- 读取源代码文件，理解相关功能接口\n- 生成详细的文档到 documentPath\n- 创建两个标记文件到 completed_dir\n- 使用 {skill_name} 技能完成此任务",
   "context": {
     "fileName": "<feature.fileName>",
     "sourcePath": "<feature.sourcePath>",
@@ -478,6 +481,8 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
     "platformSubtype": "<feature.platformSubtype>",
     "language": "<user language>",
     "completed_dir": "<completed_dir_absolute_path>",
+    "workspace_path": "<workspace_path_absolute_path>",
+    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
     "sourceFile": "<feature.sourceFile>"
   }
 }
@@ -507,32 +512,56 @@ Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneo
 
 ### **CRITICAL - Marker File Naming Convention (STRICT RULES)**
 
+#### Formula
+
+**Pattern**: `{module}-{subpath}-{fileName}.{type}.json`
+
+| Component | Description | Example |
+|-----------|-------------|---------|
+| `module` | Business module name | `chat`, `user`, `order` |
+| `subpath` | Sub-path within module, `/` replaced with `-`. Empty if file is directly under module | `admin`, `api-v2` |
+| `fileName` | Source file name WITHOUT extension | `UserController`, `ChatService` |
+| `type` | Marker type: `done`, `error`, or `skip` | `done` |
+
+**Examples**:
+| Source File Path | Marker File Name |
+|-----------------|------------------|
+| `chat/ChatController.java` | `chat-ChatController.done.json` |
+| `user/admin/UserController.java` | `user-admin-UserController.done.json` |
+| `order/api/v2/OrderService.java` | `order-api-v2-OrderService.done.json` |
+
+> **NOTE**: This naming convention is implemented in `workspace-template/scripts/path-utils.js` via the `getMarkerFileName(moduleName, subpath, fileName, type)` function.
+
+---
+
+#### Full Path Format
+
 **✅ CORRECT Format - MUST USE:**
 ```
-{completed_dir}/{module}-{subpath}-{file_name}.done.json     ← Completion status marker (JSON format)
-{completed_dir}/{module}-{subpath}-{file_name}.graph.json    ← Graph data marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.done.json     ← Completion status marker (JSON format)
+{completed_dir}/{module}-{subpath}-{fileName}.graph.json    ← Graph data marker (JSON format)
 ```
 
 **Naming Rule Explanation:**
 
-The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{file_name}` to prevent conflicts between same-named source files.
+The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{fileName}` to prevent conflicts between same-named source files.
 
 **How Workers Generate the Filename:**
 
 1. **module**: Use the `{{module}}` input variable directly
 
-2. **subpath**: Extract from `{{source_path}}`:
+2. **subpath**: Extract from `{{sourcePath}}`:
    - For UI (Vue/React): Middle path between `views/` or `pages/` and the file name
    - For API (Java): Middle path between controller root and the file name
    - Replace path separators (`/`) with hyphens (`-`)
    - Omit if file is at module root (empty subpath)
 
-3. **file_name**: Use `{{file_name}}` input variable (file name WITHOUT extension)
+3. **fileName**: Use `{{fileName}}` input variable (file name WITHOUT extension)
 
 **Examples:**
 
-| Source File | module | subpath | file_name | Marker Filename |
-|-------------|--------|---------|-----------|-----------------|
+| Source File | module | subpath | fileName | Marker Filename |
+|-------------|--------|---------|----------|-----------------|
 | `yudao-ui/.../views/system/notify/message/index.vue` | `system` | `notify-message` | `index` | `system-notify-message-index.done.json` |
 | `yudao-ui/.../views/system/user/index.vue` | `system` | `user` | `index` | `system-user-index.done.json` |
 | `yudao-module-system/.../controller/admin/user/UserController.java` | `system` | `controller-admin-user` | `UserController` | `system-controller-admin-user-UserController.done.json` |
@@ -543,11 +572,11 @@ The marker filename MUST follow the composite naming pattern `{module}-{subpath}
 
 **❌ WRONG Format - NEVER USE:**
 ```
-{file_name}.done.json              ← WRONG: missing module and subpath (causes conflicts)
-{file_name}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
-{file_name}.completed.json         ← WRONG extension
-{file_name}.done                   ← WRONG extension (missing .json)
-{file_name}_done.json              ← WRONG separator and extension
+{fileName}.done.json              ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
+{fileName}.completed.json         ← WRONG extension
+{fileName}.done                   ← WRONG extension (missing .json)
+{fileName}_done.json              ← WRONG separator and extension
 ```
 
 **❌ WRONG Filename Examples - NEVER USE:**
@@ -611,6 +640,9 @@ The marker filename MUST follow the composite naming pattern `{module}-{subpath}
 
 **Marker File Naming Convention Summary:**
 
+> **Reference**: See [Marker File Naming Convention Formula](#critical---marker-file-naming-convention-strict-rules) for the complete formula and examples.
+> **Implementation**: `getMarkerFileName()` in `workspace-template/scripts/path-utils.js`
+
 | Marker Type | File Name Format | Example |
 |-------------|------------------|---------|
 | Completion marker | `{module}-{subpath}-{fileName}.done.json` | `system-notify-message-index.done.json`, `system-controller-admin-user-UserController.done.json` |
@@ -628,15 +660,12 @@ The marker filename MUST follow the composite naming pattern `{module}-{subpath}
 
 **Step 3: Process Batch Results**
 
-1. **Locate the script**: Find `batch-orchestrator.js` in the `speccrew-knowledge-bizs-dispatch` skill's scripts directory:
+1. **Execute process-results**:
+   ```
+   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results --syncStatePath "{sync_state_bizs_dir}" --graphRoot "{graph_root}" --platformId "{platformId}"
+   ```
    - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js`
-   - Where `{ide_skills_dir}` is the IDE-specific skills directory (e.g., `.qoder/skills/`, `.cursor/skills/`, `.vscode/skills/`, `.speccrew/skills/`)
-   - Use `ListDir` to locate the script if the exact path is unknown
-
-2. **Execute process-results**:
-   ```
-   node "{path_to_batch_orchestrator_js}" process-results --syncStatePath "{sync_state_path}" --graphRoot "{graph_root}" --platformId "{platformId}"
-   ```
+   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
 
 This script:
 - Scans `.done.json` files → updates feature status to `completed` in features-*.json
@@ -657,7 +686,7 @@ Dispatch 采用完全无状态的文件驱动设计。如果执行过程中发�
 #### Stage 2 Output
 
 - Generated by Analyze Workers: Feature documentation at `feature.documentPath` (one .md per feature); marker files (`.done.json`) in `completed_dir`
-- Generated by Graph Workers: Graph data files (`.graph.json`) in `completed_dir`; consolidated graph data in `speccrew-workspace/knowledges/bizs/graph/`
+- Generated by Graph Workers: Graph data files (`.graph.json`) in `completed_dir`; consolidated graph data in `{workspace_path}/knowledges/bizs/graph/`
 - Updated by `process-results`: Each `features-{platform}.json` updated with analysis timestamps and status
 - Marker files cleaned up after each batch
 
@@ -685,12 +714,14 @@ When dealing with modules containing more than **20 features**, consider the fol
 **Prerequisite**: Stage 2 completed for the module (in full or incremental mode).
 
 **Action (full mode)**:
-- Read all `features-{platform}.json` files from `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/`
+- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
 - For each platform, group features by `module` to identify unique modules
 - For each module, invoke 1 Worker Agent (`speccrew-task-worker.md`) with `skill_name: speccrew-knowledge-module-summarize`
 - Parameters to pass to skill:
   - `module_name`: Module code_name
-  - `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{platform_id}/{module_name}/`)
+  - `module_path`: Path to module directory (e.g., `{workspace_path}/knowledges/bizs/{platform_id}/{module_name}/`)
+  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
+  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language — **REQUIRED**
   - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
@@ -724,20 +755,22 @@ Platform: Mobile App (mobile-flutter)
 
 **Platform Filter**: Only execute for frontend platforms (platformType = web, mobile, desktop). Backend platforms skip this stage.
 
-**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`knowledges/techs/{platform_id}/ui-style-patterns/`) if it does not exist. No pre-check required.
+**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/`) if it does not exist. No pre-check required.
 
 **Action**:
-- Read all `features-{platform}.json` files
+- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
 - Filter platforms where platformType is web/mobile/desktop
 - Determine platform_id (format: `{platformType}-{platformSubtype}`, e.g., `web-vue`, `mobile-uniapp`, `backend-system`)
 - For each qualifying platform, launch 1 Worker Agent (`speccrew-task-worker`) with `skill_name: speccrew-knowledge-bizs-ui-style-extract`
 - Parameters to pass:
   - `platform_id`: Platform identifier
   - `platform_type`: Platform type
-  - `feature_docs_path`: Feature document base path for that platform
-  - `features_manifest_path`: Path to the corresponding `features-{platform}.json`
-  - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
-  - `output_path`: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/`
+  - `feature_docs_path`: Feature document base path for that platform (e.g., `{workspace_path}/knowledges/bizs/{platform_id}`)
+  - `features_manifest_path`: Path to the corresponding `{sync_state_bizs_dir}/features-{platform}.json`
+  - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `{workspace_path}/knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
+  - `output_path`: `{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/`
+  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
+  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language
   - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
@@ -751,7 +784,7 @@ Platform: Mobile App (mobile-flutter)
 
 **Output per Platform**:
 ```
-speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/
+{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/
 ├── page-types/
 │   └── {pattern-name}.md
 ├── components/
@@ -771,18 +804,20 @@ speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Action**:
-- Read all `features-{platform}.json` files from `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/` to get platform structure
+- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/` to get platform structure
 - Invoke 1 Worker Agent (`speccrew-task-worker.md`) with `skill_name: speccrew-knowledge-system-summarize`
 - Parameters to pass to skill:
-  - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `speccrew-workspace/knowledges/bizs/`)
-  - `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
+  - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `{workspace_path}/knowledges/bizs/`)
+  - `output_path`: Output path for system-overview.md (e.g., `{workspace_path}/knowledges/bizs/`)
+  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
+  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language — **REQUIRED**
   - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
 
 Expected Worker Return: `{ "status": "success|failed", "output_file": "system-overview.md", "message": "..." }`
 
 **Output**:
-- `speccrew-workspace/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)
+- `{workspace_path}/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)
 
 > ✅ **Stage 4 Milestone**: System overview generated. All stages complete. Pipeline finished successfully.
 
@@ -849,8 +884,8 @@ After all 5 stages complete, return a summary object to the caller:
     "stage4": { "status": "completed" }
   },
   "output": {
-    "system_overview": "speccrew-workspace/knowledges/bizs/system-overview.md",
-    "graph_root": "speccrew-workspace/knowledges/bizs/graph/"
+    "system_overview": "{workspace_path}/knowledges/bizs/system-overview.md",
+    "graph_root": "{workspace_path}/knowledges/bizs/graph/"
   }
 }
 ```

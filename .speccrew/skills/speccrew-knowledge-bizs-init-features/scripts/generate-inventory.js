@@ -5,7 +5,7 @@
  * Scans source directory for page files and generates a flat feature list with analysis status tracking.
  * All configuration is passed via parameters - the script does not infer anything.
  *
- * Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>] [--includeDataObjects <true|false>]
+ * Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>] [--includeDataObjects <true|false>] [--outputDir <dir>]
  *     Array parameters (--techStack, --fileExtensions, --excludeDirs) accept both JSON format and comma-separated format.
  *
  * Whitelist Mode (using --entryDirsFile):
@@ -19,6 +19,11 @@
  *   By default, files ending with configured suffixes (e.g., VO/DTO/DO/Entity/Convert for Spring) are excluded for backend platforms.
  *   The suffixes are read from tech-stack-mappings.json (exclude_file_suffixes field).
  *   Use --includeDataObjects true to include them.
+ *
+ * Output Directory (--outputDir):
+ *   By default, the script uses findProjectRoot() to locate the project root and outputs to:
+ *   <projectRoot>/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/
+ *   Use --outputDir to explicitly specify the output directory, bypassing findProjectRoot().
  *
  * Example (full scan mode):
  *   node generate-inventory.js \
@@ -639,8 +644,14 @@ function main() {
         
     console.log(`Platform config: type=${platformType}, subtype=${platformSubtype}, framework=${framework}`);
     
-    // Set output directory
-    const outputDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+    // Set output directory (prefer --outputDir parameter, fallback to findProjectRoot)
+    let outputDir;
+    if (params.outputDir) {
+      outputDir = path.resolve(params.outputDir);
+      console.log(`Using outputDir from parameter: ${outputDir}`);
+    } else {
+      outputDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+    }
     
     // Generate features from entry dirs
     const success = generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outputDir);
@@ -735,13 +746,19 @@ function main() {
 
   // Validate required parameters
   if (!sourcePath || !outputFileName || !platformName || !platformType || !techStackStr || !fileExtensionsStr) {
-    console.error('Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>] [--includeDataObjects <true|false>]');
+    console.error('Usage: node generate-inventory.js --sourcePath <path> --outputFileName <name> --platformName <name> --platformType <type> --techStack <json> --fileExtensions <json> [--platformSubtype <subtype>] [--techIdentifier <identifier>] [--analysisMethod <method>] [--excludeDirs <json>] [--includeDataObjects <true|false>] [--outputDir <dir>]');
     console.error('Example: node generate-inventory.js --sourcePath "src/views" --outputFileName "features-web.json" --platformName "Web Frontend" --platformType "web" --platformSubtype "vue" --techStack "vue,typescript" --fileExtensions ".vue,.ts" --analysisMethod "ui-based" --excludeDirs "components,composables,hooks,utils"');
     process.exit(1);
   }
 
-  // Find sync-state directory
-  const syncStateDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+  // Find sync-state directory (prefer --outputDir parameter, fallback to findProjectRoot)
+  let syncStateDir;
+  if (params.outputDir) {
+    syncStateDir = path.resolve(params.outputDir);
+    console.log(`Using outputDir from parameter: ${syncStateDir}`);
+  } else {
+    syncStateDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+  }
   const outputPath = path.join(syncStateDir, outputFileName);
 
   // Calculate relative source path from project root

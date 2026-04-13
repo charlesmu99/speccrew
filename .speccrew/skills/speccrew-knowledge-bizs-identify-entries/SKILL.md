@@ -13,12 +13,14 @@ Analyze source directory structures to identify business module entry directorie
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `{platforms}` | array | Yes | Platform list from detection phase. Each item: `{platformId, sourcePath, platformType, platformSubtype, techStack}` |
-| `{workspace_path}` | string | Yes | Path to speccrew-workspace directory |
+| `{workspace_path}` | string | Yes | Absolute path to speccrew-workspace directory |
+| `{sync_state_bizs_dir}` | string | Yes | Absolute path to entry-dirs JSON output directory |
+| `{configs_dir}` | string | Yes | Absolute path to configuration files directory (for `tech-stack-mappings.json`) |
 
 ## Output
 
 For each platform, generates:
-- `{workspace_path}/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform_id}.json`
+- `{sync_state_bizs_dir}/entry-dirs-{platform_id}.json`
 
 ## Workflow
 
@@ -57,7 +59,7 @@ Based on the directory tree and technology stack, analyze and identify entry dir
 
 ### Step 3: Load Exclusion Rules
 
-Read `{workspace_path}/docs/configs/tech-stack-mappings.json` to load exclusion patterns. Apply the following exclusion rules:
+Read `{configs_dir}/tech-stack-mappings.json` to load exclusion patterns. Apply the following exclusion rules:
 
 **Pure Technical Directories**:
 `config`, `framework`, `enums`, `exception`, `util`, `utils`, `common`, `constant`, `constants`, `type`, `types`, `dto`, `vo`, `entity`, `model`, `mapper`, `repository`, `dao`, `service`, `impl`
@@ -76,7 +78,7 @@ Read `{workspace_path}/docs/configs/tech-stack-mappings.json` to load exclusion 
 
 ### Step 4: Generate entry-dirs JSON
 
-Output file: `{workspace_path}/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform_id}.json`
+Output file: `{sync_state_bizs_dir}/entry-dirs-{platform_id}.json`
 
 **JSON Format**:
 ```json
@@ -131,6 +133,8 @@ If entry directory recognition fails for a platform, STOP and report the error w
 - [ ] `entryDirs` paths are correct and accessible
 - [ ] JSON format is valid
 
+> **MANDATORY**: Use the provided absolute paths directly. DO NOT construct or derive paths yourself.
+
 ## Example Usage
 
 ```
@@ -153,4 +157,6 @@ Args:
     }
   ]
   workspace_path: "/path/to/speccrew-workspace"
+  sync_state_bizs_dir: "/path/to/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs"
+  configs_dir: "/path/to/speccrew-workspace/docs/configs"
 ```

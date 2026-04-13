@@ -146,6 +146,11 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 ## Phase 0: Workflow Progress Management
 
+> **Path Variables** (provided by caller as absolute paths):
+> - `workspace_path`: Absolute path to speccrew-workspace directory
+> - `update_progress_script`: `{workspace_path}/scripts/update-progress.js`
+> - `iterations_dir`: `{workspace_path}/iterations`
+
 > **Stage Gate & Resume Checkpoint System** — Ensures proper flow between pipeline stages and supports resuming from interruptions.
 
 ### 0.1 Stage Gate — Verify Upstream Completion
@@ -154,7 +159,7 @@ Before starting any feature design work:
 
 1. **Read `WORKFLOW-PROGRESS.json` overview**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --overview
+   node {update_progress_script} read --file {iterations_dir}/{iteration-id}/WORKFLOW-PROGRESS.json --overview
    ```
    - If the file does not exist → Skip to Phase 1
 
@@ -169,7 +174,7 @@ Before starting any feature design work:
 
 3. **Update Stage Status**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-workflow --file speccrew-workspace/iterations/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress
+   node {update_progress_script} update-workflow --file {iterations_dir}/{iteration-id}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress
    ```
 
    > **PowerShell Compatibility**: On Windows PowerShell, do not use backslash (`\`) for line continuation. Write the entire command on a single line.
@@ -180,7 +185,7 @@ If resuming from an interrupted session:
 
 1. **Read checkpoints** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration-id}/02.feature-design/.checkpoints.json --checkpoints
+   node {update_progress_script} read --file {iterations_dir}/{iteration-id}/02.feature-design/.checkpoints.json --checkpoints
    ```
    - If the file does not exist → Start from Phase 1 (no previous progress)
 
@@ -210,7 +215,7 @@ If the iteration involves multiple Features:
 
 1. **Read `DISPATCH-PROGRESS.json` summary** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --summary
+   node {update_progress_script} read --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --summary
    ```
    - If the file does not exist → No dispatch in progress, proceed normally
 
@@ -240,7 +245,7 @@ When user requests to start feature design:
 ### 1.1 Identify PRD Documents
 
 User must specify one or more confirmed PRD document paths:
-- Default path pattern: `speccrew-workspace/iterations/{number}-{type}-{name}/01.prd/[feature-name]-prd.md`
+- Default path pattern: `{iterations_dir}/{number}-{type}-{name}/01.prd/[feature-name]-prd.md`
 - May involve multiple PRDs: master PRD + sub PRDs (e.g., `[feature-name]-sub-[module].md`)
 
 Confirm all related PRD documents that need to be designed into feature specifications.
@@ -248,7 +253,7 @@ Confirm all related PRD documents that need to be designed into feature specific
 ### 1.2 Check Existing Feature Specs
 
 Check if feature specification documents already exist in the current iteration:
-- Check path: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/`
+- Check path: `{iterations_dir}/{number}-{type}-{name}/02.feature-design/`
 - Look for existing `[feature-name]-feature-spec.md` files
 
 ### 1.3 User Confirmation
@@ -270,7 +275,7 @@ Read all confirmed PRD documents specified by the user. PRD documents contain:
 
 ### Discover Frontend Platforms
 
-Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to identify all frontend platforms:
+Read `{workspace_path}/knowledges/techs/techs-manifest.json` to identify all frontend platforms:
 - Look for platform entries with type starting with `web-` or `mobile-`
 - If multiple frontend platforms exist (e.g., web-vue + mobile-uniapp), frontend design MUST cover each platform separately
 - If only one frontend platform exists, design for that single platform
@@ -296,7 +301,7 @@ After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
 
    Write or update the checkpoint file at:
    ```
-   speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json
+   {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json
    ```
 
    Structure — each feature has individual status fields for full checklist tracking:
@@ -390,7 +395,7 @@ Before presenting the Feature Registry to user:
    ```
 
 ### Read on Demand
-When involving related business domains, read `speccrew-workspace/knowledges/bizs/system-overview.md` first, then follow the links within it to navigate to:
+When involving related business domains, read `{workspace_path}/knowledges/bizs/system-overview.md` first, then follow the links within it to navigate to:
 - Related module business knowledge documents
 - Business process specifications
 - Domain glossary and standards
@@ -448,7 +453,7 @@ If **2+ Features** in registry:
    # Step 1: Write tasks JSON to temp file inside iteration directory
    # Create .tasks-temp.json with the task array content
    # Step 2: Initialize with --tasks-file
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file speccrew-workspace/iterations/{iteration}/02.feature-design/.tasks-temp.json
+   node {update_progress_script} init --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
    # Step 3: Delete .tasks-temp.json after successful init
    ```
 
@@ -500,7 +505,7 @@ If only **1 Feature** in registry:
   - `feature_name`: Feature name
   - `feature_type`: `Page+API` or `API-only`
   - `frontend_platforms`: Platform list
-  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+  - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
 - Checkpoint B handled inside skill (user confirmation before writing)
 
 #### Multiple Features (Worker Dispatch)
@@ -513,7 +518,7 @@ If only **1 Feature** in registry:
    # Step 1: Write tasks JSON to temp file inside iteration directory
    # Create .tasks-temp.json with the task array content
    # Step 2: Initialize with --tasks-file
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file speccrew-workspace/iterations/{iteration}/02.feature-design/.tasks-temp.json
+   node {update_progress_script} init --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
    # Step 3: Delete .tasks-temp.json after successful init
    ```
 
@@ -579,7 +584,7 @@ If only **1 Feature** in registry:
    - If user requests modification for specific Feature → Re-dispatch design worker for that Feature only
    - If user confirms → Update `.checkpoints.json`:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js write-checkpoint --file speccrew-workspace/iterations/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true
+     node {update_progress_script} write-checkpoint --file {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true
      ```
 
 ---
@@ -592,7 +597,7 @@ When any worker (analyze/design) reports failure:
 
 2. **Update status**: Set the failed feature's status in `.checkpoints.json`:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-task --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[{phase}] {error_message}"
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[{phase}] {error_message}"
    ```
 
 3. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.
@@ -634,7 +639,7 @@ Invoke API Contract skill directly:
   - `feature_spec_path`: Path to the Feature Spec document
   - `feature_id`: Feature ID (e.g., `F-CRM-01`)
   - `feature_type`: `Page+API` or `API-only`
-  - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+  - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
 
 **Note**: Both `Page+API` and `API-only` Features require API Contract documents.
 
@@ -647,7 +652,7 @@ Invoke `speccrew-task-worker` agents in parallel:
     - `feature_spec_path`: Path to one Feature Spec document
     - `feature_id`: Feature ID (e.g., `F-CRM-01`)
     - `feature_type`: `Page+API` or `API-only`
-    - `output_path`: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+    - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
 
 - **Parallel execution**: One worker per Feature Spec document
 - **Output file naming**:
@@ -668,8 +673,8 @@ After user confirms Joint Confirmation:
 
 1. **Update `WORKFLOW-PROGRESS.json`**:
    ```bash
-   node speccrew-workspace/scripts/update-progress.js update-workflow \
-     --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+   node {update_progress_script} update-workflow \
+     --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
      --stage 02_feature_design --status confirmed \
      --output "02.feature-design/F-CRM-01-customer-list-feature-spec.md,02.feature-design/F-CRM-01-customer-list-api-contract.md,..."
    ```
@@ -682,8 +687,8 @@ After user confirms Joint Confirmation:
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| Feature Spec | `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md` | One document per Feature |
-| API Contract | `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-id}-{feature-name}-api-contract.md` | One document per Feature |
+| Feature Spec | `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md` | One document per Feature |
+| API Contract | `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-api-contract.md` | One document per Feature |
 
 ## Naming Convention
 

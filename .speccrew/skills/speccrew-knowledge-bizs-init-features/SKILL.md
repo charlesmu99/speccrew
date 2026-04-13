@@ -8,12 +8,16 @@ tools: Read, Write, Glob, Grep, SearchCodebase, Skill, Bash
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| {source_path} | string | No | Source code directory path (default: project root) |
-| {language} | string | Yes | Target language for generated content (e.g., "zh", "en") |
+| `source_path` | string | No | Source code directory path (default: project root) |
+| `language` | string | Yes | Target language for generated content (e.g., "zh", "en") |
+| `sync_state_bizs_dir` | string | Yes | Absolute path to features and entry-dirs JSON output directory |
+| `configs_dir` | string | Yes | Absolute path to configuration files directory |
+| `ide_skills_dir` | string | Yes | Absolute path to IDE skills directory (e.g., `.qoder/skills`) |
 
 ## Output
 
-- `speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-{platform}.json` - Platform-specific feature inventory files
+- `{sync_state_bizs_dir}/features-{platform}.json` - Platform-specific feature inventory files
+- `{sync_state_bizs_dir}/entry-dirs-{platform}.json` - Entry directories configuration files
 
 ## Workflow
 
@@ -31,8 +35,8 @@ flowchart TD
 **Detection Process:**
 
 1. **Read Configuration:**
-   - `speccrew-workspace/docs/configs/platform-mapping.json` - Platform type and subtype mappings
-   - `speccrew-workspace/docs/configs/tech-stack-mappings.json` - Tech stack configurations and exclude directories
+   - `{configs_dir}/platform-mapping.json` - Platform type and subtype mappings
+   - `{configs_dir}/tech-stack-mappings.json` - Tech stack configurations and exclude directories
 
 2. Scan `{source_path}` for platform-specific configuration files (e.g., package.json, pubspec.yaml, pom.xml)
 
@@ -63,9 +67,11 @@ Dispatch Worker with `speccrew-knowledge-bizs-identify-entries` skill:
 | Parameter | Value |
 |-----------|-------|
 | `platforms` | Platform list from Step 1 (each with platformId, sourcePath, platformType, platformSubtype, techStack) |
-| `workspace_path` | `speccrew-workspace` |
+| `workspace_path` | Absolute path to speccrew-workspace |
+| `sync_state_bizs_dir` | `{sync_state_bizs_dir}` |
+| `configs_dir` | `{configs_dir}` |
 
-Worker generates `entry-dirs-{platform_id}.json` files in `{workspace_path}/knowledges/base/sync-state/knowledge-bizs/`.
+Worker generates `entry-dirs-{platform_id}.json` files in `{sync_state_bizs_dir}/`.
 
 **Option B: Direct Execution**
 
@@ -75,8 +81,8 @@ If executing directly (without Worker dispatch), follow the same logic as the `s
    - **Backend**: Find directories containing `*Controller.*` files, extract business package names
    - **Frontend**: Find `views/` or `pages/` directories, use first-level subdirectories as modules
    - **Mobile**: Find `pages/` subdirectories + top-level `pages-*` directories
-3. Apply exclusion rules from `tech-stack-mappings.json`
-4. Generate `entry-dirs-{platform_id}.json` files
+3. Apply exclusion rules from `{configs_dir}/tech-stack-mappings.json`
+4. Generate `entry-dirs-{platform_id}.json` files to `{sync_state_bizs_dir}/`
 
 **Verification**: Confirm each entry-dirs JSON has non-empty `modules` array with business-meaningful names.
 
@@ -89,26 +95,27 @@ Execute the inventory script for each platform using the entry-dirs JSON from St
 **Prerequisites:**
 - Node.js 14.0+
 
-**Script Location (relative to this skill's directory):**
-- All Platforms: `{skill_path}/scripts/generate-inventory.js`
+**Script Location:**
+- All Platforms: `{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js`
 
 **Execution Command:**
 ```bash
-node "{skill_path}/scripts/generate-inventory.js" --entryDirsFile "{entry_dirs_file_path}"
+node "{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "{sync_state_bizs_dir}/entry-dirs-{platform_id}.json" --outputDir "{sync_state_bizs_dir}"
 ```
 
-Where `{entry_dirs_file_path}` is the full path to the `entry-dirs-{platform_id}.json` file generated in Step 2.
+**Parameters:**
+- `--entryDirsFile`: Path to the `entry-dirs-{platform_id}.json` file in `{sync_state_bizs_dir}/`
+- `--outputDir`: Output directory for `features-{platform}.json` (use `{sync_state_bizs_dir}`)
 
 **Example:**
 ```bash
 # Execute for each platform's entry-dirs file
-node "scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-backend-system.json"
-
-node "scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-web-vue.json"
+node "d:/project/.qoder/skills/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-backend-system.json" --outputDir "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs"
 ```
 
 **Script Parameters**:
-- `--entryDirsFile`: (Required) Path to the `entry-dirs-{platform_id}.json` file generated in Step 2
+- `--entryDirsFile`: (Required) Path to the `entry-dirs-{platform_id}.json` file in `{sync_state_bizs_dir}/`
+- `--outputDir`: (Required) Output directory for `features-{platform}.json` (use `{sync_state_bizs_dir}`)
 - `--techIdentifier`: (Optional) Technology identifier for tech-stack lookup (auto-detected from platform mapping if omitted)
 - `--fileExtensions`: (Optional) Comma-separated list of file extensions to include
 - `--excludeDirs`: (Optional) Additional directories to exclude
@@ -171,23 +178,23 @@ Feature Inventory Generated
 
 Platform Inventory Files:
 - Web Frontend:
-  - Inventory File: speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-web.json
+  - Inventory File: {sync_state_bizs_dir}/features-web.json
   - Total Features: [N]
   - Status: Generated ✓
 - Mobile App:
-  - Inventory File: speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-mobile.json
+  - Inventory File: {sync_state_bizs_dir}/features-mobile.json
   - Total Features: [N]
   - Status: Generated ✓
 - Backend API:
-  - Inventory File: speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-api.json
+  - Inventory File: {sync_state_bizs_dir}/features-api.json
   - Total Features: [N]
   - Status: Generated ✓
 
 Final Output:
 - Platform Files:
-  - speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-web.json
-  - speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-mobile.json
-  - speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/features-api.json
+  - {sync_state_bizs_dir}/features-web.json
+  - {sync_state_bizs_dir}/features-mobile.json
+  - {sync_state_bizs_dir}/features-api.json
 ```
 
 ## Checklist
@@ -210,7 +217,9 @@ Final Output:
 - [ ] **File paths correct**: All `sourcePath` and `documentPath` values are accurate (sourcePath MUST be project-root-relative path)
 
 ### Output Generation
-- [ ] All platform inventory files generated in `sync-state` directory
+- [ ] All platform inventory files generated in `{sync_state_bizs_dir}` directory
 - [ ] Output path verified
 - [ ] Results reported
+
+> **MANDATORY**: Use the provided absolute paths directly. DO NOT construct or derive paths yourself. DO NOT manually create JSON files.
 

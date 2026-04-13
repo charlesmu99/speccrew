@@ -28,9 +28,9 @@ Knowledge base availability is checked dynamically in Phase 1 via Worker Agent.
 ## Read on Demand
 
 When involving related domains:
-- `speccrew-workspace/knowledge/domain/standards/` → Industry standard specifications
-- `speccrew-workspace/knowledge/domain/glossary/` → Business terminology glossary
-- `speccrew-workspace/knowledge/domain/qa/` → Common problem solutions
+- `{workspace_path}/knowledge/domain/standards/` → Industry standard specifications
+- `{workspace_path}/knowledge/domain/glossary/` → Business terminology glossary
+- `{workspace_path}/knowledge/domain/qa/` → Common problem solutions
 
 # Workflow Progress Management
 
@@ -47,7 +47,7 @@ Before checking workflow progress, ensure an iteration directory exists with pro
 
 **Step 1: Search for active iteration**
 
-Use Glob to search `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
+Use Glob to search `{iterations_dir}/*/WORKFLOW-PROGRESS.json`
 
 - **IF found** an iteration with `01_prd.status == "in_progress"` → Use that iteration directory, skip to Step 0.1.1
 - **IF found** but all iterations are `completed` or `confirmed` → Create new iteration (Step 2)
@@ -55,7 +55,7 @@ Use Glob to search `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
 
 **Step 2: Create new iteration directory**
 
-1. **Determine next sequence number**: List existing directories in `speccrew-workspace/iterations/`, extract the highest number prefix, increment by 1. Format: 3-digit zero-padded (001, 002, 003...)
+1. **Determine next sequence number**: List existing directories in `{iterations_dir}/`, extract the highest number prefix, increment by 1. Format: 3-digit zero-padded (001, 002, 003...)
    - If no existing iterations → Start with `001`
 
 2. **Determine iteration type** from user's requirement:
@@ -70,23 +70,23 @@ Use Glob to search `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
 
 4. **Create directory structure**:
    ```bash
-   # Create iteration directory with subdirectories
-   mkdir -p speccrew-workspace/iterations/{number}-{type}-{name}/00.docs
-   mkdir -p speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement
+   # Create iteration directory with subdirectories (use absolute paths from Phase 0.6)
+   mkdir -p {iterations_dir}/{number}-{type}-{name}/00.docs
+   mkdir -p {iterations_dir}/{number}-{type}-{name}/01.product-requirement
    ```
 
 5. **Copy requirement document**: Copy user's requirement document to `{iteration}/00.docs/`
    ```bash
-   cp {user_requirement_file} speccrew-workspace/iterations/{number}-{type}-{name}/00.docs/
+   cp {user_requirement_file} {iterations_dir}/{number}-{type}-{name}/00.docs/
    ```
 
 6. **Store iteration path** for use in subsequent phases:
-   - `iteration_path` = `speccrew-workspace/iterations/{number}-{type}-{name}`
+   - `iteration_path` = `{iterations_dir}/{number}-{type}-{name}`
    - `iteration_name` = `{number}-{type}-{name}`
 
 ### 0.1.1 Load or Initialize Workflow Progress
 
-1. **Find Active Iteration**: Use Glob to search for `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
+1. **Find Active Iteration**: Use Glob to search for `{iterations_dir}/*/WORKFLOW-PROGRESS.json`
 2. **If WORKFLOW-PROGRESS.json exists**:
    - Read the file to get current stage and status
    - If `current_stage` is not `01_prd`, this iteration may already be in progress at a later stage
@@ -94,8 +94,8 @@ Use Glob to search `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
 3. **If WORKFLOW-PROGRESS.json does not exist**:
    - **MUST use script to initialize:**
      ```bash
-     node speccrew-workspace/scripts/update-progress.js update-workflow \
-       --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+     node "{update_progress_script}" update-workflow \
+       --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
        --stage 01_prd --status in_progress
      ```
    - **Fallback** (ONLY if script file does not exist):
@@ -127,7 +127,7 @@ If `01_prd.status` is `in_progress` or resuming from an interrupted session:
 
 1. **Read checkpoints** (if file exists):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration}/01.product-requirement/.checkpoints.json --checkpoints
+   node "{update_progress_script}" read --file {iterations_dir}/{iteration}/01.product-requirement/.checkpoints.json --checkpoints
    ```
    - If the file does not exist → Start from Phase 1 (no previous progress)
 
@@ -170,7 +170,7 @@ IF .clarification-summary.md exists AND complexity == complex:
 
 5. **Check Sub-PRD Dispatch Resume** (if applicable):
    ```bash
-   node speccrew-workspace/scripts/update-progress.js read --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json --summary
+   node "{update_progress_script}" read --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json --summary
    ```
    - Skip tasks with `status == "completed"`
    - Re-execute tasks with `status == "failed"`
@@ -209,11 +209,48 @@ Detect current IDE environment and determine skill loading strategy:
 
 1. **Detect IDE**: Check environment variables or context to identify current IDE (Claude Code, Cursor, Qoder, etc.)
 2. **Set skill_path**: Based on IDE detection result, set the appropriate skill search path
-3. **Proceed to Knowledge Base Availability Check**
+3. **Proceed to Path Initialization**
+
+---
+
+## Phase 0.6: Path Initialization
+
+After IDE detection, compute and store all absolute paths as workflow context variables. These paths MUST be used in ALL subsequent Worker dispatches and script invocations.
+
+**Compute the following paths** (all MUST be absolute paths):
+
+| Variable | Derivation | Example |
+|----------|-----------|---------|
+| `workspace_path` | Project root + `/speccrew-workspace` | `d:/dev/litemes/speccrew-workspace` |
+| `sync_state_bizs_dir` | `{workspace_path}/knowledges/base/sync-state/knowledge-bizs` | `d:/dev/litemes/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs` |
+| `iterations_dir` | `{workspace_path}/iterations` | `d:/dev/litemes/speccrew-workspace/iterations` |
+| `update_progress_script` | `{workspace_path}/scripts/update-progress.js` | `d:/dev/litemes/speccrew-workspace/scripts/update-progress.js` |
+| `ide_skills_dir` | `{project_root}/{ide_config_dir}/skills` (from Phase 0.5) | `d:/dev/litemes/.qoder/skills` |
+| `configs_dir` | `{workspace_path}/docs/configs` | `d:/dev/litemes/speccrew-workspace/docs/configs` |
+
+> **MANDATORY**: These variables MUST be passed to every Worker dispatch. Workers MUST NOT construct paths themselves.
 
 ---
 
 ## Phase 1: Knowledge Base Availability Check
+
+> 🛑 **CRITICAL CONSTRAINTS for Phase 1:**
+>
+> **MANDATORY — Skill-Based Execution:**
+> - Step 1.1 (Knowledge Detection): MUST dispatch Worker with `speccrew-pm-knowledge-detector` skill. DO NOT manually search directories or construct status reports yourself.
+> - Path B (Module Matching): MUST dispatch Worker with `speccrew-pm-module-matcher` skill.
+> - Path C (Feature Inventory): MUST dispatch Worker with `speccrew-knowledge-bizs-init-features` skill. The Worker MUST execute `generate-inventory.js` script via terminal.
+>
+> **FORBIDDEN — Manual File Operations:**
+> - DO NOT create `features-*.json` files manually via file write/create operations
+> - DO NOT create `entry-dirs-*.json` files manually via file write/create operations
+> - DO NOT create `sync-state` directories under `knowledges/techs/` — sync-state ONLY exists under `knowledges/base/`
+> - ALL features and entry-dirs files MUST be generated by scripts executed via `run_in_terminal`
+>
+> **Output Path Rule:**
+> - Features files: `{sync_state_bizs_dir}/features-{platform}.json`
+> - Entry-dirs files: `{sync_state_bizs_dir}/entry-dirs-{platform}.json`
+> - NEVER write to `knowledges/techs/*/sync-state/` or any other location
 
 > All knowledge base operations are executed via **Worker Agents** to preserve PM Agent context.
 > PM Agent only makes decisions based on Worker results — never reads large files directly.
@@ -224,7 +261,11 @@ Detect current IDE environment and determine skill loading strategy:
 
 | Parameter | Value |
 |-----------|-------|
-| `workspace_path` | `speccrew-workspace` |
+| `workspace_path` | `{workspace_path}` (absolute path from Phase 0.6) |
+| `sync_state_bizs_dir` | `{sync_state_bizs_dir}` (absolute path from Phase 0.6) |
+| `configs_dir` | `{configs_dir}` (absolute path from Phase 0.6) |
+
+> **MANDATORY**: Dispatch Worker with the detector skill. DO NOT manually search directories or check file existence yourself.
 
 **Worker returns** a JSON status object:
 
@@ -261,6 +302,7 @@ Feature inventory exists but detailed analysis may be incomplete.
    | `requirement_text` | User's requirement description |
    | `features_files` | From detector result |
    | `language` | Detected user language |
+   | `sync_state_bizs_dir` | `{sync_state_bizs_dir}` (absolute path from Phase 0.6) |
 
 2. **Worker returns** matched modules with confidence levels
 
@@ -321,8 +363,16 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
    | Parameter | Value |
    |-----------|-------|
    | `skill` | `speccrew-knowledge-bizs-init-features` |
-   | `workspace_path` | `speccrew-workspace` |
+   | `workspace_path` | `{workspace_path}` (absolute path from Phase 0.6) |
    | `language` | Detected user language |
+   | `sync_state_bizs_dir` | `{sync_state_bizs_dir}` (absolute path from Phase 0.6) |
+   | `configs_dir` | `{configs_dir}` (absolute path from Phase 0.6) |
+   | `ide_skills_dir` | `{ide_skills_dir}` (absolute path from Phase 0.6) |
+
+   > 🛑 **MANDATORY**: You MUST dispatch this as a Worker Agent task with the exact skill name above.
+   > **DO NOT** skip the Worker dispatch and perform the scan yourself.
+   > **DO NOT** manually create features-*.json files — they MUST be generated by the script inside the skill.
+   > **DO NOT** write any files to `knowledges/techs/*/` — output goes to `knowledges/base/sync-state/knowledge-bizs/` ONLY.
 
    - Worker scans project structure to discover platforms and modules
    - Worker generates `features-*.json` files (metadata: module names, feature counts, file paths)
@@ -416,7 +466,7 @@ Pass the following parameters to the skill:
 | Parameter | Value | Description |
 |-----------|-------|-------------|
 | `requirement_file` | Path to user's requirement document | Original requirement input |
-| `iteration_path` | `speccrew-workspace/iterations/{iteration}` | Current iteration directory |
+| `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) | Current iteration directory |
 | `complexity_hint` | `simple` or `complex` (from Phase 2 assessment) | Complexity assessment result |
 | `knowledge_status` | `full` / `lite` / `none` (from Phase 1) | Knowledge base availability for clarification strategy |
 
@@ -534,7 +584,7 @@ Clarification File: {iteration_path}/01.product-requirement/.clarification-summa
 - **IF user confirms** (explicit "确认" or "OK"):
   1. Update checkpoint to record user confirmation:
      ```bash
-     node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+     node "{update_progress_script}" write-checkpoint \
        --file {iteration_path}/01.product-requirement/.checkpoints.json \
        --stage 01_prd \
        --checkpoint requirement_clarification_confirmed \
@@ -586,7 +636,7 @@ Invoke speccrew-pm-requirement-simple
 **Parameters:**
 | Parameter | Value |
 |-----------|-------|
-| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 
 ---
@@ -614,13 +664,13 @@ Step 4b: Invoke speccrew-pm-requirement-analysis
 **Step 4a Parameters:**
 | Parameter | Value |
 |-----------|-------|
-| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 
 **Step 4b Parameters:**
 | Parameter | Value |
 |-----------|-------|
-| `iteration_path` | `speccrew-workspace/iterations/{iteration}` |
+| `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 | `module_design_file` | `{iteration_path}/01.product-requirement/.module-design.md` |
 
@@ -732,7 +782,7 @@ Step 4b: Invoke speccrew-pm-requirement-analysis
 >
 > 1. **DO NOT skip Phase 5 when Master-Sub structure is present** — If the Skill output indicates "Master-Sub PRD structure", Phase 5 MUST execute.
 > 2. **DO NOT generate Sub-PRDs yourself** — Each Sub-PRD MUST be generated by invoking `speccrew-task-worker` with `speccrew-pm-sub-prd-generate/SKILL.md`. You are the orchestrator, NOT the writer.
-> 3. **DO NOT create DISPATCH-PROGRESS.json manually** — Use the script: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`.
+> 3. **DO NOT create DISPATCH-PROGRESS.json manually** — Use the script: `node "{update_progress_script}" init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`.
 > 4. **DO NOT dispatch Sub-PRDs sequentially** — All workers MUST execute in parallel (batch of 6 if modules > 6).
 > 5. **DO NOT proceed to Phase 6 without verification** — After ALL workers complete, execute Phase 6 Verification Checklist before presenting to user.
 >
@@ -866,36 +916,36 @@ From the Skill's Step 12c output, collect:
 ```bash
 # Write tasks to temp file inside iteration directory
 # Create .tasks-temp.json with task array content
-node speccrew-workspace/scripts/update-progress.js init \
-  --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
+node "{update_progress_script}" init \
+  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
   --stage sub_prd_dispatch \
-  --tasks-file speccrew-workspace/iterations/{iteration}/01.product-requirement/.tasks-temp.json
+  --tasks-file {iterations_dir}/{iteration}/01.product-requirement/.tasks-temp.json
 # Delete .tasks-temp.json after successful init
 ```
 
 > **PowerShell Compatibility Note:**
 > PowerShell cannot properly parse JSON in command-line arguments. Use file-based approach:
 > 1. Write tasks JSON to a temporary file (e.g., `tasks-temp.json`)
-> 2. Read file content in the command: `node scripts/update-progress.js init --stage sub_prd_dispatch --tasks (Get-Content tasks-temp.json -Raw)`
-> 3. Or use: `Get-Content tasks-temp.json | node scripts/update-progress.js init --stage sub_prd_dispatch --tasks -`
+> 2. Read file content in the command: `node "{update_progress_script}" init --stage sub_prd_dispatch --tasks (Get-Content tasks-temp.json -Raw)`
+> 3. Or use: `Get-Content tasks-temp.json | node "{update_progress_script}" init --stage sub_prd_dispatch --tasks -`
 
 > 🛑 **HARD STOP: DISPATCH-PROGRESS.json MUST be created by script ONLY**
-> - MUST use: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`
+> - MUST use: `node "{update_progress_script}" init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`
 > - DO NOT create DISPATCH-PROGRESS.json manually (PowerShell, create_file, or any other method)
 > - IF script fails → STOP workflow immediately, report error to user, ask "Retry or Abort?"
 > - DO NOT proceed to Worker dispatch without successful script execution
 
 After each worker completes:
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-task \
-  --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
+node "{update_progress_script}" update-task \
+  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
   --task {module_key} --status completed
 ```
 
 If a worker fails:
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-task \
-  --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
+node "{update_progress_script}" update-task \
+  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
   --task {module_key} --status failed --error "{error_message}"
 ```
 
@@ -927,7 +977,7 @@ For EACH module in the dispatch plan, invoke a new `speccrew-task-worker` agent:
   - `module_key`: from dispatch plan
   - `master_prd_path`: path to Master PRD
   - `template_path`: PRD template path (from Step 7 glob search result)
-  - `output_dir`: `speccrew-workspace/iterations/{iteration}/01.product-requirement/`
+  - `output_dir`: `{iterations_dir}/{iteration}/01.product-requirement/` (absolute path from Phase 0.6)
 
 Each worker receives:
 - `skill_path`: `speccrew-pm-sub-prd-generate/SKILL.md`
@@ -1169,13 +1219,13 @@ Now update all checkpoints (user has confirmed):
 
 ```bash
 # Update verification_checklist checkpoint
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+node "{update_progress_script}" write-checkpoint \
   --file {iteration_path}/01.product-requirement/.checkpoints.json \
   --checkpoint verification_checklist \
   --passed true
 
 # Update prd_review checkpoint
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+node "{update_progress_script}" write-checkpoint \
   --file {iteration_path}/01.product-requirement/.checkpoints.json \
   --checkpoint prd_review \
   --passed true
@@ -1184,8 +1234,8 @@ node speccrew-workspace/scripts/update-progress.js write-checkpoint \
 **5.3.2 Update WORKFLOW-PROGRESS.json**
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js update-workflow \
-  --file speccrew-workspace/iterations/{iteration}/WORKFLOW-PROGRESS.json \
+node "{update_progress_script}" update-workflow \
+  --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
   --stage 01_prd --status completed
 ```
 
@@ -1220,17 +1270,17 @@ DO NOT proceed to Feature Design in this conversation.
 
 | Deliverable | Path | Notes |
 |-------------|------|-------|
-| Clarification Summary | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/.clarification-summary.md` | Generated by `speccrew-pm-requirement-clarify` |
-| Module Design (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/.module-design.md` | Generated by `speccrew-pm-requirement-model` |
-| Master PRD (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-analysis` |
-| Single PRD (simple) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-simple` |
-| Sub-PRD Documents (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-sub-[module].md` | One per module, generated by worker dispatch |
+| Clarification Summary | `{iterations_dir}/{number}-{type}-{name}/01.product-requirement/.clarification-summary.md` | Generated by `speccrew-pm-requirement-clarify` |
+| Module Design (complex) | `{iterations_dir}/{number}-{type}-{name}/01.product-requirement/.module-design.md` | Generated by `speccrew-pm-requirement-model` |
+| Master PRD (complex) | `{iterations_dir}/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-analysis` |
+| Single PRD (simple) | `{iterations_dir}/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-simple` |
+| Sub-PRD Documents (complex) | `{iterations_dir}/{number}-{type}-{name}/01.product-requirement/[feature-name]-sub-[module].md` | One per module, generated by worker dispatch |
 
 # Script Usage Reference
 
 ## update-progress.js Commands
 
-The `speccrew-workspace/scripts/update-progress.js` script supports the following commands:
+The `{update_progress_script}` script supports the following commands:
 
 | Command | Purpose | Key Parameters |
 |---------|---------|----------------|
@@ -1241,6 +1291,8 @@ The `speccrew-workspace/scripts/update-progress.js` script supports the followin
 | `write-checkpoint` | Write checkpoint | `--file`, `--stage`, `--checkpoint`, `--passed` |
 | `update-workflow` | Update workflow stage status | `--file`, `--stage`, `--status` |
 | `init-tasks` | Generate tasks from feature-spec files | `--file`, `--stage`, `--features-dir`, `--platforms` |
+
+> **Note**: All script invocations MUST use `{update_progress_script}` variable (absolute path from Phase 0.6) instead of relative path.
 
 ## PowerShell JSON Parameter Handling
 
@@ -1253,12 +1305,12 @@ The `speccrew-workspace/scripts/update-progress.js` script supports the followin
 
 ```powershell
 # ❌ WRONG — PowerShell will mangle the JSON string
-node speccrew-workspace/scripts/update-progress.js init --file progress.json --stage "01_prd" --tasks '[{"id":"task1"}]'
+node "{update_progress_script}" init --file progress.json --stage "01_prd" --tasks '[{"id":"task1"}]'
 
 # ✅ CORRECT — Write JSON to a temp file first, then use --tasks-file
 # Step 1: Write tasks to a temp file inside speccrew-workspace
 # Step 2: Use --tasks-file parameter
-node speccrew-workspace/scripts/update-progress.js init --file progress.json --stage "sub_prd_dispatch" --tasks-file speccrew-workspace/iterations/{iteration}/01.product-requirement/.tasks-temp.json
+node "{update_progress_script}" init --file progress.json --stage "sub_prd_dispatch" --tasks-file {iterations_dir}/{iteration}/01.product-requirement/.tasks-temp.json
 # Step 3: Delete the temp file after use
 ```
 
