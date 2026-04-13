@@ -172,61 +172,29 @@ flowchart TB
 
 ---
 
-## Stage 1a: Entry Directory Recognition (LLM-Driven)
+## Stage 1a: Entry Directory Recognition
 
-**Goal**: For each detected platform, use LLM to analyze the source directory tree and identify all entry directories (API controllers for backend, views/pages for frontend), then classify them into business modules.
+**Goal**: For each detected platform, analyze the source directory tree and identify all entry directories (API controllers for backend, views/pages for frontend), then classify them into business modules.
 
-> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)** using LLM analysis capabilities (Read/ListDir/Grep), NOT delegated to a Worker Agent.
+> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)**, NOT delegated to a Worker Agent.
 
 **Prerequisite**: Stage 0 completed. Platform list confirmed with `platformId`, `sourcePath`, `platformType`, `platformSubtype`, and `techIdentifier` for each platform.
 
-**Execution Flow** (for each platform):
+**Execution**: Follow the `speccrew-knowledge-bizs-identify-entries` skill workflow:
 
-### Step 1: Read Directory Tree
+1. For each platform, read the source directory tree (3 levels deep)
+2. Identify entry directories based on platform type:
+   - **Backend (Spring/Java/Kotlin)**: Find directories containing `*Controller.java` or `*Controller.kt` files. Module name = business package name of the entry directory
+   - **Frontend (Vue/React)**: Find `views/` or `pages/` directories. First-level subdirectories = business modules
+   - **Mobile (UniApp)**: Find first-level subdirectories under `pages/` + top-level `pages-*` directories
+   - **Mobile (Mini Program)**: Find first-level subdirectories under `pages/`
+3. Apply exclusion rules from `tech-stack-mappings.json` (technical dirs, build dirs, test dirs, config dirs)
+4. Generate `entry-dirs-{platform_id}.json` files
+5. Validate: modules array non-empty, module names are business-meaningful
 
-Use `ListDir` or `Bash(tree)` to read the platform's `{source_path}` directory structure (3 levels deep):
+> For detailed entry identification logic, exclusion rules, JSON format, and validation rules, refer to the `speccrew-knowledge-bizs-identify-entries` skill documentation.
 
-```bash
-# Windows (PowerShell)
-tree /F /A "{source_path}" | Select-Object -First 100
-
-# Unix/Linux/Mac
-tree -L 3 "{source_path}"
-```
-
-### Step 2: LLM Analysis - Identify Entry Directories
-
-Based on the directory tree and technology stack, analyze and identify entry directories:
-
-**Backend (Spring/Java/Kotlin)**:
-- Find all directories containing `*Controller.java` or `*Controller.kt` files
-- These are API entry directories
-- Module name = the business package name of the entry directory (e.g., `controller/admin/chat` → module `chat`)
-
-**Frontend (Vue/React)**:
-- Find `views/` or `pages/` directories
-- First-level subdirectories under these directories are business modules
-- Each subdirectory is an entry directory (e.g., `views/system/` → module `system`)
-
-**Mobile (UniApp)**:
-- Find first-level subdirectories under `pages/`
-- Plus top-level `pages-*` directories (module name = directory name without `pages-` prefix, e.g., `pages-bpm` → module `bpm`)
-
-**Mobile (Mini Program)**:
-- Find first-level subdirectories under `pages/` as modules
-
-**Exclusion Rules** (directories to ignore):
-- Pure technical directories: `config`, `framework`, `enums`, `exception`, `util`, `utils`, `common`, `constant`, `constants`, `type`, `types`, `dto`, `vo`, `entity`, `model`, `mapper`, `repository`, `dao`, `service`, `impl`
-- Build/output directories: `dist`, `build`, `target`, `out`, `node_modules`
-- Test directories: `test`, `tests`, `spec`, `__tests__`, `e2e`
-- Configuration directories: `.git`, `.idea`, `.vscode`, `.speccrew`
-
-**Root Module Handling**:
-- If an entry file is not under any subdirectory (directly under `{source_path}`), assign it to the `_root` module
-
-### Step 3: Generate entry-dirs JSON
-
-Output file: `{speccrew_workspace}/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform_id}.json`
+**Output**: `{speccrew_workspace}/knowledges/base/sync-state/knowledge-bizs/entry-dirs-{platform_id}.json`
 
 **JSON Format**:
 ```json
@@ -239,36 +207,10 @@ Output file: `{speccrew_workspace}/knowledges/base/sync-state/knowledge-bizs/ent
   "techStack": ["spring-boot", "mybatis-plus"],
   "modules": [
     { "name": "chat", "entryDirs": ["controller/admin/chat"] },
-    { "name": "image", "entryDirs": ["controller/admin/image"] },
-    { "name": "knowledge", "entryDirs": ["controller/admin/knowledge"] },
-    { "name": "_root", "entryDirs": ["controller/admin"] }
+    { "name": "image", "entryDirs": ["controller/admin/image"] }
   ]
 }
 ```
-
-**Field Definitions**:
-- `platformId`: Platform identifier (e.g., `backend-ai`, `web-vue`, `mobile-uniapp`)
-- `platformName`: (Optional) Human-readable platform name. Auto-generated as `{platform_type}-{platform_subtype}` if missing
-- `platformType`: (Optional) Platform type: `backend`, `web`, `mobile`, `desktop`. Inferred from platform_id if missing
-- `platformSubtype`: (Optional) Platform subtype (e.g., `ai`, `vue`, `uniapp`). Inferred from platform_id if missing
-- `sourcePath`: Absolute path to the platform source root
-- `techStack`: (Optional) Array of tech stack names (e.g., `["spring-boot", "mybatis-plus"]`). Default inferred from platform_type
-- `modules`: Array of business modules
-  - `name`: Module name (business-meaningful, e.g., `chat`, `system`, `order`)
-  - `entryDirs`: Array of entry directory paths (relative to `{source_path}`)
-
-**Path Rules**:
-- All `entryDirs` paths must be relative to `{source_path}`
-- Use forward slashes `/` as path separators (even on Windows)
-- Do not include leading or trailing slashes
-
-### Step 4: Validation
-
-After generating the entry-dirs JSON:
-1. Verify that `modules` array is not empty
-2. Verify that each module has at least one entry directory
-3. Verify that module names are business-meaningful (not technical terms like `config`, `util`)
-4. If validation fails, re-analyze the directory tree
 
 **Error handling**: If entry directory recognition fails for a platform, STOP and report the error with platform details. Do NOT proceed to Stage 1b for that platform.
 

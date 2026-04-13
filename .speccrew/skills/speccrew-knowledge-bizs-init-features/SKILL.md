@@ -20,7 +20,7 @@ tools: Read, Write, Glob, Grep, SearchCodebase, Skill, Bash
 ```mermaid
 flowchart TD
     Start([Start]) --> Step1[Step 1: Identify Platforms]
-    Step1 --> Step2[Step 2: Configure Platform Parameters]
+    Step1 --> Step2[Step 2: Identify Entry Directories]
     Step2 --> Step3[Step 3: Execute Inventory Scripts]
     Step3 --> Step4[Step 4: Report Results]
     Step4 --> End([End])
@@ -52,26 +52,39 @@ flowchart TD
 - Lookup `platform-mapping.json`: `web` + `vue` → `platform_type=web`, `platform_subtype=vue`
 - Lookup `tech-stack-mappings.json`: vue → extensions=[".vue"], exclude_dirs=["components","utils"]
 
-### Step 2: Configure Platform Parameters
+### Step 2: Identify Entry Directories
 
-For each detected platform, configure the following parameters:
+For each platform detected in Step 1, identify business module entry directories.
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `SourcePath` | Source directory relative to project root | `frontend-web/src/views` |
-| `OutputFileName` | Output file name | `features-web.json` |
-| `PlatformName` | Human-readable platform name | `Web Frontend` |
-| `PlatformType` | Platform category | `web`, `mobile`, `backend`, `desktop` |
-| `PlatformSubtype` | Technology/framework | `vue`, `react`, `flutter`, `spring` |
-| `TechStack` | Technology stack array | `["vue", "typescript"]` |
-| `FileExtensions` | File extensions to scan | `[".vue", ".ts"]` |
-| `ExcludeDirs` | Directories to exclude | `["components", "utils"]` |
+**Option A: Invoke Skill (Recommended)**
+
+Dispatch Worker with `speccrew-knowledge-bizs-identify-entries` skill:
+
+| Parameter | Value |
+|-----------|-------|
+| `platforms` | Platform list from Step 1 (each with platformId, sourcePath, platformType, platformSubtype, techStack) |
+| `workspace_path` | `speccrew-workspace` |
+
+Worker generates `entry-dirs-{platform_id}.json` files in `{workspace_path}/knowledges/base/sync-state/knowledge-bizs/`.
+
+**Option B: Direct Execution**
+
+If executing directly (without Worker dispatch), follow the same logic as the `speccrew-knowledge-bizs-identify-entries` skill:
+1. Read each platform's directory tree (3 levels deep)
+2. Identify entry directories based on platform type:
+   - **Backend**: Find directories containing `*Controller.*` files, extract business package names
+   - **Frontend**: Find `views/` or `pages/` directories, use first-level subdirectories as modules
+   - **Mobile**: Find `pages/` subdirectories + top-level `pages-*` directories
+3. Apply exclusion rules from `tech-stack-mappings.json`
+4. Generate `entry-dirs-{platform_id}.json` files
+
+**Verification**: Confirm each entry-dirs JSON has non-empty `modules` array with business-meaningful names.
 
 ### Step 3: Execute Inventory Scripts
 
 > **MANDATORY**: You MUST execute the provided scripts via `run_in_terminal`. DO NOT use `read_file`, `search_codebase`, `Glob`, or any other tool to substitute script execution. DO NOT manually scan files and construct JSON output yourself.
 
-Execute the inventory script for each platform:
+Execute the inventory script for each platform using the entry-dirs JSON from Step 2:
 
 **Prerequisites:**
 - Node.js 14.0+
@@ -79,94 +92,26 @@ Execute the inventory script for each platform:
 **Script Location (relative to this skill's directory):**
 - All Platforms: `{skill_path}/scripts/generate-inventory.js`
 
-**Example - Web Platform (Vue):**
+**Execution Command:**
 ```bash
-node "scripts/generate-inventory.js" \
-  --sourcePath "frontend-web/src/views" \
-  --outputFileName "features-web.json" \
-  --platformName "Web Frontend" \
-  --platformType "web" \
-  --platformSubtype "vue" \
-  --techStack "vue,typescript" \
-  --fileExtensions ".vue" \
-  --excludeDirs "components,composables,hooks,utils"
+node "{skill_path}/scripts/generate-inventory.js" --entryDirsFile "{entry_dirs_file_path}"
 ```
 
-**Example - Mobile Platform (UniApp):**
+Where `{entry_dirs_file_path}` is the full path to the `entry-dirs-{platform_id}.json` file generated in Step 2.
+
+**Example:**
 ```bash
-node "scripts/generate-inventory.js" \
-  --sourcePath "frontend-mobile/pages" \
-  --outputFileName "features-mobile.json" \
-  --platformName "Mobile App" \
-  --platformType "mobile" \
-  --platformSubtype "uniapp" \
-  --techStack "uniapp,vue" \
-  --fileExtensions ".vue" \
-  --excludeDirs "components,utils"
+# Execute for each platform's entry-dirs file
+node "scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-backend-system.json"
+
+node "scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-web-vue.json"
 ```
 
-**Example - Backend Platform (Spring Single Module):**
-```bash
-node "scripts/generate-inventory.js" \
-  --sourcePath "backend/src/main/java/com/example/controller" \
-  --outputFileName "features-backend.json" \
-  --platformName "Backend API" \
-  --platformType "backend" \
-  --platformSubtype "spring" \
-  --techStack "spring-boot,java" \
-  --fileExtensions ".java" \
-  --excludeDirs ""
-```
-
-**Example - Backend Platform (Spring Multi-Module):**
-
-> **IMPORTANT for Java/Kotlin backends**: Set `sourcePath` to the Java package root directory (e.g., `yudao-module-system/src/main/java/cn/iocoder/yudao/module/system`), NOT the module root. This ensures the `getModuleName` function extracts business module names (like `dept`, `auth`) instead of Java package segments (like `src`, `cn`).
-
-For projects with multiple backend modules (e.g., ruoyi-vue-pro), execute the script once per module:
-
-```bash
-# Module 1: AI
-node "scripts/generate-inventory.js" \
-  --sourcePath "yudao-module-ai/src/main/java/cn/iocoder/yudao/module/ai" \
-  --outputFileName "features-backend-ai.json" \
-  --platformName "Backend API - AI Module" \
-  --platformType "backend" \
-  --platformSubtype "ai" \
-  --techIdentifier "spring" \
-  --techStack "spring-boot,java" \
-  --fileExtensions ".java" \
-  --excludeDirs ""
-
-# Module 2: System
-node "scripts/generate-inventory.js" \
-  --sourcePath "yudao-module-system/src/main/java/cn/iocoder/yudao/module/system" \
-  --outputFileName "features-backend-system.json" \
-  --platformName "Backend API - System Module" \
-  --platformType "backend" \
-  --platformSubtype "system" \
-  --techIdentifier "spring" \
-  --techStack "spring-boot,java" \
-  --fileExtensions ".java" \
-  --excludeDirs ""
-```
-
-> **Note**: For multi-module backend projects, prefer per-module execution (above) over scan-all to get proper module-level directory isolation (e.g., `backend-ai/`, `backend-system/`).
-
-**Alternative: Scan All Modules at Once**
-
-If all modules share the same parent directory structure, you can scan from the project root:
-
-```bash
-node "scripts/generate-inventory.js" \
-  --sourcePath "." \
-  --outputFileName "features-backend-all.json" \
-  --platformName "Backend API - All Modules" \
-  --platformType "backend" \
-  --platformSubtype "spring" \
-  --techStack "spring-boot,java" \
-  --fileExtensions ".java" \
-  --excludeDirs "test,target,.git"
-```
+**Script Parameters**:
+- `--entryDirsFile`: (Required) Path to the `entry-dirs-{platform_id}.json` file generated in Step 2
+- `--techIdentifier`: (Optional) Technology identifier for tech-stack lookup (auto-detected from platform mapping if omitted)
+- `--fileExtensions`: (Optional) Comma-separated list of file extensions to include
+- `--excludeDirs`: (Optional) Additional directories to exclude
 
 **Output: `features-{platform}.json` Structure:**
 ```json
@@ -175,7 +120,10 @@ node "scripts/generate-inventory.js" \
   "platformType": "web",
   "sourcePath": "frontend-web/src/views",
   "techStack": ["vue", "typescript"],
-  "modules": ["system", "trade", "infra"],
+  "modules": [
+    { "name": "chat", "featureCount": 12 },
+    { "name": "image", "featureCount": 8 }
+  ],
   "totalFiles": 25,
   "analyzedCount": 0,
   "pendingCount": 25,
@@ -196,12 +144,10 @@ node "scripts/generate-inventory.js" \
 ```
 
 **Module Detection Rule:**
-- The `module` field is automatically extracted from each file's relative directory path
-- It uses the **first non-excluded directory level** as the module name
-- Example: `system/user/index.vue` → module = `system`
-- Example: `components/Table.vue` (excluded dir) → skipped by ExcludeDirs
-- Files at root level (no subdirectory) → module = `_root`
-- The top-level `modules` array lists all unique module names found
+- When using `--entryDirsFile` mode (recommended), the `module` field for each feature is determined by matching the file's path against the entry directories defined in the entry-dirs JSON
+- Each file is assigned to the module whose `entryDirs` path matches the file's relative directory
+- The top-level `modules` array lists all modules with their feature counts
+- Files not matching any entry directory → module = `_root`
 
 **sourcePath Format:**
 - In both full-scan mode and entry-dirs mode, `sourcePath` is always a **project-root-relative path**
@@ -250,6 +196,12 @@ Final Output:
 - [ ] Platforms identified (Web, Mobile, Desktop, or API)
 - [ ] Each platform has correct `platformName`, `platformType`, `techStack` configuration
 - [ ] Source directories located for all platforms
+
+### Entry Directory Identification
+- [ ] Entry-dirs JSON files generated for all platforms
+- [ ] Each platform has non-empty modules array
+- [ ] Module names are business-meaningful (not technical terms like `config`, `util`, `controller`)
+- [ ] Entry directory paths are correct and accessible
 
 ### Inventory Generation
 - [ ] **Inventory scripts executed**: Node.js script generated `features-{platform}.json` files
