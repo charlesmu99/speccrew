@@ -52,6 +52,7 @@ Generate analyze task plan for a single business module. Reads features-*.json, 
   "analyzer_skill": "speccrew-knowledge-bizs-ui-analyze",
   "tasks": [
     {
+      "id": "ki-web-vue-system-index",
       "fileName": "index",
       "sourcePath": "src/views/system/user/index.vue",
       "documentPath": "knowledges/bizs/web-vue/system/features",
@@ -59,7 +60,8 @@ Generate analyze task plan for a single business module. Reads features-*.json, 
       "platform_type": "web",
       "platform_subtype": "vue",
       "tech_stack": ["vue", "typescript"],
-      "language": "zh"
+      "language": "zh",
+      "status": "pending"
     }
   ],
   "total_pending": 90,
@@ -82,6 +84,18 @@ Generate analyze task plan for a single business module. Reads features-*.json, 
 | `tasks` | Array of pending features to analyze |
 | `total_pending` | Count of pending features |
 | `summarize_params` | Parameters for module-summarize skill (to be executed after all analyze tasks complete) |
+
+**Task ID Naming Convention**:
+
+The `id` field follows the format: `ki-{platform_id}-{module}-{fileName}`
+- `ki` = knowledge initialization
+- `platform_id` = Platform identifier (e.g., "web-vue", "admin-api")
+- `module` = Business module name
+- `fileName` = Feature file name
+
+Example: `"ki-web-vue-system-index"`
+
+> **Note**: This ID is consistent with task IDs in DISPATCH-PROGRESS.json and is used for progress tracking.
 
 ## Workflow
 
@@ -132,6 +146,7 @@ For each pending feature from Step 1, build a task object with analyzer paramete
 
 ```json
 {
+  "id": "ki-{platform_id}-{feature.module}-{feature.fileName}",
   "fileName": "{feature.fileName}",
   "sourcePath": "{feature.sourcePath}",
   "documentPath": "{output_path}/bizs/{platform_id}/{feature.module}/features",
@@ -139,7 +154,8 @@ For each pending feature from Step 1, build a task object with analyzer paramete
   "platform_type": "{platform_type}",
   "platform_subtype": "{platform_subtype}",
   "tech_stack": "{tech_stack}",
-  "language": "{language}"
+  "language": "{language}",
+  "status": "pending"
 }
 ```
 
@@ -150,6 +166,8 @@ For backend features (api-analyze), also include:
   "sourceFile": "{sourceFile}"
 }
 ```
+
+**Note**: The `id` field format is `ki-{platform_id}-{module}-{fileName}` where `ki` stands for "knowledge initialization". This ID is consistent with task IDs in DISPATCH-PROGRESS.json for progress tracking.
 
 **Output**: "Step 3 Status: ✅ COMPLETED - Built {count} task entries"
 

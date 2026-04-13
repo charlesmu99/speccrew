@@ -408,6 +408,12 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > 🛑 **MANDATORY -- Path C -> Path B Sequence**:
 > After init-features completes (features-*.json generated), you MUST immediately execute Path B:
 >
+> **Path B Recovery Check**:
+> Before starting Step 1, check if `{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json` exists:
+> - If exists with pending tasks → resume from Step 3 (skip Step 1 and Step 1.5)
+> - If exists with all completed → skip to Step 5 (Update Features Status)
+> - If not exists → start from Step 1
+>
 > **Path B Step 1: Module Matching**
 > Dispatch Worker with `speccrew-pm-module-matcher` skill to match requirement features against the generated features inventory.
 >
@@ -421,6 +427,26 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 >     sync_state_bizs_dir: {sync_state_bizs_dir}
 >     requirement_summary: <brief summary of user's requirement>
 > ```
+>
+> **Path B Step 1.5: Initialize Knowledge Dispatch Progress**
+>
+> Save the matcher Worker's output to a temporary file:
+> - File path: `{workspace_path}/knowledges/bizs/.matcher-result.json`
+> - Content: The matcher's full JSON output (matched modules with platform_id, module_name, confidence)
+>
+> Run the dispatch progress initialization script:
+> ```bash
+> node "{update_progress_script}" init-knowledge-tasks `
+>   --file "{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json" `
+>   --matcher-result "{workspace_path}/knowledges/bizs/.matcher-result.json" `
+>   --features-dir "{workspace_path}/knowledges/bizs"
+> ```
+>
+> Verify the DISPATCH-PROGRESS.json was created successfully and log the total task count.
+>
+> 🛑 **HARD GATE — DISPATCH-PROGRESS.json MUST exist before proceeding**
+> DO NOT proceed to Step 2 until DISPATCH-PROGRESS.json is created and contains tasks.
+> If the script fails, diagnose the error and retry. DO NOT skip this step.
 >
 > 🛑 **CRITICAL GATE — DO NOT SKIP Steps 2-5**:
 > After matcher completes, you MUST execute Steps 2-5 to deep-initialize the matched modules' knowledge base.
@@ -455,33 +481,70 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 >
 > Wait for ALL module-initializer Workers to complete. Collect all task plan JSON outputs.
 >
-> **Path B Step 3: Execute Feature Analysis**
-> Based on the task plans from Step 2, dispatch Worker for EACH pending feature.
+> **Path B Step 3: Execute Feature Analysis (Dispatch-Tracked)**
 >
-> For backend features: dispatch Worker with `speccrew-knowledge-bizs-api-analyze` skill
-> For web/mobile/desktop features: dispatch Worker with `speccrew-knowledge-bizs-ui-analyze` skill
+> ⚠️ **MANDATORY RULES FOR THIS STEP:**
+> 1. MUST dispatch Workers for ALL tasks with status "pending" in DISPATCH-PROGRESS.json
+> 2. DO NOT skip any pending task — the matcher already determined relevance
+> 3. DO NOT stop mid-way to ask user for options (A/B/C) — execute ALL tasks
+> 4. After each Worker completes, update task status via script
 >
-> **Agent Tool Invocation for each feature**:
-> ```
-> Use the Agent tool to invoke speccrew-task-worker:
-> - agent: speccrew-task-worker
-> - task: Execute {analyzer_skill} for feature "{fileName}"
-> - context:
->     skill: {analyzer_skill}
->     fileName: {task.fileName}
->     sourcePath: {source_path}/{task.sourcePath}
->     documentPath: {workspace_path}/{task.documentPath}
->     module: {task.module}
->     analyzed: false
->     platform_type: {task.platform_type}
->     platform_subtype: {task.platform_subtype}
->     tech_stack: {task.tech_stack}
->     language: {language}
->     completed_dir: {sync_state_bizs_dir}/completed
->     sourceFile: features-{platform_id}.json
-> ```
+> **Recovery Check**: Read `{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json`:
+> - If tasks with `status: "completed"` exist, skip them (resuming from interruption)
+> - Only dispatch tasks with `status: "pending"`
+> - Log: "Resuming: {completed_count} completed, {pending_count} remaining"
 >
-> Wait for ALL analyze Workers to complete.
+> **Dispatch Loop**:
+> For each task in DISPATCH-PROGRESS.json where status == "pending":
+>
+> 1. Dispatch `speccrew-task-worker` with:
+>    - **skill**: `{task.analyzer_skill}` (e.g., `speccrew-knowledge-bizs-api-analyze` or `speccrew-knowledge-bizs-ui-analyze`)
+>    - **context**: All task fields (module, platform_id, fileName, sourcePath, etc.)
+>
+>    **Agent Tool Invocation**:
+>    ```
+>    Use the Agent tool to invoke speccrew-task-worker:
+>    - agent: speccrew-task-worker
+>    - task: Execute {task.analyzer_skill} for feature "{task.fileName}"
+>    - context:
+>        skill: {task.analyzer_skill}
+>        fileName: {task.fileName}
+>        sourcePath: {source_path}/{task.sourcePath}
+>        documentPath: {workspace_path}/{task.documentPath}
+>        module: {task.module}
+>        platform_id: {task.platform_id}
+>        platform_type: {task.platform_type}
+>        platform_subtype: {task.platform_subtype}
+>        tech_stack: {task.tech_stack}
+>        language: {language}
+>        completed_dir: {sync_state_bizs_dir}/completed
+>        sourceFile: features-{task.platform_id}.json
+>    ```
+>
+> 2. After Worker completes successfully, update progress:
+>    ```bash
+>    node "{update_progress_script}" update-task `
+>      --file "{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json" `
+>      --task-id "{task.id}" `
+>      --status completed
+>    ```
+>
+> 3. If Worker fails, update status to "failed" and continue with next task:
+>    ```bash
+>    node "{update_progress_script}" update-task `
+>      --file "{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json" `
+>      --task-id "{task.id}" `
+>      --status failed
+>    ```
+>
+> **Completion Check**: After all dispatches complete, read DISPATCH-PROGRESS.json:
+> - If all tasks are "completed" → proceed to Step 4
+> - If some tasks "failed" → log failures and proceed (do not block on failures)
+>
+> 🛑 **CONTINUOUS EXECUTION — DO NOT INTERRUPT**
+> Process ALL pending tasks without stopping for user confirmation.
+> The scope was already determined by the matcher in Step 1.
+> Asking "do you want to continue?" mid-way is FORBIDDEN.
 >
 > **Path B Step 4: Generate Module Summaries**
 > For each matched module, dispatch Worker with `speccrew-knowledge-module-summarize` skill:
@@ -503,6 +566,7 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 >
 > 🛑 **Path B Completion Check**:
 > Before proceeding to Phase 2, verify:
+> - [ ] Step 1.5 completed: DISPATCH-PROGRESS.json created with all tasks
 > - [ ] Step 2 completed: task plan JSON generated for each matched module
 > - [ ] Step 3 completed: analyze Workers dispatched and completed for ALL pending features
 > - [ ] Step 4 completed: module-summarize Workers completed for ALL matched modules

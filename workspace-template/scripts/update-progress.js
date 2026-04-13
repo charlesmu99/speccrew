@@ -56,6 +56,14 @@
  *      --status <status>       Status: pending/in_progress/completed/confirmed (required)
  *      --output <text>         Output information (optional)
  *
+ * 7. init-knowledge-tasks - Generate knowledge initialization tasks from matcher results
+ *    node update-progress.js init-knowledge-tasks --file <path> --matcher-result <path> --features-dir <dir> [--force]
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --matcher-result <path> Matcher result JSON file path (required)
+ *      --features-dir <dir>    Directory containing features-*.json files (required)
+ *      --force                 Overwrite existing file
+ *
  * Output Format:
  *   Success: {"success": true, "message": "...", "data": {...}}
  *   Failure: {"success": false, "error": "..."} (output to stderr, exit code 1)
@@ -344,6 +352,10 @@ function parseArgs() {
             case '--force':
             case '-Force':
                 result.force = true;
+                break;
+            case '--matcher-result':
+            case '-Matcher-Result':
+                result.matcherResult = args[++i];
                 break;
         }
     }
@@ -817,6 +829,201 @@ function cmdUpdateWorkflow(args) {
 }
 
 /**
+ * Determine analyzer skill based on platform_id
+ * @param {string} platformId - Platform identifier
+ * @returns {string} Analyzer skill name
+ */
+function getAnalyzerSkill(platformId) {
+    const pid = platformId.toLowerCase();
+    if (pid.includes('web') || pid.includes('mobile')) {
+        return 'speccrew-knowledge-bizs-ui-analyze';
+    }
+    if (pid.includes('backend') || pid.includes('api')) {
+        return 'speccrew-knowledge-bizs-api-analyze';
+    }
+    // Default to UI analyzer for unknown platforms
+    return 'speccrew-knowledge-bizs-ui-analyze';
+}
+
+/**
+ * Command: init-knowledge-tasks - Generate knowledge initialization tasks from matcher results
+ * 
+ * Reads matcher result and features-*.json files to generate a task list for knowledge initialization.
+ * Each task corresponds to a feature that needs to be analyzed.
+ */
+function cmdInitKnowledgeTasks(args) {
+    // Validate required arguments
+    if (!args.file || !args.matcherResult || !args.featuresDir) {
+        outputError('Usage: init-knowledge-tasks --file <path> --matcher-result <path> --features-dir <dir> [--force]');
+    }
+
+    const filePath = path.resolve(args.file);
+    const matcherResultPath = path.resolve(args.matcherResult);
+    const featuresDir = path.resolve(args.featuresDir);
+
+    // Check if matcher result file exists
+    if (!fs.existsSync(matcherResultPath)) {
+        outputError(`Matcher result file not found: ${matcherResultPath}`);
+    }
+
+    // Check if features directory exists
+    if (!fs.existsSync(featuresDir)) {
+        outputError(`Features directory not found: ${featuresDir}`);
+    }
+
+    // Check if target file already exists (prevent overwrite without --force)
+    if (fs.existsSync(filePath) && !args.force) {
+        outputError(`Progress file already exists: ${filePath}. Use --force to overwrite.`);
+    }
+
+    // Read matcher result
+    let matcherResult;
+    try {
+        matcherResult = readJsonFile(matcherResultPath);
+    } catch (e) {
+        outputError(`Failed to read matcher result: ${e.message}`);
+    }
+
+    // Extract matched modules (high + medium confidence)
+    const matchedModules = matcherResult.matched_modules || [];
+    if (matchedModules.length === 0) {
+        outputError('No matched modules found in matcher result');
+    }
+
+    // Filter to high and medium confidence matches
+    const validConfidences = ['high', 'medium'];
+    const filteredModules = matchedModules.filter(m => 
+        validConfidences.includes((m.confidence || '').toLowerCase())
+    );
+
+    if (filteredModules.length === 0) {
+        outputError('No modules with high or medium confidence found');
+    }
+
+    // Scan features-*.json files
+    const featuresFiles = fs.readdirSync(featuresDir).filter(f => 
+        f.startsWith('features-') && f.endsWith('.json')
+    );
+
+    if (featuresFiles.length === 0) {
+        outputError(`No features-*.json files found in: ${featuresDir}`);
+    }
+
+    // Load all features data indexed by platform_id
+    const featuresDataByPlatform = {};
+    for (const file of featuresFiles) {
+        const filePath = path.join(featuresDir, file);
+        try {
+            const data = readJsonFile(filePath);
+            if (data.platform_id) {
+                featuresDataByPlatform[data.platform_id] = data;
+            }
+        } catch (e) {
+            outputError(`Failed to parse features file ${file}: ${e.message}`);
+        }
+    }
+
+    // Generate tasks from matched modules and features
+    const tasks = [];
+    const now = getTimestamp();
+
+    for (const matchedModule of filteredModules) {
+        const { module_name, platform_id, features: matchedFeatures } = matchedModule;
+
+        // Determine analyzer skill based on platform
+        const analyzerSkill = getAnalyzerSkill(platform_id);
+
+        // Get features for this module
+        let featuresToProcess = [];
+
+        if (matchedFeatures && Array.isArray(matchedFeatures) && matchedFeatures.length > 0) {
+            // Use features directly from matcher result
+            featuresToProcess = matchedFeatures;
+        } else {
+            // Look up features from features-*.json files
+            const platformData = featuresDataByPlatform[platform_id];
+            if (platformData && platformData.modules && platformData.modules[module_name]) {
+                const moduleData = platformData.modules[module_name];
+                if (moduleData.features && Array.isArray(moduleData.features)) {
+                    featuresToProcess = moduleData.features;
+                }
+            }
+        }
+
+        // Filter to only unanalyzed features (analyzed !== true)
+        const unanalyzedFeatures = featuresToProcess.filter(f => f.analyzed !== true);
+
+        // Create task for each unanalyzed feature
+        for (const feature of unanalyzedFeatures) {
+            const fileName = feature.fileName || feature.file_name || 'unknown';
+            const sourcePath = feature.sourcePath || feature.source_path || '';
+
+            // Generate task ID: ki-{platform_id}-{module}-{fileName}
+            // Sanitize fileName for ID (remove extension, replace special chars)
+            const fileNameForId = fileName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const taskId = `ki-${platform_id}-${module_name}-${fileNameForId}`;
+
+            tasks.push({
+                id: taskId,
+                name: `Analyze ${module_name}.${fileName} (${platform_id})`,
+                status: 'pending',
+                module: module_name,
+                platform_id: platform_id,
+                fileName: fileName,
+                sourcePath: sourcePath,
+                analyzer_skill: analyzerSkill,
+                created_at: now
+            });
+        }
+    }
+
+    // Sort tasks: by platform_id, then module, then fileName
+    tasks.sort((a, b) => {
+        if (a.platform_id !== b.platform_id) {
+            return a.platform_id.localeCompare(b.platform_id);
+        }
+        if (a.module !== b.module) {
+            return a.module.localeCompare(b.module);
+        }
+        return a.fileName.localeCompare(b.fileName);
+    });
+
+    // Create progress file structure
+    const progressData = {
+        stage: 'knowledge_initialization',
+        created_at: now,
+        updated_at: now,
+        counts: calculateCounts(tasks),
+        tasks: tasks,
+        checkpoints: {}
+    };
+
+    // Ensure directory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // Acquire lock and write
+    let lockPath = null;
+    try {
+        lockPath = acquireLock(filePath);
+        atomicWriteJson(filePath, progressData);
+        outputSuccess(
+            `Generated ${tasks.length} knowledge initialization tasks`,
+            {
+                file: filePath,
+                stage: 'knowledge_initialization',
+                matched_modules: filteredModules.length,
+                counts: progressData.counts
+            }
+        );
+    } finally {
+        if (lockPath) releaseLock(lockPath);
+    }
+}
+
+/**
  * Command: init-tasks - Scan feature-design directory to generate task list
  */
 function cmdInitTasks(args) {
@@ -983,6 +1190,7 @@ function main() {
         console.error('  write-checkpoint Write or update a checkpoint');
         console.error('  update-workflow  Update a workflow stage status');
         console.error('  init-tasks       Generate tasks from feature-spec files');
+        console.error('  init-knowledge-tasks  Generate knowledge initialization tasks from matcher results');
         console.error('');
         console.error('Run "node update-progress.js <command> --help" for more information.');
         process.exit(1);
@@ -1011,6 +1219,9 @@ function main() {
                 break;
             case 'init-tasks':
                 cmdInitTasks(args);
+                break;
+            case 'init-knowledge-tasks':
+                cmdInitKnowledgeTasks(args);
                 break;
             default:
                 outputError(`Unknown command: ${args.command}`);
