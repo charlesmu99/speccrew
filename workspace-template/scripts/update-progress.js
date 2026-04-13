@@ -1,75 +1,76 @@
 #!/usr/bin/env node
 
 /**
- * update-progress.js - 通用进度文件更新工具
+ * update-progress.js - Universal Progress File Update Tool
  *
- * 为 SpecCrew 所有 Agent 提供统一的进度文件更新工具，替代手动 PowerShell/Python 内联操作。
+ * Provides a unified progress file update tool for all SpecCrew Agents,
+ * replacing manual PowerShell/Python inline operations.
  *
- * 支持的命令：
+ * Supported Commands:
  *
- * 1. init - 初始化 DISPATCH-PROGRESS.json
+ * 1. init - Initialize DISPATCH-PROGRESS.json
  *    node update-progress.js init --file <path> --stage <stage_name> --tasks <tasks_json_or_file>
- *    选项：
- *      --file <path>           进度文件路径（必需）
- *      --stage <name>          阶段名称（必需）
- *      --tasks <json|file>     任务列表 JSON 或 JSON 文件路径
- *      --tasks-file <path>     从文件读取任务列表
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --stage <name>          Stage name (required)
+ *      --tasks <json|file>     Task list JSON or JSON file path
+ *      --tasks-file <path>     Read task list from file
  *
- * 2. read - 读取进度文件
+ * 2. read - Read progress file
  *    node update-progress.js read --file <path> [options]
- *    选项：
- *      --file <path>           进度文件路径（必需）
- *      --task-id <id>          仅输出指定任务
- *      --status <status>       按状态过滤任务列表（pending/in_progress/partial/completed/failed）
- *      --summary               输出进度摘要（总数/完成/失败/部分/待处理）
- *      --checkpoints           读取所有 checkpoint 状态
- *      --overview              读取 workflow 全景（阶段概览）
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --task-id <id>          Output only the specified task
+ *      --status <status>       Filter tasks by status (pending/in_progress/partial/completed/failed)
+ *      --summary               Output progress summary (total/completed/failed/partial/pending)
+ *      --checkpoints           Read all checkpoint statuses
+ *      --overview              Read workflow overview (stage summary)
  *
- * 3. update-task - 更新单个任务状态
+ * 3. update-task - Update a single task status
  *    node update-progress.js update-task --file <path> --task-id <id> --status <status> [options]
- *    选项：
- *      --file <path>           进度文件路径（必需）
- *      --task-id <id>          任务 ID（必需）
- *      --status <status>       任务状态：pending/in_progress/partial/completed/failed（必需）
- *      --output <text>         任务输出（completed 时使用）
- *      --error <text>          错误信息（failed 时使用）
- *      --error-category <cat>  错误类别（failed 时使用）
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --task-id <id>          Task ID (required)
+ *      --status <status>       Task status: pending/in_progress/partial/completed/failed (required)
+ *      --output <text>         Task output (used when completed)
+ *      --error <text>          Error message (used when failed)
+ *      --error-category <cat>  Error category (used when failed)
  *
- * 4. update-counts - 强制重算计数
+ * 4. update-counts - Force recalculate counts
  *    node update-progress.js update-counts --file <path>
  *
- * 5. write-checkpoint - 写入/更新 checkpoint
+ * 5. write-checkpoint - Write/update checkpoint
  *    node update-progress.js write-checkpoint --file <path> --stage <stage> --checkpoint <name> --passed <true|false> [--description <text>]
- *    选项：
- *      --file <path>           进度文件路径（必需）
- *      --stage <name>          阶段名称（必需，如文件不存在则创建）
- *      --checkpoint <name>     检查点名称（必需）
- *      --passed <true|false>   是否通过（必需）
- *      --description <text>    描述信息（可选）
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --stage <name>          Stage name (required, creates file if not exists)
+ *      --checkpoint <name>     Checkpoint name (required)
+ *      --passed <true|false>   Whether passed (required)
+ *      --description <text>    Description (optional)
  *
- * 6. update-workflow - 更新 WORKFLOW-PROGRESS 阶段状态
+ * 6. update-workflow - Update WORKFLOW-PROGRESS stage status
  *    node update-progress.js update-workflow --file <path> --stage <name> --status <status> [--output <text>]
- *    选项：
- *      --file <path>           进度文件路径（必需）
- *      --stage <name>          阶段名称（必需）
- *      --status <status>       状态：pending/in_progress/completed/confirmed（必需）
- *      --output <text>         输出信息（可选）
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --stage <name>          Stage name (required)
+ *      --status <status>       Status: pending/in_progress/completed/confirmed (required)
+ *      --output <text>         Output information (optional)
  *
- * 输出格式：
- *   成功：{"success": true, "message": "...", "data": {...}}
- *   失败：{"success": false, "error": "..."}（输出到 stderr，exit code 1）
+ * Output Format:
+ *   Success: {"success": true, "message": "...", "data": {...}}
+ *   Failure: {"success": false, "error": "..."} (output to stderr, exit code 1)
  */
 
 const fs = require('fs');
 const path = require('path');
 
 // ============================================================================
-// 工具函数
+// Utility Functions
 // ============================================================================
 
 /**
- * 生成本地时区的 ISO 8601 格式时间戳
- * 例如：2026-04-10T20:38:21.978+08:00
+ * Generate ISO 8601 format timestamp in local timezone
+ * Example: 2026-04-10T20:38:21.978+08:00
  */
 function getLocalISOString() {
     const now = new Date();
@@ -87,14 +88,14 @@ function getLocalISOString() {
 }
 
 /**
- * 生成 ISO 8601 格式时间戳（本地时区）
+ * Generate ISO 8601 format timestamp (local timezone)
  */
 function getTimestamp() {
     return getLocalISOString();
 }
 
 /**
- * 输出成功结果到 stdout
+ * Output success result to stdout
  */
 function outputSuccess(message, data = null) {
     const result = { success: true, message };
@@ -105,7 +106,7 @@ function outputSuccess(message, data = null) {
 }
 
 /**
- * 输出错误结果到 stderr 并退出
+ * Output error result to stderr and exit
  */
 function outputError(error) {
     console.error(JSON.stringify({ success: false, error }, null, 2));
@@ -113,9 +114,9 @@ function outputError(error) {
 }
 
 /**
- * 获取文件锁（防止并发冲突）
- * @param {string} filePath 目标文件路径
- * @returns {string} 锁文件路径
+ * Acquire file lock (prevent concurrent conflicts)
+ * @param {string} filePath Target file path
+ * @returns {string} Lock file path
  */
 function acquireLock(filePath) {
     const lockPath = `${filePath}.lock`;
@@ -124,12 +125,12 @@ function acquireLock(filePath) {
 
     while (retryCount < maxRetries) {
         try {
-            // 尝试独占创建锁文件
+            // Attempt to exclusively create lock file
             const fd = fs.openSync(lockPath, 'wx');
             fs.closeSync(fd);
             return lockPath;
         } catch (error) {
-            // 检查是否为锁文件已存在的错误
+            // Check if error is lock file already exists
             if (error.code === 'EEXIST') {
                 try {
                     const lockStat = fs.statSync(lockPath);
@@ -137,18 +138,18 @@ function acquireLock(filePath) {
                     if (ageSeconds > 60) {
                         console.error(`Warning: Stale lock file detected (age: ${Math.round(ageSeconds)}s), removing: ${lockPath}`);
                         fs.unlinkSync(lockPath);
-                        // 不消耗重试次数，继续下一次循环尝试获取锁
+                        // Do not consume retry count, continue to next loop attempt to acquire lock
                         continue;
                     }
                 } catch (statErr) {
-                    // 锁文件在 stat 时已被删除，继续重试即可
+                    // Lock file was deleted during stat, continue retrying
                 }
             }
             retryCount++;
             if (retryCount >= maxRetries) {
                 throw new Error(`Failed to acquire file lock for '${filePath}' after ${maxRetries} attempts`);
             }
-            // 等待 1 秒后重试
+            // Wait 1 second before retry
             const start = Date.now();
             while (Date.now() - start < 1000) {
                 // Busy wait
@@ -158,8 +159,8 @@ function acquireLock(filePath) {
 }
 
 /**
- * 释放文件锁
- * @param {string} lockPath 锁文件路径
+ * Release file lock
+ * @param {string} lockPath Lock file path
  */
 function releaseLock(lockPath) {
     try {
@@ -167,14 +168,14 @@ function releaseLock(lockPath) {
             fs.unlinkSync(lockPath);
         }
     } catch (e) {
-        // 忽略清理错误
+        // Ignore cleanup errors
     }
 }
 
 /**
- * 原子写入 JSON 文件
- * @param {string} filePath 目标文件路径
- * @param {object} data 要写入的数据
+ * Atomically write JSON file
+ * @param {string} filePath Target file path
+ * @param {object} data Data to write
  */
 function atomicWriteJson(filePath, data) {
     const tempFile = `${filePath}.tmp`;
@@ -183,9 +184,9 @@ function atomicWriteJson(filePath, data) {
 }
 
 /**
- * 读取 JSON 文件
- * @param {string} filePath 文件路径
- * @returns {object} 解析后的 JSON 对象
+ * Read JSON file
+ * @param {string} filePath File path
+ * @returns {object} Parsed JSON object
  */
 function readJsonFile(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -200,9 +201,9 @@ function readJsonFile(filePath) {
 }
 
 /**
- * 计算任务计数
- * @param {Array} tasks 任务列表
- * @returns {object} 计数结果
+ * Calculate task counts
+ * @param {Array} tasks Task list
+ * @returns {object} Count results
  */
 function calculateCounts(tasks) {
     const total = tasks.length;
@@ -215,12 +216,12 @@ function calculateCounts(tasks) {
 }
 
 // ============================================================================
-// 参数解析
+// Argument Parsing
 // ============================================================================
 
 /**
- * 解析命令行参数
- * 支持 --flag value 和 -Flag value 两种格式
+ * Parse command line arguments
+ * Supports both --flag value and -Flag value formats
  */
 function parseArgs() {
     const args = process.argv.slice(2);
@@ -246,7 +247,7 @@ function parseArgs() {
         force: false
     };
 
-    // 第一个参数是命令
+    // First argument is the command
     if (args.length > 0 && !args[0].startsWith('-')) {
         result.command = args[0];
     }
@@ -254,7 +255,7 @@ function parseArgs() {
     for (let i = 0; i < args.length; i++) {
         const arg = args[i];
         
-        // 跳过命令本身
+        // Skip the command itself
         if (i === 0 && !arg.startsWith('-')) {
             continue;
         }
@@ -351,11 +352,11 @@ function parseArgs() {
 }
 
 // ============================================================================
-// 命令实现
+// Command Implementations
 // ============================================================================
 
 /**
- * 命令：init - 初始化进度文件
+ * Command: init - Initialize progress file
  */
 function cmdInit(args) {
     if (!args.file || !args.stage) {
@@ -365,9 +366,9 @@ function cmdInit(args) {
     const filePath = path.resolve(args.file);
     let tasks = [];
 
-    // 从参数或文件读取任务列表
+    // Read task list from argument or file
     if (args.tasksFile) {
-        // 从文件读取
+        // Read from file
         const tasksContent = fs.readFileSync(path.resolve(args.tasksFile), 'utf8');
         try {
             tasks = JSON.parse(tasksContent);
@@ -375,7 +376,7 @@ function cmdInit(args) {
             outputError(`Failed to parse tasks file: ${e.message}`);
         }
     } else if (args.tasks) {
-        // 直接解析 JSON
+        // Parse JSON directly
         try {
             tasks = JSON.parse(args.tasks);
         } catch (e) {
@@ -383,12 +384,12 @@ function cmdInit(args) {
         }
     }
 
-    // 验证 tasks 是数组
+    // Validate tasks is an array
     if (!Array.isArray(tasks)) {
         outputError('Tasks must be an array');
     }
 
-    // 确保每个任务有必要的字段
+    // Ensure each task has required fields
     tasks = tasks.map((task, index) => ({
         id: task.id || `task-${index + 1}`,
         name: task.name || task.id || `Task ${index + 1}`,
@@ -397,7 +398,7 @@ function cmdInit(args) {
         ...task
     }));
 
-    // 创建进度文件结构
+    // Create progress file structure
     const progressData = {
         stage: args.stage,
         created_at: getTimestamp(),
@@ -407,13 +408,13 @@ function cmdInit(args) {
         checkpoints: {}
     };
 
-    // 确保目录存在
+    // Ensure directory exists
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 
-    // 获取锁并写入
+    // Acquire lock and write
     let lockPath = null;
     try {
         lockPath = acquireLock(filePath);
@@ -429,14 +430,14 @@ function cmdInit(args) {
 }
 
 /**
- * 命令：read - 读取进度文件（增强版）
- * 支持多种查询模式：
- * - 默认：读取整个文件
- * - --task-id：查询单个任务
- * - --status：按状态过滤任务
- * - --summary：输出进度摘要
- * - --checkpoints：读取 checkpoint 状态
- * - --overview：读取 workflow 全景
+ * Command: read - Read progress file (enhanced version)
+ * Supports multiple query modes:
+ * - Default: read entire file
+ * - --task-id: query single task
+ * - --status: filter tasks by status
+ * - --summary: output progress summary
+ * - --checkpoints: read checkpoint status
+ * - --overview: read workflow overview
  */
 function cmdRead(args) {
     if (!args.file) {
@@ -450,7 +451,7 @@ function cmdRead(args) {
         lockPath = acquireLock(filePath);
         const data = readJsonFile(filePath);
 
-        // 1. --summary 模式：输出进度摘要
+        // 1. --summary mode: output progress summary
         if (args.summary) {
             const counts = data.counts || calculateCounts(data.tasks || []);
             const summary = {
@@ -467,7 +468,7 @@ function cmdRead(args) {
             return;
         }
 
-        // 2. --checkpoints 模式：读取 checkpoint 状态
+        // 2. --checkpoints mode: read checkpoint status
         if (args.checkpoints) {
             const checkpoints = data.checkpoints || {};
             const checkpointList = Object.entries(checkpoints).map(([name, cp]) => ({
@@ -486,7 +487,7 @@ function cmdRead(args) {
             return;
         }
 
-        // 3. --overview 模式：读取 workflow 全景
+        // 3. --overview mode: read workflow overview
         if (args.overview) {
             const stages = data.stages || {};
             const stageList = Object.entries(stages).map(([name, stage]) => ({
@@ -515,7 +516,7 @@ function cmdRead(args) {
             return;
         }
 
-        // 4. --task-id 模式：查询单个任务
+        // 4. --task-id mode: query single task
         if (args.taskId) {
             const task = data.tasks?.find(t => t.id === args.taskId);
             if (!task) {
@@ -525,7 +526,7 @@ function cmdRead(args) {
             return;
         }
 
-        // 5. --status 模式：按状态过滤任务
+        // 5. --status mode: filter tasks by status
         if (args.status) {
             const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed'];
             if (!validStatuses.includes(args.status)) {
@@ -540,7 +541,7 @@ function cmdRead(args) {
             return;
         }
 
-        // 6. 默认模式：输出整个文件
+        // 6. Default mode: output entire file
         outputSuccess(`Progress file: ${filePath}`, data);
     } finally {
         if (lockPath) releaseLock(lockPath);
@@ -548,7 +549,7 @@ function cmdRead(args) {
 }
 
 /**
- * 命令：update-task - 更新单个任务状态
+ * Command: update-task - Update a single task status
  */
 function cmdUpdateTask(args) {
     if (!args.file || !args.taskId || !args.status) {
@@ -567,7 +568,7 @@ function cmdUpdateTask(args) {
         lockPath = acquireLock(filePath);
         const data = readJsonFile(filePath);
 
-        // 查找任务
+        // Find task
         const taskIndex = data.tasks?.findIndex(t => t.id === args.taskId);
         if (taskIndex === -1 || taskIndex === undefined) {
             outputError(`Task not found: ${args.taskId}`);
@@ -576,15 +577,15 @@ function cmdUpdateTask(args) {
         const task = data.tasks[taskIndex];
         const now = getTimestamp();
 
-        // 更新状态
+        // Update status
         task.status = args.status;
         task.updated_at = now;
 
-        // 根据状态自动设置时间戳（始终使用脚本生成的真实时间，不接受外部参数）
+        // Set timestamps based on status (always use real timestamp generated by script, external parameters not accepted)
         if (args.status === 'in_progress') {
             task.started_at = now;
         } else if (args.status === 'partial') {
-            // partial 状态：部分完成，可能已有 started_at，可选设置 completed_at
+            // partial status: partially completed, may already have started_at, optionally set completed_at
             if (!task.started_at) {
                 task.started_at = now;
             }
@@ -606,14 +607,14 @@ function cmdUpdateTask(args) {
             }
         }
 
-        // 更新任务
+        // Update task
         data.tasks[taskIndex] = task;
         data.updated_at = now;
 
-        // 重算计数
+        // Recalculate counts
         data.counts = calculateCounts(data.tasks);
 
-        // 原子写入
+        // Atomic write
         atomicWriteJson(filePath, data);
 
         outputSuccess(`Task updated: ${args.taskId}`, {
@@ -627,7 +628,7 @@ function cmdUpdateTask(args) {
 }
 
 /**
- * 命令：update-counts - 强制重算计数
+ * Command: update-counts - Force recalculate counts
  */
 function cmdUpdateCounts(args) {
     if (!args.file) {
@@ -645,11 +646,11 @@ function cmdUpdateCounts(args) {
             outputError('No tasks array found in progress file');
         }
 
-        // 重算计数
+        // Recalculate counts
         data.counts = calculateCounts(data.tasks);
         data.updated_at = getTimestamp();
 
-        // 原子写入
+        // Atomic write
         atomicWriteJson(filePath, data);
 
         outputSuccess('Counts updated', { counts: data.counts });
@@ -659,7 +660,7 @@ function cmdUpdateCounts(args) {
 }
 
 /**
- * 命令：write-checkpoint - 写入/更新 checkpoint
+ * Command: write-checkpoint - Write/update checkpoint
  */
 function cmdWriteCheckpoint(args) {
     if (!args.file || !args.stage || !args.checkpoint || args.passed === null) {
@@ -678,7 +679,7 @@ function cmdWriteCheckpoint(args) {
         if (fs.existsSync(filePath)) {
             data = readJsonFile(filePath);
         } else {
-            // 创建新文件
+            // Create new file
             data = {
                 stage: args.stage,
                 created_at: now,
@@ -688,12 +689,12 @@ function cmdWriteCheckpoint(args) {
             };
         }
 
-        // 确保 checkpoints 对象存在
+        // Ensure checkpoints object exists
         if (!data.checkpoints) {
             data.checkpoints = {};
         }
 
-        // 更新或创建 checkpoint
+        // Update or create checkpoint
         data.checkpoints[args.checkpoint] = {
             passed: passed,
             checked_at: now,
@@ -703,13 +704,13 @@ function cmdWriteCheckpoint(args) {
 
         data.updated_at = now;
 
-        // 确保目录存在
+        // Ensure directory exists
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        // 原子写入
+        // Atomic write
         atomicWriteJson(filePath, data);
 
         outputSuccess(`Checkpoint updated: ${args.checkpoint}`, {
@@ -723,7 +724,7 @@ function cmdWriteCheckpoint(args) {
 }
 
 /**
- * 命令：update-workflow - 更新 WORKFLOW-PROGRESS 阶段状态
+ * Command: update-workflow - Update WORKFLOW-PROGRESS stage status
  */
 function cmdUpdateWorkflow(args) {
     if (!args.file || !args.stage || !args.status) {
@@ -746,7 +747,7 @@ function cmdUpdateWorkflow(args) {
         if (fs.existsSync(filePath)) {
             data = readJsonFile(filePath);
         } else {
-            // 创建新文件
+            // Create new file
             data = {
                 created_at: now,
                 stages: {},
@@ -754,12 +755,12 @@ function cmdUpdateWorkflow(args) {
             };
         }
 
-        // 确保 stages 对象存在
+        // Ensure stages object exists
         if (!data.stages) {
             data.stages = {};
         }
 
-        // 获取或创建阶段
+        // Get or create stage
         if (!data.stages[args.stage]) {
             data.stages[args.stage] = {
                 status: 'pending',
@@ -772,12 +773,12 @@ function cmdUpdateWorkflow(args) {
 
         const stage = data.stages[args.stage];
 
-        // 更新状态
+        // Update status
         stage.status = args.status;
 
-        // 根据状态自动设置时间戳（始终使用脚本生成的真实时间，不接受外部参数）
+        // Set timestamps based on status (always use real timestamp generated by script, external parameters not accepted)
         if (args.status === 'in_progress') {
-            // 如 started_at 已有值则不覆盖
+            // Do not overwrite if started_at already has a value
             if (!stage.started_at) {
                 stage.started_at = now;
             }
@@ -787,22 +788,22 @@ function cmdUpdateWorkflow(args) {
             stage.confirmed_at = now;
         }
 
-        // 更新输出
+        // Update output
         if (args.output) {
             stage.output = args.output;
         }
 
-        // 更新当前阶段
+        // Update current stage
         data.current_stage = args.stage;
         data.updated_at = now;
 
-        // 确保目录存在
+        // Ensure directory exists
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
 
-        // 原子写入
+        // Atomic write
         atomicWriteJson(filePath, data);
 
         outputSuccess(`Workflow stage updated: ${args.stage}`, {
@@ -816,10 +817,10 @@ function cmdUpdateWorkflow(args) {
 }
 
 /**
- * 命令：init-tasks - 扫描 feature-design 目录生成任务列表
+ * Command: init-tasks - Scan feature-design directory to generate task list
  */
 function cmdInitTasks(args) {
-    // 参数验证
+    // Argument validation
     if (!args.file || !args.stage || !args.featuresDir || !args.platforms) {
         outputError('Usage: init-tasks --file <path> --stage <stage_name> --features-dir <dir> --platforms <comma-separated> [--force]');
     }
@@ -828,17 +829,17 @@ function cmdInitTasks(args) {
     const featuresDir = path.resolve(args.featuresDir);
     const platforms = args.platforms.split(',').map(p => p.trim()).filter(p => p);
     
-    // 验证 platforms 非空
+    // Validate platforms is not empty
     if (platforms.length === 0) {
         outputError('Platforms list cannot be empty');
     }
 
-    // 验证 features-dir 存在
+    // Validate features-dir exists
     if (!fs.existsSync(featuresDir)) {
         outputError(`Features directory not found: ${featuresDir}`);
     }
 
-    // 扫描 .feature-spec.md 文件
+    // Scan .feature-spec.md files
     const featureFiles = [];
     const files = fs.readdirSync(featuresDir);
     for (const file of files) {
@@ -851,8 +852,8 @@ function cmdInitTasks(args) {
         outputError(`No .feature-spec.md files found in: ${featuresDir}`);
     }
 
-    // 从文件名提取 feature 信息
-    // 格式: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md
+    // Extract feature info from filenames
+    // Format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md
     const featurePattern = /^(F-([A-Z]+)-\d+)-(.+)\.feature-spec\.md$/;
     const features = [];
 
@@ -862,7 +863,7 @@ function cmdInitTasks(args) {
             features.push({
                 feature_id: match[1],      // F-APPT-001
                 module: match[2],           // APPT
-                name: match[3],             // 预约信息CRUD
+                name: match[3],             // appointment-crud
                 file: file
             });
         }
@@ -872,10 +873,10 @@ function cmdInitTasks(args) {
         outputError('No valid feature files found. Expected format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md');
     }
 
-    // 按 feature ID 排序
+    // Sort by feature ID
     features.sort((a, b) => a.feature_id.localeCompare(b.feature_id));
 
-    // 检查目标文件是否已有 tasks
+    // Check if target file already has tasks
     if (fs.existsSync(filePath)) {
         const existingData = readJsonFile(filePath);
         if (existingData.tasks && existingData.tasks.length > 0 && !args.force) {
@@ -883,18 +884,18 @@ function cmdInitTasks(args) {
         }
     }
 
-    // 生成任务列表
+    // Generate task list
     const tasks = [];
     const now = getTimestamp();
 
-    // Module 排序顺序
+    // Module sort order
     const moduleOrder = ['APPT', 'BASE', 'CUST', 'EMP', 'ITEM', 'KNW', 'REPORT', 'REV', 'SERV'];
     const getModuleIndex = (module) => {
         const idx = moduleOrder.indexOf(module);
         return idx === -1 ? 999 : idx;
     };
 
-    // 按 module 分组
+    // Group by module
     const featuresByModule = {};
     for (const feature of features) {
         if (!featuresByModule[feature.module]) {
@@ -903,12 +904,12 @@ function cmdInitTasks(args) {
         featuresByModule[feature.module].push(feature);
     }
 
-    // 每个 module 内按 feature ID 排序
+    // Sort by feature ID within each module
     for (const module of Object.keys(featuresByModule)) {
         featuresByModule[module].sort((a, b) => a.feature_id.localeCompare(b.feature_id));
     }
 
-    // 按 module 顺序生成任务
+    // Generate tasks in module order
     const sortedModules = Object.keys(featuresByModule).sort((a, b) => getModuleIndex(a) - getModuleIndex(b));
 
     for (const module of sortedModules) {
@@ -927,7 +928,7 @@ function cmdInitTasks(args) {
         }
     }
 
-    // 创建进度文件结构
+    // Create progress file structure
     const progressData = {
         stage: args.stage,
         created_at: now,
@@ -937,13 +938,13 @@ function cmdInitTasks(args) {
         checkpoints: {}
     };
 
-    // 确保目录存在
+    // Ensure directory exists
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 
-    // 获取锁并写入
+    // Acquire lock and write
     let lockPath = null;
     try {
         lockPath = acquireLock(filePath);
@@ -964,13 +965,13 @@ function cmdInitTasks(args) {
 }
 
 // ============================================================================
-// 主入口
+// Main Entry
 // ============================================================================
 
 function main() {
     const args = parseArgs();
 
-    // 无命令时显示帮助
+    // Show help when no command
     if (!args.command) {
         console.error('Usage: node update-progress.js <command> [options]');
         console.error('');
@@ -981,13 +982,13 @@ function main() {
         console.error('  update-counts    Recalculate task counts');
         console.error('  write-checkpoint Write or update a checkpoint');
         console.error('  update-workflow  Update a workflow stage status');
-        console.error('  init-tasks      Generate tasks from feature-spec files');
+        console.error('  init-tasks       Generate tasks from feature-spec files');
         console.error('');
         console.error('Run "node update-progress.js <command> --help" for more information.');
         process.exit(1);
     }
 
-    // 分发命令
+    // Dispatch command
     try {
         switch (args.command) {
             case 'init':

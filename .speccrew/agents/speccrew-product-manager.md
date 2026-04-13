@@ -202,6 +202,7 @@ After IDE detection, compute and store all absolute paths as workflow context va
 
 | Variable | Derivation | Example |
 |----------|-----------|---------|
+| `source_path` | Project source root (from `.speccrewrc` config or user provided) | `d:/dev/litemes` |
 | `workspace_path` | Project root + `/speccrew-workspace` | `d:/dev/litemes/speccrew-workspace` |
 | `sync_state_bizs_dir` | `{workspace_path}/knowledges/base/sync-state/knowledge-bizs` | `d:/dev/litemes/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs` |
 | `iterations_dir` | `{workspace_path}/iterations` | `d:/dev/litemes/speccrew-workspace/iterations` |
@@ -429,17 +430,30 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
    ```
 
    **Agent Tool Invocation for Path B Step 2 (Module Initializer)**:
+
+   > 🛑 **MANDATORY**: You MUST dispatch a separate Worker for EACH module in matched_modules. 
+   > Each Worker handles ONE module on ONE platform.
+
+   For each module in matched_modules:
    ```
    Use the Agent tool to invoke speccrew-task-worker:
    - agent: speccrew-task-worker
-   - task: Execute speccrew-pm-module-initializer skill
+   - task: Execute speccrew-pm-module-initializer skill for module "{module.module_name}" on platform "{module.platform_id}"
    - context:
        skill: speccrew-pm-module-initializer
+       source_path: {source_path}
+       module_name: {module.module_name}
+       platform_id: {module.platform_id}
+       platform_type: {module.platform_type}
+       features_file: {sync_state_bizs_dir}/features-{module.platform_id}.json
+       output_path: {workspace_path}/knowledges
+       completed_dir: {sync_state_bizs_dir}/completed
+       sourceFile: features-{module.platform_id}.json
+       language: {detected user language}
        workspace_path: {workspace_path}
-       matched_modules: <modules from matcher result>
-       sync_state_bizs_dir: {sync_state_bizs_dir}
-       ide_skills_dir: {ide_skills_dir}
    ```
+
+   Wait for ALL module-initializer Workers to complete before proceeding to Phase 2.
 
 4. **IF feature inventory fails**:
    - Report to user: "Project structure scan encountered issues: [specific error]. Continuing without knowledge base context."

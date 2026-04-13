@@ -142,7 +142,7 @@ function main() {
       reclassifiedCount++;
       reclassifiedModules.add(oldModule);
       
-      // Rebuild documentPath（使用 fileName 而非 feature.id，避免文件名过长）
+      // Rebuild documentPath (use fileName instead of feature.id to avoid long filenames)
       const newDocumentPath = `speccrew-workspace/knowledges/bizs/${platformId}/${newModule}/${feature.fileName}.md`;
       
       return {

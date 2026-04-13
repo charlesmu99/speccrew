@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 /**
- * reindex-modules.js - 确定性脚本，用更新后的 exclude_dirs 对已有 features JSON 重新提取 module 名
+ * reindex-modules.js - Deterministic script to re-extract module names from existing features JSON with updated exclude_dirs
  * 
- * 调用方式:
+ * Usage:
  *   node reindex-modules.js --featuresFile "path/to/features-backend-system.json" --projectRoot "d:\dev\ruoyi-vue-pro"
  * 
- * 可选参数:
- *   --platformType "backend" - 如果不提供，从 features JSON 的 platformType 字段读取
- *   --techIdentifier "spring" - 如果不提供，尝试从 features JSON 推断（如 techStack 数组）
- *   --excludeDirs "controller,admin,api,service" - 如果不提供，从 tech-stack-mappings.json 加载
+ * Optional parameters:
+ *   --platformType "backend" - If not provided, read from features JSON's platformType field
+ *   --techIdentifier "spring" - If not provided, try to infer from features JSON (e.g., techStack array)
+ *   --excludeDirs "controller,admin,api,service" - If not provided, load from tech-stack-mappings.json
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// === 工具函数（从 generate-inventory.js 复用） ===
+// === Utility functions (reused from generate-inventory.js) ===
 
 function normalizePath(filePath) {
   if (!filePath) return '';
@@ -32,7 +32,7 @@ function parseArrayParam(value) {
   return trimmed.split(',').map(s => s.trim()).filter(Boolean);
 }
 
-// Java/Kotlin 标准源码路径前缀
+// Java/Kotlin standard source path prefixes
 const STANDARD_SOURCE_PREFIXES = [
   'src/main/java',
   'src/main/kotlin',
@@ -77,7 +77,7 @@ function getModuleName(dirPath, excludeDirs, fallbackModuleName) {
   return '_root';
 }
 
-// === 辅助函数 ===
+// === Helper functions ===
 
 function parseArgs(argv) {
   const args = {};
@@ -113,10 +113,10 @@ function findProjectRoot(startPath) {
 function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData) {
   console.log(`Loading exclude_dirs: platformType="${platformType}", techIdentifier="${techIdentifier || '(auto)'}"`);
   
-  // 尝试推断 techIdentifier
+  // Try to infer techIdentifier
   if (!techIdentifier) {
     const techStack = featuresData.techStack || [];
-    // 常见映射
+    // Common mappings
     const techMap = {
       'spring': 'spring', 'spring-boot': 'spring', 'java': 'spring',
       'vue': 'vue', 'vue3': 'vue', 'vue2': 'vue',
@@ -147,7 +147,7 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
   // Get fallback dirs for this platformType
   const fallback = FALLBACK_EXCLUDE_DIRS[platformType] || [];
   
-  // 查找 tech-stack-mappings.json
+  // Find tech-stack-mappings.json
   const configPaths = [
     path.join(projectRoot, 'speccrew-workspace', 'docs', 'configs', 'tech-stack-mappings.json'),
     path.join(projectRoot, 'docs', 'configs', 'tech-stack-mappings.json'),
@@ -207,25 +207,25 @@ function loadExcludeDirs(projectRoot, platformType, techIdentifier, featuresData
 }
 
 function extractPlatformId(featuresData) {
-  // 从第一个 feature 的 documentPath 提取 platformId
-  // 格式: "speccrew-workspace/knowledges/bizs/{platformId}/..."
+  // Extract platformId from first feature's documentPath
+  // Format: "speccrew-workspace/knowledges/bizs/{platformId}/..."
   for (const feature of (featuresData.features || [])) {
     if (feature.documentPath) {
       const match = normalizePath(feature.documentPath).match(/knowledges\/bizs\/([^/]+)\//);
       if (match) return match[1];
     }
   }
-  // 如果无法提取，用 platformType-platformSubtype 构建
+  // If unable to extract, build from platformType-platformSubtype
   if (featuresData.platformType && featuresData.platformSubtype) {
     return `${featuresData.platformType}-${featuresData.platformSubtype}`;
   }
   return null;
 }
 
-// === 主逻辑 ===
+// === Main logic ===
 
 function main() {
-  // 1. 解析命令行参数
+  // 1. Parse command line arguments
   const args = parseArgs(process.argv.slice(2));
   const featuresFile = args.featuresFile;
   
@@ -234,7 +234,7 @@ function main() {
     process.exit(1);
   }
   
-  // 2. 读取 features JSON
+  // 2. Read features JSON
   let featuresData;
   try {
     featuresData = JSON.parse(fs.readFileSync(featuresFile, 'utf8'));
@@ -250,16 +250,16 @@ function main() {
   const inventorySourcePath = normalizePath(featuresData.sourcePath || '');
   const platformType = args.platformType || featuresData.platformType || '';
   
-  // 3. 加载 exclude_dirs
+  // 3. Load exclude_dirs
   let excludeDirs = [];
   let stripModulePrefixes = [];
   if (args.excludeDirs) {
     excludeDirs = parseArrayParam(args.excludeDirs);
   } else {
-    // 从 tech-stack-mappings.json 加载，按优先级确定 techIdentifier：
-    // 1. 命令行参数 --techIdentifier
-    // 2. features JSON 中的 techIdentifier
-    // 3. features JSON 中的 platformSubtype (兼容旧数据)
+    // Load from tech-stack-mappings.json, determine techIdentifier by priority:
+    // 1. Command line parameter --techIdentifier
+    // 2. techIdentifier in features JSON
+    // 3. platformSubtype in features JSON (backward compatibility)
     const techId = args.techIdentifier || featuresData.techIdentifier || featuresData.platformSubtype;
     const config = loadExcludeDirs(projectRoot, platformType, techId, featuresData);
     excludeDirs = config.excludeDirs;
@@ -274,29 +274,29 @@ function main() {
   console.log(`Exclude dirs (${excludeDirs.length}): ${excludeDirs.join(', ')}`);
   console.log(`Total features: ${featuresData.features.length}`);
   
-  // 4. 重新计算每个 feature 的 module
+  // 4. Recalculate module for each feature
   const modulesBefore = [...new Set(featuresData.features.map(f => f.module))].sort();
   let reclassifiedCount = 0;
   
-  // 从 features JSON 获取 platformId（用于重建 documentPath）
-  // platformId 格式: "{platformType}-{platformSubtype}" 
-  // 从现有 documentPath 提取: "speccrew-workspace/knowledges/bizs/{platformId}/..."
+  // Get platformId from features JSON (for rebuilding documentPath)
+  // platformId format: "{platformType}-{platformSubtype}"
+  // Extract from existing documentPath: "speccrew-workspace/knowledges/bizs/{platformId}/..."
   const platformId = extractPlatformId(featuresData);
   
   featuresData.features.forEach(feature => {
-    // 计算 feature 源文件相对于 inventorySourcePath 的路径
+    // Calculate feature source file path relative to inventorySourcePath
     let relativePath = normalizePath(feature.sourcePath || '');
     
-    // 如果 feature.sourcePath 是绝对路径或相对于项目根，需要去掉 inventorySourcePath 前缀
+    // If feature.sourcePath is absolute or relative to project root, remove inventorySourcePath prefix
     if (inventorySourcePath && relativePath.startsWith(inventorySourcePath)) {
       relativePath = relativePath.slice(inventorySourcePath.length);
       if (relativePath.startsWith('/')) relativePath = relativePath.slice(1);
     }
-    // 也可能 inventorySourcePath 只是部分匹配
+    // inventorySourcePath may only partially match
     else if (inventorySourcePath) {
       const invParts = inventorySourcePath.split('/');
       const relParts = relativePath.split('/');
-      // 找到重叠部分
+      // Find overlapping part
       let startIdx = 0;
       for (let i = 0; i < relParts.length; i++) {
         if (relParts.slice(i, i + invParts.length).join('/') === inventorySourcePath) {
@@ -309,14 +309,14 @@ function main() {
       }
     }
     
-    // 取目录部分（去掉文件名）
+    // Get directory part (remove filename)
     const dirPath = path.dirname(relativePath).replace(/\\/g, '/');
     
-    // 用 getModuleName 重新提取模块名
+    // Re-extract module name using getModuleName
     const fallback = feature.module || '_root';
     let newModule = getModuleName(dirPath, excludeDirs, fallback);
     
-    // 应用 strip_module_prefixes 前缀去除
+    // Apply strip_module_prefixes prefix removal
     for (const prefix of stripModulePrefixes) {
       if (newModule.startsWith(prefix)) {
         newModule = newModule.substring(prefix.length);
@@ -328,21 +328,21 @@ function main() {
       reclassifiedCount++;
       feature.module = newModule;
       
-      // 重建 documentPath（使用 fileName 而非 feature.id，避免文件名过长）
+      // Rebuild documentPath (use fileName instead of feature.id to avoid long filenames)
       if (platformId) {
         feature.documentPath = `speccrew-workspace/knowledges/bizs/${platformId}/${newModule}/${feature.fileName}.md`;
       }
     }
   });
   
-  // 5. 更新 modules 数组
+  // 5. Update modules array
   const modulesAfter = [...new Set(featuresData.features.map(f => f.module))].sort();
   featuresData.modules = modulesAfter;
   
-  // 6. 写回文件
+  // 6. Write back to file
   fs.writeFileSync(featuresFile, JSON.stringify(featuresData, null, 2), 'utf8');
   
-  // 7. 输出结果
+  // 7. Output results
   const result = {
     status: 'success',
     modules_before: modulesBefore,

@@ -8,11 +8,14 @@ tools: Read, Write, Skill, Bash
 
 Initialize knowledge base for a single business module by analyzing its features. Dispatches api-analyze or ui-analyze based on platform type, then generates module summary. Used by Worker Agent, invoked by PM Agent for on-demand module initialization.
 
+> **Positioning**: Lightweight knowledge base initializer for PM phase, processes only modules matched by PM matcher.
+> Difference from bizs-dispatch: module-initializer processes single modules on-demand, does not generate graph data, output is for PRD authoring reference only.
+
 ## Language Adaptation
 
 **CRITICAL**: Generate all content in the language specified by the `language` parameter.
 
-- `language: "zh"` → Generate all content in 中文
+- `language: "zh"` → Generate all content in Chinese
 - `language: "en"` → Generate all content in English
 - Other languages → Use the specified language
 
@@ -29,15 +32,17 @@ Initialize knowledge base for a single business module by analyzing its features
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `source_path` | string | Yes | 项目源码根路径 |
-| `module_name` | string | Yes | 模块名称 |
-| `platform_id` | string | Yes | 平台 ID (e.g., "web-vue3", "admin-api") |
+| `source_path` | string | Yes | Project source code root path |
+| `module_name` | string | Yes | Module name |
+| `platform_id` | string | Yes | Platform ID (e.g., "web-vue3", "admin-api") |
 | `platform_type` | string | Yes | web / mobile / backend / desktop |
 | `platform_subtype` | string | No | Platform subtype (e.g., "vue", "spring-boot") |
 | `tech_stack` | array | No | Platform tech stack (e.g., ["java", "spring-boot"]) |
-| `features_file` | string | Yes | 该平台的 features-{platform}.json 路径 |
-| `output_path` | string | Yes | 知识库输出根路径 (e.g., speccrew-workspace/knowledges) |
-| `language` | string | Yes | 输出语言 (zh / en) |
+| `features_file` | string | Yes | Path to the platform's features-{platform}.json file |
+| `output_path` | string | Yes | Knowledge base output root path (e.g., speccrew-workspace/knowledges) |
+| `completed_dir` | string | Yes | Marker file output directory for api-analyze .done.json markers. Value from PM Agent: `{sync_state_bizs_dir}/completed` |
+| `sourceFile` | string | Yes | Features JSON filename (e.g., "features-backend-system.json"), used for api-analyze marking |
+| `language` | string | Yes | Output language (zh / en) |
 
 ## Output JSON
 
@@ -100,38 +105,67 @@ Based on `platform_type`, select the appropriate analyzer Skill:
 
 **Output**: "Step 2 Status: ✅ COMPLETED - Selected analyzer: {skill_name}"
 
-### Step 3: Analyze Each Pending Feature
+### Step 3: Analyze Each Pending Feature (Sequential)
 
 **Step 3 Status: 🔄 IN PROGRESS**
 
-For each pending feature, invoke the selected analyzer Skill.
+For each pending feature from Step 1, call the appropriate analyzer skill.
 
-**Important**: Process features sequentially (not parallel) since this Skill runs inside a single Worker Agent. The PM Agent handles parallelism at the module level (multiple Workers for different modules).
+> 🛑 **FORBIDDEN**: DO NOT write custom scripts. You MUST call the analyzer skill directly using the Agent tool or execute it as defined in the skill's SKILL.md.
 
-#### Input Variables Preparation
+#### For backend modules (api-analyze):
 
-Prepare input variables matching the analyzer Skill's Input Variables format:
+For each pending feature, invoke the `speccrew-knowledge-bizs-api-analyze` skill with these parameters:
 
-| Variable | Value Source |
-|----------|--------------|
-| `feature` | The complete feature object from features.json |
-| `fileName` | feature's fileName field |
-| `sourcePath` | feature's sourcePath field |
-| `documentPath` | Computed as `{output_path}/bizs/{platform_id}/{module_name}/{fileName}.md` |
-| `module` | module_name |
-| `analyzed` | false |
-| `platform_type` | From input |
-| `platform_subtype` | From input (if available) |
-| `tech_stack` | From input (if available) |
-| `language` | From input |
-| `completed_dir` | `{output_path}/base/sync-state/knowledge-bizs/completed/` |
-| `sourceFile` | Features JSON filename (e.g., "features-web-vue3.json") |
+```
+Use Agent tool to invoke speccrew-task-worker:
+- agent: speccrew-task-worker  
+- task: Execute speccrew-knowledge-bizs-api-analyze skill
+- context:
+    skill: speccrew-knowledge-bizs-api-analyze
+    fileName: {feature.fileName}
+    sourcePath: {source_path}/{feature.sourcePath}
+    documentPath: {output_path}/bizs/{platform_id}/{feature.module}/features
+    module: {feature.module}
+    analyzed: false
+    platform_type: backend
+    platform_subtype: {platform_subtype}
+    tech_stack: {tech_stack}
+    language: {language}
+    completed_dir: {completed_dir}
+    sourceFile: {sourceFile}
+```
 
-#### Execution for Each Feature
+#### For web/mobile/desktop modules (ui-analyze):
 
-1. Invoke the selected analyzer Skill with prepared parameters
-2. Track success/failure count
-3. On success, update the feature's `analyzed` field to `true` in features_file
+For each pending feature, invoke the `speccrew-knowledge-bizs-ui-analyze` skill with these parameters:
+
+```
+Use Agent tool to invoke speccrew-task-worker:
+- agent: speccrew-task-worker
+- task: Execute speccrew-knowledge-bizs-ui-analyze skill  
+- context:
+    skill: speccrew-knowledge-bizs-ui-analyze
+    fileName: {feature.fileName}
+    sourcePath: {source_path}/{feature.sourcePath}
+    documentPath: {output_path}/bizs/{platform_id}/{feature.module}/features
+    module: {feature.module}
+    analyzed: false
+    platform_type: {platform_type}
+    platform_subtype: {platform_subtype}
+    tech_stack: {tech_stack}
+    language: {language}
+```
+
+> **NOTE**: UI Analyzer does NOT write .done.json marker files (handled by ui-graph skill in bizs-dispatch).
+
+#### After each successful analysis:
+Update the feature's `analyzed` field to `true` in the features JSON file.
+
+#### Error handling:
+- If an analyzer fails, log the error, increment `features_failed` counter
+- Continue with next feature (do NOT abort the entire module)
+- A module with partial analysis is better than no analysis
 
 **Output**: "Step 3 Status: ✅ COMPLETED - Analyzed {success} features, {failed} failed"
 
@@ -139,15 +173,25 @@ Prepare input variables matching the analyzer Skill's Input Variables format:
 
 **Step 4 Status: 🔄 IN PROGRESS**
 
-Invoke `speccrew-knowledge-module-summarize` Skill to generate/update the module overview document.
+**Pre-check**: Verify that feature documents exist at `{output_path}/bizs/{platform_id}/{module_name}/features/`.
 
-**Input Parameters**:
+IF no feature documents exist AND features_analyzed == 0:
+  - Set status to "partial"
+  - Skip module-summarize
+  - Proceed to Step 5
 
-| Variable | Value |
-|----------|-------|
-| `module_name` | module_name |
-| `module_path` | `{output_path}/bizs/{platform_id}/{module_name}/` |
-| `language` | From input |
+IF feature documents exist:
+  Invoke `speccrew-knowledge-module-summarize` skill:
+  ```
+  Use Agent tool to invoke speccrew-task-worker:
+  - agent: speccrew-task-worker
+  - task: Execute speccrew-knowledge-module-summarize skill
+  - context:
+      skill: speccrew-knowledge-module-summarize
+      module_name: {module_name}
+      module_path: {output_path}/bizs/{platform_id}/{module_name}
+      language: {language}
+  ```
 
 **Output**: "Step 4 Status: ✅ COMPLETED - Module overview generated at {module_path}/{module_name}-overview.md"
 
