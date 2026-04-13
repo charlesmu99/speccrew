@@ -424,10 +424,41 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 
 3. **After Worker completes**: Re-run Step 1.1 (dispatch detector again)
    - **Verify** status changed from "none" to "lite"
-   - If status is now "lite" → **Continue with Path B flow**
-     - Path B will use **matcher** to identify modules relevant to the user's requirement
-     - Only those matched modules will be offered for deep initialization (module-initializer)
+   - If status is now "lite" → **Execute Path B immediately** (see MANDATORY instruction below)
    - If status is still "none" → Initialization failed, proceed to Step 4
+
+> 🛑 **MANDATORY — Path C → Path B Sequence**:
+> After init-features completes (features-*.json generated), you MUST immediately execute Path B:
+> 1. Dispatch Worker with `speccrew-pm-module-matcher` skill to match requirement features against the generated features inventory
+> 2. Based on matcher results, dispatch Worker with `speccrew-pm-module-initializer` skill to deep-initialize matched modules' knowledge base
+> 3. Only after module initialization completes, proceed to Phase 2 (Requirement Clarification)
+>
+> DO NOT skip Path B. DO NOT proceed directly to Phase 2 after Path C.
+> The features-*.json files are INPUT for Path B's matcher, not the final output of Phase 1.
+
+   **Agent Tool Invocation for Path B Step 1 (Matcher)**:
+   ```
+   Use the Agent tool to invoke speccrew-task-worker:
+   - agent: speccrew-task-worker
+   - task: Execute speccrew-pm-module-matcher skill
+   - context:
+       skill: speccrew-pm-module-matcher
+       sync_state_bizs_dir: {sync_state_bizs_dir}
+       requirement_summary: <brief summary of user's requirement>
+   ```
+
+   **Agent Tool Invocation for Path B Step 2 (Module Initializer)**:
+   ```
+   Use the Agent tool to invoke speccrew-task-worker:
+   - agent: speccrew-task-worker
+   - task: Execute speccrew-pm-module-initializer skill
+   - context:
+       skill: speccrew-pm-module-initializer
+       workspace_path: {workspace_path}
+       matched_modules: <modules from matcher result>
+       sync_state_bizs_dir: {sync_state_bizs_dir}
+       ide_skills_dir: {ide_skills_dir}
+   ```
 
 4. **IF feature inventory fails**:
    - Report to user: "Project structure scan encountered issues: [specific error]. Continuing without knowledge base context."
@@ -1088,6 +1119,8 @@ After all workers complete, report dispatch summary:
 ```
 
 Update `.checkpoints.json` → `sub_prd_dispatch.passed = true` (only if all succeeded or user skips failures).
+
+> 🛑 **MANDATORY**: After all Sub-PRDs are generated and checkpoint is recorded, you MUST immediately proceed to Phase 6 (Verification & User Review). DO NOT skip Phase 6. DO NOT directly ask the user if they want to continue to Feature Design. Phase 6 handles the formal verification, user review, and status update.
 
 ---
 
