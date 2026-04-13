@@ -594,11 +594,38 @@ This context will be passed to Phase 3 (Requirement Clarification) and Phase 4 (
 
 ## Phase 2: Complexity Assessment & Skill Routing
 
-> **PRE-CONDITION**: Path B Steps 2-5 must be completed before entering Phase 2.
-> If matched_modules exist but knowledges/bizs/ directories are empty, Path B was not fully executed.
-> Go back and execute the remaining Path B steps.
-
 Before starting requirement analysis, assess the requirement complexity to determine the appropriate skill path.
+
+### Phase 2.0: Knowledge Initialization Verification (MANDATORY)
+
+> ⚠️ **THIS STEP IS MANDATORY AND CANNOT BE SKIPPED**
+> You MUST execute the verification commands below before ANY complexity assessment.
+
+**Step 2.0.1**: Check if DISPATCH-PROGRESS.json exists:
+```bash
+# Read the file — if it does not exist, Path B Step 1.5 was not executed
+cat "{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json"
+```
+
+**Step 2.0.2**: Evaluate the file content:
+
+| Condition | Action |
+|-----------|--------|
+| File does NOT exist | Path B was not executed. Go back to Phase 1.2 Path B Step 1. |
+| File exists, `counts.pending > 0` | Knowledge initialization is INCOMPLETE. Go back to Path B Step 3 and dispatch remaining tasks. |
+| File exists, `counts.pending == 0` AND `counts.completed > 0` | Knowledge initialization is COMPLETE. Proceed to Phase 2.1. |
+| File exists, `counts.total == 0` | No features to analyze (all already analyzed). Proceed to Phase 2.1. |
+
+**Step 2.0.3**: If going back to Path B:
+1. Read DISPATCH-PROGRESS.json to get pending task list
+2. For each module with pending tasks, dispatch `speccrew-task-worker` with `speccrew-pm-module-initializer` skill (if Step 2 not done)
+3. Then dispatch analyze Workers for all pending features (Step 3)
+4. Then dispatch summarize Workers (Step 4)
+5. Update features status (Step 5)
+6. Return here to Phase 2.0 and re-verify
+
+> 🔴 **ABSOLUTE RULE**: DO NOT proceed to Phase 2.1 (Complexity Assessment) while `counts.pending > 0`.
+> The matcher identified these features as relevant. Skipping their analysis means the PRD will lack existing system feature descriptions.
 
 ### 2.1 Complexity Indicators
 
