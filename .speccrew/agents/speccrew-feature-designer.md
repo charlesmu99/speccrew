@@ -441,8 +441,20 @@ If only **1 Feature** in registry:
 If **2+ Features** in registry:
 
 1. **Initialize DISPATCH-PROGRESS.json**:
+
+   > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
+
    ```bash
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks "[{\"id\":\"F-CRM-01\"},{\"id\":\"F-CRM-02\"},{\"id\":\"F-CRM-03\"}]"
+   # Step 1: Write tasks JSON to temp file inside iteration directory
+   # Create .tasks-temp.json with the task array content
+   # Step 2: Initialize with --tasks-file
+   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file speccrew-workspace/iterations/{iteration}/02.feature-design/.tasks-temp.json
+   # Step 3: Delete .tasks-temp.json after successful init
+   ```
+
+   Example `.tasks-temp.json` content:
+   ```json
+   [{"id":"F-CRM-01"},{"id":"F-CRM-02"},{"id":"F-CRM-03"}]
    ```
 
 2. **Dispatch Workers** (batch of 6):
@@ -494,8 +506,20 @@ If only **1 Feature** in registry:
 #### Multiple Features (Worker Dispatch)
 
 1. **Initialize DISPATCH-PROGRESS.json for Design & Generate stage**:
+
+   > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
+
    ```bash
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks "[{\"id\":\"F-CRM-01\"},{\"id\":\"F-CRM-02\"},{\"id\":\"F-CRM-03\"}]"
+   # Step 1: Write tasks JSON to temp file inside iteration directory
+   # Create .tasks-temp.json with the task array content
+   # Step 2: Initialize with --tasks-file
+   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file speccrew-workspace/iterations/{iteration}/02.feature-design/.tasks-temp.json
+   # Step 3: Delete .tasks-temp.json after successful init
+   ```
+
+   Example `.tasks-temp.json` content:
+   ```json
+   [{"id":"F-CRM-01"},{"id":"F-CRM-02"},{"id":"F-CRM-03"}]
    ```
 
 2. **Dispatch Workers** (batch of 6):

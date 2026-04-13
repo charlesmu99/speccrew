@@ -493,9 +493,18 @@ Before dispatching tasks, create or read dispatch progress file:
    
    Note: `feature_id` is extracted from design doc filename. For new format `{feature-id}-{feature-name}-design.md`, use `{feature-id}`. For legacy format `{module}-design.md`, use `{module}` as feature_id.
 
-3. **Alternatively, pass tasks JSON directly**:
+3. **Alternatively, use --tasks-file for direct task initialization**:
+   
+   > ⚠️ Use --tasks-file instead of --tasks to avoid PowerShell JSON parsing issues.
+   
    ```bash
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json --stage 04_development --tasks '[{"id":"dev-web-vue-crm","platform":"web-vue","module":"crm","skill":"speccrew-dev-frontend","status":"pending"}]'
+   # Write tasks to temp file, then use --tasks-file
+   # Create .tasks-temp.json with task array content inside iteration directory
+   node speccrew-workspace/scripts/update-progress.js init \
+     --file speccrew-workspace/iterations/{current}/04.development/DISPATCH-PROGRESS.json \
+     --stage 04_development \
+     --tasks-file speccrew-workspace/iterations/{current}/04.development/.tasks-temp.json
+   # Delete .tasks-temp.json after successful init
    ```
 
 ### 4.0a Task Entry Format
@@ -1014,9 +1023,44 @@ Assess readiness for test phase:
 - ⚠️ Conditional: Minor issues to resolve before testing
 - ❌ Not ready: Blockers must be resolved first
 
+### 6.6.5 Present Delivery Report for User Confirmation
+
+> 🛑 **HARD STOP — User Confirmation Required Before Finalizing**
+>
+> **DO NOT update WORKFLOW-PROGRESS.json to "completed" or "confirmed" before user explicitly confirms.**
+> **DO NOT assume user silence means confirmation.**
+
+Present the delivery report summary to user:
+
+```
+📋 Development Stage Delivery Report
+
+Results:
+├── Total Tasks: {count}
+├── Completed: {count}
+├── Failed: {count} (if any)
+├── Code Review: {passed/failed}
+└── Cross-Platform Integration: {verified/skipped}
+
+Delivery Report: {path}/delivery-report.md
+```
+
+**STOP and Request Confirmation:**
+
+> 🛑 **AWAITING USER CONFIRMATION**
+>
+> "开发阶段已完成，请审查交付报告。确认无误后将更新工作流状态。"
+>
+> Options:
+> - "确认" or "OK" → Proceed to finalize (update workflow status)
+> - "需要修改" + details → Address issues before finalizing
+> - "取消" → Keep current status, do not finalize
+>
+> **I will NOT proceed until you explicitly confirm.**
+
 ### 6.7 User Confirmation and Checkpoint Update
 
-**Present delivery report to user and request confirmation.**
+**Prerequisite**: This step can ONLY proceed AFTER user explicitly confirms in step 6.6.5.
 
 **After user confirms delivery**:
 

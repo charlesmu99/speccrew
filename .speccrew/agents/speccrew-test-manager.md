@@ -466,13 +466,24 @@ Each task entry in DISPATCH-PROGRESS.json contains:
 | `partial` | Review found incomplete, awaiting re-dispatch |
 | `failed` | Task failed after max re-dispatch attempts |
 
+> ⚠️ Use --tasks-file instead of --tasks to avoid PowerShell JSON parsing issues.
+
 **Initialize Dispatch Progress File:**
 
 Before dispatching, create dispatch tracking:
 ```bash
-node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json --stage 06_system_test --tasks '[{"id":"test-case-{platform_id}","platform":"{platform_id}","phase":"test_case_design","skill":"speccrew-test-case-design","status":"pending"}]'
+# Write tasks to temp file, then use --tasks-file
+# Create .tasks-temp.json with task array content inside iteration directory
+echo '[{"id":"test-case-{platform_id}","platform":"{platform_id}","phase":"test_case_design","skill":"speccrew-test-case-design","status":"pending"}]' > speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
+
+node speccrew-workspace/scripts/update-progress.js init \
+  --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS.json \
+  --stage 06_system_test \
+  --tasks-file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
+
+# Delete .tasks-temp.json after successful init
+rm speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
 ```
-Or use `--tasks-file` to load from a JSON file.
 
 > **Note**: For subsequent phases (test_code_gen, test_execution), append tasks to the same file by reading the existing file and adding new tasks with the appropriate `phase` field.
 
@@ -580,11 +591,23 @@ Invoke Skill directly:
 
 > **DISPATCH-PROGRESS Strategy**: Append mode — each test phase appends its tasks to the existing DISPATCH-PROGRESS.json with a distinct `phase` field. Previous phase records are preserved for full traceability.
 
+> ⚠️ Use --tasks-file instead of --tasks to avoid PowerShell JSON parsing issues.
+
 **Initialize Dispatch Progress File:**
 
 Append new tasks for test_code_gen phase by reading existing file and adding tasks:
 ```bash
-node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS-test-code-gen.json --stage 06_system_test --tasks '[{"id":"test-code-{platform_id}","platform":"{platform_id}","phase":"test_code_gen","skill":"speccrew-test-code-gen","status":"pending"}]'
+# Write tasks to temp file, then use --tasks-file
+# Create .tasks-temp.json with task array content inside iteration directory
+echo '[{"id":"test-code-{platform_id}","platform":"{platform_id}","phase":"test_code_gen","skill":"speccrew-test-code-gen","status":"pending"}]' > speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
+
+node speccrew-workspace/scripts/update-progress.js init \
+  --file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/DISPATCH-PROGRESS-test-code-gen.json \
+  --stage 06_system_test \
+  --tasks-file speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
+
+# Delete .tasks-temp.json after successful init
+rm speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/.tasks-temp.json
 ```
 > **Note**: In practice, maintain a single DISPATCH-PROGRESS.json with all phases by merging task arrays.
 
@@ -804,7 +827,43 @@ Provide clear recommendation:
 - Confirm to proceed to delivery phase, or
 - Return to development phase for bug fixes
 
-### 6.5 Finalize Progress Files
+### 6.5 Present Test Results for User Confirmation
+
+> 🛑 **HARD STOP — Joint Confirmation Required Before Finalizing**
+>
+> **DO NOT update WORKFLOW-PROGRESS.json to "completed" or "confirmed" before user explicitly confirms.**
+> **DO NOT assume user silence means confirmation.**
+
+Present comprehensive test execution summary to user:
+
+```
+📋 Test Stage Delivery Report
+
+Results:
+├── Test Cases Designed: {count}
+├── Test Code Generated: {count} files
+├── Tests Executed: {pass}/{total} passed
+├── Bug Reports: {critical}/{high}/{medium}/{low}
+├── Coverage: {percentage}%
+└── Overall Status: {PASS/FAIL}
+
+Test Report: {path}/test-summary-report.md
+```
+
+**STOP and Request Confirmation:**
+
+> 🛑 **AWAITING USER CONFIRMATION**
+>
+> "测试阶段已完成，请审查测试报告。确认无误后将更新工作流状态。"
+>
+> Options:
+> - "确认" or "OK" → Proceed to finalize
+> - "需要修改" + details → Address specific test issues
+> - "取消" → Keep current status
+>
+> **I will NOT proceed until you explicitly confirm.**
+
+### 6.6 Finalize Progress Files
 
 **Update Checkpoint File:**
 

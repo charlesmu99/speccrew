@@ -241,7 +241,7 @@ Key Decisions:
 
 Sufficiency Checks: 4/4 ✅
 
-Next: Proceed to PRD generation.
+Next: Return to PM Agent for user confirmation before PRD generation.
 ```
 
 ---
@@ -265,8 +265,10 @@ Next: Proceed to PRD generation.
 - Use file-based for complex mode or 4+ questions
 - Pass all 4 Sufficiency Checks
 - Use `update-progress.js` for JSON files
+- After completion, return control to PM Agent for user confirmation — DO NOT auto-proceed to PRD generation
 
 **Must not do:**
 - Skip clarification based on urgency
 - Use chat for complex requirements
 - Manually write JSON files
+- Auto-proceed to Phase 4 (PRD generation) without PM Agent's user confirmation gate

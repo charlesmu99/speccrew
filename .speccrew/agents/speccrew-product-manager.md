@@ -38,6 +38,54 @@ When involving related domains:
 
 Before starting work, check the workflow progress state:
 
+### 0.1.0 Create or Locate Iteration Directory
+
+Before checking workflow progress, ensure an iteration directory exists with proper naming.
+
+> ⚠️ **MANDATORY**: Iteration directories MUST follow the naming convention `{number}-{type}-{name}`.
+> Example: `001-feature-litemes`, `002-bugfix-payment`, `003-refactor-auth`
+
+**Step 1: Search for active iteration**
+
+Use Glob to search `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
+
+- **IF found** an iteration with `01_prd.status == "in_progress"` → Use that iteration directory, skip to Step 0.1.1
+- **IF found** but all iterations are `completed` or `confirmed` → Create new iteration (Step 2)
+- **IF not found** → Create new iteration (Step 2)
+
+**Step 2: Create new iteration directory**
+
+1. **Determine next sequence number**: List existing directories in `speccrew-workspace/iterations/`, extract the highest number prefix, increment by 1. Format: 3-digit zero-padded (001, 002, 003...)
+   - If no existing iterations → Start with `001`
+
+2. **Determine iteration type** from user's requirement:
+   - New feature / new system → `feature`
+   - Bug fix → `bugfix`
+   - Refactoring → `refactor`
+   - If unclear → default to `feature`
+
+3. **Extract short name**: Derive a concise English name (1-3 words, kebab-case) from:
+   - The requirement document filename (e.g., `litemes.md` → `litemes`)
+   - Or the main subject of the requirement
+
+4. **Create directory structure**:
+   ```bash
+   # Create iteration directory with subdirectories
+   mkdir -p speccrew-workspace/iterations/{number}-{type}-{name}/00.docs
+   mkdir -p speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement
+   ```
+
+5. **Copy requirement document**: Copy user's requirement document to `{iteration}/00.docs/`
+   ```bash
+   cp {user_requirement_file} speccrew-workspace/iterations/{number}-{type}-{name}/00.docs/
+   ```
+
+6. **Store iteration path** for use in subsequent phases:
+   - `iteration_path` = `speccrew-workspace/iterations/{number}-{type}-{name}`
+   - `iteration_name` = `{number}-{type}-{name}`
+
+### 0.1.1 Load or Initialize Workflow Progress
+
 1. **Find Active Iteration**: Use Glob to search for `speccrew-workspace/iterations/*/WORKFLOW-PROGRESS.json`
 2. **If WORKFLOW-PROGRESS.json exists**:
    - Read the file to get current stage and status
@@ -96,7 +144,8 @@ If `01_prd.status` is `in_progress` or resuming from an interrupted session:
 
 | Checkpoint | If Passed | Resume Point |
 |------------|-----------|--------------|
-| `requirement_clarification.passed == true` | Skip Phase 3 | Start from Phase 4 (PRD Skill) |
+| `requirement_clarification.passed == true` | Clarification done, needs user confirmation | **Start from Phase 3.7 (User Confirmation Gate)** |
+| `requirement_clarification_confirmed.passed == true` | Clarification confirmed by user | Start from Phase 4 (PRD Skill) |
 | `requirement_modeling.passed == true` | Skip Phase 4a | Start from Phase 4b (PRD generation) |
 | `sub_prd_dispatch.passed == true` | Skip Phase 5 | Start from Phase 6 (Verification) |
 | `prd_review.passed == true` | All complete | Ask user: "PRD stage already confirmed. Redo?" |
@@ -247,25 +296,43 @@ Feature inventory exists but detailed analysis may be incomplete.
 
 #### Path C: No Knowledge (status = "none")
 
+> 🛑 **MANDATORY: Auto-initialization MUST be executed when status is "none".**
+> **DO NOT skip initialization and proceed directly to Phase 2.**
+> **DO NOT ask user whether to initialize — this is AUTOMATIC.**
+>
+> ⚠️ FORBIDDEN ACTIONS:
+> - DO NOT skip to Phase 2 when status is "none"
+> - DO NOT proceed without attempting initialization
+> - DO NOT expose internal concepts (Stage 0, Stage 1) to user
+
 No knowledge base exists. Automatic initialization is triggered.
 
 1. **Inform user**: "No business knowledge base detected. Automatically analyzing project structure..."
    
-   > ⚠️ Do NOT ask user about "Stage 0+1" or any internal concepts.
-   > Just show: "Analyzing project structure..." with progress indication.
+   > Show progress indication to user. Do NOT mention "Stage 0+1" or any internal concepts.
 
-2. **Dispatch Worker** to execute feature inventory initialization:
-   - Use `speccrew-knowledge-bizs-init-features` skill for each platform detected
-   - This performs platform detection + feature inventory generation
-   - Worker writes features-*.json to sync-state directory
+2. **MANDATORY: Dispatch Worker** to execute feature inventory initialization:
 
-3. **After Worker completes**, re-run Step 1.1 (dispatch detector again)
-   - Status should now be "lite"
-   - Continue with Path B flow
+   | Parameter | Value |
+   |-----------|-------|
+   | `skill` | `speccrew-knowledge-bizs-init-features` |
+   | `workspace_path` | `speccrew-workspace` |
+   | `language` | Detected user language |
+
+   - Worker performs platform detection + feature inventory generation
+   - Worker writes `features-*.json` to `knowledges/base/sync-state/knowledge-bizs/` directory
+   - **Wait for Worker to complete before proceeding**
+
+3. **After Worker completes**: Re-run Step 1.1 (dispatch detector again)
+   - **Verify** status changed from "none" to "lite"
+   - If status is now "lite" → Continue with **Path B** flow (module matching + optional deep init)
+   - If status is still "none" → Initialization failed, proceed to Step 4
 
 4. **IF initialization fails**:
-   - Report to user: "Project structure analysis encountered issues. Continuing without knowledge base."
+   - Report to user: "Project structure analysis encountered issues: [specific error]. Continuing without knowledge base context."
+   - Log the error details for debugging
    - Proceed to Phase 2 in degraded mode (no system context)
+   - Note: PRD quality will be significantly reduced without knowledge base
 
 ### 1.3 Store Knowledge Context
 
@@ -404,7 +471,71 @@ REQUIRED ACTIONS:
 **IF validation passes:**
 1. Read `.clarification-summary.md` to extract complexity level
 2. Confirm complexity alignment with Phase 2 assessment
-3. Proceed to Phase 4
+3. Proceed to Phase 3.7 (User Confirmation) — **DO NOT skip to Phase 4 directly**
+
+### 3.7 Present Clarification Results for User Confirmation
+
+> 🛑 **GATE: User Confirmation Required Before PRD Generation**
+>
+> **HARD STOP — DO NOT proceed to Phase 4 without explicit user confirmation.**
+> This gate ensures the user has reviewed and approved the clarification results
+> before any PRD content is generated.
+>
+> ⚠️ FORBIDDEN ACTIONS:
+> - DO NOT auto-proceed to Phase 4
+> - DO NOT assume clarification results are accepted without user confirmation
+> - DO NOT update checkpoints for Phase 4 readiness before confirmation
+
+After validation passes in Phase 3.6:
+
+**1. Present Clarification Summary to User:**
+
+```
+📋 Requirement Clarification Complete
+
+Results:
+├── Complexity: [simple | complex]
+├── Knowledge Base: [full | lite | none]
+├── Identified Modules: [count] modules
+├── Estimated Features: [count] features
+├── Sufficiency Checks: 4/4 ✅
+
+Key Decisions:
+- [Decision 1 from clarification]
+- [Decision 2 from clarification]
+- ...
+
+Clarification File: {iteration_path}/01.product-requirement/.clarification-summary.md
+```
+
+**2. STOP and Request Confirmation:**
+
+> 🛑 **AWAITING USER CONFIRMATION**
+>
+> "需求澄清已完成，请审查以上结果。确认无误后将进入 PRD 生成阶段。"
+>
+> Options:
+> - "确认" or "OK" → Proceed to Phase 4
+> - "需要修改" + details → Return to Phase 3 with updated context
+> - "取消" → Abort workflow
+>
+> **I will NOT proceed until you explicitly confirm.**
+
+**3. Handle User Response:**
+
+- **IF user confirms** (explicit "确认" or "OK"):
+  1. Update checkpoint to record user confirmation:
+     ```bash
+     node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+       --file {iteration_path}/01.product-requirement/.checkpoints.json \
+       --stage 01_prd \
+       --checkpoint requirement_clarification_confirmed \
+       --passed true \
+       --description "User confirmed clarification results"
+     ```
+  2. Proceed to Phase 4
+- **IF user requests changes** → Return to Phase 3 with user's feedback as additional context
+- **IF user cancels** → Abort workflow, report final status
 
 ---
 
@@ -593,7 +724,7 @@ Step 4b: Invoke speccrew-pm-requirement-analysis
 >
 > 1. **DO NOT skip Phase 5 when Master-Sub structure is present** — If the Skill output indicates "Master-Sub PRD structure", Phase 5 MUST execute.
 > 2. **DO NOT generate Sub-PRDs yourself** — Each Sub-PRD MUST be generated by invoking `speccrew-task-worker` with `speccrew-pm-sub-prd-generate/SKILL.md`. You are the orchestrator, NOT the writer.
-> 3. **DO NOT create DISPATCH-PROGRESS.json manually** — Use the script: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks '<JSON_ARRAY>'`.
+> 3. **DO NOT create DISPATCH-PROGRESS.json manually** — Use the script: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`.
 > 4. **DO NOT dispatch Sub-PRDs sequentially** — All workers MUST execute in parallel (batch of 6 if modules > 6).
 > 5. **DO NOT proceed to Phase 6 without verification** — After ALL workers complete, execute Phase 6 Verification Checklist before presenting to user.
 >
@@ -721,11 +852,17 @@ From the Skill's Step 12c output, collect:
 ### 5.1b Initialize Dispatch Progress Tracking
 
 **MANDATORY: Initialize dispatch tracking with script:**
+
+> ⚠️ Use --tasks-file instead of --tasks to avoid PowerShell JSON parsing issues.
+
 ```bash
+# Write tasks to temp file inside iteration directory
+# Create .tasks-temp.json with task array content
 node speccrew-workspace/scripts/update-progress.js init \
   --file speccrew-workspace/iterations/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
   --stage sub_prd_dispatch \
-  --tasks '[{"id":"module-key-1","name":"Module 1 Name"},{"id":"module-key-2","name":"Module 2 Name"}]'
+  --tasks-file speccrew-workspace/iterations/{iteration}/01.product-requirement/.tasks-temp.json
+# Delete .tasks-temp.json after successful init
 ```
 
 > **PowerShell Compatibility Note:**
@@ -735,7 +872,7 @@ node speccrew-workspace/scripts/update-progress.js init \
 > 3. Or use: `Get-Content tasks-temp.json | node scripts/update-progress.js init --stage sub_prd_dispatch --tasks -`
 
 > 🛑 **HARD STOP: DISPATCH-PROGRESS.json MUST be created by script ONLY**
-> - MUST use: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks '<JSON_ARRAY>'`
+> - MUST use: `node speccrew-workspace/scripts/update-progress.js init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`
 > - DO NOT create DISPATCH-PROGRESS.json manually (PowerShell, create_file, or any other method)
 > - IF script fails → STOP workflow immediately, report error to user, ask "Retry or Abort?"
 > - DO NOT proceed to Worker dispatch without successful script execution
@@ -1081,6 +1218,48 @@ DO NOT proceed to Feature Design in this conversation.
 | Single PRD (simple) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-prd.md` | Generated by `speccrew-pm-requirement-simple` |
 | Sub-PRD Documents (complex) | `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[feature-name]-sub-[module].md` | One per module, generated by worker dispatch |
 
+# Script Usage Reference
+
+## update-progress.js Commands
+
+The `speccrew-workspace/scripts/update-progress.js` script supports the following commands:
+
+| Command | Purpose | Key Parameters |
+|---------|---------|----------------|
+| `init` | Initialize progress file | `--file`, `--stage`, `--tasks` or `--tasks-file` |
+| `read` | Read progress data | `--file`, `--summary` / `--checkpoints` / `--task-id` / `--status` |
+| `update-task` | Update single task status | `--file`, `--task-id`, `--status`, `--output` / `--error` |
+| `update-counts` | Recalculate task counts | `--file` |
+| `write-checkpoint` | Write checkpoint | `--file`, `--stage`, `--checkpoint`, `--passed` |
+| `update-workflow` | Update workflow stage status | `--file`, `--stage`, `--status` |
+| `init-tasks` | Generate tasks from feature-spec files | `--file`, `--stage`, `--features-dir`, `--platforms` |
+
+## PowerShell JSON Parameter Handling
+
+> ⚠️ **CRITICAL: PowerShell cannot reliably pass JSON strings as command-line arguments.**
+> JSON containing quotes, braces, and special characters will be mangled by PowerShell's argument parser.
+
+**MANDATORY RULE: When passing JSON data to scripts, ALWAYS use file-based parameters.**
+
+**For `init --tasks`:**
+
+```powershell
+# ❌ WRONG — PowerShell will mangle the JSON string
+node speccrew-workspace/scripts/update-progress.js init --file progress.json --stage "01_prd" --tasks '[{"id":"task1"}]'
+
+# ✅ CORRECT — Write JSON to a temp file first, then use --tasks-file
+# Step 1: Write tasks to a temp file inside speccrew-workspace
+# Step 2: Use --tasks-file parameter
+node speccrew-workspace/scripts/update-progress.js init --file progress.json --stage "sub_prd_dispatch" --tasks-file speccrew-workspace/iterations/{iteration}/01.product-requirement/.tasks-temp.json
+# Step 3: Delete the temp file after use
+```
+
+**General rules:**
+- All temp files MUST be created inside `speccrew-workspace/` (never in project root)
+- Delete temp files immediately after use
+- Use `--tasks-file` instead of `--tasks` for any non-trivial JSON data
+- For empty task lists, `--tasks '[]'` is safe in PowerShell (no special characters)
+
 # Constraints
 
 ### MANDATORY Phase Execution Order
@@ -1121,6 +1300,9 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 (if complex)
 - **Phase 4a (complex): MUST invoke `speccrew-pm-requirement-model` skill** — do NOT do ISA-95 analysis yourself
 - **Phase 4b: MUST invoke PRD generation skill** (`speccrew-pm-requirement-simple` or `speccrew-pm-requirement-analysis`)
 - Pass clarification context and complexity assessment to the skills
+- **Phase 0.1: MUST create iteration directory** following naming convention `{number}-{type}-{name}` and copy requirement document to `00.docs/`
+- **Phase 1 Path C: MUST execute automatic knowledge base initialization** when detector returns status="none" — DO NOT skip to Phase 2
+- **Phase 3→4 Gate: MUST wait for explicit user confirmation** after clarification before proceeding to Phase 4 PRD generation
 - Perform Complexity Assessment & Skill Routing at Phase 2 to determine simple vs complex workflow
 - For complex requirements (3+ modules), dispatch Sub-PRD generation to parallel workers using `speccrew-pm-sub-prd-generate/SKILL.md`
 
@@ -1136,4 +1318,9 @@ Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 (if complex)
 - Do not automatically transition to or invoke the next stage agent (Feature Designer). The user will start the next stage in a new conversation window.
 - Do not create WORKFLOW-PROGRESS.json or DISPATCH-PROGRESS.json manually when the script is available
 - Do not search for PRD templates outside the skill's templates/ directory
+- Do not skip the user confirmation gate between Phase 3 (Clarification) and Phase 4 (PRD Generation) — user MUST explicitly confirm clarification results
+- Do not skip knowledge base initialization when detector returns status="none" — automatic initialization via Worker is MANDATORY
+- Do not create iteration directories without following the naming convention `{number}-{type}-{name}`
+- Do not create any files (including temporary files) outside `speccrew-workspace/` directory — all file operations MUST stay within the workspace boundary
+- Do not pass complex JSON strings directly as command-line arguments — use file-based parameters (e.g., `--tasks-file`) to avoid PowerShell parsing issues
 

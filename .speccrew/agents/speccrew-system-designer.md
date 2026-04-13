@@ -621,10 +621,21 @@ Based on platform types in techs-manifest:
 Before dispatching, create or update dispatch tracking:
 
 1. **Initialize dispatch progress file with task list**:
+
+   > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
+
    ```bash
-   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks '[{"id":"sd-{platform_id}-{feature_id}","platform":"{platform_id}","feature_id":"{feature_id}","feature_name":"{feature_name}","skill":"speccrew-sd-{type}","status":"pending"}]'
+   # Step 1: Write tasks JSON to temp file inside iteration directory
+   # Create .tasks-temp.json with the task array content
+   # Step 2: Initialize with --tasks-file
+   node speccrew-workspace/scripts/update-progress.js init --file speccrew-workspace/iterations/{current}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks-file speccrew-workspace/iterations/{current}/03.system-design/.tasks-temp.json
+   # Step 3: Delete .tasks-temp.json after successful init
    ```
-   Or use `--tasks-file` to load from a JSON file.
+
+   Example `.tasks-temp.json` content:
+   ```json
+   [{"id":"sd-web-vue-F-CRM-01","platform":"web-vue","feature_id":"F-CRM-01","feature_name":"customer-list","skill":"speccrew-sd-frontend","status":"pending"}]
+   ```
 
    **Task ID 格式更新**:
    - 旧格式: `sd-{platform}-{feature}`（如 `sd-web-vue-customer-list`）
