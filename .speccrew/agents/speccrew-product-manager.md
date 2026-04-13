@@ -422,6 +422,12 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 >     requirement_summary: <brief summary of user's requirement>
 > ```
 >
+> 🛑 **CRITICAL GATE — DO NOT SKIP Steps 2-5**:
+> After matcher completes, you MUST execute Steps 2-5 to deep-initialize the matched modules' knowledge base.
+> DO NOT jump to Phase 2 (Complexity Assessment) or Phase 3 (Requirement Clarification) until ALL Steps complete.
+> The matcher output is INPUT for Step 2, not the final output of Path B.
+> Skipping Steps 2-5 means the PRD will lack descriptions of existing system features.
+>
 > **Path B Step 2: Generate Analyze Task Plan**
 > For EACH matched module, dispatch Worker with `speccrew-pm-module-initializer` skill.
 > This Worker will output a task plan JSON (list of features to analyze + analyzer parameters).
@@ -494,6 +500,15 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > After all analyze Workers complete, update each analyzed feature's `analyzed` field to `true` in the corresponding features-*.json file.
 >
 > Only after ALL Steps complete, proceed to Phase 2 (Requirement Clarification).
+>
+> 🛑 **Path B Completion Check**:
+> Before proceeding to Phase 2, verify:
+> - [ ] Step 2 completed: task plan JSON generated for each matched module
+> - [ ] Step 3 completed: analyze Workers dispatched and completed for ALL pending features
+> - [ ] Step 4 completed: module-summarize Workers completed for ALL matched modules
+> - [ ] Step 5 completed: features-*.json updated with analyzed=true
+> 
+> If ANY step is incomplete, DO NOT proceed. Execute the missing steps first.
 
 4. **IF feature inventory fails**:
    - Report to user: "Project structure scan encountered issues: [specific error]. Continuing without knowledge base context."
@@ -514,6 +529,10 @@ This context will be passed to Phase 3 (Requirement Clarification) and Phase 4 (
 ---
 
 ## Phase 2: Complexity Assessment & Skill Routing
+
+> **PRE-CONDITION**: Path B Steps 2-5 must be completed before entering Phase 2.
+> If matched_modules exist but knowledges/bizs/ directories are empty, Path B was not fully executed.
+> Go back and execute the remaining Path B steps.
 
 Before starting requirement analysis, assess the requirement complexity to determine the appropriate skill path.
 
