@@ -93,32 +93,13 @@ Use Glob to search `{iterations_dir}/*/WORKFLOW-PROGRESS.json`
    - If `01_prd.status` is `confirmed`, check resume state (Step 0.2)
 3. **If WORKFLOW-PROGRESS.json does not exist**:
    - **MUST use script to initialize:**
+
+     > 🛑 **FORBIDDEN**: DO NOT manually create WORKFLOW-PROGRESS.json via Write/Edit tools. ALL initialization MUST be done via `update-progress.js` script.
+
      ```bash
      node "{update_progress_script}" update-workflow \
-       --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
+       --file "{iterations_dir}/{iteration_name}/WORKFLOW-PROGRESS.json" \
        --stage 01_prd --status in_progress
-     ```
-   - **Fallback** (ONLY if script file does not exist):
-     Create manually with the following structure:
-     ```json
-     {
-       "iteration": "{iteration-name}",
-       "current_stage": "01_prd",
-       "stages": {
-         "01_prd": {
-           "status": "in_progress",
-           "started_at": "<current-timestamp>",
-           "completed_at": null,
-           "confirmed_at": null,
-           "outputs": []
-         },
-         "02_feature_design": { "status": "pending" },
-         "03_system_design": { "status": "pending" },
-         "04_development": { "status": "pending" },
-         "05_deployment": { "status": "pending" },
-         "06_system_test": { "status": "pending" }
-       }
-     }
      ```
 
 ## Phase 0.2: Check Resume State (Checkpoint Recovery)
@@ -657,6 +638,9 @@ Clarification File: {iteration_path}/01.product-requirement/.clarification-summa
 
 - **IF user confirms** (explicit "确认" or "OK"):
   1. Update checkpoint to record user confirmation:
+
+     > 🛑 **FORBIDDEN**: DO NOT manually edit .checkpoints.json via Write/Edit tools. ALL checkpoint updates MUST be done via `update-progress.js` script.
+
      ```bash
      node "{update_progress_script}" write-checkpoint \
        --file {iteration_path}/01.product-requirement/.checkpoints.json \
@@ -1289,9 +1273,13 @@ After presenting the documents above, you MUST stop and ask:
 > - If NO → Return to Phase 6.2 and wait for confirmation
 > - If YES → Proceed with the steps below
 
+> 🛑 **FORBIDDEN**: DO NOT manually edit WORKFLOW-PROGRESS.json via Write/Edit tools. ALL updates to this file MUST be done via `update-progress.js` script through `run_in_terminal`.
+
 **5.3.1 Update Checkpoints**
 
 Now update all checkpoints (user has confirmed):
+
+> 🛑 **FORBIDDEN**: DO NOT manually edit .checkpoints.json via Write/Edit tools. ALL checkpoint updates MUST be done via `update-progress.js` script.
 
 ```bash
 # Update verification_checklist checkpoint
@@ -1309,10 +1297,14 @@ node "{update_progress_script}" write-checkpoint \
 
 **5.3.2 Update WORKFLOW-PROGRESS.json**
 
+**Update workflow status to completed:**
 ```bash
-node "{update_progress_script}" update-workflow \
-  --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
-  --stage 01_prd --status completed
+node "{update_progress_script}" update-workflow --file "{iterations_dir}/{iteration_name}/WORKFLOW-PROGRESS.json" --stage 01_prd --status completed
+```
+
+**Update workflow status to confirmed (after user confirms):**
+```bash
+node "{update_progress_script}" update-workflow --file "{iterations_dir}/{iteration_name}/WORKFLOW-PROGRESS.json" --stage 01_prd --status confirmed
 ```
 
 **5.3.3 Update PRD Status**
