@@ -1091,31 +1091,53 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 > Multiple items detected → MUST dispatch speccrew-task-worker.
 > DO NOT invoke skills directly. See MANDATORY WORKER ENFORCEMENT section.
 
+> 🛑 **ORCHESTRATOR PRINCIPLE — PM Agent is DISPATCHER, NOT WORKER:**
+> The PM Agent MUST dispatch ONE Worker per Sub-PRD module.
+> Each Worker generates ONE Sub-PRD file.
+> PM Agent tracks progress and sends batches — PM Agent NEVER generates Sub-PRD content.
+
 **IF the Skill output includes a Sub-PRD Dispatch Plan (from Step 12c), execute this phase.**
 **IF Single PRD structure, skip to Phase 6.**
 
-After the Skill generates the Master PRD and outputs the dispatch plan, the PM Agent takes over to generate Sub-PRDs in parallel using worker agents.
+After the Skill generates the Master PRD and outputs the dispatch plan, the PM Agent takes over to dispatch Sub-PRD generation to worker agents.
 
-> **Phase 5 Execution Flow:**
+> **CORRECT Phase 5 Execution Flow (Dispatch-Tracked):**
 > ```
 > Generate Skill outputs Dispatch Plan
 >     ↓
 > PM reads Dispatch Plan (module list + contexts)
 >     ↓
-> PM initializes DISPATCH-PROGRESS.json (via script)
+> PM initializes DISPATCH-PROGRESS.json (via script) ← Step 5.2
 >     ↓
-> PM invokes speccrew-task-worker × N (one per module)
->   └─ Each worker internally calls speccrew-pm-sub-prd-generate
+> PM dispatches Workers IN BATCHES ← Step 5.3
+>   ├─ Batch 1: Workers 1-5 (parallel dispatch)
+>   ├─ Wait for Batch 1 completion
+>   ├─ Update DISPATCH-PROGRESS.json per completed worker
+>   ├─ Batch 2: Workers 6-10 (parallel dispatch)
+>   ├─ Wait for Batch 2 completion
+>   └─ ... until all modules done
 >     ↓
-> Workers complete → PM updates progress (via script)
+> ALL workers done → PM verifies in Step 5.5
 >     ↓
-> ALL workers done → Phase 6
+> ALL verified → Phase 6
 > ```
 > 
-> **NOT this flow:**
+> **WRONG flow (VIOLATION):**
+> ```
+> PM reads Dispatch Plan
+>     ↓
+> PM dispatches ONE Worker for ALL modules ← VIOLATION
+>   └─ Worker internally loops to generate all Sub-PRDs
+>     ↓
+> This is serial generation, NOT parallel dispatch
+> ```
+> 
+> **ALSO WRONG:**
 > ```
 > PM reads Dispatch Plan → PM generates Sub-PRDs directly ← VIOLATION
 > ```
+
+---
 
 ### 5.1 Read Dispatch Plan
 
@@ -1123,33 +1145,63 @@ From the Skill's Step 12c output, collect:
 - `feature_name`: System-level feature name
 - `template_path`: Path to PRD-TEMPLATE.md
 - `master_prd_path`: Path to the generated Master PRD
+- `clarification_file`: Path to `.clarification-summary.md`
+- `module_design_file`: Path to `.module-design.md`
 - `output_dir`: Directory for Sub-PRD files (same as Master PRD directory)
 - Module list with context for each module:
   - `module_name`, `module_key`, `module_scope`, `module_entities`
   - `module_user_stories`, `module_requirements`, `module_features`
   - `module_dependencies`
 
-### 5.1b Initialize Dispatch Progress Tracking
+**Store these values as workflow context variables for use in Worker dispatches.**
 
-**MANDATORY: Initialize dispatch tracking with script:**
+---
+
+### 5.2 Initialize Dispatch Progress Tracking
+
+> 🛑 **HARD STOP: This step MUST complete before ANY Worker dispatch.**
+
+**Step 5.2.1: Prepare tasks array**
+
+Create a temporary file with task definitions for each module:
+
+```json
+[
+  {
+    "id": "{module_key_1}",
+    "name": "{module_name_1}",
+    "status": "pending",
+    "output_file": "{output_dir}/{feature_name}-sub-{module_key_1}.md"
+  },
+  {
+    "id": "{module_key_2}",
+    "name": "{module_name_2}",
+    "status": "pending",
+    "output_file": "{output_dir}/{feature_name}-sub-{module_key_2}.md"
+  }
+]
+```
+
+**Step 5.2.2: Initialize DISPATCH-PROGRESS.json**
 
 > ⚠️ Use --tasks-file instead of --tasks to avoid PowerShell JSON parsing issues.
 
 ```bash
-# Write tasks to temp file inside iteration directory
-# Create .tasks-temp.json with task array content
-node "{update_progress_script}" init \
-  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
-  --stage sub_prd_dispatch \
-  --tasks-file {iterations_dir}/{iteration}/01.product-requirement/.tasks-temp.json
-# Delete .tasks-temp.json after successful init
+# PowerShell compatible command
+node "{update_progress_script}" init `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --stage sub_prd_dispatch `
+  --tasks-file "{iterations_dir}/{iteration}/01.product-requirement/.tasks-temp.json"
+
+# Clean up temp file after successful init
+Remove-Item "{iterations_dir}/{iteration}/01.product-requirement/.tasks-temp.json"
 ```
 
 > **PowerShell Compatibility Note:**
 > PowerShell cannot properly parse JSON in command-line arguments. Use file-based approach:
-> 1. Write tasks JSON to a temporary file (e.g., `tasks-temp.json`)
-> 2. Read file content in the command: `node "{update_progress_script}" init --stage sub_prd_dispatch --tasks (Get-Content tasks-temp.json -Raw)`
-> 3. Or use: `Get-Content tasks-temp.json | node "{update_progress_script}" init --stage sub_prd_dispatch --tasks -`
+> 1. Write tasks JSON to a temporary file (e.g., `.tasks-temp.json`)
+> 2. Run the init command with `--tasks-file` pointing to the temp file
+> 3. Delete temp file after successful init
 
 > 🛑 **HARD STOP: DISPATCH-PROGRESS.json MUST be created by script ONLY**
 > - MUST use: `node "{update_progress_script}" init --stage sub_prd_dispatch --tasks-file <TASKS_FILE>`
@@ -1157,116 +1209,281 @@ node "{update_progress_script}" init \
 > - IF script fails → STOP workflow immediately, report error to user, ask "Retry or Abort?"
 > - DO NOT proceed to Worker dispatch without successful script execution
 
-After each worker completes:
+**Step 5.2.3: Verify initialization**
+
 ```bash
-node "{update_progress_script}" update-task \
-  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
-  --task-id {module_key} --status completed
+node "{update_progress_script}" read `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --summary
 ```
 
-If a worker fails:
-```bash
-node "{update_progress_script}" update-task \
-  --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
-  --task-id {module_key} --status failed --error "{error_message}"
-```
+Expected output: `Total: N tasks | Pending: N | Completed: 0 | Failed: 0`
 
-### 5.3 Dispatch Workers
+---
+
+### 5.3 Dispatch Workers (Batch Parallel)
+
+> 🛑 **CRITICAL: ONE Worker per Module — NO EXCEPTIONS**
+>
+> | Module Count | Dispatch Strategy |
+> |--------------|-------------------|
+> | 1-5 modules | Single batch, all parallel |
+> | 6-10 modules | 2 batches of 5 |
+> | 11-15 modules | 3 batches of 5 |
+> | 16+ modules | Batches of 5, final batch may be smaller |
+>
+> **BATCH SIZE = 5 (maximum parallel Workers per batch)**
 
 **PM Agent Role: ORCHESTRATOR ONLY — Phase 5 EXPLICIT RULES**
 
 **MANDATORY — PM MUST:**
 1. Read the Dispatch Plan from generate skill output
-2. Initialize DISPATCH-PROGRESS.json via update-progress.js script
-3. For EACH module in dispatch plan: invoke `speccrew-task-worker` with `skill_path: speccrew-pm-sub-prd-generate/SKILL.md`
+2. Initialize DISPATCH-PROGRESS.json via update-progress.js script (Step 5.2)
+3. For EACH module in dispatch plan: invoke ONE `speccrew-task-worker`
 4. Pass ALL required context parameters to each worker
-5. Wait for ALL workers to complete
-6. Update DISPATCH-PROGRESS.json via script after each worker completes
+5. Dispatch in batches of 5, wait for each batch to complete
+6. After each Worker completes, update DISPATCH-PROGRESS.json via script
 
 🛑 **FORBIDDEN — PM MUST NOT:**
 - Generate Sub-PRD files directly (via create_file, write, or any file creation)
 - Invoke speccrew-pm-sub-prd-generate skill directly (ONLY speccrew-task-worker invokes it)
+- Dispatch ONE Worker to handle MULTIPLE modules (each module = one Worker)
 - Create or edit any Sub-PRD content as fallback if worker fails
 - Skip worker dispatch and generate Sub-PRDs inline
 - IF PM attempts ANY of above → WORKFLOW VIOLATION → STOP immediately
 
-**Implementation:**
+---
 
-For EACH module in the dispatch plan, invoke a new `speccrew-task-worker` agent:
-- **skill_path**: Search with glob `**/speccrew-pm-sub-prd-generate/SKILL.md`
-- **context**: 
-  - `module_name`: from dispatch plan
-  - `module_key`: from dispatch plan
-  - `master_prd_path`: path to Master PRD
-  - `template_path`: PRD template path (from Step 7 glob search result)
-  - `output_dir`: `{iterations_dir}/{iteration}/01.product-requirement/` (absolute path from Phase 0.6)
+#### Step 5.3.1: Determine Batch Plan
 
-Each worker receives:
-- `skill_path`: `speccrew-pm-sub-prd-generate/SKILL.md`
-- `context`:
-  - `module_name`: Module name (e.g., "Customer Management")
-  - `module_key`: Module identifier for file naming (e.g., "customer")
-  - `module_scope`: What this module covers
-  - `module_entities`: Core business entities
-  - `module_user_stories`: Module-specific user stories
-  - `module_requirements`: Module-specific functional requirements (P0/P1/P2)
-  - `module_features`: Feature Breakdown entries for this module
-  - `module_dependencies`: Dependencies on other modules
-  - `master_prd_path`: Path to the Master PRD
-  - `feature_name`: System-level feature name
-  - `template_path`: Path to PRD-TEMPLATE.md
-  - `output_path`: `{output_dir}/{feature_name}-sub-{module_key}.md`
+<arg_value>Read DISPATCH-PROGRESS.json to get pending tasks:
 
-**Batch Strategy:**
-- If modules ≤ 6: dispatch ALL in parallel
-- If modules > 6: dispatch in batches of 6, wait for batch completion before next batch
-
-**Parallel execution pattern:**
-```
-Worker 1: Module "customer"     → crm-system-sub-customer.md
-Worker 2: Module "contact"      → crm-system-sub-contact.md
-Worker 3: Module "opportunity"  → crm-system-sub-opportunity.md
-...
-Worker N: Module "{module-N}"   → crm-system-sub-{module-N}.md
+```bash
+node "{update_progress_script}" read `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json"
 ```
 
-**All workers execute simultaneously (or in batches).** Wait for all workers to complete before proceeding.
+Group tasks into batches:
+```
+📊 Sub-PRD Dispatch Plan
+├── Total Modules: 14
+├── Batch Size: 5
+├── Batches Required: 3
+│   ├── Batch 1: modules 1-5 (customer, contact, opportunity, lead, activity)
+│   ├── Batch 2: modules 6-10 (report, dashboard, workflow, notification, integration)
+│   └── Batch 3: modules 11-14 (security, audit, config, help)
+└── Strategy: Parallel dispatch within batch, sequential between batches
+```
 
-**Before proceeding to Phase 6, verify:**
-- [ ] All workers were dispatched via speccrew-task-worker
-- [ ] No Sub-PRD was generated by PM Agent directly
-- [ ] All workers completed (check DISPATCH-PROGRESS.json)
+---
 
-### 5.4 Collect Results
+#### Step 5.3.2: Dispatch Batch N
 
-After all workers complete:
+For EACH module in current batch, dispatch ONE `speccrew-task-worker`:
 
-1. **Check worker results**: Verify each worker reported success
-2. **List generated files**:
-   ```
-   📊 Sub-PRD Generation Results:
-   ├── Worker 1: {module-1} → ✅ Generated ({file_size})
-   ├── Worker 2: {module-2} → ✅ Generated ({file_size})
-   ├── Worker N: {module-N} → ✅ Generated ({file_size})
-   │
-   Total: N workers | Completed: X | Failed: Y
-   ```
+**Agent Tool Invocation Format (REPEAT for each module):**
 
-3. **Handle failures**: If any worker failed:
-   - Report which modules failed and why
-   - Re-dispatch failed modules (retry once)
-   - If retry fails, report to user for manual intervention
+```
+Use the Agent tool to invoke speccrew-task-worker:
+- agent: speccrew-task-worker
+- task: Generate Sub-PRD for module "{module_name}"
+- context:
+    skill: speccrew-pm-sub-prd-generate
+    module_name: {module_name}
+    module_key: {module_key}
+    module_scope: {module_scope}
+    module_entities: {module_entities}
+    module_user_stories: {module_user_stories}
+    module_requirements: {module_requirements}
+    module_features: {module_features}
+    module_dependencies: {module_dependencies}
+    master_prd_path: {master_prd_path}
+    clarification_file: {clarification_file}
+    module_design_file: {module_design_file}
+    feature_name: {feature_name}
+    template_path: {template_path}
+    output_path: {output_dir}/{feature_name}-sub-{module_key}.md
+    language: {language}
+```
 
-After all workers complete, report dispatch summary:
+**Worker Context Parameters:**
+
+| Parameter | Source | Description |
+|-----------|--------|-------------|
+| `skill` | Fixed | `speccrew-pm-sub-prd-generate` |
+| `module_name` | Dispatch Plan | Display name (e.g., "Customer Management") |
+| `module_key` | Dispatch Plan | Identifier for file naming (e.g., "customer") |
+| `module_scope` | Dispatch Plan | What this module covers |
+| `module_entities` | Dispatch Plan | Core business entities |
+| `module_user_stories` | Dispatch Plan | Module-specific user stories |
+| `module_requirements` | Dispatch Plan | Module-specific functional requirements (P0/P1/P2) |
+| `module_features` | Dispatch Plan | Feature Breakdown entries for this module |
+| `module_dependencies` | Dispatch Plan | Dependencies on other modules |
+| `master_prd_path` | Dispatch Plan | Path to the Master PRD |
+| `clarification_file` | Step 5.1 | Path to `.clarification-summary.md` |
+| `module_design_file` | Step 5.1 | Path to `.module-design.md` |
+| `feature_name` | Dispatch Plan | System-level feature name |
+| `template_path` | Dispatch Plan | Path to PRD-TEMPLATE.md |
+| `output_path` | Computed | `{output_dir}/{feature_name}-sub-{module_key}.md` |
+| `language` | Detected | User's language |
+
+**Dispatch Example (Batch 1 with 5 modules):**
+
+```
+📊 Dispatching Batch 1 (5 modules in parallel)
+├── Worker 1: module="customer"     → output: crm-system-sub-customer.md
+├── Worker 2: module="contact"      → output: crm-system-sub-contact.md
+├── Worker 3: module="opportunity"  → output: crm-system-sub-opportunity.md
+├── Worker 4: module="lead"         → output: crm-system-sub-lead.md
+└── Worker 5: module="activity"     → output: crm-system-sub-activity.md
+
+Waiting for all 5 Workers to complete...
+```
+
+---
+
+#### Step 5.3.3: Update Progress After Each Worker
+
+**When a Worker completes successfully:**
+
+```bash
+node "{update_progress_script}" update-task `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --task-id "{module_key}" `
+  --status completed
+```
+
+**When a Worker fails:**
+
+```bash
+node "{update_progress_script}" update-task `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --task-id "{module_key}" `
+  --status failed `
+  --error "{error_message}"
+```
+
+**After each batch completes, show progress:**
+
+```
+📊 Batch 1 Complete
+├── ✅ customer: completed
+├── ✅ contact: completed
+├── ✅ opportunity: completed
+├── ❌ lead: failed (timeout)
+└── ✅ activity: completed
+
+Progress: 4/14 completed, 1 failed, 9 pending
+Proceeding to Batch 2...
+```
+
+---
+
+#### Step 5.3.4: Continue to Next Batch
+
+After current batch completes:
+1. Check DISPATCH-PROGRESS.json for remaining pending tasks
+2. If pending tasks remain → dispatch next batch (Step 5.3.2)
+3. If all tasks done → proceed to Step 5.4
+
+```bash
+node "{update_progress_script}" read `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --summary
+```
+
+Continue dispatching batches until `counts.pending == 0`.
+
+---
+
+### 5.4 Handle Failures & Retry
+
+After all batches complete, check for failed tasks:
+
+```bash
+node "{update_progress_script}" read `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json"
+```
+
+**If any tasks have `status: "failed"`:**
+
+1. List failed modules
+2. Re-dispatch ONE Worker per failed module (single retry)
+3. Update status after retry
+4. If retry fails again, report to user for manual intervention
+
+```
+📊 Retry Summary
+├── Retrying 2 failed modules...
+│   ├── Worker: module="lead" → retry
+│   └── Worker: module="report" → retry
+├── Retry Results:
+│   ├── ✅ lead: completed (retry successful)
+│   └── ❌ report: failed (retry failed)
+└── Final Status: 13/14 completed, 1 failed
+
+Module "report" failed after retry. Manual intervention required.
+Options:
+- Skip and continue with 13/14 Sub-PRDs
+- Abort and investigate
+```
+
+---
+
+### 5.5 Collect Results & Verify
+
+> 🛑 **Verification before proceeding to Phase 6**
+
+**Step 5.5.1: Read Final Progress**
+
+```bash
+node "{update_progress_script}" read `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json" `
+  --summary
+```
+
+Expected: `Total: N | Pending: 0 | Completed: N | Failed: 0`
+
+**Step 5.5.2: Verify All Sub-PRD Files Exist**
+
+```bash
+# List all Sub-PRD files
+Get-ChildItem "{iterations_dir}/{iteration}/01.product-requirement/" -Filter "*-sub-*.md"
+```
+
+Verify:
+- File count matches DISPATCH-PROGRESS.json completed count
+- Each file has size > 3KB
+
+**Step 5.5.3: Report Final Summary**
+
 ```
 📊 Sub-PRD Generation Complete:
-├── Total: 11 modules
-├── ✅ Completed: 10
-├── ❌ Failed: 1 (member — error description)
-└── Retry failed modules? (yes/skip)
+├── Total Modules: {count}
+├── ✅ Completed: {count}
+├── ❌ Failed: {count}
+├── Generated Files:
+│   ├── {feature_name}-sub-{module_1}.md ({size} KB)
+│   ├── {feature_name}-sub-{module_2}.md ({size} KB)
+│   └── ...
+└── All Sub-PRDs ready for Phase 6 Verification
 ```
 
-Update `.checkpoints.json` → `sub_prd_dispatch.passed = true` (only if all succeeded or user skips failures).
+**Step 5.5.4: Update Checkpoint**
+
+```bash
+node "{update_progress_script}" write-checkpoint `
+  --file "{iterations_dir}/{iteration}/01.product-requirement/.checkpoints.json" `
+  --checkpoint sub_prd_dispatch `
+  --status passed
+```
+
+**Before proceeding to Phase 6, verify:**
+- [ ] All workers were dispatched via speccrew-task-worker (one Worker per module)
+- [ ] No Sub-PRD was generated by PM Agent directly
+- [ ] All workers completed (DISPATCH-PROGRESS.json counts.pending == 0)
+- [ ] All Sub-PRD files exist and have valid size
+- [ ] Checkpoint updated
 
 > 🛑 **MANDATORY**: After all Sub-PRDs are generated and checkpoint is recorded, you MUST immediately proceed to Phase 6 (Verification & User Review). DO NOT skip Phase 6. DO NOT directly ask the user if they want to continue to Feature Design. Phase 6 handles the formal verification, user review, and status update.
 

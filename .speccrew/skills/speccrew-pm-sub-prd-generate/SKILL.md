@@ -68,6 +68,53 @@ tools: Read, Write, Glob, Grep
 
 ## Step 3: Fill Module-Specific Content
 
+> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
+>
+> This step MUST be executed in two phases to ensure consistent document structure.
+
+### Phase A: Skeleton Construction (BEFORE any content filling)
+
+1. Read PRD-TEMPLATE.md to identify the complete section structure
+2. Count the number of features from `{module_features}` input
+3. For Section 3.5 Feature Details, replicate the template's Feature block structure for EACH feature:
+   - Copy the EXACT template structure (all 6 sub-sections) from PRD-TEMPLATE.md
+   - Create `#### Feature 1: {feature_name}` through `#### Feature N: {feature_name}`
+   - Each feature block MUST contain these 6 sub-section headers (copied from template):
+     ```
+     **Requirement Description:**
+     [TO BE FILLED]
+     
+     **Interaction Flow:**
+     [TO BE FILLED]
+     
+     **Boundary Conditions:**
+     [TO BE FILLED]
+     
+     **Exception Scenarios:**
+     [TO BE FILLED]
+     
+     **Operation Flow Diagram:**
+     [TO BE FILLED]
+     
+     **Operation Steps Detail:**
+     [TO BE FILLED]
+     ```
+4. Verify skeleton: confirm ALL features have ALL 6 sub-section headers before proceeding
+
+> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+
+### Phase B: Content Filling (AFTER skeleton is complete)
+
+Fill each `[TO BE FILLED]` placeholder with actual content:
+- Requirement Description → Business requirements in business language
+- Interaction Flow → User interaction steps (numbered list)
+- Boundary Conditions → Table with Condition Type | Scenario | Handling Rule
+- Exception Scenarios → Bullet list of exception handling
+- Operation Flow Diagram → Mermaid `graph LR` diagram showing operation flow
+- Operation Steps Detail → Table with Step | Action | Expected Outcome | Exception Handling
+
+---
+
 Fill each section using `search_replace`:
 
 ### 3.1 Section 1: Background & Goals
@@ -85,11 +132,17 @@ Fill each section using `search_replace`:
 - 3.4 Feature Breakdown: **REQUIRED** — Fill with `{module_features}` data:
   - Feature ID, Feature Name, Type (User Interaction / Backend Process), Scope, Description
   - Feature Dependencies table
-- 3.5 Feature Details: Detailed descriptions for each feature including:
+- 3.5 Feature Details: **FOR EACH feature in module_features, fill ALL 6 sub-sections below:**
+  
+  **Complete structure (MUST repeat for every Feature 1, 2, ... N):**
   - Requirement Description — **Business requirements in business language**
   - Interaction Flow — **User interaction steps in business terms**
   - Boundary Conditions table — **Business scenarios and business handling rules**
   - Exception Scenarios — **Business exception handling in business language**
+  - Operation Flow Diagram — **Mermaid `graph LR` showing business operation steps (REQUIRED for EVERY feature)**
+  - Operation Steps Detail — **Table: Step | Action | Expected Outcome | Business Exception Handling (REQUIRED for EVERY feature)**
+  
+  > ⚠️ **CRITICAL**: ALL features MUST have the SAME 6-section structure. DO NOT skip Operation Flow Diagram or Operation Steps Detail for ANY feature. Check the PRD-TEMPLATE.md for the exact format.
 
 ### 3.4 Section 4: Non-functional Requirements
 - Module-specific performance, security, compatibility requirements
