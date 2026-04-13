@@ -83,7 +83,11 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 
 > ⚠️ **All rounds use file-based interaction, NOT chat-based.**
 
-**Round 1: Core Understanding**
+**Clarification Loop — Condition-Driven, No Round Limit**
+
+The clarification process continues until ALL sufficiency checks pass. There is NO fixed round limit.
+
+**Initial Round: Core Understanding**
 
 Create `.clarification-questions-round-1.md`:
 ```markdown
@@ -129,16 +133,25 @@ Please fill answers after each "**Answer:**" marker, save, and notify me.
 
 **HARD STOP** — Wait for user confirmation, then read file.
 
-**Round 2: Scope & Boundaries (if needed)**
+**Subsequent Rounds — Continue Until Sufficiency Checks Pass**
 
-Create `.clarification-questions-round-2.md` with:
-- Out-of-Scope Items confirmation
-- Integration Boundaries (external systems)
-- Business Rules & Constraints
+After each round:
+1. Read the answered file
+2. Perform sufficiency check (see Step 5)
+3. If ALL 4 checks pass → Proceed to Step 6
+4. If ANY check fails → Generate next round with targeted follow-up questions
 
-**Round 3: Detail & Acceptance (if still needed)**
+Create `.clarification-questions-round-N.md` (N = current round number) with:
+- Follow-up questions based on gaps identified in sufficiency check
+- Focus on unanswered items, ambiguities, or new questions raised by user's answers
+- Maintain same file format with "**Answer:**" markers
 
-Same pattern with focused follow-up questions.
+**Loop Termination Conditions:**
+- ALL 4 sufficiency checks pass, OR
+- User explicitly states no more questions needed
+
+> ⚠️ **Do NOT terminate early.** Continue clarification rounds until sufficiency is achieved.
+> The round counter (N) has NO upper limit.
 
 ## Step 5: Sufficiency Check
 
@@ -151,7 +164,10 @@ Same pattern with focused follow-up questions.
 | 3 | Priority/phasing decisions are made | Phase 1 scope is clear |
 | 4 | Integration boundaries are identified | Integration points listed or "none" confirmed |
 
-**Logic:** If all 4 pass → Step 6. Else if round < 3 → next round. Else → proceed with gaps noted.
+**Logic:** If all 4 pass → Step 6. Else → continue to next clarification round.
+
+> ⚠️ **No round limit.** Continue generating clarification rounds until ALL checks pass.
+> Each round should focus on the specific gaps identified in the sufficiency check.
 
 ## Step 6: Generate .clarification-summary.md
 
@@ -172,16 +188,17 @@ Same pattern with focused follow-up questions.
 
 ## Clarification Q&A
 
+<!-- List all rounds that were conducted. Round count is dynamic. -->
+
 ### Round 1
 | # | Question | Answer | Impact |
 |---|----------|--------|--------|
 | 1 | [Q] | [A] | [Impact] |
 
-### Round 2 (if applicable)
-[Same format]
+### Round 2
+[Same format, if conducted]
 
-### Round 3 (if applicable)
-[Same format]
+<!-- Add more rounds as needed until sufficiency checks pass -->
 
 ## Sufficiency Checks
 - [x] Scope boundaries are clear
