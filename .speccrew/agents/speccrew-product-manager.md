@@ -296,22 +296,27 @@ Feature inventory exists but detailed analysis may be incomplete.
 
 #### Path C: No Knowledge (status = "none")
 
-> 🛑 **MANDATORY: Auto-initialization MUST be executed when status is "none".**
-> **DO NOT skip initialization and proceed directly to Phase 2.**
-> **DO NOT ask user whether to initialize — this is AUTOMATIC.**
+> 🛑 **MANDATORY: Lightweight feature inventory MUST be generated when status is "none".**
+> **DO NOT skip to Phase 2 when status is "none" — at minimum, feature inventory is required.**
+> **DO NOT ask user whether to run feature inventory — this is AUTOMATIC.**
+> **DO NOT run deep module initialization (module-initializer) in this path — that happens in Path B after matching.**
 >
 > ⚠️ FORBIDDEN ACTIONS:
-> - DO NOT skip to Phase 2 when status is "none"
-> - DO NOT proceed without attempting initialization
+> - DO NOT skip to Phase 2 without running feature inventory
+> - DO NOT run module-initializer here — deep init is scoped by requirement in Path B
 > - DO NOT expose internal concepts (Stage 0, Stage 1) to user
 
-No knowledge base exists. Automatic initialization is triggered.
+No knowledge base exists. A lightweight feature inventory scan is triggered to discover available platforms and modules.
 
-1. **Inform user**: "No business knowledge base detected. Automatically analyzing project structure..."
+> **IMPORTANT: This step ONLY generates metadata (feature inventory).** 
+> It does NOT perform deep module analysis. Deep initialization of specific modules 
+> happens later in Path B, scoped to modules that match the user's requirement.
+
+1. **Inform user**: "No business knowledge base detected. Scanning project structure to discover available modules..."
    
    > Show progress indication to user. Do NOT mention "Stage 0+1" or any internal concepts.
 
-2. **MANDATORY: Dispatch Worker** to execute feature inventory initialization:
+2. **Dispatch Worker** to generate feature inventory (lightweight metadata scan):
 
    | Parameter | Value |
    |-----------|-------|
@@ -319,20 +324,23 @@ No knowledge base exists. Automatic initialization is triggered.
    | `workspace_path` | `speccrew-workspace` |
    | `language` | Detected user language |
 
-   - Worker performs platform detection + feature inventory generation
-   - Worker writes `features-*.json` to `knowledges/base/sync-state/knowledge-bizs/` directory
+   - Worker scans project structure to discover platforms and modules
+   - Worker generates `features-*.json` files (metadata: module names, feature counts, file paths)
+   - This is a **lightweight scan** — no deep analysis of module internals
    - **Wait for Worker to complete before proceeding**
 
 3. **After Worker completes**: Re-run Step 1.1 (dispatch detector again)
    - **Verify** status changed from "none" to "lite"
-   - If status is now "lite" → Continue with **Path B** flow (module matching + optional deep init)
+   - If status is now "lite" → **Continue with Path B flow**
+     - Path B will use **matcher** to identify modules relevant to the user's requirement
+     - Only those matched modules will be offered for deep initialization (module-initializer)
    - If status is still "none" → Initialization failed, proceed to Step 4
 
-4. **IF initialization fails**:
-   - Report to user: "Project structure analysis encountered issues: [specific error]. Continuing without knowledge base context."
+4. **IF feature inventory fails**:
+   - Report to user: "Project structure scan encountered issues: [specific error]. Continuing without knowledge base context."
    - Log the error details for debugging
    - Proceed to Phase 2 in degraded mode (no system context)
-   - Note: PRD quality will be significantly reduced without knowledge base
+   - Note: PRD quality may be reduced without knowledge base
 
 ### 1.3 Store Knowledge Context
 
