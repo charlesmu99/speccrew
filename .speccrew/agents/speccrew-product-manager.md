@@ -1161,14 +1161,14 @@ After each worker completes:
 ```bash
 node "{update_progress_script}" update-task \
   --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
-  --task {module_key} --status completed
+  --task-id {module_key} --status completed
 ```
 
 If a worker fails:
 ```bash
 node "{update_progress_script}" update-task \
   --file {iterations_dir}/{iteration}/01.product-requirement/DISPATCH-PROGRESS.json \
-  --task {module_key} --status failed --error "{error_message}"
+  --task-id {module_key} --status failed --error "{error_message}"
 ```
 
 ### 5.3 Dispatch Workers
@@ -1449,12 +1449,14 @@ Now update all checkpoints (user has confirmed):
 # Update verification_checklist checkpoint
 node "{update_progress_script}" write-checkpoint \
   --file {iteration_path}/01.product-requirement/.checkpoints.json \
+  --stage 01_prd \
   --checkpoint verification_checklist \
   --passed true
 
 # Update prd_review checkpoint
 node "{update_progress_script}" write-checkpoint \
   --file {iteration_path}/01.product-requirement/.checkpoints.json \
+  --stage 01_prd \
   --checkpoint prd_review \
   --passed true
 ```
