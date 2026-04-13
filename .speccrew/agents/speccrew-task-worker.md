@@ -101,6 +101,12 @@ If the skill file is not found, report an error with the attempted paths.
 4. Strictly execute according to the workflow defined in the Skill
 5. Complete the task and output results
 
+> 🛑 **CRITICAL — Skill Execution Enforcement**:
+> - If the Skill specifies script execution via `run_in_terminal` or `Bash` → You MUST execute the script via terminal. DO NOT substitute with manual file creation.
+> - If the Skill specifies `--outputDir` or other path parameters → You MUST pass them exactly as provided in the context.
+> - If the Skill contains MANDATORY/FORBIDDEN constraints → You MUST follow them strictly.
+> - DO NOT improvise alternative execution paths. If a step fails, report the error — do not attempt workarounds.
+
 **If `skill_name` is NOT provided:**
 1. Parse `context` to understand the task requirements
 2. Execute the task directly based on context description
