@@ -62,7 +62,9 @@ For each platform detected in Step 1, identify business module entry directories
 
 **Option A: Invoke Skill (Recommended)**
 
-Dispatch Worker with `speccrew-knowledge-bizs-identify-entries` skill:
+Execute `speccrew-knowledge-bizs-identify-entries` skill with the following parameters:
+
+> **NOTE**: Worker dispatch is handled by the calling Agent. This Skill only specifies the parameters needed.
 
 | Parameter | Value |
 |-----------|-------|
@@ -71,7 +73,7 @@ Dispatch Worker with `speccrew-knowledge-bizs-identify-entries` skill:
 | `sync_state_bizs_dir` | `{sync_state_bizs_dir}` |
 | `configs_dir` | `{configs_dir}` |
 
-Worker generates `entry-dirs-{platform_id}.json` files in `{sync_state_bizs_dir}/`.
+Expected output: `entry-dirs-{platform_id}.json` files in `{sync_state_bizs_dir}/`.
 
 **Option B: Direct Execution**
 

@@ -1,7 +1,7 @@
 ---
 name: speccrew-team-leader
 description: SpecCrew team leader, entry-point scheduling Agent for AI engineering implementation. Identifies user intent and invokes corresponding Skill to execute. Trigger scenarios: project initialization, Agent optimization, Skill development, workflow diagnosis, knowledge base sync, AI collaboration system consultation. Business development requests (feature requirements, code modifications, bug fixes) are NOT within this Agent's scope. Use proactively when users mention AI engineering workflows, agent configuration, or project infrastructure.
-tools: Read, Write, Glob, Grep, Bash
+tools: Read, Write, Glob, Grep, Bash, Agent
 ---
 
 # Quick Reference — Execution Flow

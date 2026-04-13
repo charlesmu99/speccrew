@@ -59,19 +59,21 @@ Stage 1: Platform Detection
   └─ Read techs-manifest.json → Identify platforms & tech stacks
         ↓
 Stage 2: Tech Doc Generation (PARALLEL)
-  └─ Dispatch techs-generate workers per platform
-  └─ After each generate worker completes → dispatch quality check worker
+  └─ Prepare task plans for techs-generate workers per platform
+  └─ After generate workers complete → prepare quality check worker task plans
   └─ Monitor completion markers
         ↓
 Stage 2.5: Completion Verification
   └─ Step A: Scan completion markers
   └─ Step B: Verify output integrity
-  └─ Step C: Update dispatch progress
+  └─ Step C: Update progress status
         ↓
 Stage 3: Root Index Generation
   └─ Generate techs/README.md root index
   └─ Cross-platform consistency check
 ```
+
+> **NOTE**: All worker dispatch operations are handled by the calling Agent (Team Leader). This Skill only prepares task plans and monitors completion markers.
 
 ## Workflow Overview
 
@@ -90,10 +92,14 @@ flowchart TB
 **Step 1a: Read Configuration**
 - Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized platform mapping rules
 
-**Step 1b: Invoke Worker**
-- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-init/SKILL.md`
-- Task: Analyze project structure, detect technology platforms
-- Parameters to pass to skill:
+**Step 1b: Prepare Task Plan**
+
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+Prepare the following task for the calling Agent to dispatch:
+- **Skill**: `speccrew-knowledge-techs-init/SKILL.md`
+- **Task**: Analyze project structure, detect technology platforms
+- **Parameters**:
   - `source_path`: Source code directory path
   - `output_path`: Output directory (default: `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/`)
   - `language`: User's language — **REQUIRED**
@@ -108,11 +114,13 @@ See [Platform Status Tracking Fields](#platform-status-tracking-fields) for stat
 ---
 
 > **⚠️ MANDATORY RULES FOR PARALLEL EXECUTION (Stage 2)**:
-> 1. ALL platform workers MUST be dispatched in PARALLEL — sequential execution is FORBIDDEN
+> 1. ALL platform task plans should be prepared for parallel dispatch by the calling Agent — sequential execution is NOT recommended
 > 2. Each platform worker runs independently via techs-generate Skill
 > 3. Monitor completion via marker files in each platform directory
 > 4. Failed workers can be retried independently
 > 5. Do NOT proceed to Stage 2.5 until ALL workers have completed or failed
+>
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares task plans.
 
 ## Stage 2: Generate Platform Documents (Parallel)
 
@@ -120,21 +128,27 @@ See [Platform Status Tracking Fields](#platform-status-tracking-fields) for stat
 
 **Action**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
-- For each platform in `platforms` array, invoke 2 Worker Agents in PARALLEL:
-  - Worker 1: `speccrew-knowledge-techs-generate-conventions/SKILL.md` (ALL platforms)
-  - Worker 2: `speccrew-knowledge-techs-generate-ui-style/SKILL.md` (frontend platforms ONLY: web, mobile, desktop)
-- Parameters to pass to each skill:
-  - `platform_id`: Platform identifier from manifest
-  - `platform_type`: Platform type (web, mobile, backend, desktop)
-  - `framework`: Primary framework
-  - `source_path`: Platform source directory
-  - `config_files`: List of configuration file paths (conventions worker only)
-  - `convention_files`: List of convention file paths (conventions worker only)
-  - `output_path`: Output directory for platform docs (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
-  - `completed_dir`: Directory for Worker output markers (e.g., `speccrew-workspace/knowledges/techs/.sync-status/`)
-  - `language`: User's language — **REQUIRED**
 
-When launching each platform Worker, the Workers will output:
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+**Prepare Task Plans for Each Platform**:
+
+For each platform in `platforms` array, prepare tasks for parallel execution:
+- **Task 1**: `speccrew-knowledge-techs-generate-conventions/SKILL.md` (ALL platforms)
+- **Task 2**: `speccrew-knowledge-techs-generate-ui-style/SKILL.md` (frontend platforms ONLY: web, mobile, desktop)
+
+**Parameters for each skill**:
+- `platform_id`: Platform identifier from manifest
+- `platform_type`: Platform type (web, mobile, backend, desktop)
+- `framework`: Primary framework
+- `source_path`: Platform source directory
+- `config_files`: List of configuration file paths (conventions worker only)
+- `convention_files`: List of convention file paths (conventions worker only)
+- `output_path`: Output directory for platform docs (e.g., `speccrew-workspace/knowledges/techs/{platform_id}/`)
+- `completed_dir`: Directory for Worker output markers (e.g., `speccrew-workspace/knowledges/techs/.sync-status/`)
+- `language`: User's language — **REQUIRED**
+
+**Expected Worker Output Markers**:
 - `{completed_dir}/{platform_id}.done-conventions.json` — conventions worker completion marker
 - `{completed_dir}/{platform_id}.done-ui-style.json` — ui-style worker completion marker (frontend only)
 - `{completed_dir}/{platform_id}.analysis-conventions.json` — conventions coverage report
@@ -150,9 +164,11 @@ When launching each platform Worker, the Workers will output:
    - IF platform.platform_type IN ["web", "mobile", "desktop"]: SET `platform.workers.ui_style.status = "processing"`
    - WRITE manifest to techs-manifest.json
 
-**Step 2b: Launch Conventions Worker (ALL Platforms)**
+**Step 2b: Prepare Conventions Worker Task Plans (ALL Platforms)**
 
-For each platform, invoke `speccrew-task-worker` with:
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+For each platform, prepare a task with:
 - skill_path: `speccrew-knowledge-techs-generate-conventions/SKILL.md`
 - context:
   - platform_id: platform.platform_id
@@ -165,10 +181,12 @@ For each platform, invoke `speccrew-task-worker` with:
   - completed_dir: completed_dir
   - language: language
 
-**Step 2c: Launch UI-Style Worker (Frontend Platforms ONLY)**
+**Step 2c: Prepare UI-Style Worker Task Plans (Frontend Platforms ONLY)**
+
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
 
 IF platform.platform_type IN ["web", "mobile", "desktop"]:
-1. Invoke `speccrew-task-worker` with:
+1. Prepare a task with:
    - skill_path: `speccrew-knowledge-techs-generate-ui-style/SKILL.md`
    - context:
      - platform_id: platform.platform_id
@@ -179,13 +197,20 @@ IF platform.platform_type IN ["web", "mobile", "desktop"]:
      - completed_dir: completed_dir
      - language: language
 
-**Step 2d: Wait for All Workers**
-- WAIT_ALL workers complete
+**Step 2d: Completion Marker Monitoring**
+
+> **NOTE**: Worker dispatch and wait operations are handled by the calling Agent (Team Leader). This Skill only monitors completion markers.
+
+The calling Agent should:
+- Monitor for `{platform_id}.done-conventions.json` markers
+- Monitor for `{platform_id}.done-ui-style.json` markers (frontend platforms)
 - Both workers run in PARALLEL for the same platform
 
-**Step 2e: Launch Quality Check Workers — PARALLEL per Completed Generate Worker**
+**Step 2e: Prepare Quality Check Worker Task Plans**
 
-After each `speccrew-knowledge-techs-generate` worker completes (writes `.done-conventions.json` marker), immediately dispatch the corresponding quality check worker:
+> **NOTE**: Quality worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+After each `speccrew-knowledge-techs-generate` worker completes (writes `.done-conventions.json` or `.done-ui-style.json` marker), the calling Agent should dispatch the corresponding quality check worker.
 
 | Generate Worker | Quality Worker | Input |
 |-----------------|----------------|-------|
@@ -206,12 +231,25 @@ After each `speccrew-knowledge-techs-generate` worker completes (writes `.done-c
 }
 ```
 
-**Execution sequence**:
-1. Scan `completed_dir` for new `.done-conventions.json` and `.done-ui-style.json` files
-2. For each completed generate worker, prepare corresponding quality worker task
-3. Launch ALL quality workers for the current batch in PARALLEL
-4. Wait for ALL quality workers to complete
-5. Each quality worker writes `.quality-done.json` marker to `completed_dir`
+**Quality Worker Completion Marker**:
+
+Each quality worker writes a `.quality-done.json` marker to `completed_dir` upon completion:
+
+```json
+{
+  "platform_id": "web-vue",
+  "worker_type": "quality",
+  "status": "completed",
+  "quality_score": 85,
+  "issues_found": 2,
+  "completed_at": "2024-01-15T11:00:00Z"
+}
+```
+
+**Expected Completion Markers after Stage 2**:
+1. `{platform_id}.done-conventions.json` — conventions worker marker
+2. `{platform_id}.done-ui-style.json` — ui-style worker marker (frontend only)
+3. `{platform_id}.quality-done.json` — quality worker marker
 
 > **Stage 2 Completion Condition**: ALL generate workers AND ALL quality check workers completed (`.done-*.json` and `.quality-done.json` markers present) before proceeding to Stage 2.5
 
@@ -585,8 +623,12 @@ Write to `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-s
 
 **Action**:
 - Read `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json`
-- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with skill `speccrew-knowledge-techs-index/SKILL.md`
-- Parameters to pass to skill:
+
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+**Prepare Task Plan**:
+- **Skill**: `speccrew-knowledge-techs-index/SKILL.md`
+- **Parameters**:
   - `manifest_path`: Path to techs-manifest.json
   - `techs_base_path`: Base path for techs documentation (e.g., `speccrew-workspace/knowledges/techs/`)
   - `output_path`: Output path for root INDEX.md (e.g., `speccrew-workspace/knowledges/techs/`)
@@ -638,17 +680,19 @@ THRESHOLD: warnings > 5 → flag for manual review
 
 ## Execution Flow
 
+> **NOTE**: All worker dispatch and wait operations are handled by the calling Agent (Team Leader). This Skill only prepares task plans and monitors completion markers.
+
 ```
 1. Run Stage 1 (Platform Detection)
-   └─ Wait for completion
+   └─ Prepare task plan → Monitor completion
 
 2. Run Stage 2 (Tech Doc Generation)
    ├─ Read techs-manifest.json
-   ├─ Launch ALL platform Workers in parallel
-   └─ Wait for ALL Workers → generate stage2-status.json
+   ├─ Prepare ALL platform task plans for parallel dispatch
+   └─ Monitor completion markers → generate stage2-status.json
 
 3. Run Stage 3 (Root Index)
-   └─ Wait for completion → generate stage3-status.json
+   └─ Prepare task plan → Monitor completion → generate stage3-status.json
 ```
 
 ---

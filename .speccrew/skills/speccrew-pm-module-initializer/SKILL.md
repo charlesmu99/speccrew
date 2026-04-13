@@ -1,15 +1,14 @@
 ---
 name: speccrew-pm-module-initializer
-description: Initialize knowledge base for a single business module by analyzing its features. Dispatches api-analyze or ui-analyze based on platform type, then generates module summary. Used by Worker Agent, invoked by PM Agent for on-demand module initialization.
+description: Generate analyze task plan for a single business module. Reads features-*.json, filters matched module's pending features, and outputs a task plan JSON (list of features to analyze with analyzer parameters). Used by Worker Agent, invoked by PM Agent for on-demand module task planning.
 tools: Read, Write, Skill, Bash
 ---
 
-# Module Initializer
+# Module Initializer (Task Plan Generator)
 
-Initialize knowledge base for a single business module by analyzing its features. Dispatches api-analyze or ui-analyze based on platform type, then generates module summary. Used by Worker Agent, invoked by PM Agent for on-demand module initialization.
+Generate analyze task plan for a single business module. Reads features-*.json, filters matched module's pending features, and outputs a task plan JSON (list of features to analyze with analyzer parameters). Used by Worker Agent, invoked by PM Agent for on-demand module task planning.
 
-> **Positioning**: Lightweight knowledge base initializer for PM phase, processes only modules matched by PM matcher.
-> Difference from bizs-dispatch: module-initializer processes single modules on-demand, does not generate graph data, output is for PRD authoring reference only.
+> **Positioning**: Task plan generator for PM phase. Generates task list for PM Agent to orchestrate. Does NOT execute analyze or summarize directly — PM Agent handles Worker dispatch based on task plan output.
 
 ## Language Adaptation
 
@@ -23,10 +22,9 @@ Initialize knowledge base for a single business module by analyzing its features
 
 ## Trigger Scenarios
 
-- "Initialize module {name}"
-- "Deep analyze module {name}"
-- "Generate knowledge for module {name}"
-- "Start module analysis"
+- "Generate task plan for module {name}"
+- "Plan module {name} initialization"
+- "List pending features for module {name}"
 
 ## Input
 
@@ -34,7 +32,7 @@ Initialize knowledge base for a single business module by analyzing its features
 |-----------|------|----------|-------------|
 | `source_path` | string | Yes | Project source code root path |
 | `module_name` | string | Yes | Module name |
-| `platform_id` | string | Yes | Platform ID (e.g., "web-vue3", "admin-api") |
+| `platform_id` | string | Yes | Platform ID (e.g., "web-vue", "admin-api") |
 | `platform_type` | string | Yes | web / mobile / backend / desktop |
 | `platform_subtype` | string | No | Platform subtype (e.g., "vue", "spring-boot") |
 | `tech_stack` | array | No | Platform tech stack (e.g., ["java", "spring-boot"]) |
@@ -43,29 +41,47 @@ Initialize knowledge base for a single business module by analyzing its features
 | `completed_dir` | string | Yes | Marker file output directory for api-analyze .done.json markers. Value from PM Agent: `{sync_state_bizs_dir}/completed` |
 | `sourceFile` | string | Yes | Features JSON filename (e.g., "features-backend-system.json"), used for api-analyze marking |
 | `language` | string | Yes | Output language (zh / en) |
+| `workspace_path` | string | Yes | Workspace root path for constructing absolute paths |
 
 ## Output JSON
 
 ```json
 {
-  "status": "success | partial | failed",
   "module_name": "system",
-  "platform_id": "web-vue3",
-  "features_analyzed": 12,
-  "features_failed": 0,
-  "output_dir": "speccrew-workspace/knowledges/bizs/web-vue3/system/",
-  "overview_file": "system-overview.md",
-  "errors": []
+  "platform_id": "web-vue",
+  "analyzer_skill": "speccrew-knowledge-bizs-ui-analyze",
+  "tasks": [
+    {
+      "fileName": "index",
+      "sourcePath": "src/views/system/user/index.vue",
+      "documentPath": "knowledges/bizs/web-vue/system/features",
+      "module": "system",
+      "platform_type": "web",
+      "platform_subtype": "vue",
+      "tech_stack": ["vue", "typescript"],
+      "language": "zh"
+    }
+  ],
+  "total_pending": 90,
+  "summarize_params": {
+    "skill": "speccrew-knowledge-module-summarize",
+    "module_name": "system",
+    "module_path": "knowledges/bizs/web-vue/system",
+    "language": "zh"
+  }
 }
 ```
 
-**Status Definitions**:
+**Field Definitions**:
 
-| Status | Condition |
-|--------|-----------|
-| `success` | All features analyzed successfully, overview generated |
-| `partial` | Some features analyzed or overview generated with warnings |
-| `failed` | No features analyzed or critical error occurred |
+| Field | Description |
+|-------|-------------|
+| `module_name` | Module being processed |
+| `platform_id` | Platform identifier |
+| `analyzer_skill` | Selected analyzer skill name |
+| `tasks` | Array of pending features to analyze |
+| `total_pending` | Count of pending features |
+| `summarize_params` | Parameters for module-summarize skill (to be executed after all analyze tasks complete) |
 
 ## Workflow
 
@@ -73,9 +89,9 @@ Initialize knowledge base for a single business module by analyzing its features
 flowchart TD
     Start([Start]) --> Step1[Step 1: Read and filter features]
     Step1 --> Step2[Step 2: Select analyzer by platform_type]
-    Step2 --> Step3[Step 3: Analyze each pending feature]
-    Step3 --> Step4[Step 4: Generate module summary]
-    Step4 --> Step5[Step 5: Return result]
+    Step2 --> Step3[Step 3: Build task list]
+    Step3 --> Step4[Step 4: Build summarize params]
+    Step4 --> Step5[Step 5: Output task plan JSON]
     Step5 --> End([End])
 ```
 
@@ -88,7 +104,6 @@ flowchart TD
 3. **Record counts**:
    - Total features for this module
    - Pending features (analyzed = false)
-   - If no pending features found, skip to Step 4 (still generate/update module summary)
 
 **Output**: "Step 1 Status: ✅ COMPLETED - Found {total} total features, {pending} pending for analysis"
 
@@ -105,121 +120,74 @@ Based on `platform_type`, select the appropriate analyzer Skill:
 
 **Output**: "Step 2 Status: ✅ COMPLETED - Selected analyzer: {skill_name}"
 
-### Step 3: Analyze Each Pending Feature (Sequential)
+### Step 3: Build Task List
 
 **Step 3 Status: 🔄 IN PROGRESS**
 
-For each pending feature from Step 1, call the appropriate analyzer skill.
+For each pending feature from Step 1, build a task object with analyzer parameters.
 
-> 🛑 **FORBIDDEN**: DO NOT write custom scripts. You MUST call the analyzer skill directly using the Agent tool or execute it as defined in the skill's SKILL.md.
+> 🛑 **IMPORTANT**: This Skill does NOT execute analyze. It ONLY generates the task list. PM Agent will dispatch Workers based on this task plan.
 
-#### For backend modules (api-analyze):
-
-For each pending feature, invoke the `speccrew-knowledge-bizs-api-analyze` skill with these parameters:
-
-```
-Use Agent tool to invoke speccrew-task-worker:
-- agent: speccrew-task-worker  
-- task: Execute speccrew-knowledge-bizs-api-analyze skill
-- context:
-    skill: speccrew-knowledge-bizs-api-analyze
-    fileName: {feature.fileName}
-    sourcePath: {source_path}/{feature.sourcePath}
-    documentPath: {output_path}/bizs/{platform_id}/{feature.module}/features
-    module: {feature.module}
-    analyzed: false
-    platform_type: backend
-    platform_subtype: {platform_subtype}
-    tech_stack: {tech_stack}
-    language: {language}
-    completed_dir: {completed_dir}
-    sourceFile: {sourceFile}
-```
-
-#### For web/mobile/desktop modules (ui-analyze):
-
-For each pending feature, invoke the `speccrew-knowledge-bizs-ui-analyze` skill with these parameters:
-
-```
-Use Agent tool to invoke speccrew-task-worker:
-- agent: speccrew-task-worker
-- task: Execute speccrew-knowledge-bizs-ui-analyze skill  
-- context:
-    skill: speccrew-knowledge-bizs-ui-analyze
-    fileName: {feature.fileName}
-    sourcePath: {source_path}/{feature.sourcePath}
-    documentPath: {output_path}/bizs/{platform_id}/{feature.module}/features
-    module: {feature.module}
-    analyzed: false
-    platform_type: {platform_type}
-    platform_subtype: {platform_subtype}
-    tech_stack: {tech_stack}
-    language: {language}
-```
-
-> **NOTE**: UI Analyzer does NOT write .done.json marker files (handled by ui-graph skill in bizs-dispatch).
-
-#### After each successful analysis:
-Update the feature's `analyzed` field to `true` in the features JSON file.
-
-#### Error handling:
-- If an analyzer fails, log the error, increment `features_failed` counter
-- Continue with next feature (do NOT abort the entire module)
-- A module with partial analysis is better than no analysis
-
-**Output**: "Step 3 Status: ✅ COMPLETED - Analyzed {success} features, {failed} failed"
-
-### Step 4: Generate Module Summary
-
-**Step 4 Status: 🔄 IN PROGRESS**
-
-**Pre-check**: Verify that feature documents exist at `{output_path}/bizs/{platform_id}/{module_name}/features/`.
-
-IF no feature documents exist AND features_analyzed == 0:
-  - Set status to "partial"
-  - Skip module-summarize
-  - Proceed to Step 5
-
-IF feature documents exist:
-  Invoke `speccrew-knowledge-module-summarize` skill:
-  ```
-  Use Agent tool to invoke speccrew-task-worker:
-  - agent: speccrew-task-worker
-  - task: Execute speccrew-knowledge-module-summarize skill
-  - context:
-      skill: speccrew-knowledge-module-summarize
-      module_name: {module_name}
-      module_path: {output_path}/bizs/{platform_id}/{module_name}
-      language: {language}
-  ```
-
-**Output**: "Step 4 Status: ✅ COMPLETED - Module overview generated at {module_path}/{module_name}-overview.md"
-
-### Step 5: Return Result
-
-**Step 5 Status: 🔄 IN PROGRESS**
-
-Compile and return the final result:
+#### Task object structure for each pending feature:
 
 ```json
 {
-  "status": "success | partial | failed",
-  "module_name": "...",
-  "platform_id": "...",
-  "features_analyzed": <count>,
-  "features_failed": <count>,
-  "output_dir": "...",
-  "overview_file": "...",
-  "errors": [...]
+  "fileName": "{feature.fileName}",
+  "sourcePath": "{feature.sourcePath}",
+  "documentPath": "{output_path}/bizs/{platform_id}/{feature.module}/features",
+  "module": "{feature.module}",
+  "platform_type": "{platform_type}",
+  "platform_subtype": "{platform_subtype}",
+  "tech_stack": "{tech_stack}",
+  "language": "{language}"
 }
 ```
 
-**Status determination**:
-- `success`: All features analyzed successfully, overview generated
-- `partial`: Some features failed but overview generated, or no pending features but overview updated
-- `failed`: All features failed or critical error prevented overview generation
+For backend features (api-analyze), also include:
+```json
+{
+  "completed_dir": "{completed_dir}",
+  "sourceFile": "{sourceFile}"
+}
+```
 
-**Output**: "Step 5 Status: ✅ COMPLETED - Module initialization {status}"
+**Output**: "Step 3 Status: ✅ COMPLETED - Built {count} task entries"
+
+### Step 4: Build Summarize Parameters
+
+**Step 4 Status: 🔄 IN PROGRESS**
+
+Build the summarize_params object for module-summarize skill. This will be used by PM Agent after all analyze tasks complete.
+
+```json
+{
+  "skill": "speccrew-knowledge-module-summarize",
+  "module_name": "{module_name}",
+  "module_path": "{output_path}/bizs/{platform_id}/{module_name}",
+  "language": "{language}"
+}
+```
+
+**Output**: "Step 4 Status: ✅ COMPLETED - Summarize params ready"
+
+### Step 5: Output Task Plan JSON
+
+**Step 5 Status: 🔄 IN PROGRESS**
+
+Compile and output the final task plan:
+
+```json
+{
+  "module_name": "...",
+  "platform_id": "...",
+  "analyzer_skill": "...",
+  "tasks": [...],
+  "total_pending": <count>,
+  "summarize_params": {...}
+}
+```
+
+**Output**: "Step 5 Status: ✅ COMPLETED - Task plan generated with {count} pending features"
 
 ## Constraints
 
@@ -231,21 +199,21 @@ Compile and return the final result:
 
 3. **Worker context**: This Skill runs in Worker Agent context, invoked by PM Agent
 
-4. **Sequential execution**: Process features sequentially within this Worker (PM Agent handles module-level parallelism)
+4. **NO execution**: This Skill generates task plan ONLY. It does NOT:
+   - Execute analyzer skills
+   - Execute summarize skills
+   - Update features.json analyzed field
+   - All execution is handled by PM Agent based on task plan output
 
-5. **No sync-state modification**: Do not directly create or modify sync-state directory files (that's dispatch's responsibility), but can update features.json analyzed markers
-
-6. **Mutual exclusion with full dispatch**: Do not run simultaneously with full dispatch process
+5. **Mutual exclusion with full dispatch**: Do not run simultaneously with full dispatch process
 
 ## Error Handling
 
 | Scenario | Action |
 |----------|--------|
-| Features file not found | Return `status: failed` with error message |
-| No features for module | Skip to Step 4, generate overview if possible |
-| No pending features | Skip to Step 4, update existing overview |
-| Analyzer fails for feature | Record in errors array, continue with next feature |
-| Module summarize fails | Return `status: partial` with error details |
+| Features file not found | Return error with message |
+| No features for module | Return empty tasks array with summarize_params |
+| No pending features | Return empty tasks array with summarize_params |
 
 ## Reference: Analyzer Input Parameters
 
@@ -253,10 +221,9 @@ Compile and return the final result:
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `feature` | object | Complete feature object from features.json | - |
 | `fileName` | string | Controller file name | `"UserController"` |
 | `sourcePath` | string | Relative path to source file | `"src/.../UserController.java"` |
-| `documentPath` | string | Target path for generated document | `"knowledges/bizs/.../UserController.md"` |
+| `documentPath` | string | Target path for generated document | `"knowledges/bizs/.../features"` |
 | `module` | string | Business module name | `"system"` |
 | `analyzed` | boolean | Analysis status flag | `false` |
 | `platform_type` | string | Platform type | `"backend"` |
@@ -270,18 +237,15 @@ Compile and return the final result:
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `feature` | object | Complete feature object from features.json | - |
 | `fileName` | string | Feature file name | `"index"` |
 | `sourcePath` | string | Relative path to source file | `"src/views/system/user/index.vue"` |
-| `documentPath` | string | Target path for generated document | `"knowledges/bizs/.../index.md"` |
+| `documentPath` | string | Target path for generated document | `"knowledges/bizs/.../features"` |
 | `module` | string | Business module name | `"system"` |
 | `analyzed` | boolean | Analysis status flag | `false` |
 | `platform_type` | string | Platform type | `"web"` |
 | `platform_subtype` | string | Platform subtype | `"vue"` |
 | `tech_stack` | array | Platform tech stack | `["vue", "typescript"]` |
 | `language` | string | Target language | `"zh"` |
-| `completed_dir` | string | Marker output directory (absolute path) | `".../knowledges/base/sync-state/completed"` |
-| `sourceFile` | string | Source features JSON filename | `"features-web-vue3.json"` |
 
 ## Task Completion Report
 
@@ -289,25 +253,16 @@ When the task is complete, report:
 
 ```json
 {
-  "status": "success | failed",
+  "status": "success",
   "skill": "speccrew-pm-module-initializer",
   "output": {
-    "status": "success | partial | failed",
     "module_name": "...",
     "platform_id": "...",
-    "features_analyzed": 12,
-    "features_failed": 0,
-    "output_dir": "...",
-    "overview_file": "...",
-    "errors": []
-  },
-  "metrics": {
-    "features_total": 15,
-    "features_analyzed": 12,
-    "features_skipped": 3,
-    "features_failed": 0
-  },
-  "errors": []
+    "analyzer_skill": "...",
+    "tasks": [...],
+    "total_pending": <count>,
+    "summarize_params": {...}
+  }
 }
 ```
 
@@ -315,6 +270,6 @@ When the task is complete, report:
 
 - [ ] Step 1: Read features file and filtered by module
 - [ ] Step 2: Selected analyzer type based on platform_type
-- [ ] Step 3: Analyzed each pending feature sequentially
-- [ ] Step 4: Generated module summary via module-summarize
-- [ ] Step 5: Returned aggregated result with correct status
+- [ ] Step 3: Built task list with analyzer parameters
+- [ ] Step 4: Built summarize parameters
+- [ ] Step 5: Output task plan JSON

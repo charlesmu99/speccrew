@@ -305,8 +305,8 @@ Feature inventory exists but detailed analysis may be incomplete.
    - agent: speccrew-task-worker
    - task: Execute speccrew-pm-module-matcher skill
    - context:
-       skill: speccrew-pm-module-matcher
-       sync_state_bizs_dir: {sync_state_bizs_dir}
+      skill: speccrew-pm-module-matcher
+      sync_state_bizs_dir: {sync_state_bizs_dir}
    ```
 
 2. **Worker returns** matched modules with confidence levels
@@ -329,12 +329,8 @@ Feature inventory exists but detailed analysis may be incomplete.
    ```
 
 4. **IF user confirms initialization**:
-   - For each matched module with confidence >= medium:
-     - **Dispatch Worker** with `speccrew-pm-module-initializer` skill
-     - Workers execute in parallel (one per module)
-   - Wait for all Workers to complete
-   - Collect initialization summaries as system context
-   - Proceed to Phase 2
+   - Execute Path B Steps 1-5 (see "MANDATORY -- Path C -> Path B Sequence" section below)
+   - After all Steps complete, proceed to Phase 2
 
 5. **IF user declines**:
    - Use features-*.json metadata as lightweight system context (module names + feature counts only)
@@ -409,51 +405,95 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
    - If status is now "lite" → **Execute Path B immediately** (see MANDATORY instruction below)
    - If status is still "none" → Initialization failed, proceed to Step 4
 
-> 🛑 **MANDATORY — Path C → Path B Sequence**:
+> 🛑 **MANDATORY -- Path C -> Path B Sequence**:
 > After init-features completes (features-*.json generated), you MUST immediately execute Path B:
-> 1. Dispatch Worker with `speccrew-pm-module-matcher` skill to match requirement features against the generated features inventory
-> 2. Based on matcher results, dispatch Worker with `speccrew-pm-module-initializer` skill to deep-initialize matched modules' knowledge base
-> 3. Only after module initialization completes, proceed to Phase 2 (Requirement Clarification)
 >
-> DO NOT skip Path B. DO NOT proceed directly to Phase 2 after Path C.
-> The features-*.json files are INPUT for Path B's matcher, not the final output of Phase 1.
-
-   **Agent Tool Invocation for Path B Step 1 (Matcher)**:
-   ```
-   Use the Agent tool to invoke speccrew-task-worker:
-   - agent: speccrew-task-worker
-   - task: Execute speccrew-pm-module-matcher skill
-   - context:
-       skill: speccrew-pm-module-matcher
-       sync_state_bizs_dir: {sync_state_bizs_dir}
-       requirement_summary: <brief summary of user's requirement>
-   ```
-
-   **Agent Tool Invocation for Path B Step 2 (Module Initializer)**:
-
-   > 🛑 **MANDATORY**: You MUST dispatch a separate Worker for EACH module in matched_modules. 
-   > Each Worker handles ONE module on ONE platform.
-
-   For each module in matched_modules:
-   ```
-   Use the Agent tool to invoke speccrew-task-worker:
-   - agent: speccrew-task-worker
-   - task: Execute speccrew-pm-module-initializer skill for module "{module.module_name}" on platform "{module.platform_id}"
-   - context:
-       skill: speccrew-pm-module-initializer
-       source_path: {source_path}
-       module_name: {module.module_name}
-       platform_id: {module.platform_id}
-       platform_type: {module.platform_type}
-       features_file: {sync_state_bizs_dir}/features-{module.platform_id}.json
-       output_path: {workspace_path}/knowledges
-       completed_dir: {sync_state_bizs_dir}/completed
-       sourceFile: features-{module.platform_id}.json
-       language: {detected user language}
-       workspace_path: {workspace_path}
-   ```
-
-   Wait for ALL module-initializer Workers to complete before proceeding to Phase 2.
+> **Path B Step 1: Module Matching**
+> Dispatch Worker with `speccrew-pm-module-matcher` skill to match requirement features against the generated features inventory.
+>
+> **Agent Tool Invocation for Path B Step 1 (Matcher)**:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-pm-module-matcher skill
+> - context:
+>     skill: speccrew-pm-module-matcher
+>     sync_state_bizs_dir: {sync_state_bizs_dir}
+>     requirement_summary: <brief summary of user's requirement>
+> ```
+>
+> **Path B Step 2: Generate Analyze Task Plan**
+> For EACH matched module, dispatch Worker with `speccrew-pm-module-initializer` skill.
+> This Worker will output a task plan JSON (list of features to analyze + analyzer parameters).
+>
+> **Agent Tool Invocation for Path B Step 2 (Module Initializer)**:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-pm-module-initializer skill for module "{module.module_name}" on platform "{module.platform_id}"
+> - context:
+>     skill: speccrew-pm-module-initializer
+>     source_path: {source_path}
+>     module_name: {module.module_name}
+>     platform_id: {module.platform_id}
+>     platform_type: {module.platform_type}
+>     platform_subtype: {module.platform_subtype}
+>     tech_stack: {module.tech_stack}
+>     features_file: {sync_state_bizs_dir}/features-{module.platform_id}.json
+>     output_path: {workspace_path}/knowledges
+>     completed_dir: {sync_state_bizs_dir}/completed
+>     sourceFile: features-{module.platform_id}.json
+>     language: {detected user language}
+>     workspace_path: {workspace_path}
+> ```
+>
+> Wait for ALL module-initializer Workers to complete. Collect all task plan JSON outputs.
+>
+> **Path B Step 3: Execute Feature Analysis**
+> Based on the task plans from Step 2, dispatch Worker for EACH pending feature.
+>
+> For backend features: dispatch Worker with `speccrew-knowledge-bizs-api-analyze` skill
+> For web/mobile/desktop features: dispatch Worker with `speccrew-knowledge-bizs-ui-analyze` skill
+>
+> **Agent Tool Invocation for each feature**:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute {analyzer_skill} for feature "{fileName}"
+> - context:
+>     skill: {analyzer_skill}
+>     fileName: {task.fileName}
+>     sourcePath: {source_path}/{task.sourcePath}
+>     documentPath: {workspace_path}/{task.documentPath}
+>     module: {task.module}
+>     analyzed: false
+>     platform_type: {task.platform_type}
+>     platform_subtype: {task.platform_subtype}
+>     tech_stack: {task.tech_stack}
+>     language: {language}
+>     completed_dir: {sync_state_bizs_dir}/completed
+>     sourceFile: features-{platform_id}.json
+> ```
+>
+> Wait for ALL analyze Workers to complete.
+>
+> **Path B Step 4: Generate Module Summaries**
+> For each matched module, dispatch Worker with `speccrew-knowledge-module-summarize` skill:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-knowledge-module-summarize for module "{module_name}"
+> - context:
+>     skill: speccrew-knowledge-module-summarize
+>     module_name: {module_name}
+>     module_path: {workspace_path}/knowledges/bizs/{platform_id}/{module_name}
+>     language: {language}
+> ```
+>
+> **Path B Step 5: Update Features Status**
+> After all analyze Workers complete, update each analyzed feature's `analyzed` field to `true` in the corresponding features-*.json file.
+>
+> Only after ALL Steps complete, proceed to Phase 2 (Requirement Clarification).
 
 4. **IF feature inventory fails**:
    - Report to user: "Project structure scan encountered issues: [specific error]. Continuing without knowledge base context."

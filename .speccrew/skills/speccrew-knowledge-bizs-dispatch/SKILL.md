@@ -19,17 +19,17 @@ Stage 1: Feature Inventory Init
   └─ 1b: Merge features
   └─ 1c: Validate inventory
         ↓
-Stage 2: Feature Analysis (PARALLEL)
-  └─ Dispatch api-analyze + ui-analyze workers per platform
-  └─ After each analyze worker completes → dispatch corresponding graph worker
+Stage 2: Feature Analysis (Task Preparation)
+  └─ Prepare api-analyze + ui-analyze task specifications per platform
+  └─ After analyze completes → prepare corresponding graph worker task specification
   └─ Monitor completion markers
         ↓
-Stage 3: Module Summarize (PARALLEL)
-  └─ 3.0: module-summarize per module
-  └─ 3.5: UI style extraction
+Stage 3: Module Summarize (Task Preparation)
+  └─ 3.0: Prepare module-summarize task specifications per module
+  └─ 3.5: Prepare UI style extraction task specifications
         ↓
-Stage 4: System Summary
-  └─ system-summarize → system-overview.md
+Stage 4: System Summary (Task Preparation)
+  └─ Prepare system-summarize task specification
 ```
 
 ## Language Adaptation
@@ -102,19 +102,19 @@ STAGE 1: Feature Inventory
 STAGE 2: Feature Analysis (REPEAT until all features processed)
   Step 0: Ensure completed_dir exists
   Step 1: Get next batch of pending features
-  Step 2: Launch parallel Workers (API or UI analysis)
+  Step 2: Prepare analysis task specifications (API or UI analysis)
   Step 3: Process batch results, update features.json, write graph
 
-STAGE 3: Module Summarize (parallel per module)
+STAGE 3: Module Summarize (task preparation per module)
   FOR each module:
-    Launch Worker with module-summarize skill
+    Prepare module-summarize task specification
 
-STAGE 3.5: UI Style Pattern Extract (parallel per frontend platform)
+STAGE 3.5: UI Style Pattern Extract (task preparation per frontend platform)
   FOR each frontend platform:
-    Launch Worker with ui-style-extract skill
+    Prepare ui-style-extract task specification
 
-STAGE 4: System Summary
-  Launch Worker with system-summarize skill
+STAGE 4: System Summary (task preparation)
+  Prepare system-summarize task specification
 
 OUTPUT: system-overview.md, graph data, module overviews
 ```
@@ -343,9 +343,9 @@ flowchart TB
 
 ## Stage 2: Feature Analysis (Batch Processing)
 
-**Overview**: Process all pending features in batches. Each batch gets a set of features, launches Worker Agents to analyze them, then processes the results.
+**Overview**: Process all pending features in batches. Each batch gets a set of features, prepares task specifications for Worker Agents to analyze them, then processes the results.
 
-> **Script execution rule**: All script calls in Stage 2 are executed **directly by the dispatch agent** via `run_in_terminal`. Only the analysis tasks are delegated to Worker Agents.
+> **Script execution rule**: All script calls in Stage 2 are executed **directly by the dispatch agent** via `run_in_terminal`. Task specifications are prepared by this Skill; Worker dispatch is handled by the calling Agent (Team Leader).
 
 **Skill Routing Table (by platformType):**
 
@@ -364,7 +364,7 @@ Repeat the following 3 steps until all features are processed:
 
 **Step 0: Ensure completed directory exists (MANDATORY)**
 
-Before launching any Workers, you MUST create the `completed_dir` directory using Node.js (cross-platform compatible):
+Before any Workers are dispatched by the calling Agent, you MUST ensure the `completed_dir` directory exists using Node.js (cross-platform compatible):
 
 ```bash
 node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.log('completed dir ready')"
@@ -386,31 +386,35 @@ node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.
 - If output `action` is `"done"` → All features processed. Exit Stage 2, proceed to Stage 3.
 - If output `action` is `"process"` → The `batch` array contains features to analyze. Proceed to Step 2.
 
-**Step 2: Launch Workers — MUST BE PARALLEL**
+**Step 2: Prepare Analysis Task Specifications**
 
-⚠️ **CRITICAL**: You MUST launch ALL features in the current batch SIMULTANEOUSLY as parallel Worker Tasks. **FORBIDDEN**: sequential launch (start one Worker, wait, then start next).
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
 
-For each feature in the `batch` array, prepare a Worker Task:
+For each feature in the `batch` array, prepare a task specification:
 - **Select skill** using the routing table at Stage 2 start
-- **Worker parameters**: Pass all feature fields plus `language`, `completed_dir`, `sourceFile`, `skill_path`
-- **Behavior constraint**: Worker MUST NOT create any temporary scripts. If execution fails, STOP and report error.
+- **Task parameters**: Prepare all feature fields plus `language`, `completed_dir`, `sourceFile`, `skill_path`
+- **Behavior constraint**: Workers MUST NOT create any temporary scripts
 
-**Execution sequence**:
-1. Prepare ALL Worker Tasks first (do NOT launch yet)
-2. Launch ALL Workers at the SAME TIME in a single batch dispatch
-3. Wait for ALL Workers to complete before proceeding to Step 2.5
+**Task Preparation sequence**:
+1. Prepare ALL task specifications for the current batch
+2. Output the task specifications to the calling Agent
+3. The calling Agent will dispatch Workers based on these specifications
 4. Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
 
-**Step 2.5: Launch Graph Workers — PARALLEL per Completed Analyze Worker**
+> **NOTE**: This Skill does NOT dispatch analyze workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
 
-After each analyze worker completes (writes `.done.json` marker), immediately dispatch the corresponding graph worker:
+**Step 2.5: Graph Worker Task Preparation**
+
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+After each analyze worker completes (writes `.done.json` marker), the calling Agent will dispatch the corresponding graph worker. This Skill prepares the task specifications:
 
 | Analyze Worker | Graph Worker | Input |
 |----------------|--------------|-------|
 | `speccrew-knowledge-bizs-api-analyze` | `speccrew-knowledge-bizs-api-graph` | `documentPath` from analyze output |
 | `speccrew-knowledge-bizs-ui-analyze` | `speccrew-knowledge-bizs-ui-graph` | `documentPath` from analyze output |
 
-**Graph Worker Task Prompt Format**:
+**Graph Worker Task Specification Format**:
 
 **For API Graph Worker**:
 ```json
@@ -457,14 +461,14 @@ After each analyze worker completes (writes `.done.json` marker), immediately di
 }
 ```
 
-**Execution sequence**:
+**Task Preparation Sequence**:
 1. Scan `completed_dir` for new `.done.json` files from Step 2
-2. For each completed analyze worker, prepare corresponding graph worker task
-3. Launch ALL graph workers for the current batch in PARALLEL
-4. Wait for ALL graph workers to complete
-5. Each graph worker writes `.graph-done.json` marker to `completed_dir`
+2. For each completed analyze worker, prepare corresponding graph worker task specification
+3. Output the task specifications to the calling Agent
+4. The calling Agent will dispatch graph workers based on these specifications
+5. Each graph worker writes `.graph-done.json` marker to `completed_dir` upon completion
 
-Example: If batch has 5 features → create and launch 5 Worker Tasks simultaneously, NOT one by one.
+> **NOTE**: This Skill does NOT dispatch graph workers. The calling Agent (Team Leader) scans for `.done.json` markers and dispatches corresponding graph workers.
 
 **Worker Task Prompt Format**:
 
@@ -699,7 +703,7 @@ Dispatch 采用完全无状态的文件驱动设计。如果执行过程中发�
 When dealing with modules containing more than **20 features**, consider the following:
 
 - **Single Agent Limit**: A single Worker Agent can reliably process ~20 features per session due to context window constraints. Beyond this, context degradation may cause incomplete document generation.
-- **Multi-Worker Strategy**: For modules with >20 features, dispatch multiple Worker Agents in parallel, each handling a non-overlapping subset of features (e.g., by batch index range).
+- **Multi-Worker Strategy**: For modules with >20 features, the calling Agent should dispatch multiple Worker Agents in parallel, each handling a non-overlapping subset of features (e.g., by batch index range).
 - **Resume Support**: The `get-next-batch` script naturally supports resume across sessions — it skips features that already have `.done` files. To resume after a session break, simply restart the Stage 2 loop.
 - **Validation After Completion**: After all features are marked `analyzed=true`, run `process-batch-results` with `--validateDocs --syncStatePath "{sync_state_path}"` to verify document completeness.
 
@@ -707,49 +711,53 @@ When dealing with modules containing more than **20 features**, consider the fol
 
 ---
 
-## Stage 3: Module Summarize (Parallel)
+## Stage 3: Module Summarize (Task Preparation)
 
-**Goal**: Complete each module overview based on feature details.
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+**Goal**: Prepare task specifications for each module overview based on feature details.
 
 **Prerequisite**: Stage 2 completed for the module (in full or incremental mode).
 
 **Action (full mode)**:
 - Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
 - For each platform, group features by `module` to identify unique modules
-- For each module, invoke 1 Worker Agent (`speccrew-task-worker.md`) with `skill_name: speccrew-knowledge-module-summarize`
-- Parameters to pass to skill:
+- For each module, prepare a task specification for `skill_name: speccrew-knowledge-module-summarize`
+- Parameters to include in task specification:
   - `module_name`: Module code_name
   - `module_path`: Path to module directory (e.g., `{workspace_path}/knowledges/bizs/{platform_id}/{module_name}/`)
   - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
   - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language — **REQUIRED**
-  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
-
-Expected Worker Return: `{ "status": "success|failed", "module_name": "...", "output_file": "...-overview.md", "message": "..." }`
+  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
 
 **Action (incremental mode)**:
 - Reuse module status from Stage 2 (NEW / CHANGED / DELETED / UNMODIFIED).
-- Only dispatch Workers for modules with status **NEW** or **CHANGED**.
+- Only prepare task specifications for modules with status **NEW** or **CHANGED**.
 
-**Parallel Tasks** (grouped by platform):
+**Task Specifications** (grouped by platform):
 ```
 Platform: Web Frontend (web)
-  Worker 1: module="order",   module_path="speccrew-workspace/knowledges/bizs/web/order/"
-  Worker 2: module="payment", module_path="speccrew-workspace/knowledges/bizs/web/payment/"
+  Task 1: module="order",   module_path="speccrew-workspace/knowledges/bizs/web/order/"
+  Task 2: module="payment", module_path="speccrew-workspace/knowledges/bizs/web/payment/"
 
 Platform: Mobile App (mobile-flutter)
-  Worker 3: module="order",   module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/order/"
-  Worker 4: module="payment", module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/payment/"
+  Task 3: module="order",   module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/order/"
+  Task 4: module="payment", module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/payment/"
 ```
+
+> **NOTE**: This Skill does NOT dispatch module summarize workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
 
 **Output per Module**:
 - `{{module_name}}-overview.md` (complete version)
 
 ---
 
-## Stage 3.5: UI Style Pattern Extract (Parallel by Platform)
+## Stage 3.5: UI Style Pattern Extract (Task Preparation)
 
-**Goal**: Extract UI design patterns (page types, component patterns, layout patterns) from analyzed feature documents, aggregating cross-module patterns and outputting to the techs knowledge base `ui-style-patterns/` directory.
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+**Goal**: Prepare task specifications for extracting UI design patterns (page types, component patterns, layout patterns) from analyzed feature documents.
 
 **Prerequisite**: All Stage 3 tasks completed.
 
@@ -761,8 +769,8 @@ Platform: Mobile App (mobile-flutter)
 - Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
 - Filter platforms where platformType is web/mobile/desktop
 - Determine platform_id (format: `{platformType}-{platformSubtype}`, e.g., `web-vue`, `mobile-uniapp`, `backend-system`)
-- For each qualifying platform, launch 1 Worker Agent (`speccrew-task-worker`) with `skill_name: speccrew-knowledge-bizs-ui-style-extract`
-- Parameters to pass:
+- For each qualifying platform, prepare a task specification for `skill_name: speccrew-knowledge-bizs-ui-style-extract`
+- Parameters to include in task specification:
   - `platform_id`: Platform identifier
   - `platform_type`: Platform type
   - `feature_docs_path`: Feature document base path for that platform (e.g., `{workspace_path}/knowledges/bizs/{platform_id}`)
@@ -772,7 +780,7 @@ Platform: Mobile App (mobile-flutter)
   - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
   - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language
-  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
+  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
 
 **Cross-Pipeline Output**:
 - This stage writes to techs knowledge base, not bizs knowledge base
@@ -780,7 +788,9 @@ Platform: Mobile App (mobile-flutter)
 - Subdirectories: `page-types/`, `components/`, `layouts/`
 - `ui-style-guide.md` and `styles/` are managed by techs pipeline, this stage does not modify them
 
-**Parallel Tasks**: One Worker per frontend platform, can execute in parallel.
+**Task Specifications**: One task specification per frontend platform.
+
+> **NOTE**: This Skill does NOT dispatch UI style extract workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
 
 **Output per Platform**:
 ```
@@ -797,24 +807,26 @@ Platform: Mobile App (mobile-flutter)
 
 ---
 
-## Stage 4: System Summarize (Single Task)
+## Stage 4: System Summarize (Task Preparation)
 
-**Goal**: Generate complete system-overview.md aggregating all platforms and modules.
+> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
+
+**Goal**: Prepare task specification for generating complete system-overview.md aggregating all platforms and modules.
 
 **Prerequisite**: All Stage 3 tasks completed.
 
 **Action**:
 - Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/` to get platform structure
-- Invoke 1 Worker Agent (`speccrew-task-worker.md`) with `skill_name: speccrew-knowledge-system-summarize`
-- Parameters to pass to skill:
+- Prepare a task specification for `skill_name: speccrew-knowledge-system-summarize`
+- Parameters to include in task specification:
   - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `{workspace_path}/knowledges/bizs/`)
   - `output_path`: Output path for system-overview.md (e.g., `{workspace_path}/knowledges/bizs/`)
   - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
   - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
   - `language`: User's language — **REQUIRED**
-  - **Behavior constraint**: Worker MUST NOT create any temporary scripts or workaround files. If execution fails, STOP and report error immediately.
+  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
 
-Expected Worker Return: `{ "status": "success|failed", "output_file": "system-overview.md", "message": "..." }`
+> **NOTE**: This Skill does NOT dispatch system summarize workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specification.
 
 **Output**:
 - `{workspace_path}/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)

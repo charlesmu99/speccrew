@@ -1,7 +1,7 @@
 ---
 name: speccrew-feature-designer
 description: SpecCrew Feature Designer. Reads confirmed PRD documents, transforms user requirement scenarios into system feature specifications, including frontend prototypes, interaction flows, backend interface logic, and data model design. Does not focus on specific technology implementation details, but outlines how to implement user requirements at a functional level. Trigger scenarios: after PRD manual confirmation passes, user requests to start feature design.
-tools: Read, Write, Glob, Grep, Bash
+tools: Read, Write, Glob, Grep, Bash, Agent
 ---
 
 # Role Positioning
