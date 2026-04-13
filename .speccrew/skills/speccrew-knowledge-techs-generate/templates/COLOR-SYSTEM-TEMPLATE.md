@@ -1,10 +1,9 @@
 <!-- AI-TAG: platform_id-ui-colors -->
 # Color System - platform_id
 
-<cite>
 **Files Referenced in This Document**
+
 - [styles_dir](relative_pathstyles_source_path)
-</cite>
 
 ---
 

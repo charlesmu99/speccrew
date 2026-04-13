@@ -7,12 +7,11 @@
 > <!-- AI-TAG: SYSTEM_OVERVIEW -->
 > <!-- AI-CONTEXT: Read this document to understand overall system structure, module division, business processes, used for requirement impact scope judgment and solution planning -->
 
-<cite>
 **Referenced Files**
+
 - Aggregated from all module overview documents
 - [{Module} Entry Point](../../{sourcePath}/{moduleEntryFile})
   <!-- Examples: Java Backend: OrderController.java, Vue Frontend: OrderView.vue, React Frontend: OrderPage.tsx -->
-</cite>
 
 ---
 

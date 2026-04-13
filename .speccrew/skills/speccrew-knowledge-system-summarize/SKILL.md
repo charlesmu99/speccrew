@@ -330,12 +330,11 @@ Aggregate source file references from all module overview documents:
 
 1. **File Reference Block** (at document start):
 ```markdown
-<cite>
 **Referenced Files**
+
 - Aggregated from all module overview documents
 - [OrderController.java](path/to/source/OrderController.java)
 - [PaymentController.java](path/to/source/PaymentController.java)
-</cite>
 ```
 
 2. **Diagram Source** (after each Mermaid diagram):

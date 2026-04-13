@@ -7,10 +7,9 @@ output_path: layouts/
 
 # {{layout_name}} Layout
 
-<cite>
 **Source Files Referenced**
+
 {{layout_source_files}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 

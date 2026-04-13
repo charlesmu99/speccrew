@@ -1,11 +1,10 @@
 # {{platform_name}} Data Conventions
 
-<cite>
 **Files Referenced in This Document**
+
 {{#each source_files}}
 - [{{name}}](file://{{path}})
 {{/each}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 

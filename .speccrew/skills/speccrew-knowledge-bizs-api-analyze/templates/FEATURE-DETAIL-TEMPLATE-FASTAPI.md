@@ -7,13 +7,12 @@
 > <!-- AI-TAG: FEATURE_DETAIL -->
 > <!-- AI-CONTEXT: This document describes FastAPI endpoints, business logic flow, and data models. AI should fill all placeholders when generating. -->
 
-<cite>
 **Files Referenced in This Document**
+
 - [{router}.py](../../{routerSourcePath})
 - [{service}.py](../../{serviceSourcePath})
 - [{model}.py](../../{modelSourcePath})
 - [{schema}.py](../../{schemaSourcePath})
-</cite>
 
 ---
 

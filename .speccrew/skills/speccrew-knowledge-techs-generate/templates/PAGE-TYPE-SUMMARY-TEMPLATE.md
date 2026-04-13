@@ -1,10 +1,9 @@
 <!-- AI-TAG: platform_id-ui-page-types -->
 # Page Type Summary - platform_id
 
-<cite>
 **Files Referenced in This Document**
+
 - [views_dir](relative_pathviews_source_path)
-</cite>
 
 ---
 

@@ -6,10 +6,9 @@ output_file: ui-style-guide.md
 
 # {{platform_name}} UI Style Guide
 
-<cite>
 **Files Referenced in This Document**
+
 {{source_files}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 

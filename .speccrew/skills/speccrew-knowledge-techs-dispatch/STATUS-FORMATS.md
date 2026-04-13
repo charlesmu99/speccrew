@@ -282,7 +282,7 @@ This document defines the JSON formats for techs pipeline status tracking files.
 | `quality_checks` | object | Quality verification results from Stage 2.5 |
 | `quality_checks.all_required_docs_present` | boolean | Whether all platforms have 8 required documents |
 | `quality_checks.language_consistent` | boolean | Whether all documents match the target language |
-| `quality_checks.traceability_verified` | boolean | Whether source traceability (<cite> blocks) verified |
+| `quality_checks.traceability_verified` | boolean | Whether source traceability (file reference blocks) verified |
 | `quality_checks.ui_analyzer_results` | object | UI style analysis level per platform category |
 | `quality_checks.ui_analyzer_results.full` | array | Platform IDs with full UI analysis |
 | `quality_checks.ui_analyzer_results.minimal` | array | Platform IDs with minimal UI analysis |

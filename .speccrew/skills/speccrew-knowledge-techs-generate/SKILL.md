@@ -203,7 +203,7 @@ Platform Technology Documents Generated: {{platform_id}}
 **Relative Path Calculation**: Documents at `speccrew-workspace/knowledges/techs/{platform_id}/` are 4 levels deep. Use `../../../../` prefix to reference project root files.
 
 **Required Elements**:
-1. `<cite>` block at document beginning listing referenced files
+1. File reference block at document beginning listing referenced files (pure Markdown format, previously used `<cite>` tags removed for VS Code preview compatibility)
 2. `**Diagram Source**` annotation after each Mermaid diagram
 3. `**Section Source**` annotation at end of major sections
 

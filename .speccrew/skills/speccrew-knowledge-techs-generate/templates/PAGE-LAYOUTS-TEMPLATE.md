@@ -1,10 +1,9 @@
 <!-- AI-TAG: platform_id-ui-layouts -->
 # Page Layouts - platform_id
 
-<cite>
 **Files Referenced in This Document**
+
 - [layouts_dir](relative_pathlayouts_source_path)
-</cite>
 
 ---
 

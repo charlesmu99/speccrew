@@ -1,10 +1,9 @@
 <!-- AI-TAG: platform_id-ui-components -->
 # Component Library - platform_id
 
-<cite>
 **Files Referenced in This Document**
+
 - [components_dir](relative_pathcomponents_source_path)
-</cite>
 
 ---
 

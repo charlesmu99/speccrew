@@ -7,13 +7,12 @@
 > <!-- AI-TAG: MODULE_OVERVIEW -->
 > <!-- AI-CONTEXT: Read this document to understand module responsibilities, feature list, entity relationships, and dependency interfaces, used for requirement analysis and solution design -->
 
-<cite>
 **Referenced Files**
+
 <!-- Path Note: {relativePath} must be dynamically calculated based on document depth. See SKILL.md "Source Traceability Guide" for calculation method. -->
 - [{EntryPoint}]({relativePath}/{sourcePath}/{entryPointFile})    <!-- Backend: Controller/View/Router; Frontend: Page/View component -->
 - [{BusinessLogic}]({relativePath}/{sourcePath}/{businessLogicFile})  <!-- Backend: Service; Frontend: Store/Composable/Hook -->
 - [{DataModel}]({relativePath}/{sourcePath}/{dataModelFile})      <!-- Backend: Entity/Model; Frontend: Type/Interface definition -->
-</cite>
 
 ---
 

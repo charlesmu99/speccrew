@@ -170,10 +170,9 @@ Read each platform's INDEX.md to extract:
 ```markdown
 # Technology Knowledge Index
 
-<cite>
 **Files Referenced in This Document**
+
 - [techs-manifest.json](../../../speccrew-workspace/knowledges/techs/techs-manifest.json)
-</cite>
 
 > **Target Audience**: devcrew-designer-*, devcrew-dev-*, devcrew-test-*
 
@@ -446,7 +445,7 @@ Use template at `templates/INDEX-TEMPLATE.md`:
 ### Quality & Validation
 - [ ] No broken links to non-existent documents
 - [ ] conventions-data.md links only included for platforms where it exists
-- [ ] **Source traceability**: `<cite>` block added to root INDEX.md
+- [ ] **Source traceability**: File reference block added to root INDEX.md
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] Output file written successfully
 - [ ] Results reported with document availability summary

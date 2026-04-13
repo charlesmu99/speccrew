@@ -6,10 +6,9 @@ output_file: layouts/navigation-patterns.md
 
 # Navigation Patterns
 
-<cite>
 **Files Referenced in This Document**
+
 {{source_files}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 

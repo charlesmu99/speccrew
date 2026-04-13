@@ -287,11 +287,10 @@ Frontend (React): `[OrderDetail.tsx](../../../../../src/pages/order/OrderDetail.
 
 1. **File Reference Block** (at document start):
 ```markdown
-<cite>
 **Referenced Files**
+
 - [OrderController.*](path/to/source/OrderController.*)
 - [OrderService.*](path/to/source/OrderService.*)
-</cite>
 ```
 
 2. **Diagram Source** (after each Mermaid diagram):

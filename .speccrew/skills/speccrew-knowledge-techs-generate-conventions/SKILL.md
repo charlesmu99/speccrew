@@ -434,10 +434,9 @@ All generated documents must follow this structure:
 ```markdown
 # {{platform_name}} {{document_type}}
 
-<cite>
 **Files Referenced in This Document**
+
 {{source_files}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}, devcrew-test-{{platform_id}}
 
@@ -489,17 +488,18 @@ For root INDEX.md (one level less deep):
   - Document: `speccrew-workspace/knowledges/techs/INDEX.md`
   - Prefix: `../../../` (3 levels)
 
-**1. File Reference Block (`<cite>`)**
+**1. File Reference Block**
 
-Place at the beginning of each document:
+Place at the beginning of each document (using pure Markdown format for VS Code preview compatibility):
 
 ```markdown
-<cite>
 **Files Referenced in This Document**
+
 - [package.json](../../../../yudao-ui/yudao-ui-admin-vue3/package.json)
 - [tsconfig.json](../../../../yudao-ui/yudao-ui-admin-vue3/tsconfig.json)
-</cite>
 ```
+
+> **Note**: Previously used `<cite>` HTML tags have been removed because they prevent Markdown links from rendering correctly in VS Code preview.
 
 **2. Diagram Source Annotation**
 
@@ -655,7 +655,7 @@ Upon completion, output the following structured report:
 
 ### Quality Checks
 - [ ] All files written to output_path
-- [ ] **Source traceability**: `<cite>` block added to each document
+- [ ] **Source traceability**: File reference block added to each document
 - [ ] **Source traceability**: Diagram Source annotations added after each Mermaid diagram
 - [ ] **Source traceability**: Section Source annotations added at end of major sections
 - [ ] **Mermaid compatibility**: No `style`, `direction`, `<br/>`, or nested subgraphs

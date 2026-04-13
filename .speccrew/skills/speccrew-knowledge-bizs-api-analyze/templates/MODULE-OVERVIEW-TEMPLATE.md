@@ -7,12 +7,11 @@
 > <!-- AI-TAG: MODULE_OVERVIEW -->
 > <!-- AI-CONTEXT: Read this document to understand module responsibilities, feature list, entity relationships, and dependency interfaces, used for requirement analysis and solution design -->
 
-<cite>
 **Referenced Files**
+
 - **API Handler**: [{Handler}.{ext}](../../{handlerSourcePath}) - *e.g., Controller (Java/.NET) or Router (FastAPI)*
 - **Service Layer**: [{Service}.{ext}](../../{serviceSourcePath}) - *Business logic layer*
 - **Data Model**: [{Model}.{ext}](../../{modelSourcePath}) - *e.g., Entity (Java/.NET) or Model (FastAPI)*
-</cite>
 
 ---
 

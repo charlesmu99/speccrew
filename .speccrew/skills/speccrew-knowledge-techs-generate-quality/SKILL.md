@@ -197,10 +197,10 @@ Verify `conventions-design.md` contains:
 
 Verify that all documents properly cite their sources.
 
-**5.1 File Reference Block (`<cite>`) Check**:
+**5.1 File Reference Block Check**:
 
 For each document, verify:
-- [ ] `<cite>` block exists at document beginning
+- [ ] File reference block exists at document beginning (previously used `<cite>` tags, now use pure Markdown for VS Code preview compatibility)
 - [ ] Contains list of referenced files
 - [ ] File paths use relative paths (NOT absolute or file://)
 

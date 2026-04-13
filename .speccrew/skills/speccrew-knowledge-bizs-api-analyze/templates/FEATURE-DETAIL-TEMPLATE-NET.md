@@ -7,13 +7,12 @@
 > <!-- AI-TAG: FEATURE_DETAIL -->
 > <!-- AI-CONTEXT: This document describes ASP.NET Core API endpoints, business logic flow, and data models. AI should fill all placeholders when generating. -->
 
-<cite>
 **Files Referenced in This Document**
+
 - [{Controller}.cs](../../{controllerSourcePath})
 - [{Service}.cs](../../{serviceSourcePath})
 - [{Repository}.cs](../../{repositorySourcePath})
 - [{Entity}.cs](../../{entitySourcePath})
-</cite>
 
 ---
 

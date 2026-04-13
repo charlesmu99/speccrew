@@ -7,10 +7,9 @@ output_path: components/
 
 # {{component_name}}
 
-<cite>
 **Source Files Referenced**
+
 {{component_source_path}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 

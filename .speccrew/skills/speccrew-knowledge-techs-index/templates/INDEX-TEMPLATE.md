@@ -1,9 +1,8 @@
 # Technology Knowledge Index
 
-<cite>
 **Files Referenced in This Document**
+
 - [techs-manifest.json](file://{{manifest_path}})
-</cite>
 
 > **Target Audience**: devcrew-designer-*, devcrew-dev-*, devcrew-test-*
 

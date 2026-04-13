@@ -456,7 +456,7 @@ Read the first 5 lines of each platform's INDEX.md:
 
 #### Step 4: Source Traceability Spot-Check
 For each platform, check ONE document (conventions-dev.md recommended):
-- Verify it contains `<cite>` block near the top
+- Verify it contains file reference block near the top (previously `<cite>`, now pure Markdown)
 - If missing, log warning: "Platform {platform_id}: source traceability missing in conventions-dev.md"
 
 #### Step 5: UI Style Analysis Level Recording
@@ -741,7 +741,7 @@ ON Worker Failure:
 ### Document Completeness Verification
 - [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md
 - [ ] `conventions-data.md` exists only for appropriate platforms (backend required, others optional)
-- [ ] All documents include `<cite>` reference blocks
+- [ ] All documents include file reference blocks (pure Markdown format for VS Code preview compatibility)
 - [ ] All documents include AI-TAG and AI-CONTEXT comments
 - [ ] techs/INDEX.md links only to existing documents
 

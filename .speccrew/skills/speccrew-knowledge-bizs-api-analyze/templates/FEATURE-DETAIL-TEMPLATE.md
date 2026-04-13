@@ -7,13 +7,12 @@
 > <!-- AI-TAG: FEATURE_DETAIL -->
 > <!-- AI-CONTEXT: This document describes the UI, interaction, and data rules of a single feature in detail. AI should fill all placeholders when generating. -->
 
-<cite>
 **Files Referenced in This Document**
+
 - [{Controller}.java](../../{controllerSourcePath})
 - [{Service}.java](../../{serviceSourcePath})
 - [{Entity}.java](../../{entitySourcePath})
 - [{DTO}.java](../../{dtoSourcePath})
-</cite>
 
 ---
 

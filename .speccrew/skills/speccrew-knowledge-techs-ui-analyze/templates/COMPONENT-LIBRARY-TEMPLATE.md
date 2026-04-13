@@ -6,10 +6,9 @@ output_file: components/component-library.md
 
 # Component Library Inventory
 
-<cite>
 **Files Referenced in This Document**
+
 {{source_files}}
-</cite>
 
 > **Target Audience**: devcrew-designer-{{platform_id}}, devcrew-dev-{{platform_id}}
 
