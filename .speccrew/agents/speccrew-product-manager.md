@@ -578,11 +578,29 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 >
 > This step aggregates all module-overview.md files into a single system-overview.md, which PM Agent uses as the primary knowledge context when processing new requirements.
 >
-> ⚠️ This step MUST complete before Phase 1 exits. system-overview.md is required for subsequent requirement analysis.
->
-> Only after ALL Steps complete, proceed to Phase 2 (Requirement Clarification).
->
-> 🛑 **Path B Completion Check**:
+⚠️ This step MUST complete before Phase 1 exits. system-overview.md is required for subsequent requirement analysis.
+
+**Path B Step 7: Cleanup Intermediate Files**
+
+After system-overview.md is successfully generated, delete intermediate files that are no longer needed:
+
+```bash
+# Delete matcher result (used for task generation, no longer needed)
+rm "{workspace_path}/knowledges/bizs/.matcher-result.json"
+
+# Delete dispatch progress (used for task tracking, no longer needed)
+rm "{workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json"
+```
+
+⚠️ Only execute cleanup AFTER confirming:
+- [ ] Step 6 completed: system-overview.md exists and is non-empty
+- [ ] All tasks in DISPATCH-PROGRESS.json have status "completed"
+
+These files were used for breakpoint recovery during initialization. Once all tasks complete and system-overview.md is generated, they become obsolete and can be safely removed.
+
+Only after ALL Steps complete, proceed to Phase 2 (Requirement Clarification).
+
+🛑 **Path B Completion Check**:
 > Before proceeding to Phase 2, verify:
 > - [ ] Step 1.5 completed: DISPATCH-PROGRESS.json created with all tasks
 > - [ ] Step 2 completed: task plan JSON generated for each matched module
@@ -590,7 +608,8 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > - [ ] Step 4 completed: module-summarize Workers completed for ALL matched modules
 > - [ ] Step 5 completed: features-*.json updated with analyzed=true
 > - [ ] Step 6 completed: system-overview.md generated
-> 
+> - [ ] Step 7 completed: intermediate files (.matcher-result.json, DISPATCH-PROGRESS.json) cleaned up
+>
 > If ANY step is incomplete, DO NOT proceed. Execute the missing steps first.
 
 4. **IF feature inventory fails**:
