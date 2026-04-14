@@ -40,20 +40,30 @@ For each platform, generates:
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-<workflow>
+<workflow id="identify-entries-main" status="pending" version="1.0" desc="Identify business module entry directories for each platform">
 
-  <!-- Input Block -->
-  <input name="platforms" type="array" required="true" description="Platform list from detection phase" />
-  <input name="workspace_path" type="string" required="true" description="Absolute path to speccrew-workspace directory" />
-  <input name="sync_state_bizs_dir" type="string" required="true" description="Absolute path to entry-dirs JSON output directory" />
-  <input name="configs_dir" type="string" required="true" description="Absolute path to configuration files directory" />
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platforms" required="true" type="array" desc="Platform list from detection phase"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to entry-dirs JSON output directory"/>
+    <field name="configs_dir" required="true" type="string" desc="Absolute path to configuration files directory"/>
+  </block>
 
-  <!-- Rule Block: Constraints -->
-  <rule level="mandatory">Use the provided absolute paths directly. DO NOT construct or derive paths yourself.</rule>
-  <rule level="mandatory">All entryDirs paths must use forward slashes / as path separators (even on Windows)</rule>
-  <rule level="mandatory">Do not include leading or trailing slashes in entryDirs paths</rule>
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Path constraints">
+    <field name="text">Use the provided absolute paths directly. DO NOT construct or derive paths yourself.</field>
+    <field name="text">All entryDirs paths must use forward slashes / as path separators (even on Windows)</field>
+    <field name="text">Do not include leading or trailing slashes in entryDirs paths</field>
+  </block>
 
-  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
     <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
     <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
@@ -63,143 +73,123 @@ For each platform, generates:
     <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
   </block>
 
-  <!-- Loop: Process Each Platform -->
-  <loop over="platforms" as="platform">
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Process Platforms" status="pending" desc="Iterate each platform to identify entry directories">
 
-    <!-- Step 1: Read Directory Tree -->
-    <task name="read-directory-tree" action="run-script">
-      <description>Read each platform's sourcePath directory structure (3 levels deep)</description>
-      <script type="bash">
-        <platform-type>windows</platform-type>
-        <command>tree /F /A "{platform.sourcePath}" | Select-Object -First 100</command>
-      </script>
-      <script type="bash">
-        <platform-type>unix</platform-type>
-        <command>tree -L 3 "{platform.sourcePath}"</command>
-      </script>
-      <output name="directory_tree" />
-    </task>
+    <!-- Loop: Process Each Platform -->
+    <block type="loop" id="L1" over="${platforms}" as="platform" desc="Iterate each platform to identify entry directories">
 
-    <!-- Step 2: LLM Analysis - Identify Entry Directories -->
-    <task name="analyze-entry-dirs" action="run-skill">
-      <description>Analyze directory tree and identify entry directories based on platform type</description>
-      <input ref="directory_tree" />
-      <input ref="platform.platformType" />
-      <input ref="platform.platformSubtype" />
-      <input ref="platform.techStack" />
-      <logic>
-        <backend>
-          - Find all directories containing *Controller.java or *Controller.kt files
-          - These are API entry directories
-          - Module name = the business package name of the entry directory
-        </backend>
-        <frontend-vue-react>
-          - Find views/ or pages/ directories
-          - First-level subdirectories under these directories are business modules
-        </frontend-vue-react>
-        <mobile-uniapp>
-          - Find first-level subdirectories under pages/
-          - Plus top-level pages-* directories (module name = directory name without pages- prefix)
-        </mobile-uniapp>
-        <mobile-miniprogram>
-          - Find first-level subdirectories under pages/ as modules
-        </mobile-miniprogram>
-      </logic>
-      <output name="identified_entries" />
-    </task>
+      <!-- Step 1: Read Directory Tree -->
+      <block type="task" id="B1" action="run-script" desc="Read each platform's sourcePath directory structure (3 levels deep)">
+        <field name="command">tree /F /A "${platform.sourcePath}" | Select-Object -First 100</field>
+        <field name="alt_command">tree -L 3 "${platform.sourcePath}"</field>
+        <field name="output" var="directory_tree"/>
+      </block>
 
-    <!-- Step 3: Load Exclusion Rules -->
-    <task name="load-exclusion-rules" action="run-script">
-      <description>Read tech-stack-mappings.json to load exclusion patterns</description>
-      <script type="read-file">
-        <path>{configs_dir}/tech-stack-mappings.json</path>
-      </script>
-      <output name="exclusion_rules" />
-    </task>
+      <!-- Step 2: LLM Analysis - Identify Entry Directories -->
+      <block type="task" id="B2" action="analyze" desc="Analyze directory tree and identify entry directories based on platform type">
+        <field name="input" value="${directory_tree}"/>
+        <field name="platform_type" value="${platform.platformType}"/>
+        <field name="platform_subtype" value="${platform.platformSubtype}"/>
+        <field name="tech_stack" value="${platform.techStack}"/>
+        <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files. These are API entry directories. Module name = the business package name of the entry directory"/>
+        <field name="logic_frontend_vue_react" value="Find views/ or pages/ directories. First-level subdirectories under these directories are business modules"/>
+        <field name="logic_mobile_uniapp" value="Find first-level subdirectories under pages/. Plus top-level pages-* directories (module name = directory name without pages- prefix)"/>
+        <field name="logic_mobile_miniprogram" value="Find first-level subdirectories under pages/ as modules"/>
+        <field name="output" var="identified_entries"/>
+      </block>
 
-    <!-- Gateway: Apply Exclusion Rules -->
-    <gateway mode="guard">
-      <condition>identified_entries is not empty</condition>
-      <then>
-        <task name="filter-entries" action="run-skill">
-          <description>Apply exclusion rules to filter out technical directories</description>
-          <input ref="identified_entries" />
-          <input ref="exclusion_rules" />
-          <exclusions>
-            <pure-technical>config, framework, enums, exception, util, utils, common, constant, constants, type, types, dto, vo, entity, model, mapper, repository, dao, service, impl</pure-technical>
-            <build-output>dist, build, target, out, node_modules</build-output>
-            <test-directories>test, tests, spec, __tests__, e2e</test-directories>
-            <config-directories>.git, .idea, .vscode, .speccrew</config-directories>
-          </exclusions>
-          <root-handling>Assign entry files not under any subdirectory to _root module</root-handling>
-          <output name="filtered_entries" />
-        </task>
-      </then>
-    </gateway>
+      <!-- Step 3: Load Exclusion Rules -->
+      <block type="task" id="B3" action="read-file" desc="Read tech-stack-mappings.json to load exclusion patterns">
+        <field name="path" value="${configs_dir}/tech-stack-mappings.json"/>
+        <field name="output" var="exclusion_rules"/>
+      </block>
 
-    <!-- Step 4: Generate entry-dirs JSON -->
-    <task name="generate-entry-dirs-json" action="run-script">
-      <description>Generate entry-dirs JSON file for the platform</description>
-      <output-path>{sync_state_bizs_dir}/entry-dirs-{platform.platformId}.json</output-path>
-      <content>
-        <json-structure>
+      <!-- Gateway: Apply Exclusion Rules -->
+      <block type="gateway" id="G1" mode="guard" desc="Check if identified_entries is not empty">
+        <branch test="${identified_entries} != null AND ${identified_entries.length} > 0">
+          <block type="task" id="B4" action="analyze" desc="Apply exclusion rules to filter out technical directories">
+            <field name="input" value="${identified_entries}"/>
+            <field name="exclusion_rules" value="${exclusion_rules}"/>
+            <field name="exclusions_pure_technical" value="config, framework, enums, exception, util, utils, common, constant, constants, type, types, dto, vo, entity, model, mapper, repository, dao, service, impl"/>
+            <field name="exclusions_build_output" value="dist, build, target, out, node_modules"/>
+            <field name="exclusions_test_directories" value="test, tests, spec, __tests__, e2e"/>
+            <field name="exclusions_config_directories" value=".git, .idea, .vscode, .speccrew"/>
+            <field name="root_handling" value="Assign entry files not under any subdirectory to _root module"/>
+            <field name="output" var="filtered_entries"/>
+          </block>
+        </branch>
+      </block>
+
+      <!-- Step 4: Generate entry-dirs JSON -->
+      <block type="task" id="B5" action="write-file" desc="Generate entry-dirs JSON file for the platform">
+        <field name="path" value="${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json"/>
+        <field name="content_json">
           {
-            "platformId": "{platform.platformId}",
-            "platformName": "{platform.platformName}",
-            "platformType": "{platform.platformType}",
-            "platformSubtype": "{platform.platformSubtype}",
-            "sourcePath": "{platform.sourcePath}",
-            "techStack": "{platform.techStack}",
+            "platformId": "${platform.platformId}",
+            "platformName": "${platform.platformName}",
+            "platformType": "${platform.platformType}",
+            "platformSubtype": "${platform.platformSubtype}",
+            "sourcePath": "${platform.sourcePath}",
+            "techStack": "${platform.techStack}",
             "modules": [
               { "name": "module-name", "entryDirs": ["relative/path/to/entry"] }
             ]
           }
-        </json-structure>
-      </content>
-      <output name="generated_json_path" />
-    </task>
+        </field>
+        <field name="output" var="generated_json_path"/>
+      </block>
 
-    <!-- Checkpoint: Persist Generated JSON -->
-    <checkpoint name="entry-dirs-generated" verify="file_exists({sync_state_bizs_dir}/entry-dirs-{platform.platformId}.json)" />
+      <!-- Checkpoint: Persist Generated JSON -->
+      <block type="checkpoint" id="CP1" name="entry-dirs-generated" desc="Verify entry-dirs JSON was generated">
+        <field name="file" value="${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json"/>
+        <field name="verify" value="file_exists(${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json)"/>
+      </block>
 
-    <!-- Step 5: Validation -->
-    <task name="validate-output" action="run-skill">
-      <description>Validate the generated entry-dirs JSON</description>
-      <input ref="generated_json_path" />
-      <validation-rules>
-        <rule>modules array is not empty</rule>
-        <rule>each module has at least one entry directory</rule>
-        <rule>module names are business-meaningful (not technical terms like config, util)</rule>
-        <rule>entryDirs paths are correct and accessible</rule>
-        <rule>JSON format is valid</rule>
-      </validation-rules>
-      <output name="validation_result" />
-    </task>
+      <!-- Step 5: Validation -->
+      <block type="task" id="B6" action="analyze" desc="Validate the generated entry-dirs JSON">
+        <field name="input" value="${generated_json_path}"/>
+        <field name="validation_rules">
+          - modules array is not empty
+          - each module has at least one entry directory
+          - module names are business-meaningful (not technical terms like config, util)
+          - entryDirs paths are correct and accessible
+          - JSON format is valid
+        </field>
+        <field name="output" var="validation_result"/>
+      </block>
 
-    <!-- Gateway: Validation Result -->
-    <gateway mode="exclusive">
-      <branch condition="validation_result.status == 'failed'">
-        <error-handler>
-          <catch>
-            <event action="log">Entry directory recognition failed for platform {platform.platformId}</event>
-            <task name="re-analyze" action="run-skill">
-              <description>Re-analyze the directory tree due to validation failure</description>
-              <input ref="directory_tree" />
-              <output name="re_analyzed_entries" />
-            </task>
-          </catch>
-        </error-handler>
-      </branch>
-      <branch condition="validation_result.status == 'passed'">
-        <event action="log">Platform {platform.platformId} entry-dirs validation passed</event>
-      </branch>
-    </gateway>
+      <!-- Gateway: Validation Result -->
+      <block type="gateway" id="G2" mode="exclusive" desc="Handle validation result">
+        <branch test="${validation_result.status} == 'failed'">
+          <block type="error-handler" id="EH1" desc="Handle validation failure">
+            <catch error-type="validation_failed">
+              <block type="event" id="E1" action="log" level="warn" desc="Log validation failure">Entry directory recognition failed for platform ${platform.platformId}</block>
+              <block type="task" id="B7" action="analyze" desc="Re-analyze the directory tree due to validation failure">
+                <field name="input" value="${directory_tree}"/>
+                <field name="output" var="re_analyzed_entries"/>
+              </block>
+            </catch>
+          </block>
+        </branch>
+        <branch test="${validation_result.status} == 'passed'">
+          <block type="event" id="E2" action="log" level="info" desc="Log validation success">Platform ${platform.platformId} entry-dirs validation passed</block>
+        </branch>
+      </block>
 
-  </loop>
+    </block>
 
-  <!-- Output Block -->
-  <output name="generated_files" from="generated_json_path" description="List of all generated entry-dirs JSON files" />
-  <output name="validation_summary" from="validation_result" description="Summary of validation results for all platforms" />
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="generated_files" from="${generated_json_path}" type="array" desc="List of all generated entry-dirs JSON files"/>
+    <field name="validation_summary" from="${validation_result}" type="object" desc="Summary of validation results for all platforms"/>
+  </block>
 
 </workflow>
 

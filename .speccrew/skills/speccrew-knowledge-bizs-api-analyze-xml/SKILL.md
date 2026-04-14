@@ -21,25 +21,25 @@ Analyze one specific API controller from source code, extract all business featu
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `{{feature}}` | object | Complete feature object from features.json | - |
-| `{{fileName}}` | string | Controller file name | `"UserController"`, `"OrderController"` |
-| `{{sourcePath}}` | string | Relative path to source file | `"yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java"` |
-| `{{documentPath}}` | string | Target path for generated document | `"speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md"` |
-| `{{module}}` | string | Business module name (from feature.module) | `"system"`, `"trade"`, `"_root"` |
-| `{{analyzed}}` | boolean | Analysis status flag | `true` / `false` |
-| `{{platform_type}}` | string | Platform type | `"admin-api"`, `"app-api"` |
-| `{{platform_subtype}}` | string | Platform subtype | `"spring-boot"`, `"java"` |
-| `{{tech_stack}}` | array | Platform tech stack | `["java", "spring-boot", "mybatis-plus"]` |
-| `{{completed_dir}}` | string | Marker files output directory | `"speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed"` |
-| `{{sourceFile}}` | string | Source features JSON file name | `"features-admin-api.json"` |
-| `{{language}}` | string | Target language for content | `"zh"`, `"en"` |
+| `${feature}` | object | Complete feature object from features.json | - |
+| `${fileName}` | string | Controller file name | `"UserController"`, `"OrderController"` |
+| `${sourcePath}` | string | Relative path to source file | `"yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java"` |
+| `${documentPath}` | string | Target path for generated document | `"speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md"` |
+| `${module}` | string | Business module name (from feature.module) | `"system"`, `"trade"`, `"_root"` |
+| `${analyzed}` | boolean | Analysis status flag | `true` / `false` |
+| `${platform_type}` | string | Platform type | `"admin-api"`, `"app-api"` |
+| `${platform_subtype}` | string | Platform subtype | `"spring-boot"`, `"java"` |
+| `${tech_stack}` | array | Platform tech stack | `["java", "spring-boot", "mybatis-plus"]` |
+| `${completed_dir}` | string | Marker files output directory | `"speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed"` |
+| `${sourceFile}` | string | Source features JSON file name | `"features-admin-api.json"` |
+| `${language}` | string | Target language for content | `"zh"`, `"en"` |
 
 ## Language Adaptation
 
-**CRITICAL**: Generate all content in the language specified by the `{{language}}` parameter.
+**CRITICAL**: Generate all content in the language specified by the `${language}` parameter.
 
-- `{{language}} == "zh"` → Generate all content in 中文
-- `{{language}} == "en"` → Generate all content in English
+- `${language} == "zh"` → Generate all content in 中文
+- `${language} == "en"` → Generate all content in English
 - Other languages → Use the specified language
 
 **All output content (feature names, descriptions, business rules) must be in the target language only.**
@@ -48,10 +48,10 @@ Analyze one specific API controller from source code, extract all business featu
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `{{status}}` | string | Analysis status: `"success"`, `"partial"`, or `"failed"` |
-| `{{feature_name}}` | string | Name of the analyzed controller |
-| `{{generated_file}}` | string | Path to the generated documentation file |
-| `{{message}}` | string | Summary message for status update |
+| `${status}` | string | Analysis status: `"success"`, `"partial"`, or `"failed"` |
+| `${feature_name}` | string | Name of the analyzed controller |
+| `${generated_file}` | string | Path to the generated documentation file |
+| `${message}` | string | Summary message for status update |
 
 ## Execution Requirements
 
@@ -63,8 +63,8 @@ This skill operates in **strict sequential execution mode**:
 ## Output
 
 **Generated Files:**
-1. `{{documentPath}}` - Controller documentation file
-2. `{{completed_dir}}/{module}-{subpath}-{fileName}.done.json` - Completion status marker
+1. `${documentPath}` - Controller documentation file
+2. `${completed_dir}/{module}-{subpath}-{fileName}.done.json` - Completion status marker
 
 **Graph Data Generation:**
 Graph data (nodes, edges) construction is handled by `speccrew-knowledge-bizs-api-graph-xml` Skill.
@@ -95,63 +95,64 @@ The return value is used by dispatch to update the feature status in `features-{
 
 Before executing the workflow, verify the following inputs:
 
-- Controller: `{{fileName}}` (`{{sourcePath}}`)
-- Target: `{{documentPath}}`
-- Language: `{{language}}`
-- Module: `{{module}}`
-- Platform: `{{platform_type}}`/`{{platform_subtype}}`
-- Completed Dir: `{{completed_dir}}`
-- Source File: `{{sourceFile}}`
+- Controller: `${fileName}` (`${sourcePath}`)
+- Target: `${documentPath}`
+- Language: `${language}`
+- Module: `${module}`
+- Platform: `${platform_type}`/`${platform_subtype}`
+- Completed Dir: `${completed_dir}`
+- Source File: `${sourceFile}`
 
 ## Workflow
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-```xml
-<workflow name="api-controller-analysis" version="1.0">
+<workflow id="api-controller-analysis" status="pending" version="1.0" desc="API controller analysis workflow">
   
   <!-- ==================== INPUT PARAMETERS ==================== -->
-  <input name="feature" type="object" required="true" description="Complete feature object from features.json"/>
-  <input name="fileName" type="string" required="true" description="Controller file name"/>
-  <input name="sourcePath" type="string" required="true" description="Relative path to source file"/>
-  <input name="documentPath" type="string" required="true" description="Target path for generated document"/>
-  <input name="module" type="string" required="true" description="Business module name"/>
-  <input name="analyzed" type="boolean" required="true" description="Analysis status flag"/>
-  <input name="platform_type" type="string" required="true" description="Platform type: admin-api, app-api"/>
-  <input name="platform_subtype" type="string" required="true" description="Platform subtype: spring-boot, java"/>
-  <input name="tech_stack" type="array" required="true" description="Platform tech stack"/>
-  <input name="completed_dir" type="string" required="true" description="Marker files output directory"/>
-  <input name="sourceFile" type="string" required="true" description="Source features JSON file name"/>
-  <input name="language" type="string" required="true" description="Target language for content"/>
+  <block type="input" id="I1" desc="API controller analysis input parameters">
+    <field name="feature" required="true" type="object" desc="Complete feature object from features.json"/>
+    <field name="fileName" required="true" type="string" desc="Controller file name"/>
+    <field name="sourcePath" required="true" type="string" desc="Relative path to source file"/>
+    <field name="documentPath" required="true" type="string" desc="Target path for generated document"/>
+    <field name="module" required="true" type="string" desc="Business module name"/>
+    <field name="analyzed" required="true" type="boolean" desc="Analysis status flag"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type: admin-api, app-api"/>
+    <field name="platform_subtype" required="true" type="string" desc="Platform subtype: spring-boot, java"/>
+    <field name="tech_stack" required="true" type="array" desc="Platform tech stack"/>
+    <field name="completed_dir" required="true" type="string" desc="Marker files output directory"/>
+    <field name="sourceFile" required="true" type="string" desc="Source features JSON file name"/>
+    <field name="language" required="true" type="string" desc="Target language for content"/>
+  </block>
   
   <!-- ==================== CONSTRAINT RULES ==================== -->
-  <rule level="forbidden" id="no-create-file-for-docs">
-    NEVER use create_file to rewrite entire document. Documents MUST be created by copying template then filling with search_replace.
-  </rule>
-  <rule level="forbidden" id="no-file-deletion">
-    NEVER delete generated files. If a file is malformed, fix it with search_replace.
-  </rule>
-  <rule level="forbidden" id="no-full-rewrite">
-    NEVER rewrite entire document. Always use targeted search_replace on specific sections.
-  </rule>
-  <rule level="mandatory" id="template-first">
-    Template copying (Step 5a) MUST execute before section filling (Step 5b).
-  </rule>
-  <rule level="mandatory" id="write-both-markers">
-    MUST write both .done.json and .graph.json marker files in Step 7.
-  </rule>
-  <rule level="mandatory" id="marker-naming">
-    Marker file names MUST follow pattern: {module}-{subpath}-{fileName}.done.json
-  </rule>
-  <rule level="mandatory" id="no-extension-in-filename">
-    fileName in .done.json MUST NOT include file extension.
-  </rule>
-  <rule level="mandatory" id="relative-paths-only">
-    ALL paths in JSON content MUST be relative, NEVER absolute paths.
-  </rule>
-  <rule level="mandatory" id="language-compliance">
-    ALL content MUST be generated in the language specified by {{language}} parameter.
-  </rule>
+  <block type="rule" id="R-FORB1" level="forbidden" desc="Document creation constraint">
+    <field name="text">NEVER use create_file to rewrite entire document. Documents MUST be created by copying template then filling with search_replace.</field>
+  </block>
+  <block type="rule" id="R-FORB2" level="forbidden" desc="File deletion constraint">
+    <field name="text">NEVER delete generated files. If a file is malformed, fix it with search_replace.</field>
+  </block>
+  <block type="rule" id="R-FORB3" level="forbidden" desc="Full rewrite constraint">
+    <field name="text">NEVER rewrite entire document. Always use targeted search_replace on specific sections.</field>
+  </block>
+  <block type="rule" id="R-MAND1" level="mandatory" desc="Template-first constraint">
+    <field name="text">Template copying (Step 5a) MUST execute before section filling (Step 5b).</field>
+  </block>
+  <block type="rule" id="R-MAND2" level="mandatory" desc="Marker files constraint">
+    <field name="text">MUST write both .done.json and .graph.json marker files in Step 7.</field>
+  </block>
+  <block type="rule" id="R-MAND3" level="mandatory" desc="Marker naming constraint">
+    <field name="text">Marker file names MUST follow pattern: {module}-{subpath}-{fileName}.done.json</field>
+  </block>
+  <block type="rule" id="R-MAND4" level="mandatory" desc="No extension in filename">
+    <field name="text">fileName in .done.json MUST NOT include file extension.</field>
+  </block>
+  <block type="rule" id="R-MAND5" level="mandatory" desc="Relative paths constraint">
+    <field name="text">ALL paths in JSON content MUST be relative, NEVER absolute paths.</field>
+  </block>
+  <block type="rule" id="R-MAND6" level="mandatory" desc="Language compliance">
+    <field name="text">ALL content MUST be generated in the language specified by ${language} parameter.</field>
+  </block>
   
   <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
@@ -164,440 +165,457 @@ Before executing the workflow, verify the following inputs:
   </block>
   
   <!-- ==================== STEP 0: CHECK ANALYSIS STATUS ==================== -->
-  <gateway name="check-analyzed-status" mode="exclusive">
-    <branch condition="{{analyzed}} == true">
-      <event action="log" level="info" message="Step 0 Status: SKIPPED (already analyzed)"/>
-      <output name="status" value="skipped"/>
-      <output name="message" value="Controller already analyzed, skipping"/>
-      <checkpoint name="skip-complete" verify="true"/>
+  <block type="gateway" id="G0" mode="exclusive" desc="Check if already analyzed">
+    <branch test="${analyzed} == true" name="Already analyzed">
+      <block type="event" id="E1" action="log" level="info" desc="Log skip status">
+        <field name="message" value="Step 0 Status: SKIPPED (already analyzed)"/>
+      </block>
+      <block type="output" id="O-skip" desc="Skip output">
+        <field name="status" value="skipped"/>
+        <field name="message" value="Controller already analyzed, skipping"/>
+      </block>
+      <block type="checkpoint" id="CP-skip" name="skip-complete" desc="Skip checkpoint">
+        <field name="verify" value="true"/>
+      </block>
     </branch>
-    <branch condition="{{analyzed}} == false">
-      <event action="log" level="info" message="Step 0 Status: PROCEEDING (analysis required)"/>
+    <branch test="${analyzed} == false" name="Analysis required">
+      <block type="event" id="E2" action="log" level="info" desc="Log proceed status">
+        <field name="message" value="Step 0 Status: PROCEEDING (analysis required)"/>
+      </block>
     </branch>
-  </gateway>
+  </block>
   
   <!-- ==================== STEP 1: READ ANALYSIS TEMPLATE ==================== -->
-  <task name="step1-read-template" action="run-skill">
-    <description>Read the appropriate template based on tech stack</description>
-    <parameter name="tech_stack">{{tech_stack}}</parameter>
-    <script>
-      <!-- Template Selection Logic -->
-      <gateway name="template-selection" mode="exclusive">
-        <branch condition="{{tech_stack}} contains 'fastapi' OR {{tech_stack}} contains 'python'">
-          <output name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE-FASTAPI.md"/>
-        </branch>
-        <branch condition="{{tech_stack}} contains 'dotnet' OR {{tech_stack}} contains '.net'">
-          <output name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE-NET.md"/>
-        </branch>
-        <branch condition="default">
-          <output name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE.md"/>
-        </branch>
-      </gateway>
-      
-      <!-- Read Template Content -->
-      <task action="read-file" target="{{templateFile}}">
-        <output name="templateContent" from="file.content"/>
-        <output name="sectionCount" from="template.sections.count"/>
-      </task>
-      
-      <!-- Validate Template Structure -->
-      <checkpoint name="template-loaded" verify="{{templateContent}} != null AND {{templateContent}} != ''"/>
-      <event action="log" level="info" message="Step 1 Status: COMPLETED - Template loaded, {{sectionCount}} sections identified for analysis"/>
-    </script>
-  </task>
+  <!-- Template Selection Logic -->
+  <block type="gateway" id="G1" mode="exclusive" desc="Select template based on tech stack">
+    <branch test="${tech_stack} contains 'fastapi' OR ${tech_stack} contains 'python'" name="FastAPI template">
+      <block type="output" id="O-tpl1" desc="Set FastAPI template path">
+        <field name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE-FASTAPI.md"/>
+      </block>
+    </branch>
+    <branch test="${tech_stack} contains 'dotnet' OR ${tech_stack} contains '.net'" name=".NET template">
+      <block type="output" id="O-tpl2" desc="Set .NET template path">
+        <field name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE-NET.md"/>
+      </block>
+    </branch>
+    <branch default="true" name="Default template">
+      <block type="output" id="O-tpl3" desc="Set default template path">
+        <field name="templateFile" value="../speccrew-knowledge-bizs-api-analyze/templates/FEATURE-DETAIL-TEMPLATE.md"/>
+      </block>
+    </branch>
+  </block>
+  
+  <!-- Read Template Content -->
+  <block type="task" id="B1" action="read-file" desc="Read selected template">
+    <field name="target" value="${templateFile}"/>
+    <field name="output" var="templateContent" from="file.content"/>
+    <field name="output" var="sectionCount" from="template.sections.count"/>
+  </block>
+  
+  <!-- Validate Template Structure -->
+  <block type="checkpoint" id="CP1" name="template-loaded" desc="Template loaded successfully">
+    <field name="verify" value="${templateContent} != null AND ${templateContent} != ''"/>
+  </block>
+  <block type="event" id="E3" action="log" level="info" desc="Log template status">
+    <field name="message" value="Step 1 Status: COMPLETED - Template loaded, ${sectionCount} sections identified for analysis"/>
+  </block>
   
   <!-- ==================== STEP 2: READ CONTROLLER AND ANALYZE API STRUCTURE ==================== -->
-  <task name="step2-read-controller" action="run-skill">
-    <description>Read controller file and analyze API handler structure</description>
-    <parameter name="sourcePath">{{sourcePath}}</parameter>
-    <parameter name="tech_stack">{{tech_stack}}</parameter>
-    <script>
-      <!-- Read Source File -->
-      <task action="read-file" target="{{sourcePath}}">
-        <output name="sourceContent" from="file.content"/>
-        <output name="lineCount" from="file.lineCount"/>
-      </task>
-      
-      <!-- Analyze API Structure Based on Tech Stack -->
-      <gateway name="tech-specific-analysis" mode="exclusive">
-        <branch condition="{{tech_stack}} contains 'java' OR {{tech_stack}} contains 'spring'">
-          <task action="parse-spring-controller">
-            <input name="content">{{sourceContent}}</input>
-            <output name="endpoints" from="parser.endpoints"/>
-            <output name="endpointCount" from="parser.endpointCount"/>
-            <output name="services" from="parser.services"/>
-            <output name="serviceCount" from="parser.serviceCount"/>
-          </task>
-        </branch>
-        <branch condition="{{tech_stack}} contains 'fastapi' OR {{tech_stack}} contains 'python'">
-          <task action="parse-fastapi-router">
-            <input name="content">{{sourceContent}}</input>
-            <output name="endpoints" from="parser.endpoints"/>
-            <output name="endpointCount" from="parser.endpointCount"/>
-            <output name="services" from="parser.services"/>
-            <output name="serviceCount" from="parser.serviceCount"/>
-          </task>
-        </branch>
-        <branch condition="{{tech_stack}} contains 'dotnet' OR {{tech_stack}} contains '.net'">
-          <task action="parse-dotnet-controller">
-            <input name="content">{{sourceContent}}</input>
-            <output name="endpoints" from="parser.endpoints"/>
-            <output name="endpointCount" from="parser.endpointCount"/>
-            <output name="services" from="parser.services"/>
-            <output name="serviceCount" from="parser.serviceCount"/>
-          </task>
-        </branch>
-        <branch condition="default">
-          <task action="parse-generic-controller">
-            <input name="content">{{sourceContent}}</input>
-            <output name="endpoints" from="parser.endpoints"/>
-            <output name="endpointCount" from="parser.endpointCount"/>
-            <output name="services" from="parser.services"/>
-            <output name="serviceCount" from="parser.serviceCount"/>
-          </task>
-        </branch>
-      </gateway>
-      
-      <checkpoint name="controller-analyzed" verify="{{sourceContent}} != null"/>
-      <event action="log" level="info" message="Step 2 Status: COMPLETED - Read {{sourcePath}} ({{lineCount}} lines), Analyzed {{endpointCount}} endpoints, {{serviceCount}} services"/>
-    </script>
-  </task>
+  <!-- Read Source File -->
+  <block type="task" id="B2" action="read-file" desc="Read controller source file">
+    <field name="target" value="${sourcePath}"/>
+    <field name="output" var="sourceContent" from="file.content"/>
+    <field name="output" var="lineCount" from="file.lineCount"/>
+  </block>
+  
+  <!-- Analyze API Structure Based on Tech Stack -->
+  <block type="gateway" id="G2" mode="exclusive" desc="Tech-specific API analysis">
+    <branch test="${tech_stack} contains 'java' OR ${tech_stack} contains 'spring'" name="Spring/Java analysis">
+      <block type="task" id="B3" action="parse-spring-controller" desc="Parse Spring controller">
+        <field name="content" value="${sourceContent}"/>
+        <field name="output" var="endpoints" from="parser.endpoints"/>
+        <field name="output" var="endpointCount" from="parser.endpointCount"/>
+        <field name="output" var="services" from="parser.services"/>
+        <field name="output" var="serviceCount" from="parser.serviceCount"/>
+      </block>
+    </branch>
+    <branch test="${tech_stack} contains 'fastapi' OR ${tech_stack} contains 'python'" name="FastAPI/Python analysis">
+      <block type="task" id="B4" action="parse-fastapi-router" desc="Parse FastAPI router">
+        <field name="content" value="${sourceContent}"/>
+        <field name="output" var="endpoints" from="parser.endpoints"/>
+        <field name="output" var="endpointCount" from="parser.endpointCount"/>
+        <field name="output" var="services" from="parser.services"/>
+        <field name="output" var="serviceCount" from="parser.serviceCount"/>
+      </block>
+    </branch>
+    <branch test="${tech_stack} contains 'dotnet' OR ${tech_stack} contains '.net'" name=".NET analysis">
+      <block type="task" id="B5" action="parse-dotnet-controller" desc="Parse .NET controller">
+        <field name="content" value="${sourceContent}"/>
+        <field name="output" var="endpoints" from="parser.endpoints"/>
+        <field name="output" var="endpointCount" from="parser.endpointCount"/>
+        <field name="output" var="services" from="parser.services"/>
+        <field name="output" var="serviceCount" from="parser.serviceCount"/>
+      </block>
+    </branch>
+    <branch default="true" name="Generic analysis">
+      <block type="task" id="B6" action="parse-generic-controller" desc="Parse generic controller">
+        <field name="content" value="${sourceContent}"/>
+        <field name="output" var="endpoints" from="parser.endpoints"/>
+        <field name="output" var="endpointCount" from="parser.endpointCount"/>
+        <field name="output" var="services" from="parser.services"/>
+        <field name="output" var="serviceCount" from="parser.serviceCount"/>
+      </block>
+    </branch>
+  </block>
+  
+  <block type="checkpoint" id="CP2" name="controller-analyzed" desc="Controller analyzed successfully">
+    <field name="verify" value="${sourceContent} != null"/>
+  </block>
+  <block type="event" id="E4" action="log" level="info" desc="Log controller status">
+    <field name="message" value="Step 2 Status: COMPLETED - Read ${sourcePath} (${lineCount} lines), Analyzed ${endpointCount} endpoints, ${serviceCount} services"/>
+  </block>
   
   <!-- ==================== STEP 3: EXTRACT API FEATURES ==================== -->
-  <task name="step3-extract-features" action="run-skill">
-    <description>Extract API features, business flows, and data structures from controller analysis</description>
-    <parameter name="endpoints">{{endpoints}}</parameter>
-    <parameter name="sourcePath">{{sourcePath}}</parameter>
-    <parameter name="language">{{language}}</parameter>
-    <script>
-      <!-- Read Mermaid Rules -->
-      <task action="read-file" target="speccrew-workspace/docs/rules/mermaid-rule.md">
-        <output name="mermaidRules" from="file.content"/>
-      </task>
-      
-      <!-- Extract Each API Endpoint Details -->
-      <loop name="extract-endpoint-details" over="{{endpoints}}" as="endpoint">
-        <task action="analyze-endpoint">
-          <input name="endpoint">{{endpoint}}</input>
-          <input name="tech_stack">{{tech_stack}}</input>
-          <output name="requestDTO" from="analysis.requestDTO"/>
-          <output name="responseDTO" from="analysis.responseDTO"/>
-          <output name="businessFlow" from="analysis.flow"/>
-          <output name="validationRules" from="analysis.validations"/>
-        </task>
-      </loop>
-      
-      <!-- Trace Backend Call Chain -->
-      <task action="trace-call-chain">
-        <input name="endpoints">{{endpoints}}</input>
-        <input name="services">{{services}}</input>
-        <input name="tech_stack">{{tech_stack}}</input>
-        <output name="callChains" from="trace.chains"/>
-        <output name="databaseTables" from="trace.tables"/>
-        <output name="transactionBoundaries" from="trace.transactions"/>
-        <output name="crossModuleCalls" from="trace.crossModules"/>
-      </task>
-      
-      <!-- Generate Mermaid Flowcharts -->
-      <task action="generate-flowcharts">
-        <input name="endpoints">{{endpoints}}</input>
-        <input name="callChains">{{callChains}}</input>
-        <input name="mermaidRules">{{mermaidRules}}</input>
-        <output name="flowcharts" from="generation.flowcharts"/>
-        <output name="flowCount" from="generation.count"/>
-      </task>
-      
-      <checkpoint name="features-extracted" verify="{{endpointCount}} &gt; 0"/>
-      <event action="log" level="info" message="Step 3 Status: COMPLETED - Extracted {{endpointCount}} API endpoints, {{flowCount}} business flows"/>
-    </script>
-  </task>
+  <!-- Read Mermaid Rules -->
+  <block type="task" id="B7" action="read-file" desc="Read Mermaid rules">
+    <field name="target" value="speccrew-workspace/docs/rules/mermaid-rule.md"/>
+    <field name="output" var="mermaidRules" from="file.content"/>
+  </block>
+  
+  <!-- Extract Each API Endpoint Details -->
+  <block type="loop" id="L1" over="${endpoints}" as="endpoint" desc="Extract endpoint details">
+    <block type="task" id="B8" action="analyze-endpoint" desc="Analyze single endpoint">
+      <field name="endpoint" value="${endpoint}"/>
+      <field name="tech_stack" value="${tech_stack}"/>
+      <field name="output" var="requestDTO" from="analysis.requestDTO"/>
+      <field name="output" var="responseDTO" from="analysis.responseDTO"/>
+      <field name="output" var="businessFlow" from="analysis.flow"/>
+      <field name="output" var="validationRules" from="analysis.validations"/>
+    </block>
+  </block>
+  
+  <!-- Trace Backend Call Chain -->
+  <block type="task" id="B9" action="trace-call-chain" desc="Trace call chains">
+    <field name="endpoints" value="${endpoints}"/>
+    <field name="services" value="${services}"/>
+    <field name="tech_stack" value="${tech_stack}"/>
+    <field name="output" var="callChains" from="trace.chains"/>
+    <field name="output" var="databaseTables" from="trace.tables"/>
+    <field name="output" var="transactionBoundaries" from="trace.transactions"/>
+    <field name="output" var="crossModuleCalls" from="trace.crossModules"/>
+  </block>
+  
+  <!-- Generate Mermaid Flowcharts -->
+  <block type="task" id="B10" action="generate-flowcharts" desc="Generate Mermaid diagrams">
+    <field name="endpoints" value="${endpoints}"/>
+    <field name="callChains" value="${callChains}"/>
+    <field name="mermaidRules" value="${mermaidRules}"/>
+    <field name="output" var="flowcharts" from="generation.flowcharts"/>
+    <field name="output" var="flowCount" from="generation.count"/>
+  </block>
+  
+  <block type="checkpoint" id="CP3" name="features-extracted" desc="Features extracted successfully">
+    <field name="verify" value="${endpointCount} > 0"/>
+  </block>
+  <block type="event" id="E5" action="log" level="info" desc="Log extraction status">
+    <field name="message" value="Step 3 Status: COMPLETED - Extracted ${endpointCount} API endpoints, ${flowCount} business flows"/>
+  </block>
   
   <!-- ==================== STEP 4: FIND API CONSUMERS ==================== -->
-  <task name="step4-find-consumers" action="run-skill">
-    <description>Search frontend page files to find which pages call the APIs in this controller</description>
-    <parameter name="endpoints">{{endpoints}}</parameter>
-    <parameter name="fileName">{{fileName}}</parameter>
-    <script>
-      <!-- Search for API Client Calls -->
-      <task action="grep-search">
-        <input name="pattern">{{fileName}}</input>
-        <input name="glob">*.{vue,tsx,jsx,ts,js}</input>
-        <output name="clientMatches" from="search.results"/>
-      </task>
-      
-      <!-- Search for HTTP Requests to Controller Path -->
-      <loop name="search-endpoint-paths" over="{{endpoints}}" as="endpoint">
-        <task action="grep-search">
-          <input name="pattern">{{endpoint.path}}</input>
-          <input name="glob">*.{vue,tsx,jsx,ts,js}</input>
-          <output name="pathMatches" from="search.results" accumulate="true"/>
-        </task>
-      </loop>
-      
-      <!-- Compile Consumer Pages -->
-      <task action="compile-consumers">
-        <input name="clientMatches">{{clientMatches}}</input>
-        <input name="pathMatches">{{pathMatches}}</input>
-        <output name="consumerPages" from="compilation.pages"/>
-        <output name="consumerCount" from="compilation.count"/>
-      </task>
-      
-      <event action="log" level="info" message="Step 4 Status: COMPLETED - Found {{consumerCount}} API consumers"/>
-    </script>
-  </task>
+  <!-- Search for API Client Calls -->
+  <block type="task" id="B11" action="grep-search" desc="Search for API client calls">
+    <field name="pattern" value="${fileName}"/>
+    <field name="glob" value="*.{vue,tsx,jsx,ts,js}"/>
+    <field name="output" var="clientMatches" from="search.results"/>
+  </block>
+  
+  <!-- Search for HTTP Requests to Controller Path -->
+  <block type="loop" id="L2" over="${endpoints}" as="endpoint" desc="Search endpoint paths">
+    <block type="task" id="B12" action="grep-search" desc="Search for endpoint path">
+      <field name="pattern" value="${endpoint.path}"/>
+      <field name="glob" value="*.{vue,tsx,jsx,ts,js}"/>
+      <field name="output" var="pathMatches" from="search.results" accumulate="true"/>
+    </block>
+  </block>
+  
+  <!-- Compile Consumer Pages -->
+  <block type="task" id="B13" action="compile-consumers" desc="Compile consumer pages">
+    <field name="clientMatches" value="${clientMatches}"/>
+    <field name="pathMatches" value="${pathMatches}"/>
+    <field name="output" var="consumerPages" from="compilation.pages"/>
+    <field name="output" var="consumerCount" from="compilation.count"/>
+  </block>
+  
+  <block type="event" id="E6" action="log" level="info" desc="Log consumer status">
+    <field name="message" value="Step 4 Status: COMPLETED - Found ${consumerCount} API consumers"/>
+  </block>
   
   <!-- ==================== STEP 5A: COPY TEMPLATE TO DOCUMENT PATH ==================== -->
-  <task name="step5a-copy-template" action="run-skill">
-    <description>Copy the appropriate template to the target document path and replace top-level placeholders</description>
-    <parameter name="templateContent">{{templateContent}}</parameter>
-    <parameter name="documentPath">{{documentPath}}</parameter>
-    <parameter name="fileName">{{fileName}}</parameter>
-    <parameter name="sourcePath">{{sourcePath}}</parameter>
-    <parameter name="module">{{module}}</parameter>
-    <script>
-      <!-- Replace Top-Level Placeholders -->
-      <task action="replace-placeholders">
-        <input name="template">{{templateContent}}</input>
-        <replacements>
-          <replacement from="{Controller}" to="{{fileName}}"/>
-          <replacement from="{sourcePath}" to="{{sourcePath}}"/>
-          <replacement from="{documentPath}" to="{{documentPath}}"/>
-          <replacement from="{module}" to="{{module}}"/>
-          <replacement from="[Feature Name]" to="{{fileName}}"/>
-        </replacements>
-        <output name="documentSkeleton" from="result.content"/>
-      </task>
-      
-      <!-- Create Document File -->
-      <task action="create-file" target="{{documentPath}}">
-        <content>{{documentSkeleton}}</content>
-      </task>
-      
-      <!-- Verify Document Skeleton -->
-      <task action="verify-structure">
-        <input name="documentPath">{{documentPath}}</input>
-        <output name="structureValid" from="verification.valid"/>
-      </task>
-      
-      <checkpoint name="template-copied" verify="file.exists({{documentPath}}) AND {{structureValid}}"/>
-      <event action="log" level="info" message="Step 5a Status: COMPLETED - Template copied to {{documentPath}}, ready for section filling"/>
-    </script>
-  </task>
+  <!-- Replace Top-Level Placeholders -->
+  <block type="task" id="B14" action="replace-placeholders" desc="Replace template placeholders">
+    <field name="template" value="${templateContent}"/>
+    <field name="replacements">
+      <replacement from="{Controller}" to="${fileName}"/>
+      <replacement from="{sourcePath}" to="${sourcePath}"/>
+      <replacement from="{documentPath}" to="${documentPath}"/>
+      <replacement from="{module}" to="${module}"/>
+      <replacement from="[Feature Name]" to="${fileName}"/>
+    </field>
+    <field name="output" var="documentSkeleton" from="result.content"/>
+  </block>
+  
+  <!-- Create Document File -->
+  <block type="task" id="B15" action="create-file" desc="Create document file">
+    <field name="target" value="${documentPath}"/>
+    <field name="content" value="${documentSkeleton}"/>
+  </block>
+  
+  <!-- Verify Document Skeleton -->
+  <block type="task" id="B16" action="verify-structure" desc="Verify document structure">
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="output" var="structureValid" from="verification.valid"/>
+  </block>
+  
+  <block type="checkpoint" id="CP4" name="template-copied" desc="Template copied successfully">
+    <field name="verify" value="file.exists(${documentPath}) AND ${structureValid}"/>
+  </block>
+  <block type="event" id="E7" action="log" level="info" desc="Log template copy status">
+    <field name="message" value="Step 5a Status: COMPLETED - Template copied to ${documentPath}, ready for section filling"/>
+  </block>
   
   <!-- ==================== STEP 5B: FILL EACH SECTION USING SEARCH_REPLACE ==================== -->
-  <task name="step5b-fill-sections" action="run-skill">
-    <description>Fill each section of the document with actual data extracted from source code analysis</description>
-    <parameter name="documentPath">{{documentPath}}</parameter>
-    <parameter name="endpoints">{{endpoints}}</parameter>
-    <parameter name="consumerPages">{{consumerPages}}</parameter>
-    <parameter name="callChains">{{callChains}}</parameter>
-    <parameter name="flowcharts">{{flowcharts}}</parameter>
-    <parameter name="databaseTables">{{databaseTables}}</parameter>
-    <parameter name="language">{{language}}</parameter>
-    <script>
-      <!-- Calculate Dynamic Path Prefix -->
-      <task action="calculate-path-prefix">
-        <input name="documentPath">{{documentPath}}</input>
-        <output name="pathPrefix" from="calculation.prefix"/>
-      </task>
-      
-      <!-- Section 1: Content Overview -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: OVERVIEW --></anchor>
-        <replace>{{overviewContent}}</replace>
-      </task>
-      
-      <!-- Section 2: API Endpoints -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: API_ENDPOINTS --></anchor>
-        <replace>{{endpointDefinitions}}</replace>
-      </task>
-      
-      <!-- Section 3: Data Fields -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: DATA_DEFINITION --></anchor>
-        <replace>{{dataFieldDefinitions}}</replace>
-      </task>
-      
-      <!-- Section 4: References -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: REFERENCES --></anchor>
-        <replace>{{referencesContent}}</replace>
-      </task>
-      
-      <!-- Section 5: Business Rules -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: BUSINESS_RULES --></anchor>
-        <replace>{{businessRulesContent}}</replace>
-      </task>
-      
-      <!-- Section 6: Dependencies -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: DEPENDENCIES --></anchor>
-        <replace>{{dependenciesContent}}</replace>
-      </task>
-      
-      <!-- Section 7: Performance -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: PERFORMANCE --></anchor>
-        <replace>{{performanceContent}}</replace>
-      </task>
-      
-      <!-- Section 8: Troubleshooting -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: TROUBLESHOOTING --></anchor>
-        <replace>{{troubleshootingContent}}</replace>
-      </task>
-      
-      <!-- Section 9: Notes -->
-      <task action="search_replace" target="{{documentPath}}">
-        <anchor><!-- AI-TAG: ADDITIONAL_NOTES --></anchor>
-        <replace>{{additionalNotes}}</replace>
-      </task>
-      
-      <!-- Section 10: Appendix -->
-      <task action="search_replace" target="{{documentPath}}">
-        <search>## 10. Appendix.*</search>
-        <replace>## 10. Appendix
-
-{{appendixContent}}</replace>
-      </task>
-      
-      <!-- Get File Size -->
-      <task action="get-file-size" target="{{documentPath}}">
-        <output name="fileSize" from="file.size"/>
-      </task>
-      
-      <checkpoint name="all-sections-filled" verify="all.sections.filled"/>
-      <event action="log" level="info" message="Step 5b Status: COMPLETED - All sections filled at {{documentPath}} ({{fileSize}} bytes)"/>
-    </script>
-  </task>
+  <!-- Calculate Dynamic Path Prefix -->
+  <block type="task" id="B17" action="calculate-path-prefix" desc="Calculate path prefix">
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="output" var="pathPrefix" from="calculation.prefix"/>
+  </block>
+  
+  <!-- Section 1: Content Overview -->
+  <block type="task" id="B18" action="search_replace" desc="Fill overview section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: OVERVIEW -->"/>
+    <field name="replace" value="${overviewContent}"/>
+  </block>
+  
+  <!-- Section 2: API Endpoints -->
+  <block type="task" id="B19" action="search_replace" desc="Fill API endpoints section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: API_ENDPOINTS -->"/>
+    <field name="replace" value="${endpointDefinitions}"/>
+  </block>
+  
+  <!-- Section 3: Data Fields -->
+  <block type="task" id="B20" action="search_replace" desc="Fill data definition section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: DATA_DEFINITION -->"/>
+    <field name="replace" value="${dataFieldDefinitions}"/>
+  </block>
+  
+  <!-- Section 4: References -->
+  <block type="task" id="B21" action="search_replace" desc="Fill references section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: REFERENCES -->"/>
+    <field name="replace" value="${referencesContent}"/>
+  </block>
+  
+  <!-- Section 5: Business Rules -->
+  <block type="task" id="B22" action="search_replace" desc="Fill business rules section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: BUSINESS_RULES -->"/>
+    <field name="replace" value="${businessRulesContent}"/>
+  </block>
+  
+  <!-- Section 6: Dependencies -->
+  <block type="task" id="B23" action="search_replace" desc="Fill dependencies section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: DEPENDENCIES -->"/>
+    <field name="replace" value="${dependenciesContent}"/>
+  </block>
+  
+  <!-- Section 7: Performance -->
+  <block type="task" id="B24" action="search_replace" desc="Fill performance section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: PERFORMANCE -->"/>
+    <field name="replace" value="${performanceContent}"/>
+  </block>
+  
+  <!-- Section 8: Troubleshooting -->
+  <block type="task" id="B25" action="search_replace" desc="Fill troubleshooting section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: TROUBLESHOOTING -->"/>
+    <field name="replace" value="${troubleshootingContent}"/>
+  </block>
+  
+  <!-- Section 9: Notes -->
+  <block type="task" id="B26" action="search_replace" desc="Fill additional notes section">
+    <field name="target" value="${documentPath}"/>
+    <field name="anchor" value="<!-- AI-TAG: ADDITIONAL_NOTES -->"/>
+    <field name="replace" value="${additionalNotes}"/>
+  </block>
+  
+  <!-- Section 10: Appendix -->
+  <block type="task" id="B27" action="search_replace" desc="Fill appendix section">
+    <field name="target" value="${documentPath}"/>
+    <field name="search" value="## 10. Appendix.*"/>
+    <field name="replace" value="## 10. Appendix&#10;&#10;${appendixContent}"/>
+  </block>
+  
+  <!-- Get File Size -->
+  <block type="task" id="B28" action="get-file-size" desc="Get generated file size">
+    <field name="target" value="${documentPath}"/>
+    <field name="output" var="fileSize" from="file.size"/>
+  </block>
+  
+  <block type="checkpoint" id="CP5" name="all-sections-filled" desc="All sections filled">
+    <field name="verify" value="all.sections.filled"/>
+  </block>
+  <block type="event" id="E8" action="log" level="info" desc="Log sections filled status">
+    <field name="message" value="Step 5b Status: COMPLETED - All sections filled at ${documentPath} (${fileSize} bytes)"/>
+  </block>
   
   <!-- ==================== STEP 6: REPORT RESULTS ==================== -->
-  <task name="step6-report" action="run-skill">
-    <description>Return analysis result summary to dispatch</description>
-    <script>
-      <gateway name="determine-status" mode="exclusive">
-        <branch condition="{{endpointCount}} == 0">
-          <output name="status" value="failed"/>
-          <output name="message" value="No API endpoints found in controller"/>
-        </branch>
-        <branch condition="{{errors}} != null AND {{errors.length}} &gt; 0">
-          <output name="status" value="partial"/>
-          <output name="message" value="Analysis completed with {{errors.length}} warnings"/>
-        </branch>
-        <branch condition="default">
-          <output name="status" value="success"/>
-          <output name="message" value="Successfully analyzed {{fileName}} with {{endpointCount}} API endpoints"/>
-        </branch>
-      </gateway>
-      
-      <output name="feature_name" value="{{fileName}}"/>
-      <output name="generated_file" value="{{documentPath}}"/>
-      
-      <event action="log" level="info" message="Step 6 Status: COMPLETED - Analysis {{status}}: {{message}}"/>
-    </script>
-  </task>
+  <block type="gateway" id="G3" mode="exclusive" desc="Determine analysis status">
+    <branch test="${endpointCount} == 0" name="No endpoints">
+      <block type="output" id="O-fail" desc="Failed output">
+        <field name="status" value="failed"/>
+        <field name="message" value="No API endpoints found in controller"/>
+      </block>
+    </branch>
+    <branch test="${errors} != null AND ${errors.length} > 0" name="Partial success">
+      <block type="output" id="O-partial" desc="Partial output">
+        <field name="status" value="partial"/>
+        <field name="message" value="Analysis completed with ${errors.length} warnings"/>
+      </block>
+    </branch>
+    <branch default="true" name="Success">
+      <block type="output" id="O-success" desc="Success output">
+        <field name="status" value="success"/>
+        <field name="message" value="Successfully analyzed ${fileName} with ${endpointCount} API endpoints"/>
+      </block>
+    </branch>
+  </block>
+  
+  <block type="output" id="O-vals" desc="Feature outputs">
+    <field name="feature_name" value="${fileName}"/>
+    <field name="generated_file" value="${documentPath}"/>
+  </block>
+  
+  <block type="event" id="E9" action="log" level="info" desc="Log report status">
+    <field name="message" value="Step 6 Status: COMPLETED - Analysis ${status}: ${message}"/>
+  </block>
   
   <!-- ==================== STEP 7: WRITE COMPLETION MARKERS ==================== -->
-  <task name="step7-write-markers" action="run-skill">
-    <description>Write analysis results to marker files for dispatch batch processing</description>
-    <parameter name="completed_dir">{{completed_dir}}</parameter>
-    <parameter name="module">{{module}}</parameter>
-    <parameter name="sourcePath">{{sourcePath}}</parameter>
-    <parameter name="fileName">{{fileName}}</parameter>
-    <parameter name="sourceFile">{{sourceFile}}</parameter>
-    <parameter name="documentPath">{{documentPath}}</parameter>
-    <parameter name="status">{{status}}</parameter>
-    <parameter name="message">{{message}}</parameter>
-    <script>
-      <!-- Calculate Subpath from Source Path -->
-      <task action="calculate-subpath">
-        <input name="sourcePath">{{sourcePath}}</input>
-        <output name="subpath" from="calculation.subpath"/>
-      </task>
-      
-      <!-- Generate Marker File Name -->
-      <task action="generate-marker-name">
-        <input name="module">{{module}}</input>
-        <input name="subpath">{{subpath}}</input>
-        <input name="fileName">{{fileName}}</input>
-        <output name="markerName" from="generation.name"/>
-      </task>
-      
-      <!-- Pre-write Verification -->
-      <checkpoint name="pre-write-check" verify="{{fileName}} does-not-contain '.' AND {{sourceFile}} matches 'features-*.json'"/>
-      
-      <!-- Write .done.json File -->
-      <task action="create-file" target="{{completed_dir}}/{{markerName}}.done.json">
-        <content>{
-  "fileName": "{{fileName}}",
-  "sourcePath": "{{sourcePath}}",
-  "sourceFile": "{{sourceFile}}",
-  "module": "{{module}}",
-  "documentPath": "{{documentPath}}",
-  "status": "{{status}}",
-  "analysisNotes": "{{message}}"
-}</content>
-      </task>
-      
-      <!-- Verify Marker File Written -->
-      <checkpoint name="marker-written" verify="file.exists({{completed_dir}}/{{markerName}}.done.json)"/>
-      
-      <!-- Dispatch to Graph Skill for .graph.json -->
-      <task name="dispatch-graph-generation" action="dispatch-to-worker">
-        <skill>speccrew-knowledge-bizs-api-graph-xml</skill>
-        <parameters>
-          <parameter name="controllerFile">{{fileName}}</parameter>
-          <parameter name="sourcePath">{{sourcePath}}</parameter>
-          <parameter name="endpoints">{{endpoints}}</parameter>
-          <parameter name="completed_dir">{{completed_dir}}</parameter>
-          <parameter name="markerName">{{markerName}}</parameter>
-        </parameters>
-      </task>
-      
-      <event action="log" level="info" message="Step 7 Status: COMPLETED - Marker file written to {{completed_dir}}"/>
-    </script>
-  </task>
+  <!-- Calculate Subpath from Source Path -->
+  <block type="task" id="B29" action="calculate-subpath" desc="Calculate subpath">
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="output" var="subpath" from="calculation.subpath"/>
+  </block>
+  
+  <!-- Generate Marker File Name -->
+  <block type="task" id="B30" action="generate-marker-name" desc="Generate marker name">
+    <field name="module" value="${module}"/>
+    <field name="subpath" value="${subpath}"/>
+    <field name="fileName" value="${fileName}"/>
+    <field name="output" var="markerName" from="generation.name"/>
+  </block>
+  
+  <!-- Pre-write Verification -->
+  <block type="checkpoint" id="CP6" name="pre-write-check" desc="Pre-write verification">
+    <field name="verify" value="${fileName} does-not-contain '.' AND ${sourceFile} matches 'features-*.json'"/>
+  </block>
+  
+  <!-- Write .done.json File -->
+  <block type="task" id="B31" action="create-file" desc="Write done marker file">
+    <field name="target" value="${completed_dir}/${markerName}.done.json"/>
+    <field name="content" value="{
+  &quot;fileName&quot;: &quot;${fileName}&quot;,
+  &quot;sourcePath&quot;: &quot;${sourcePath}&quot;,
+  &quot;sourceFile&quot;: &quot;${sourceFile}&quot;,
+  &quot;module&quot;: &quot;${module}&quot;,
+  &quot;documentPath&quot;: &quot;${documentPath}&quot;,
+  &quot;status&quot;: &quot;${status}&quot;,
+  &quot;analysisNotes&quot;: &quot;${message}&quot;
+}"/>
+  </block>
+  
+  <!-- Verify Marker File Written -->
+  <block type="checkpoint" id="CP7" name="marker-written" desc="Marker file written">
+    <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
+  </block>
+  
+  <!-- Dispatch to Graph Skill for .graph.json -->
+  <block type="task" id="B32" action="dispatch-to-worker" desc="Dispatch graph generation">
+    <field name="skill">speccrew-knowledge-bizs-api-graph-xml</field>
+    <field name="parameters">
+      <field name="controllerFile">${fileName}</field>
+      <field name="sourcePath">${sourcePath}</field>
+      <field name="endpoints">${endpoints}</field>
+      <field name="completed_dir">${completed_dir}</field>
+      <field name="markerName">${markerName}</field>
+    </field>
+  </block>
+  
+  <block type="event" id="E10" action="log" level="info" desc="Log marker status">
+    <field name="message" value="Step 7 Status: COMPLETED - Marker file written to ${completed_dir}"/>
+  </block>
   
   <!-- ==================== FINAL OUTPUT ==================== -->
-  <output name="status" from="step6-report.status"/>
-  <output name="feature" from="step6-report.feature"/>
-  <output name="platformType" from="input.platform_type"/>
-  <output name="module" from="input.module"/>
-  <output name="featureName" from="step6-report.feature_name"/>
-  <output name="generatedFile" from="step6-report.generated_file"/>
-  <output name="message" from="step6-report.message"/>
+  <block type="output" id="O1" desc="Final workflow outputs">
+    <field name="status" from="step6-report.status"/>
+    <field name="feature" from="step6-report.feature"/>
+    <field name="platformType" from="input.platform_type"/>
+    <field name="module" from="input.module"/>
+    <field name="featureName" from="step6-report.feature_name"/>
+    <field name="generatedFile" from="step6-report.generated_file"/>
+    <field name="message" from="step6-report.message"/>
+  </block>
   
   <!-- ==================== ERROR HANDLING ==================== -->
-  <error-handler>
-    <catch type="file-not-found">
-      <event action="log" level="error" message="Source file not found: {{sourcePath}}"/>
-      <output name="status" value="failed"/>
-      <output name="message" value="Source file not found: {{sourcePath}}"/>
+  <block type="error-handler" id="EH1" desc="Global error handling">
+    <catch error-type="file-not-found">
+      <block type="event" id="E-err1" action="log" level="error" desc="Log file not found">
+        <field name="message" value="Source file not found: ${sourcePath}"/>
+      </block>
+      <block type="output" id="O-err1" desc="Error output">
+        <field name="status" value="failed"/>
+        <field name="message" value="Source file not found: ${sourcePath}"/>
+      </block>
     </catch>
-    <catch type="template-error">
-      <event action="log" level="error" message="Template processing error"/>
-      <output name="status" value="failed"/>
-      <output name="message" value="Failed to process template"/>
+    <catch error-type="template-error">
+      <block type="event" id="E-err2" action="log" level="error" desc="Log template error">
+        <field name="message" value="Template processing error"/>
+      </block>
+      <block type="output" id="O-err2" desc="Error output">
+        <field name="status" value="failed"/>
+        <field name="message" value="Failed to process template"/>
+      </block>
     </catch>
-    <catch type="marker-write-error">
-      <event action="log" level="error" message="Failed to write marker file: {{error.message}}"/>
-      <output name="status" value="failed"/>
-      <output name="message" value="Failed to write completion marker"/>
+    <catch error-type="marker-write-error">
+      <block type="event" id="E-err3" action="log" level="error" desc="Log marker write error">
+        <field name="message" value="Failed to write marker file: ${error.message}"/>
+      </block>
+      <block type="output" id="O-err3" desc="Error output">
+        <field name="status" value="failed"/>
+        <field name="message" value="Failed to write completion marker"/>
+      </block>
     </catch>
-    <catch type="validation-error">
-      <event action="log" level="error" message="Validation failed: {{error.message}}"/>
-      <output name="status" value="partial"/>
-      <output name="message" value="Analysis completed with validation errors"/>
+    <catch error-type="validation-error">
+      <block type="event" id="E-err4" action="log" level="error" desc="Log validation error">
+        <field name="message" value="Validation failed: ${error.message}"/>
+      </block>
+      <block type="output" id="O-err4" desc="Partial output">
+        <field name="status" value="partial"/>
+        <field name="message" value="Analysis completed with validation errors"/>
+      </block>
     </catch>
     <finally>
-      <event action="log" level="info" message="Workflow execution completed"/>
+      <block type="event" id="E-finally" action="log" level="info" desc="Log workflow complete">
+        <field name="message" value="Workflow execution completed"/>
+      </block>
     </finally>
-  </error-handler>
+  </block>
   
 </workflow>
-```
 
 ## Reference Guides
 
@@ -617,9 +635,9 @@ When generating Mermaid diagrams, follow compatibility guidelines:
 
 ## Constraints
 
-1. **DO NOT analyze files outside the specified `{{sourcePath}}`**
+1. **DO NOT analyze files outside the specified `${sourcePath}`**
 2. **DO NOT generate separate documents for internal/private methods**
-3. **All content MUST be in the language specified by `{{language}}`**
+3. **All content MUST be in the language specified by `${language}`**
 4. **Use `search_replace` for section filling, NEVER rewrite entire document**
 5. **Mermaid diagrams MUST follow the rules in `mermaid-rule.md`**
 6. **All links MUST use relative paths, NEVER `file://` protocol**
@@ -629,14 +647,14 @@ When generating Mermaid diagrams, follow compatibility guidelines:
 
 ## Checklist
 
-- [ ] Template file selected based on `{{tech_stack}}`
+- [ ] Template file selected based on `${tech_stack}`
 - [ ] Template content read successfully
 - [ ] Controller file read and analyzed
 - [ ] API endpoints extracted with business flows
 - [ ] API consumers found
 - [ ] Template copied to document path
 - [ ] All sections filled using search_replace
-- [ ] All content in target language (`{{language}}`)
+- [ ] All content in target language (`${language}`)
 - [ ] Results reported in JSON format
 - [ ] .done.json marker file written successfully
 - [ ] .graph.json generation dispatched to graph skill

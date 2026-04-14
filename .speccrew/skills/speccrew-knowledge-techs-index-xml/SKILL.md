@@ -50,105 +50,157 @@ Worker Agent (speccrew-task-worker)
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-<workflow>
+<workflow id="techs-index-main" status="pending" version="1.0" desc="Root technology index generation from platform manifests">
 
-  <!-- Global Rules -->
-  <rule id="GLOBAL-R1" level="mandatory" description="Continuous Execution: Execute all steps in sequence without interruption. Worker must complete all steps before reporting results." />
-  <rule id="GLOBAL-R-TECHSTACK" level="mandatory" description="Technology Stack Constraint: All generated index documents must accurately reflect detected platform technology stacks." />
+  <!-- ============================================================
+       Global Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="mandatory" desc="Continuous Execution constraint">
+    <field name="text">Execute all steps in sequence without interruption. Worker must complete all steps before reporting results.</field>
+  </block>
 
-  <!-- Input Block -->
-  <input name="manifest_path" type="string" required="true" description="Path to techs-manifest.json" />
-  <input name="techs_base_path" type="string" required="false" default="speccrew-workspace/knowledges/techs/" description="Base path for techs documentation" />
-  <input name="output_path" type="string" required="false" default="speccrew-workspace/knowledges/techs/" description="Output path for root INDEX.md" />
-  <input name="language" type="string" required="true" description="Target language (e.g., zh, en)" />
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="mandatory" desc="Technology Stack constraint">
+    <field name="text">All generated index documents must accurately reflect detected platform technology stacks.</field>
+  </block>
 
-  <!-- Step 0: Read Root Index Template -->
-  <task id="step0-read-template" action="read" description="Read root index template to understand required structure">
-    <read-file path="../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md" />
-  </task>
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="techs-index input parameters">
+    <field name="manifest_path" required="true" type="string" desc="Path to techs-manifest.json"/>
+    <field name="techs_base_path" required="false" type="string" default="speccrew-workspace/knowledges/techs/" desc="Base path for techs documentation"/>
+    <field name="output_path" required="false" type="string" default="speccrew-workspace/knowledges/techs/" desc="Output path for root INDEX.md"/>
+    <field name="language" required="true" type="string" desc="Target language (e.g., zh, en)"/>
+  </block>
 
-  <!-- Step 1: Read Manifest -->
-  <task id="step1-read-manifest" action="read" description="Read techs-manifest.json to get platform list">
-    <read-file path="{manifest_path}" />
-  </task>
+  <!-- ============================================================
+       Step 0: Read Root Index Template
+       ============================================================ -->
+  <sequence id="S0" name="Template Loading" status="pending" desc="Read root index template to understand required structure">
 
-  <!-- Step 2: Verify Platform Documents -->
-  <loop id="step2-verify-docs" over="platforms" as="platform" description="Scan each platform directory for document availability">
-    <task id="step2a-scan-dir" action="list" description="List all .md files in platform directory">
-      <list-dir path="{techs_base_path}/{platform.platform_id}/" filter="*.md" />
-    </task>
-    <task id="step2b-verify-required" action="verify" description="Check required documents exist">
-      <verify-docs>
-        <required name="INDEX.md" on-missing="skip-platform" />
-        <required name="tech-stack.md" on-missing="mark-incomplete" />
-        <required name="architecture.md" on-missing="mark-incomplete" />
-        <required name="conventions-design.md" on-missing="mark-incomplete" />
-        <required name="conventions-dev.md" on-missing="mark-incomplete" />
-        <required name="conventions-test.md" on-missing="mark-incomplete" />
-        <required name="conventions-build.md" on-missing="mark-incomplete" />
-        <optional name="conventions-data.md" />
-      </verify-docs>
-    </task>
-  </loop>
+    <block type="task" id="S0-B1" action="read-file" status="pending" desc="Read root index template">
+      <field name="file_path">${skill_dir}/../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md</field>
+      <field name="output" var="index_template"/>
+    </block>
 
-  <!-- Step 3: Extract Platform Summaries -->
-  <loop id="step3-extract-summaries" over="platforms" as="platform" description="Read each platform INDEX.md for summary extraction">
-    <gateway mode="guard" condition="platform.documents.INDEX.md exists">
-      <task action="read" description="Read platform INDEX.md">
-        <read-file path="{techs_base_path}/{platform.platform_id}/INDEX.md" />
-      </task>
-      <task action="extract" description="Extract platform name, framework, language, key technologies">
-        <extract-fields>
-          <field name="platform_name" />
-          <field name="framework" />
-          <field name="language" />
-          <field name="key_technologies" />
-        </extract-fields>
-      </task>
-    </gateway>
-  </loop>
+  </sequence>
 
-  <!-- Step 4: Get Timestamp -->
-  <task id="step4-get-timestamp" action="run-script" description="Get current timestamp for generated_at field">
-    <run-script script="scripts/get-timestamp.js" output="timestamp" />
-  </task>
+  <!-- ============================================================
+       Step 1: Read Manifest
+       ============================================================ -->
+  <sequence id="S1" name="Manifest Reading" status="pending" desc="Read techs-manifest.json to get platform list">
 
-  <!-- Step 5: Generate Root INDEX.md -->
-  <task id="step5-generate-index" action="generate" description="Generate root INDEX.md using template fill workflow">
-    <generate-index template-path="../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md" output-path="{output_path}/INDEX.md">
-      <copy-template />
-      <fill-sections>
-        <section name="header" with="{generated_at}, {source_path}, {platform_count}" />
-        <section name="platform-overview" with="dynamic_links_from_verification" />
-        <section name="quick-reference" with="organized_links" />
-        <section name="agent-mapping" with="platform_agent_documents" />
-        <section name="document-guide" with="document_descriptions" />
-        <section name="usage-guide" with="agent_usage_instructions" />
-      </fill-sections>
-    </generate-index>
-  </task>
+    <block type="task" id="S1-B1" action="read-file" status="pending" desc="Read techs-manifest.json">
+      <field name="file_path">${manifest_path}</field>
+      <field name="output" var="techs_manifest"/>
+    </block>
 
-  <!-- Step 6: Write Output -->
-  <task id="step6-write-output" action="write" description="Write generated INDEX.md to output path">
-    <write-file path="{output_path}/INDEX.md" />
-  </task>
+  </sequence>
 
-  <!-- Step 7: Report Results -->
-  <event id="step7-report" action="log" description="Report generation results">
-    <report format="structured">
-      Stage 3 completed: Root Technology Index Generated
-      - Platforms Indexed: {platform_count}
-        - web-react: ✓
-        - backend-nestjs: ✓
-      - Root Index: {output_path}/INDEX.md
-      - Agent Mappings: Documented for all platforms
-    </report>
-  </event>
+  <!-- ============================================================
+       Step 2: Verify Platform Documents
+       ============================================================ -->
+  <sequence id="S2" name="Document Verification" status="pending" desc="Scan each platform directory for document availability">
 
-  <!-- Output Block -->
-  <output name="status" from="generation_status" />
-  <output name="platforms_indexed" from="indexed_platforms_list" />
-  <output name="output_file" from="index_file_path" />
+    <block type="loop" id="S2-L1" over="${techs_manifest.platforms}" as="platform" desc="Scan each platform directory for document availability">
+      <!-- Step 2a: List .md files in platform directory -->
+      <block type="task" id="S2-B1" action="list-dir" status="pending" desc="List all .md files in platform directory">
+        <field name="path">${techs_base_path}/${platform.platform_id}/</field>
+        <field name="filter" value="*.md"/>
+        <field name="output" var="platform_md_files"/>
+      </block>
+
+      <!-- Step 2b: Verify required documents -->
+      <block type="task" id="S2-B2" action="verify" status="pending" desc="Check required documents exist">
+        <field name="required_docs" value="INDEX.md,tech-stack.md,architecture.md,conventions-design.md,conventions-dev.md,conventions-unit-test.md,conventions-system-test.md,conventions-build.md"/>
+        <field name="optional_docs" value="conventions-data.md"/>
+        <field name="on_missing_required" value="mark-incomplete"/>
+        <field name="output" var="platform_doc_status"/>
+      </block>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 3: Extract Platform Summaries
+       ============================================================ -->
+  <sequence id="S3" name="Summary Extraction" status="pending" desc="Read each platform INDEX.md for summary extraction">
+
+    <block type="loop" id="S3-L1" over="${techs_manifest.platforms}" as="platform" desc="Read each platform INDEX.md for summary extraction">
+      <block type="gateway" id="S3-G1" mode="guard" test="${platform.documents.INDEX.md} exists" fail-action="skip" desc="Only process platforms with INDEX.md">
+        <field name="message">Skipping platform without INDEX.md: ${platform.platform_id}</field>
+
+        <block type="task" id="S3-B1" action="read-file" status="pending" desc="Read platform INDEX.md">
+          <field name="file_path">${techs_base_path}/${platform.platform_id}/INDEX.md</field>
+          <field name="output" var="platform_index_content"/>
+        </block>
+
+        <block type="task" id="S3-B2" action="analyze" status="pending" desc="Extract platform name, framework, language, key technologies">
+          <field name="extract_fields" value="platform_name,framework,language,key_technologies"/>
+          <field name="output" var="platform_summary"/>
+        </block>
+      </block>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 4: Get Timestamp
+       ============================================================ -->
+  <block type="task" id="S4-B1" action="run-script" status="pending" desc="Get current timestamp for generated_at field">
+    <field name="command">node scripts/get-timestamp.js</field>
+    <field name="output" var="timestamp"/>
+  </block>
+
+  <!-- ============================================================
+       Step 5: Generate Root INDEX.md
+       ============================================================ -->
+  <sequence id="S5" name="Index Generation" status="pending" desc="Generate root INDEX.md using template fill workflow">
+
+    <block type="task" id="S5-B1" action="generate" status="pending" desc="Generate root INDEX.md from template">
+      <field name="template_path">${skill_dir}/../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md</field>
+      <field name="output_path">${output_path}/INDEX.md</field>
+      <field name="sections">
+        <field name="header" value="${generated_at},${source_path},${platform_count}"/>
+        <field name="platform-overview" value="dynamic_links_from_verification"/>
+        <field name="quick-reference" value="organized_links"/>
+        <field name="agent-mapping" value="platform_agent_documents"/>
+        <field name="document-guide" value="document_descriptions"/>
+        <field name="usage-guide" value="agent_usage_instructions"/>
+      </field>
+      <field name="output" var="generated_index"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 6: Write Output
+       ============================================================ -->
+  <block type="task" id="S6-B1" action="write-file" status="pending" desc="Write generated INDEX.md to output path">
+    <field name="file_path">${output_path}/INDEX.md</field>
+    <field name="content" from="${generated_index}"/>
+  </block>
+
+  <!-- ============================================================
+       Step 7: Report Results
+       ============================================================ -->
+  <block type="event" id="S7-E1" action="log" level="info" desc="Report generation results">
+Stage 3 completed: Root Technology Index Generated
+- Platforms Indexed: ${platform_count}
+  - web-react: ✓
+  - backend-nestjs: ✓
+- Root Index: ${output_path}/INDEX.md
+- Agent Mappings: Documented for all platforms
+  </block>
+
+  <!-- ============================================================
+       Output Definition
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${generation_status}"/>
+    <field name="platforms_indexed" from="${indexed_platforms_list}"/>
+    <field name="output_file" from="${index_file_path}"/>
+  </block>
 
 </workflow>
 

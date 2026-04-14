@@ -70,24 +70,37 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-<workflow>
+<workflow id="ui-style-extract-main" status="pending" version="1.0" desc="Extract and aggregate UI design patterns from feature documents">
 
-  <!-- Input Block -->
-  <input name="platform_id" type="string" required="true" description="Platform identifier (e.g., web-vue, mobile-uniapp)" />
-  <input name="platform_type" type="string" required="true" description="Platform type (web, mobile, desktop)" />
-  <input name="feature_docs_path" type="string" required="true" description="Completed feature documents base path" />
-  <input name="features_manifest_path" type="string" required="true" description="Path to features-{platform}.json" />
-  <input name="module_overviews_path" type="string" required="true" description="Parent directory containing all module overview subdirectories" />
-  <input name="output_path" type="string" required="true" description="Output directory for pattern documents" />
-  <input name="language" type="string" required="true" description="User language code" />
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier (e.g., web-vue, mobile-uniapp)"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type (web, mobile, desktop)"/>
+    <field name="feature_docs_path" required="true" type="string" desc="Completed feature documents base path"/>
+    <field name="features_manifest_path" required="true" type="string" desc="Path to features-{platform}.json"/>
+    <field name="module_overviews_path" required="true" type="string" desc="Parent directory containing all module overview subdirectories"/>
+    <field name="output_path" required="true" type="string" desc="Output directory for pattern documents"/>
+    <field name="language" required="true" type="string" desc="User language code"/>
+  </block>
 
-  <!-- Rule Block: Absolute Constraints -->
-  <rule level="forbidden">Using `create_file` to write pattern documents directly</rule>
-  <rule level="forbidden">Full-file rewrite of pattern documents</rule>
-  <rule level="mandatory">Copy template MUST execute before filling sections for every pattern document</rule>
-  <rule level="mandatory">All generated pattern documents must be in the specified language</rule>
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">Using create_file to write pattern documents directly</field>
+    <field name="text">Full-file rewrite of pattern documents</field>
+  </block>
 
-  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <block type="rule" id="R2" level="mandatory" desc="Document generation requirements">
+    <field name="text">Copy template MUST execute before filling sections for every pattern document</field>
+    <field name="text">All generated pattern documents must be in the specified language</field>
+  </block>
+
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
     <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
     <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
@@ -97,219 +110,218 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
     <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
   </block>
 
-  <!-- Gateway: Platform Type Check -->
-  <gateway mode="exclusive">
-    <branch condition="platform_type NOT IN ['web', 'mobile', 'desktop']">
-      <event action="log">Skipping skill: backend platforms do not have UI patterns</event>
-      <output name="skip_reason" value="Backend platform - no UI patterns" />
-      <task name="return-skip" action="run-skill">
-        <return>
-          <status>skipped</status>
-          <reason>Backend platform does not have UI patterns</reason>
-        </return>
-      </task>
+  <!-- ============================================================
+       Gateway: Platform Type Check
+       ============================================================ -->
+  <block type="gateway" id="G1" mode="exclusive" desc="Check platform type for UI pattern extraction">
+    <branch test="${platform_type} NOT IN ['web', 'mobile', 'desktop']" name="Backend platform">
+      <block type="event" id="E1" action="log" level="info" desc="Log skip reason">Skipping skill: backend platforms do not have UI patterns</block>
+      <block type="task" id="B1" action="analyze" desc="Return skip status">
+        <field name="status" value="skipped"/>
+        <field name="reason" value="Backend platform does not have UI patterns"/>
+        <field name="output" var="summary"/>
+      </block>
     </branch>
-    <branch condition="platform_type IN ['web', 'mobile', 'desktop']">
+    <branch test="${platform_type} IN ['web', 'mobile', 'desktop']" name="UI platform">
 
-      <!-- Step 1: Load Features Manifest -->
-      <task name="load-features-manifest" action="run-script">
-        <description>Read the features manifest to identify all completed features</description>
-        <validation>
-          <rule>Verify features_manifest_path exists and is valid JSON</rule>
-          <rule>Verify feature_docs_path exists and is a directory</rule>
-        </validation>
-        <script type="read-file">
-          <path>{features_manifest_path}</path>
-        </script>
-        <filter>status === "completed"</filter>
-        <collect>featureId, module, documentPath</collect>
-        <output name="completed_features" />
-      </task>
+      <!-- ============================================================
+           Step 1: Load Features Manifest
+           ============================================================ -->
+      <sequence id="S1" name="Step 1: Load Features Manifest" status="pending" desc="Read features manifest to identify completed features">
+        <block type="task" id="B2" action="read-file" desc="Read features manifest file">
+          <field name="path" value="${features_manifest_path}"/>
+          <field name="output" var="featuresManifest"/>
+        </block>
 
-      <!-- Gateway: Check Completed Features -->
-      <gateway mode="guard">
-        <condition>completed_features.length > 0</condition>
-        <then>
+        <block type="task" id="B3" action="analyze" desc="Filter completed features">
+          <field name="input" value="${featuresManifest}"/>
+          <field name="filter" value="status === 'completed'"/>
+          <field name="collect" value="featureId, module, documentPath"/>
+          <field name="output" var="completed_features"/>
+        </block>
+      </sequence>
 
-          <!-- Create Output Directory -->
-          <task name="create-output-dirs" action="run-script">
-            <description>Create output directory structure if it does not exist</description>
-            <create-directories>
-              <path>{output_path}/page-types/</path>
-              <path>{output_path}/components/</path>
-              <path>{output_path}/layouts/</path>
-            </create-directories>
-          </task>
+      <!-- ============================================================
+           Gateway: Check Completed Features
+           ============================================================ -->
+      <block type="gateway" id="G2" mode="guard" desc="Check if completed features exist">
+        <branch test="${completed_features.length} > 0" name="Has completed features">
 
-          <!-- Step 2: Read Feature Documents -->
-          <task name="read-feature-docs" action="run-skill">
-            <description>Extract UI-related information from all completed feature documents</description>
-            <input ref="completed_features" />
-            <input ref="feature_docs_path" />
-            <extraction>
-              <section name="Interface Prototype">
-                <extract>ASCII wireframe diagrams, layout regions</extract>
-              </section>
-              <section name="Page Elements Table">
-                <extract>Component names, types, responsibilities, interactions</extract>
-              </section>
-              <section name="Business Flow Description">
-                <extract>User interaction sequences, navigation patterns</extract>
-              </section>
-            </extraction>
-            <output name="ui_extracted_data" />
-          </task>
+          <!-- Step 1.5: Create Output Directory -->
+          <block type="task" id="B4" action="run-script" desc="Create output directory structure">
+            <field name="command">node -e "require('fs').mkdirSync('${output_path}/page-types', {recursive:true}); require('fs').mkdirSync('${output_path}/components', {recursive:true}); require('fs').mkdirSync('${output_path}/layouts', {recursive:true})"</field>
+          </block>
 
-          <!-- Step 3: Read Module Overviews -->
-          <task name="read-module-overviews" action="run-script">
-            <description>Gather module-level aggregated information for context</description>
-            <input ref="module_overviews_path" />
-            <script type="glob">
-              <pattern>{module_overviews_path}/*/module-overview.md</pattern>
-            </script>
-            <extraction>
-              <item>Common page structures</item>
-              <item>Shared components</item>
-              <item>Navigation patterns</item>
-            </extraction>
-            <output name="module_context" />
-          </task>
+          <!-- ============================================================
+               Step 2: Read Feature Documents
+               ============================================================ -->
+          <sequence id="S2" name="Step 2: Read Feature Documents" status="pending" desc="Extract UI information from feature documents">
+            <block type="task" id="B5" action="analyze" desc="Extract UI-related information from feature documents">
+              <field name="input" value="${completed_features}"/>
+              <field name="feature_docs_path" value="${feature_docs_path}"/>
+              <field name="extract_section" value="Interface Prototype"/>
+              <field name="extract_items" value="ASCII wireframe diagrams, layout regions"/>
+              <field name="extract_section_2" value="Page Elements Table"/>
+              <field name="extract_items_2" value="Component names, types, responsibilities, interactions"/>
+              <field name="extract_section_3" value="Business Flow Description"/>
+              <field name="extract_items_3" value="User interaction sequences, navigation patterns"/>
+              <field name="output" var="ui_extracted_data"/>
+            </block>
+          </sequence>
+
+          <!-- ============================================================
+               Step 3: Read Module Overviews
+               ============================================================ -->
+          <sequence id="S3" name="Step 3: Read Module Overviews" status="pending" desc="Gather module-level context">
+            <block type="task" id="B6" action="analyze" desc="Read module overview files for context">
+              <field name="glob_pattern" value="${module_overviews_path}/*/module-overview.md"/>
+              <field name="extract_items" value="Common page structures, Shared components, Navigation patterns"/>
+              <field name="output" var="module_context"/>
+            </block>
+          </sequence>
 
           <!-- Checkpoint: Data Collection Complete -->
-          <checkpoint name="data-collection-complete" verify="ui_extracted_data is not empty AND module_context is not empty" />
+          <block type="checkpoint" id="CP1" name="data-collection-complete" desc="Data collection complete">
+            <field name="file" value="${output_path}/.progress.json"/>
+            <field name="verify" value="${ui_extracted_data} != null AND ${module_context} != null"/>
+          </block>
 
-          <!-- Step 4: Cross-Module Clustering Analysis -->
-          <task name="cross-module-clustering" action="run-skill">
-            <description>Identify recurring UI patterns across modules through clustering analysis</description>
-            <input ref="ui_extracted_data" />
-            <input ref="module_context" />
-            <clustering-strategy>
-              <approach>Dynamic discovery - Agent automatically identifies and categorizes pattern types based on actual analysis results</approach>
-              <note>Templates only standardize output format, do not limit pattern types</note>
-            </clustering-strategy>
-            <categories>
-              <page-types>Pages with similar structure and purpose (e.g., list-page, form-page, detail-page, tree-list-page, dashboard-page, wizard-page)</page-types>
-              <component-patterns>Reusable component combinations (e.g., search-filter-bar, data-table-pagination, modal-form, drawer-detail, tab-panel)</component-patterns>
-              <layout-patterns>Repeating structural layouts (e.g., sidebar-content, topbar-sidebar-content, full-screen)</layout-patterns>
-            </categories>
-            <recognition-criteria>
-              <frequency>Pattern appears in 2+ features (stronger signal if across different modules)</frequency>
-              <similarity>Structural similarity in ASCII wireframes</similarity>
-              <semantic-alignment>Similar business purpose and interaction flow</semantic-alignment>
-            </recognition-criteria>
-            <note>Cross-module occurrence is a strong signal but not required. Patterns appearing in multiple features within a single module are also valid for extraction.</note>
-            <output name="identified_patterns" />
-          </task>
+          <!-- ============================================================
+               Step 4: Cross-Module Clustering Analysis
+               ============================================================ -->
+          <sequence id="S4" name="Step 4: Cross-Module Clustering Analysis" status="pending" desc="Identify recurring UI patterns">
+            <block type="task" id="B7" action="analyze" desc="Perform cross-module clustering analysis">
+              <field name="input" value="${ui_extracted_data}"/>
+              <field name="module_context" value="${module_context}"/>
+              <field name="clustering_approach" value="Dynamic discovery - Agent automatically identifies and categorizes pattern types based on actual analysis results"/>
+              <field name="note" value="Templates only standardize output format, do not limit pattern types"/>
+              <field name="categories_page_types" value="Pages with similar structure and purpose (e.g., list-page, form-page, detail-page, tree-list-page, dashboard-page, wizard-page)"/>
+              <field name="categories_component_patterns" value="Reusable component combinations (e.g., search-filter-bar, data-table-pagination, modal-form, drawer-detail, tab-panel)"/>
+              <field name="categories_layout_patterns" value="Repeating structural layouts (e.g., sidebar-content, topbar-sidebar-content, full-screen)"/>
+              <field name="recognition_frequency" value="Pattern appears in 2+ features (stronger signal if across different modules)"/>
+              <field name="recognition_similarity" value="Structural similarity in ASCII wireframes"/>
+              <field name="recognition_semantic" value="Similar business purpose and interaction flow"/>
+              <field name="output" var="identified_patterns"/>
+            </block>
+          </sequence>
 
-          <!-- Gateway: Check Identified Patterns -->
-          <gateway mode="exclusive">
-            <branch condition="identified_patterns.length == 0">
-              <event action="log">No patterns identified from feature documents</event>
-              <output name="patterns" value="{}" />
+          <!-- ============================================================
+               Gateway: Check Identified Patterns
+               ============================================================ -->
+          <block type="gateway" id="G3" mode="exclusive" desc="Check if patterns were identified">
+            <branch test="${identified_patterns.length} == 0" name="No patterns">
+              <block type="event" id="E2" action="log" level="warn" desc="Log no patterns">No patterns identified from feature documents</block>
+              <block type="task" id="B8" action="analyze" desc="Return empty result">
+                <field name="status" value="completed"/>
+                <field name="platform_id" value="${platform_id}"/>
+                <field name="patterns_page_types" value='{"count": 0, "files": []}'/>
+                <field name="patterns_components" value='{"count": 0, "files": []}'/>
+                <field name="patterns_layouts" value='{"count": 0, "files": []}'/>
+                <field name="total_patterns" value="0"/>
+                <field name="output_path" value="${output_path}"/>
+                <field name="output" var="summary"/>
+              </block>
             </branch>
-            <branch condition="identified_patterns.length > 0">
+            <branch test="${identified_patterns.length} > 0" name="Has patterns">
 
-              <!-- Step 5: Generate Pattern Documents -->
-              <loop over="identified_patterns" as="pattern">
+              <!-- ============================================================
+                   Step 5: Generate Pattern Documents
+                   ============================================================ -->
+              <block type="loop" id="L1" over="${identified_patterns}" as="pattern" desc="Generate pattern documents">
 
                 <!-- 5.1 Template Selection -->
-                <gateway mode="exclusive">
-                  <branch condition="pattern.category == 'page-types'">
-                    <task name="select-page-template" action="run-script">
-                      <template-path>../speccrew-knowledge-bizs-ui-style-extract/templates/PAGE-TYPE-TEMPLATE.md</template-path>
-                      <output-directory>{output_path}/page-types/</output-directory>
-                      <output name="selected_template" />
-                    </task>
+                <block type="gateway" id="G4" mode="exclusive" desc="Select template based on pattern category">
+                  <branch test="${pattern.category} == 'page-types'" name="Page type">
+                    <block type="task" id="B9" action="analyze" desc="Select page type template">
+                      <field name="template_path" value="../speccrew-knowledge-bizs-ui-style-extract/templates/PAGE-TYPE-TEMPLATE.md"/>
+                      <field name="output_directory" value="${output_path}/page-types/"/>
+                      <field name="output" var="selected_template"/>
+                    </block>
                   </branch>
-                  <branch condition="pattern.category == 'components'">
-                    <task name="select-component-template" action="run-script">
-                      <template-path>../speccrew-knowledge-bizs-ui-style-extract/templates/COMPONENT-PATTERN-TEMPLATE.md</template-path>
-                      <output-directory>{output_path}/components/</output-directory>
-                      <output name="selected_template" />
-                    </task>
+                  <branch test="${pattern.category} == 'components'" name="Component pattern">
+                    <block type="task" id="B10" action="analyze" desc="Select component pattern template">
+                      <field name="template_path" value="../speccrew-knowledge-bizs-ui-style-extract/templates/COMPONENT-PATTERN-TEMPLATE.md"/>
+                      <field name="output_directory" value="${output_path}/components/"/>
+                      <field name="output" var="selected_template"/>
+                    </block>
                   </branch>
-                  <branch condition="pattern.category == 'layouts'">
-                    <task name="select-layout-template" action="run-script">
-                      <template-path>../speccrew-knowledge-bizs-ui-style-extract/templates/LAYOUT-PATTERN-TEMPLATE.md</template-path>
-                      <output-directory>{output_path}/layouts/</output-directory>
-                      <output name="selected_template" />
-                    </task>
+                  <branch test="${pattern.category} == 'layouts'" name="Layout pattern">
+                    <block type="task" id="B11" action="analyze" desc="Select layout pattern template">
+                      <field name="template_path" value="../speccrew-knowledge-bizs-ui-style-extract/templates/LAYOUT-PATTERN-TEMPLATE.md"/>
+                      <field name="output_directory" value="${output_path}/layouts/"/>
+                      <field name="output" var="selected_template"/>
+                    </block>
                   </branch>
-                </gateway>
+                </block>
 
                 <!-- 5.2 Copy Template to Document Path -->
-                <task name="copy-template" action="run-script">
-                  <description>Copy template to output path with kebab-case filename</description>
-                  <input ref="selected_template" />
-                  <filename-format>kebab-case (e.g., list-page.md, search-filter-bar.md, sidebar-content.md)</filename-format>
-                  <output-path>{selected_template.output-directory}/{pattern.name}.md</output-path>
-                  <output name="document_path" />
-                </task>
+                <block type="task" id="B12" action="run-script" desc="Copy template to output path">
+                  <field name="template" value="${selected_template}"/>
+                  <field name="filename_format" value="kebab-case (e.g., list-page.md, search-filter-bar.md, sidebar-content.md)"/>
+                  <field name="output_path" value="${selected_template.output_directory}/${pattern.name}.md"/>
+                  <field name="output" var="document_path"/>
+                </block>
 
                 <!-- 5.3 Fill Sections Using search_replace -->
-                <task name="fill-pattern-document" action="run-skill">
-                  <description>Fill pattern document sections using search_replace</description>
-                  <input ref="document_path" />
-                  <input ref="pattern" />
-                  <input ref="language" />
-                  <constraints>
-                    <rule level="forbidden">Using create_file to rewrite the entire document</rule>
-                    <rule level="mandatory">Use search_replace to fill each section individually</rule>
-                    <rule level="mandatory">All section titles MUST be preserved</rule>
-                  </constraints>
-                  <content-requirements>
-                    <ascii-wireframes>Must be generalized versions (not direct copies from specific features)</ascii-wireframes>
-                    <instance-references>Must use relative paths to reference actual feature documents</instance-references>
-                    <mermaid-diagrams>
-                      <rule>Follow speccrew-workspace/docs/rules/mermaid-rule.md rules</rule>
-                      <rule>Use graph TB/LR syntax only</rule>
-                      <rule>No br/ tags, no style definitions, no nested subgraph</rule>
-                      <rule>No direction keyword, no special symbols</rule>
-                    </mermaid-diagrams>
-                  </content-requirements>
-                  <output name="filled_document" />
-                </task>
+                <block type="task" id="B13" action="analyze" desc="Fill pattern document sections">
+                  <field name="document_path" value="${document_path}"/>
+                  <field name="pattern" value="${pattern}"/>
+                  <field name="language" value="${language}"/>
+                  <field name="constraint_forbidden" value="Using create_file to rewrite the entire document"/>
+                  <field name="constraint_mandatory" value="Use search_replace to fill each section individually"/>
+                  <field name="constraint_sections" value="All section titles MUST be preserved"/>
+                  <field name="content_ascii_wireframes" value="Must be generalized versions (not direct copies from specific features)"/>
+                  <field name="content_instance_references" value="Must use relative paths to reference actual feature documents"/>
+                  <field name="mermaid_rule" value="Follow speccrew-workspace/docs/rules/mermaid-rule.md rules"/>
+                  <field name="mermaid_syntax" value="Use graph TB/LR syntax only"/>
+                  <field name="mermaid_no_br" value="No br/ tags, no style definitions, no nested subgraph"/>
+                  <field name="mermaid_no_direction" value="No direction keyword, no special symbols"/>
+                  <field name="output" var="filled_document"/>
+                </block>
 
                 <!-- Checkpoint: Pattern Document Generated -->
-                <checkpoint name="pattern-document-generated" verify="file_exists({document_path}) AND document_has_all_sections({document_path})" />
+                <block type="checkpoint" id="CP2" name="pattern-document-generated" desc="Pattern document generated">
+                  <field name="file" value="${output_path}/.progress.json"/>
+                  <field name="verify" value="file_exists(${document_path}) AND document_has_all_sections(${document_path})"/>
+                </block>
 
-              </loop>
+              </block>
+
+              <!-- Step 6: Return Summary -->
+              <block type="task" id="B14" action="analyze" desc="Generate summary of pattern documents">
+                <field name="collect_files" value="All generated file paths"/>
+                <field name="collect_counts" value="Pattern counts by category"/>
+                <field name="output" var="summary"/>
+              </block>
 
             </branch>
-          </gateway>
+          </block>
 
-          <!-- Step 6: Return Summary -->
-          <task name="return-summary" action="run-skill">
-            <description>Provide summary of generated pattern documents</description>
-            <collect>
-              <item>All generated file paths</item>
-              <item>Pattern counts by category</item>
-            </collect>
-            <output name="summary" />
-          </task>
-
-        </then>
-        <else>
-          <event action="log">No completed features found - returning empty result</event>
-          <output name="summary">
-            <status>completed</status>
-            <platform_id>{platform_id}</platform_id>
-            <patterns>
-              <page-types count="0" files="[]" />
-              <components count="0" files="[]" />
-              <layouts count="0" files="[]" />
-            </patterns>
-            <total_patterns>0</total_patterns>
-            <output_path>{output_path}</output_path>
-          </output>
-        </else>
-      </gateway>
+        </branch>
+        <branch test="${completed_features.length} == 0" name="No completed features">
+          <block type="event" id="E3" action="log" level="warn" desc="Log no features">No completed features found - returning empty result</block>
+          <block type="task" id="B15" action="analyze" desc="Return empty summary">
+            <field name="status" value="completed"/>
+            <field name="platform_id" value="${platform_id}"/>
+            <field name="patterns_page_types" value='{"count": 0, "files": []}'/>
+            <field name="patterns_components" value='{"count": 0, "files": []}'/>
+            <field name="patterns_layouts" value='{"count": 0, "files": []}'/>
+            <field name="total_patterns" value="0"/>
+            <field name="output_path" value="${output_path}"/>
+            <field name="output" var="summary"/>
+          </block>
+        </branch>
+      </block>
 
     </branch>
-  </gateway>
+  </block>
 
-  <!-- Output Block -->
-  <output name="final_summary" from="summary" description="Summary of generated pattern documents with file list and counts" />
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="final_summary" from="${summary}" type="object" desc="Summary of generated pattern documents with file list and counts"/>
+  </block>
 
 </workflow>
 

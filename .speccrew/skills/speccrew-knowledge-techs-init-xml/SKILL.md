@@ -43,115 +43,217 @@ Worker Agent (speccrew-task-worker)
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-<workflow>
+<workflow id="techs-init-main" status="pending" version="1.0" desc="Technology platform detection and manifest generation">
 
-  <!-- Global Rules -->
-  <rule id="GLOBAL-R1" level="mandatory" description="Continuous Execution: Execute all steps in sequence without interruption. Worker must complete all steps before reporting results." />
-  <rule id="GLOBAL-R-TECHSTACK" level="mandatory" description="Technology Stack Constraint: Detected platforms must align with standardized platform identifiers from platform-mapping.json." />
+  <!-- ============================================================
+       Global Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="mandatory" desc="Continuous Execution constraint">
+    <field name="text">Execute all steps in sequence without interruption. Worker must complete all steps before reporting results.</field>
+  </block>
 
-  <!-- Input Block -->
-  <input name="source_path" type="string" required="false" default="project-root" description="Source code root directory" />
-  <input name="output_path" type="string" required="false" default="speccrew-workspace/knowledges/base/sync-state/knowledge-techs/" description="Output directory for techs-manifest.json" />
-  <input name="language" type="string" required="true" description="Target language for generated content" />
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="mandatory" desc="Technology Stack constraint">
+    <field name="text">Detected platforms must align with standardized platform identifiers from platform-mapping.json.</field>
+  </block>
 
-  <!-- Step 1: Scan for Platform Indicators -->
-  <task id="step1-scan-platforms" action="scan" description="Analyze project structure to detect technology platforms">
-    
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="techs-init input parameters">
+    <field name="source_path" required="false" type="string" default="project-root" desc="Source code root directory"/>
+    <field name="output_path" required="false" type="string" default="speccrew-workspace/knowledges/base/sync-state/knowledge-techs/" desc="Output directory for techs-manifest.json"/>
+    <field name="language" required="true" type="string" desc="Target language for generated content"/>
+  </block>
+
+  <!-- ============================================================
+       Step 1: Scan for Platform Indicators
+       ============================================================ -->
+  <sequence id="S1" name="Platform Detection" status="pending" desc="Analyze project structure to detect technology platforms">
+
     <!-- Step 1a: Read Platform Mapping Config -->
-    <task id="step1a-read-config" action="read" description="Read platform-mapping.json for standardized identifiers">
-      <read-file path="speccrew-workspace/docs/configs/platform-mapping.json" />
-    </task>
+    <block type="task" id="S1-B1a" action="read-file" status="pending" desc="Read platform-mapping.json for standardized identifiers">
+      <field name="file_path">${workspace_path}/docs/configs/platform-mapping.json</field>
+      <field name="output" var="platform_mapping"/>
+    </block>
 
     <!-- Step 1b: Detect Web Platforms -->
-    <gateway id="detect-web" mode="parallel" description="Detect web platform indicators">
-      <check signal="package.json + react dependency" platform-id="web-react" framework="react" />
-      <check signal="package.json + vue dependency" platform-id="web-vue" framework="vue" />
-      <check signal="package.json + @angular/core" platform-id="web-angular" framework="angular" />
-      <check signal="package.json + next" platform-id="web-nextjs" framework="nextjs" />
-      <check signal="package.json + nuxt" platform-id="web-nuxt" framework="nuxt" />
-      <check signal="package.json + svelte" platform-id="web-svelte" framework="svelte" />
-    </gateway>
+    <block type="gateway" id="S1-G1" mode="parallel" desc="Detect web platform indicators">
+      <branch test="package.json exists AND react dependency detected" name="web-react">
+        <field name="platform_id" value="web-react"/>
+        <field name="framework" value="react"/>
+      </branch>
+      <branch test="package.json exists AND vue dependency detected" name="web-vue">
+        <field name="platform_id" value="web-vue"/>
+        <field name="framework" value="vue"/>
+      </branch>
+      <branch test="package.json exists AND @angular/core detected" name="web-angular">
+        <field name="platform_id" value="web-angular"/>
+        <field name="framework" value="angular"/>
+      </branch>
+      <branch test="package.json exists AND next dependency detected" name="web-nextjs">
+        <field name="platform_id" value="web-nextjs"/>
+        <field name="framework" value="nextjs"/>
+      </branch>
+      <branch test="package.json exists AND nuxt dependency detected" name="web-nuxt">
+        <field name="platform_id" value="web-nuxt"/>
+        <field name="framework" value="nuxt"/>
+      </branch>
+      <branch test="package.json exists AND svelte dependency detected" name="web-svelte">
+        <field name="platform_id" value="web-svelte"/>
+        <field name="framework" value="svelte"/>
+      </branch>
+    </block>
 
     <!-- Step 1c: Detect Mobile Platforms -->
-    <gateway id="detect-mobile" mode="parallel" description="Detect mobile platform indicators">
-      <check signal="pubspec.yaml" platform-id="mobile-flutter" framework="flutter" />
-      <check signal="package.json + react-native" platform-id="mobile-react-native" framework="react-native" />
-      <check signal=".xcodeproj / Package.swift" platform-id="mobile-ios" framework="ios" />
-      <check signal="build.gradle + AndroidManifest.xml" platform-id="mobile-android" framework="android" />
-      <check signal="manifest.json + pages.json" platform-id="mobile-uniapp" framework="uniapp" />
-      <check signal="project.config.json + app.json" platform-id="mobile-miniprogram" framework="miniprogram" />
-    </gateway>
+    <block type="gateway" id="S1-G2" mode="parallel" desc="Detect mobile platform indicators">
+      <branch test="pubspec.yaml exists" name="mobile-flutter">
+        <field name="platform_id" value="mobile-flutter"/>
+        <field name="framework" value="flutter"/>
+      </branch>
+      <branch test="package.json exists AND react-native dependency detected" name="mobile-react-native">
+        <field name="platform_id" value="mobile-react-native"/>
+        <field name="framework" value="react-native"/>
+      </branch>
+      <branch test=".xcodeproj OR Package.swift exists" name="mobile-ios">
+        <field name="platform_id" value="mobile-ios"/>
+        <field name="framework" value="ios"/>
+      </branch>
+      <branch test="build.gradle exists AND AndroidManifest.xml exists" name="mobile-android">
+        <field name="platform_id" value="mobile-android"/>
+        <field name="framework" value="android"/>
+      </branch>
+      <branch test="manifest.json exists AND pages.json exists" name="mobile-uniapp">
+        <field name="platform_id" value="mobile-uniapp"/>
+        <field name="framework" value="uniapp"/>
+      </branch>
+      <branch test="project.config.json exists AND app.json exists" name="mobile-miniprogram">
+        <field name="platform_id" value="mobile-miniprogram"/>
+        <field name="framework" value="miniprogram"/>
+      </branch>
+    </block>
 
     <!-- Step 1d: Detect Backend Platforms -->
-    <gateway id="detect-backend" mode="parallel" description="Detect backend platform indicators">
-      <check signal="package.json + @nestjs/core" platform-id="backend-nestjs" framework="nestjs" />
-      <check signal="package.json + express" platform-id="backend-express" framework="express" />
-      <check signal="package.json + fastify" platform-id="backend-fastify" framework="fastify" />
-      <check signal="pom.xml + spring-boot" platform-id="backend-spring" framework="spring" />
-      <check signal="requirements.txt + django" platform-id="backend-django" framework="django" />
-      <check signal="requirements.txt + fastapi" platform-id="backend-fastapi" framework="fastapi" />
-      <check signal="go.mod" platform-id="backend-go" framework="go" />
-      <check signal="Cargo.toml" platform-id="backend-rust" framework="rust" />
-    </gateway>
+    <block type="gateway" id="S1-G3" mode="parallel" desc="Detect backend platform indicators">
+      <branch test="package.json exists AND @nestjs/core detected" name="backend-nestjs">
+        <field name="platform_id" value="backend-nestjs"/>
+        <field name="framework" value="nestjs"/>
+      </branch>
+      <branch test="package.json exists AND express detected" name="backend-express">
+        <field name="platform_id" value="backend-express"/>
+        <field name="framework" value="express"/>
+      </branch>
+      <branch test="package.json exists AND fastify detected" name="backend-fastify">
+        <field name="platform_id" value="backend-fastify"/>
+        <field name="framework" value="fastify"/>
+      </branch>
+      <branch test="pom.xml exists AND spring-boot detected" name="backend-spring">
+        <field name="platform_id" value="backend-spring"/>
+        <field name="framework" value="spring"/>
+      </branch>
+      <branch test="requirements.txt exists AND django detected" name="backend-django">
+        <field name="platform_id" value="backend-django"/>
+        <field name="framework" value="django"/>
+      </branch>
+      <branch test="requirements.txt exists AND fastapi detected" name="backend-fastapi">
+        <field name="platform_id" value="backend-fastapi"/>
+        <field name="framework" value="fastapi"/>
+      </branch>
+      <branch test="go.mod exists" name="backend-go">
+        <field name="platform_id" value="backend-go"/>
+        <field name="framework" value="go"/>
+      </branch>
+      <branch test="Cargo.toml exists" name="backend-rust">
+        <field name="platform_id" value="backend-rust"/>
+        <field name="framework" value="rust"/>
+      </branch>
+    </block>
 
     <!-- Step 1e: Detect Desktop Platforms -->
-    <gateway id="detect-desktop" mode="parallel" description="Detect desktop platform indicators">
-      <check signal="package.json + electron" platform-id="desktop-electron" framework="electron" />
-      <check signal="tauri.conf.json" platform-id="desktop-tauri" framework="tauri" />
-      <check signal=".csproj + WPF references" platform-id="desktop-wpf" framework="wpf" />
-      <check signal=".csproj + WinForms" platform-id="desktop-winforms" framework="winforms" />
-      <check signal=".pro file + Qt" platform-id="desktop-qt" framework="qt" />
-    </gateway>
+    <block type="gateway" id="S1-G4" mode="parallel" desc="Detect desktop platform indicators">
+      <branch test="package.json exists AND electron detected" name="desktop-electron">
+        <field name="platform_id" value="desktop-electron"/>
+        <field name="framework" value="electron"/>
+      </branch>
+      <branch test="tauri.conf.json exists" name="desktop-tauri">
+        <field name="platform_id" value="desktop-tauri"/>
+        <field name="framework" value="tauri"/>
+      </branch>
+      <branch test=".csproj exists AND WPF references detected" name="desktop-wpf">
+        <field name="platform_id" value="desktop-wpf"/>
+        <field name="framework" value="wpf"/>
+      </branch>
+      <branch test=".csproj exists AND WinForms detected" name="desktop-winforms">
+        <field name="platform_id" value="desktop-winforms"/>
+        <field name="framework" value="winforms"/>
+      </branch>
+      <branch test=".pro file exists AND Qt detected" name="desktop-qt">
+        <field name="platform_id" value="desktop-qt"/>
+        <field name="framework" value="qt"/>
+      </branch>
+    </block>
 
-  </task>
+  </sequence>
 
-  <!-- Step 2: Extract Platform Metadata -->
-  <loop id="step2-extract-metadata" over="detected_platforms" as="platform" description="Extract metadata for each detected platform">
-    <task action="extract" description="Extract platform metadata fields">
-      <extract-fields>
-        <field name="platform_id" value="{platform_type}-{framework}" />
-        <field name="platform_type" from="detected_type" />
-        <field name="framework" from="detected_framework" />
-        <field name="language" from="config_file_analysis" />
-        <field name="source_path" from="directory_location" />
-        <field name="config_files" from="file_list" />
-        <field name="convention_files" from="lint_format_configs" />
-      </extract-fields>
-    </task>
-  </loop>
+  <!-- ============================================================
+       Step 2: Extract Platform Metadata
+       ============================================================ -->
+  <sequence id="S2" name="Metadata Extraction" status="pending" desc="Extract metadata for each detected platform">
 
-  <!-- Step 3: Get Timestamp -->
-  <task id="step3-get-timestamp" action="run-script" description="Get current timestamp for generated_at field">
-    <run-script script="scripts/get-timestamp.js" output="timestamp" />
-  </task>
+    <block type="loop" id="S2-L1" over="${detected_platforms}" as="platform" desc="Extract metadata for each detected platform">
+      <block type="task" id="S2-B1" action="analyze" status="pending" desc="Extract platform metadata fields">
+        <field name="platform_id" value="${platform.platform_type}-${platform.framework}"/>
+        <field name="platform_type" from="${platform.detected_type}"/>
+        <field name="framework" from="${platform.detected_framework}"/>
+        <field name="language" from="${platform.config_file_analysis}"/>
+        <field name="source_path" from="${platform.directory_location}"/>
+        <field name="config_files" from="${platform.file_list}"/>
+        <field name="convention_files" from="${platform.lint_format_configs}"/>
+        <field name="output" var="platform_metadata"/>
+      </block>
+    </block>
 
-  <!-- Step 4: Generate techs-manifest.json -->
-  <task id="step4-generate-manifest" action="generate" description="Generate techs-manifest.json with detected platforms">
-    <generate-json output="{output_path}/techs-manifest.json">
-      <field name="generated_at" value="{timestamp}" />
-      <field name="source_path" value="{source_path}" />
-      <field name="language" value="{language}" />
-      <array name="platforms" from="detected_platforms_metadata" />
-    </generate-json>
-  </task>
+  </sequence>
 
-  <!-- Step 5: Report Results -->
-  <event id="step5-report" action="log" description="Report detection results">
-    <report format="structured">
-      Stage 1 completed: Technology Platform Detection
-      - Platforms Detected: {platform_count}
-        - web-react: React 18.2.0, TypeScript 5.3.0
-        - backend-nestjs: NestJS 10.0.0, TypeScript 5.3.0
-      - Configuration Files Found: {config_file_count}
-      - Output: {output_path}/techs-manifest.json
-      - Next: Dispatch parallel tasks for Stage 2 (Tech Document Generation)
-    </report>
-  </event>
+  <!-- ============================================================
+       Step 3: Get Timestamp
+       ============================================================ -->
+  <block type="task" id="S3-B1" action="run-script" status="pending" desc="Get current timestamp for generated_at field">
+    <field name="command">node scripts/get-timestamp.js</field>
+    <field name="output" var="timestamp"/>
+  </block>
 
-  <!-- Output Block -->
-  <output name="status" from="detection_status" />
-  <output name="platforms_detected" from="detected_platforms_list" />
-  <output name="manifest_path" from="manifest_file_path" />
+  <!-- ============================================================
+       Step 4: Generate techs-manifest.json
+       ============================================================ -->
+  <block type="task" id="S4-B1" action="generate" status="pending" desc="Generate techs-manifest.json with detected platforms">
+    <field name="output_path">${output_path}/techs-manifest.json</field>
+    <field name="generated_at" value="${timestamp}"/>
+    <field name="source_path" value="${source_path}"/>
+    <field name="language" value="${language}"/>
+    <field name="platforms" from="${detected_platforms_metadata}"/>
+  </block>
+
+  <!-- ============================================================
+       Step 5: Report Results
+       ============================================================ -->
+  <block type="event" id="S5-E1" action="log" level="info" desc="Report detection results">
+Stage 1 completed: Technology Platform Detection
+- Platforms Detected: ${platform_count}
+  - web-react: React 18.2.0, TypeScript 5.3.0
+  - backend-nestjs: NestJS 10.0.0, TypeScript 5.3.0
+- Configuration Files Found: ${config_file_count}
+- Output: ${output_path}/techs-manifest.json
+- Next: Dispatch parallel tasks for Stage 2 (Tech Document Generation)
+  </block>
+
+  <!-- ============================================================
+       Output Definition
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${detection_status}"/>
+    <field name="platforms_detected" from="${detected_platforms_list}"/>
+    <field name="manifest_path" from="${manifest_file_path}"/>
+  </block>
 
 </workflow>
 

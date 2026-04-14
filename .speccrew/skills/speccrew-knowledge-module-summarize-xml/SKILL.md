@@ -53,11 +53,16 @@ flowchart TD
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-<workflow>
+<workflow id="module-summarize" version="1.0" status="pending" desc="Module summarization workflow">
+
   <!-- Input Block: Define workflow inputs -->
-  <input name="module_name" type="string" required="true" />
-  <input name="module_path" type="string" required="true" />
-  <input name="language" type="string" required="true" />
+  <block type="input" id="I1" desc="Module summarize input parameters">
+    <field name="module_name" required="true" type="string" desc="Module name to summarize"/>
+    <field name="module_path" required="true" type="string" desc="Path to module directory"/>
+    <field name="language" required="true" type="string" desc="Target language for generated content"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Sync state directory path"/>
+  </block>
 
   <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
@@ -70,270 +75,301 @@ flowchart TD
   </block>
 
   <!-- Step 1: Read Prerequisites -->
-  <task name="read_template" action="run-skill" skill="Read">
-    <param name="file_path">../speccrew-knowledge-module-summarize/templates/MODULE-OVERVIEW-TEMPLATE.md</param>
-    <output name="template_content" />
-  </task>
+  <sequence id="S1" name="Step 1: Read Prerequisites" status="pending" desc="Read template, initial overview, and discover features">
+    <block type="task" id="B1a" action="read-file" desc="Read module overview template">
+      <field name="path" value="../speccrew-knowledge-module-summarize/templates/MODULE-OVERVIEW-TEMPLATE.md"/>
+      <field name="output" var="template_content"/>
+    </block>
 
-  <task name="read_initial_overview" action="run-skill" skill="Read">
-    <param name="file_path">{{module_path}}/{{module_name}}-overview.md</param>
-    <output name="initial_overview" />
-  </task>
+    <block type="task" id="B1b" action="read-file" desc="Read initial overview">
+      <field name="path" value="${module_path}/${module_name}-overview.md"/>
+      <field name="output" var="initial_overview"/>
+    </block>
 
-  <task name="discover_features" action="run-skill" skill="Glob">
-    <param name="pattern">{{module_path}}/features/*.md</param>
-    <output name="feature_files" />
-  </task>
+    <block type="task" id="B1c" action="run-script" desc="Discover feature files">
+      <field name="command">Get-ChildItem -Path "${module_path}/features" -Filter "*.md" -File</field>
+      <field name="output" var="feature_files"/>
+    </block>
 
-  <!-- Loop: Read all feature detail files -->
-  <loop name="read_features" over="feature_files" as="feature_file">
-    <task name="read_feature" action="run-skill" skill="Read">
-      <param name="file_path">{{feature_file}}</param>
-      <output name="feature_content" />
-    </task>
-  </loop>
+    <!-- Loop: Read all feature detail files -->
+    <block type="loop" id="L1" over="${feature_files}" as="feature_file" desc="Read all feature files">
+      <block type="task" id="B1d" action="read-file" desc="Read feature file">
+        <field name="path" value="${feature_file}"/>
+        <field name="output" var="feature_content"/>
+      </block>
+    </block>
 
-  <!-- Checkpoint: Verify prerequisites loaded -->
-  <checkpoint name="prerequisites_loaded" verify="template_content != null AND feature_files != null" />
+    <!-- Checkpoint: Verify prerequisites loaded -->
+    <block type="checkpoint" id="CP1" name="prerequisites_loaded" desc="Prerequisites loaded checkpoint">
+      <field name="verify" value="${template_content} != null AND ${feature_files} != null"/>
+    </block>
 
-  <!-- Gateway: Handle edge case - no features found -->
-  <gateway name="check_features" mode="exclusive">
-    <branch condition="feature_files.length == 0">
-      <event action="log" level="warning">No feature documents found for module {{module_name}}</event>
-      <task name="generate_minimal_overview" action="run-skill" skill="Write">
-        <param name="file_path">{{module_path}}/{{module_name}}-overview.md</param>
-        <param name="content">{{minimal_skeleton}}</param>
-      </task>
-      <output name="status" from="partial" />
-      <event action="signal">workflow_complete</event>
-    </branch>
-    <branch condition="feature_files.length > 0">
-      <event action="log" level="info">Found {{feature_files.length}} feature documents</event>
-    </branch>
-  </gateway>
+    <!-- Gateway: Handle edge case - no features found -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if features exist">
+      <branch test="${feature_files.length} == 0" name="No features">
+        <block type="event" id="E1a" action="log" level="warning" desc="No features warning">
+No feature documents found for module ${module_name}
+        </block>
+        <block type="task" id="B1e" action="write-file" desc="Generate minimal overview">
+          <field name="path" value="${module_path}/${module_name}-overview.md"/>
+          <field name="content" value="${minimal_skeleton}"/>
+        </block>
+        <field name="status" value="partial"/>
+        <block type="event" id="E1b" action="signal" desc="Signal complete">
+workflow_complete
+        </block>
+      </branch>
+      <branch test="${feature_files.length} > 0" name="Features found">
+        <block type="event" id="E1c" action="log" level="info" desc="Features found">
+Found ${feature_files.length} feature documents
+        </block>
+      </branch>
+    </block>
+  </sequence>
 
   <!-- Step 2: Extract Entities -->
-  <task name="extract_entities" action="run-script">
-    <param name="script">extract-entities.js</param>
-    <param name="inputs">feature_contents</param>
-    <output name="extracted_entities" />
-  </task>
+  <sequence id="S2" name="Step 2: Extract Entities" status="pending" desc="Extract and aggregate entities from features">
+    <block type="task" id="B2a" action="analyze" desc="Extract entities">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="extracted_entities"/>
+    </block>
 
-  <!-- Loop: Process each entity for deduplication -->
-  <loop name="process_entities" over="extracted_entities" as="entity">
-    <task name="aggregate_entity" action="run-script">
-      <param name="script">aggregate-entity.js</param>
-      <param name="entity">{{entity}}</param>
-      <output name="aggregated_entity" />
-    </task>
-  </loop>
+    <!-- Loop: Process each entity for deduplication -->
+    <block type="loop" id="L2" over="${extracted_entities}" as="entity" desc="Aggregate entities">
+      <block type="task" id="B2b" action="analyze" desc="Aggregate entity">
+        <field name="entity" value="${entity}"/>
+        <field name="output" var="aggregated_entity"/>
+      </block>
+    </block>
 
-  <!-- Checkpoint: Entities aggregated -->
-  <checkpoint name="entities_aggregated" verify="unique_entities.length > 0" />
+    <!-- Checkpoint: Entities aggregated -->
+    <block type="checkpoint" id="CP2" name="entities_aggregated" desc="Entities aggregated checkpoint">
+      <field name="verify" value="${unique_entities.length} > 0"/>
+    </block>
+  </sequence>
 
   <!-- Step 3: Identify Dependencies -->
-  <task name="identify_dependencies" action="run-script">
-    <param name="script">identify-dependencies.js</param>
-    <param name="inputs">feature_contents</param>
-    <output name="dependencies" />
-  </task>
+  <sequence id="S3" name="Step 3: Identify Dependencies" status="pending" desc="Identify dependencies from features">
+    <block type="task" id="B3a" action="analyze" desc="Identify dependencies">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="dependencies"/>
+    </block>
 
-  <!-- Classify dependencies -->
-  <loop name="classify_deps" over="dependencies" as="dependency">
-    <gateway name="classify_direction" mode="exclusive">
-      <branch condition="dependency.direction == 'provides'">
-        <output name="provided_deps" append="{{dependency}}" />
-      </branch>
-      <branch condition="dependency.direction == 'consumes'">
-        <output name="consumed_deps" append="{{dependency}}" />
-      </branch>
-    </gateway>
-  </loop>
+    <!-- Classify dependencies -->
+    <block type="loop" id="L3" over="${dependencies}" as="dependency" desc="Classify dependencies">
+      <block type="gateway" id="G3" mode="exclusive" desc="Classify direction">
+        <branch test="${dependency.direction} == 'provides'" name="Provides">
+          <field name="provided_deps" append="${dependency}"/>
+        </branch>
+        <branch test="${dependency.direction} == 'consumes'" name="Consumes">
+          <field name="consumed_deps" append="${dependency}"/>
+        </branch>
+      </block>
+    </block>
 
-  <!-- Checkpoint: Dependencies classified -->
-  <checkpoint name="dependencies_classified" verify="dependencies != null" />
+    <!-- Checkpoint: Dependencies classified -->
+    <block type="checkpoint" id="CP3" name="dependencies_classified" desc="Dependencies classified checkpoint">
+      <field name="verify" value="${dependencies} != null"/>
+    </block>
+  </sequence>
 
   <!-- Step 4: Summarize Business Rules -->
-  <task name="extract_rules" action="run-script">
-    <param name="script">extract-rules.js</param>
-    <param name="inputs">feature_contents</param>
-    <output name="business_rules" />
-  </task>
+  <sequence id="S4" name="Step 4: Summarize Rules" status="pending" desc="Extract and associate business rules">
+    <block type="task" id="B4a" action="analyze" desc="Extract rules">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="business_rules"/>
+    </block>
 
-  <!-- Loop: Associate rules with features -->
-  <loop name="associate_rules" over="business_rules" as="rule">
-    <task name="find_rule_source" action="run-script">
-      <param name="script">find-source-feature.js</param>
-      <param name="rule">{{rule}}</param>
-      <param name="features">{{feature_files}}</param>
-      <output name="rule_with_source" />
-    </task>
-  </loop>
+    <!-- Loop: Associate rules with features -->
+    <block type="loop" id="L4" over="${business_rules}" as="rule" desc="Associate rules">
+      <block type="task" id="B4b" action="analyze" desc="Find rule source">
+        <field name="rule" value="${rule}"/>
+        <field name="features" value="${feature_files}"/>
+        <field name="output" var="rule_with_source"/>
+      </block>
+    </block>
 
-  <!-- Checkpoint: Rules collected -->
-  <checkpoint name="rules_collected" verify="business_rules.length >= 0" />
+    <!-- Checkpoint: Rules collected -->
+    <block type="checkpoint" id="CP4" name="rules_collected" desc="Rules collected checkpoint">
+      <field name="verify" value="${business_rules.length} >= 0"/>
+    </block>
+  </sequence>
 
   <!-- Step 5: Generate Complete MODULE-OVERVIEW.md -->
-  <!-- Phase A: Skeleton Construction -->
-  <task name="count_entities" action="run-script">
-    <param name="script">count-items.js</param>
-    <param name="items">{{unique_entities}}</param>
-    <output name="entity_count" />
-  </task>
+  <sequence id="S5" name="Step 5: Generate Overview" status="pending" desc="Generate complete module overview">
+    <!-- Phase A: Skeleton Construction -->
+    <block type="task" id="B5a" action="analyze" desc="Count entities">
+      <field name="items" value="${unique_entities}"/>
+      <field name="output" var="entity_count"/>
+    </block>
 
-  <task name="count_dependencies" action="run-script">
-    <param name="script">count-items.js</param>
-    <param name="items">{{dependencies}}</param>
-    <output name="dependency_count" />
-  </task>
+    <block type="task" id="B5b" action="analyze" desc="Count dependencies">
+      <field name="items" value="${dependencies}"/>
+      <field name="output" var="dependency_count"/>
+    </block>
 
-  <task name="count_flows" action="run-script">
-    <param name="script">count-flows.js</param>
-    <param name="features">{{feature_contents}}</param>
-    <output name="flow_count" />
-  </task>
+    <block type="task" id="B5c" action="analyze" desc="Count flows">
+      <field name="features" value="${feature_contents}"/>
+      <field name="output" var="flow_count"/>
+    </block>
 
-  <task name="count_rules" action="run-script">
-    <param name="script">count-items.js</param>
-    <param name="items">{{business_rules}}</param>
-    <output name="rule_count" />
-  </task>
+    <block type="task" id="B5d" action="analyze" desc="Count rules">
+      <field name="items" value="${business_rules}"/>
+      <field name="output" var="rule_count"/>
+    </block>
 
-  <!-- Create skeleton structure -->
-  <task name="create_skeleton" action="run-script">
-    <param name="script">create-overview-skeleton.js</param>
-    <param name="template">{{template_content}}</param>
-    <param name="entity_count">{{entity_count}}</param>
-    <param name="dependency_count">{{dependency_count}}</param>
-    <param name="flow_count">{{flow_count}}</param>
-    <param name="rule_count">{{rule_count}}</param>
-    <param name="language">{{language}}</param>
-    <output name="document_skeleton" />
-  </task>
+    <!-- Create skeleton structure -->
+    <block type="task" id="B5e" action="analyze" desc="Create skeleton">
+      <field name="template" value="${template_content}"/>
+      <field name="entity_count" value="${entity_count}"/>
+      <field name="dependency_count" value="${dependency_count}"/>
+      <field name="flow_count" value="${flow_count}"/>
+      <field name="rule_count" value="${rule_count}"/>
+      <field name="language" value="${language}"/>
+      <field name="output" var="document_skeleton"/>
+    </block>
 
-  <!-- Rule: Skeleton must be complete before filling -->
-  <rule level="mandatory">DO NOT start filling content until the complete skeleton is verified</rule>
+    <!-- Rule: Skeleton must be complete before filling -->
+    <block type="rule" id="R1" level="mandatory" desc="Skeleton first">
+      <field name="text">DO NOT start filling content until the complete skeleton is verified</field>
+    </block>
 
-  <!-- Checkpoint: Skeleton verified -->
-  <checkpoint name="skeleton_verified" verify="document_skeleton != null AND document_skeleton.contains('[TO BE FILLED]')" />
+    <!-- Checkpoint: Skeleton verified -->
+    <block type="checkpoint" id="CP5a" name="skeleton_verified" desc="Skeleton verified checkpoint">
+      <field name="verify" value="${document_skeleton} != null AND ${document_skeleton}.contains('[TO BE FILLED]')"/>
+    </block>
 
-  <!-- Phase B: Content Filling -->
-  <!-- Read Mermaid rules -->
-  <task name="read_mermaid_rules" action="run-skill" skill="Read">
-    <param name="file_path">speccrew-workspace/docs/rules/mermaid-rule.md</param>
-    <output name="mermaid_rules" />
-  </task>
+    <!-- Phase B: Content Filling -->
+    <!-- Read Mermaid rules -->
+    <block type="task" id="B5f" action="read-file" desc="Read Mermaid rules">
+      <field name="path" value="speccrew-workspace/docs/rules/mermaid-rule.md"/>
+      <field name="output" var="mermaid_rules"/>
+    </block>
 
-  <!-- Fill Section 3: Business Entities -->
-  <loop name="fill_entities" over="unique_entities" as="entity">
-    <task name="fill_entity_row" action="run-script">
-      <param name="script">fill-entity-row.js</param>
-      <param name="entity">{{entity}}</param>
-      <param name="language">{{language}}</param>
-      <output name="entity_row" />
-    </task>
-  </loop>
+    <!-- Fill Section 3: Business Entities -->
+    <block type="loop" id="L5a" over="${unique_entities}" as="entity" desc="Fill entity rows">
+      <block type="task" id="B5g" action="analyze" desc="Fill entity row">
+        <field name="entity" value="${entity}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="entity_row"/>
+      </block>
+    </block>
 
-  <!-- Fill Section 4: Dependencies -->
-  <loop name="fill_dependencies" over="dependencies" as="dependency">
-    <task name="fill_dependency_row" action="run-script">
-      <param name="script">fill-dependency-row.js</param>
-      <param name="dependency">{{dependency}}</param>
-      <param name="language">{{language}}</param>
-      <output name="dependency_row" />
-    </task>
-  </loop>
+    <!-- Fill Section 4: Dependencies -->
+    <block type="loop" id="L5b" over="${dependencies}" as="dependency" desc="Fill dependency rows">
+      <block type="task" id="B5h" action="analyze" desc="Fill dependency row">
+        <field name="dependency" value="${dependency}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="dependency_row"/>
+      </block>
+    </block>
 
-  <!-- Fill Section 5: Core Business Flows -->
-  <loop name="fill_flows" over="core_flows" as="flow">
-    <task name="fill_flow_item" action="run-script">
-      <param name="script">fill-flow-item.js</param>
-      <param name="flow">{{flow}}</param>
-      <param name="language">{{language}}</param>
-      <output name="flow_item" />
-    </task>
-  </loop>
+    <!-- Fill Section 5: Core Business Flows -->
+    <block type="loop" id="L5c" over="${core_flows}" as="flow" desc="Fill flow items">
+      <block type="task" id="B5i" action="analyze" desc="Fill flow item">
+        <field name="flow" value="${flow}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="flow_item"/>
+      </block>
+    </block>
 
-  <!-- Fill Section 6: Business Rules -->
-  <loop name="fill_rules" over="business_rules" as="rule">
-    <task name="fill_rule_row" action="run-script">
-      <param name="script">fill-rule-row.js</param>
-      <param name="rule">{{rule}}</param>
-      <param name="language">{{language}}</param>
-      <output name="rule_row" />
-    </task>
-  </loop>
+    <!-- Fill Section 6: Business Rules -->
+    <block type="loop" id="L5d" over="${business_rules}" as="rule" desc="Fill rule rows">
+      <block type="task" id="B5j" action="analyze" desc="Fill rule row">
+        <field name="rule" value="${rule}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="rule_row"/>
+      </block>
+    </block>
 
-  <!-- Error Handler for document writing -->
-  <error-handler>
-    <try>
-      <!-- Write final document -->
-      <gateway name="check_existing_doc" mode="exclusive">
-        <branch condition="initial_overview != null">
-          <!-- Use search_replace for existing document -->
-          <loop name="replace_sections" over="sections" as="section">
-            <task name="replace_section" action="run-skill" skill="search_replace">
-              <param name="file_path">{{module_path}}/{{module_name}}-overview.md</param>
-              <param name="section">{{section}}</param>
-            </task>
-          </loop>
-        </branch>
-        <branch condition="initial_overview == null">
-          <!-- Create new document -->
-          <task name="write_overview" action="run-skill" skill="Write">
-            <param name="file_path">{{module_path}}/{{module_name}}-overview.md</param>
-            <param name="content">{{document_skeleton}}</param>
-          </task>
-        </branch>
-      </gateway>
-    </try>
-    <catch error="write_error">
-      <event action="log" level="error">Failed to write overview document: {{write_error.message}}</event>
-      <output name="status" from="failed" />
-    </catch>
-    <finally>
-      <event action="log" level="info">Document write operation completed</event>
-    </finally>
-  </error-handler>
+    <!-- Error Handler for document writing -->
+    <block type="error-handler" id="EH1" desc="Handle document writing errors">
+      <try>
+        <!-- Write final document -->
+        <block type="gateway" id="G5" mode="exclusive" desc="Check existing document">
+          <branch test="${initial_overview} != null" name="Existing document">
+            <!-- Use search_replace for existing document -->
+            <block type="loop" id="L5e" over="${sections}" as="section" desc="Replace sections">
+              <block type="task" id="B5k" action="run-skill" desc="Replace section">
+                <field name="skill" value="search_replace"/>
+                <field name="file_path" value="${module_path}/${module_name}-overview.md"/>
+                <field name="section" value="${section}"/>
+              </block>
+            </block>
+          </branch>
+          <branch test="${initial_overview} == null" name="New document">
+            <!-- Create new document -->
+            <block type="task" id="B5l" action="write-file" desc="Write overview">
+              <field name="path" value="${module_path}/${module_name}-overview.md"/>
+              <field name="content" value="${document_skeleton}"/>
+            </block>
+          </branch>
+        </block>
+      </try>
+      <catch error-type="write_error">
+        <block type="event" id="EH1-E1" action="log" level="error" desc="Write error">
+Failed to write overview document: ${write_error.message}
+        </block>
+        <field name="status" value="failed"/>
+      </catch>
+      <finally>
+        <block type="event" id="EH1-E2" action="log" level="info" desc="Write completed">
+Document write operation completed
+        </block>
+      </finally>
+    </block>
 
-  <!-- Rule: Content language constraint -->
-  <rule level="mandatory">ALL generated content MUST be in the language specified by the language parameter</rule>
+    <!-- Rule: Content language constraint -->
+    <block type="rule" id="R2" level="mandatory" desc="Language constraint">
+      <field name="text">ALL generated content MUST be in the language specified by the language parameter</field>
+    </block>
 
-  <!-- Rule: Forbidden operations -->
-  <rule level="forbidden">FORBIDDEN: create_file for overview document rewrite - use search_replace instead</rule>
-  <rule level="forbidden">FORBIDDEN: Full-file rewrite - always use targeted search_replace on specific sections</rule>
+    <!-- Rule: Forbidden operations -->
+    <block type="rule" id="R3" level="forbidden" desc="No create_file for rewrite">
+      <field name="text">FORBIDDEN: create_file for overview document rewrite - use search_replace instead</field>
+    </block>
+    <block type="rule" id="R4" level="forbidden" desc="No full-file rewrite">
+      <field name="text">FORBIDDEN: Full-file rewrite - always use targeted search_replace on specific sections</field>
+    </block>
 
-  <!-- Checkpoint: Document generated -->
-  <checkpoint name="document_generated" verify="output_file_exists == true" />
+    <!-- Checkpoint: Document generated -->
+    <block type="checkpoint" id="CP5b" name="document_generated" desc="Document generated checkpoint">
+      <field name="verify" value="${output_file_exists} == true"/>
+    </block>
+  </sequence>
 
   <!-- Step 6: Report Results -->
-  <task name="generate_report" action="run-script">
-    <param name="script">generate-report.js</param>
-    <param name="module_name">{{module_name}}</param>
-    <param name="feature_count">{{feature_files.length}}</param>
-    <param name="entity_count">{{unique_entities.length}}</param>
-    <param name="dependency_count">{{dependencies.length}}</param>
-    <param name="rule_count">{{business_rules.length}}</param>
-    <output name="completion_report" />
-  </task>
+  <sequence id="S6" name="Step 6: Report Results" status="pending" desc="Generate completion report">
+    <block type="task" id="B6" action="analyze" desc="Generate report">
+      <field name="module_name" value="${module_name}"/>
+      <field name="feature_count" value="${feature_files.length}"/>
+      <field name="entity_count" value="${unique_entities.length}"/>
+      <field name="dependency_count" value="${dependencies.length}"/>
+      <field name="rule_count" value="${business_rules.length}"/>
+      <field name="output" var="completion_report"/>
+    </block>
 
-  <!-- Event: Log completion -->
-  <event action="log" level="info">
-    Module summarization completed:
-    - Module: {{module_name}}
-    - Features Processed: {{feature_files.length}}
-    - Entities Extracted: {{unique_entities.length}}
-    - Dependencies Identified: {{dependencies.length}}
-    - Business Rules Summarized: {{business_rules.length}}
-    - Output: {{module_name}}-overview.md (complete)
-    - Status: success
-  </event>
+    <!-- Event: Log completion -->
+    <block type="event" id="E6" action="log" level="info" desc="Log completion">
+Module summarization completed:
+- Module: ${module_name}
+- Features Processed: ${feature_files.length}
+- Entities Extracted: ${unique_entities.length}
+- Dependencies Identified: ${dependencies.length}
+- Business Rules Summarized: ${business_rules.length}
+- Output: ${module_name}-overview.md (complete)
+- Status: success
+    </block>
+  </sequence>
 
   <!-- Output Block: Define workflow outputs -->
-  <output name="status" from="success" />
-  <output name="module_name" from="module_name" />
-  <output name="output_file" from="{{module_name}}-overview.md" />
-  <output name="message" from="Module summarization completed with {{feature_files.length}} features processed" />
+  <block type="output" id="O1" desc="Module summarize output results">
+    <field name="status" value="success"/>
+    <field name="module_name" from="${module_name}"/>
+    <field name="output_file" from="${module_name}-overview.md"/>
+    <field name="message" value="Module summarization completed with ${feature_files.length} features processed"/>
+  </block>
+
 </workflow>
 
 ## Constraints

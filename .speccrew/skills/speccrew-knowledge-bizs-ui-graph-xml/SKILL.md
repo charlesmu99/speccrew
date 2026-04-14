@@ -46,23 +46,28 @@ This skill automatically adapts to the user's input language. All documentation 
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-```xml
-<workflow name="ui-knowledge-graph-construction" version="1.0">
-  
-  <!-- Input Parameters -->
-  <input name="feature" type="object" required="true" description="Complete feature object from features.json"/>
-  <input name="fileName" type="string" required="true" description="Feature file name without extension"/>
-  <input name="sourcePath" type="string" required="true" description="Relative path to source file"/>
-  <input name="documentPath" type="string" required="true" description="Path to generated documentation"/>
-  <input name="module" type="string" required="true" description="Business module name"/>
-  <input name="platform_type" type="string" required="true" description="Platform type"/>
-  <input name="platform_subtype" type="string" required="true" description="Platform subtype"/>
-  <input name="completed_dir" type="string" required="true" description="Marker files output directory"/>
-  <input name="sourceFile" type="string" required="true" description="Source features JSON file name"/>
-  <input name="status" type="string" required="true" default="success" description="Analysis status from UI analysis"/>
-  <input name="analysisNotes" type="string" required="true" default="" description="Analysis notes from UI analysis"/>
-  
-  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+<workflow id="ui-knowledge-graph-construction" version="1.0" status="pending" desc="Construct graph data from UI analysis results">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature" required="true" type="object" desc="Complete feature object from features.json"/>
+    <field name="fileName" required="true" type="string" desc="Feature file name without extension"/>
+    <field name="sourcePath" required="true" type="string" desc="Relative path to source file"/>
+    <field name="documentPath" required="true" type="string" desc="Path to generated documentation"/>
+    <field name="module" required="true" type="string" desc="Business module name"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type"/>
+    <field name="platform_subtype" required="true" type="string" desc="Platform subtype"/>
+    <field name="completed_dir" required="true" type="string" desc="Marker files output directory"/>
+    <field name="sourceFile" required="true" type="string" desc="Source features JSON file name"/>
+    <field name="status" required="false" type="string" default="success" desc="Analysis status from UI analysis"/>
+    <field name="analysisNotes" required="false" type="string" default="" desc="Analysis notes from UI analysis"/>
+  </block>
+
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
     <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
     <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
@@ -71,133 +76,230 @@ This skill automatically adapts to the user's input language. All documentation 
     <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
     <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
   </block>
-  
-  <!-- Step 1: Read Source File -->
-  <checkpoint name="step-1-read-source">
-    <task action="read" target="{{sourcePath}}" output="sourceContent"/>
-    <task action="extract-api-imports" input="{{sourceContent}}" output="apiImports"/>
-    <task action="extract-component-usage" input="{{sourceContent}}" output="componentUsage"/>
-    <task action="extract-navigation-patterns" input="{{sourceContent}}" output="navigationPatterns"/>
-    <event action="log" message="Step 1 Status: COMPLETED - Read {{sourcePath}}, found {{apiImports.count}} APIs, {{componentUsage.count}} components, {{navigationPatterns.count}} navigations"/>
-  </checkpoint>
-  
-  <!-- Step 2: Construct Graph Nodes -->
-  <checkpoint name="step-2-construct-nodes">
-    <task action="construct-node" type="page" id="page-{{module}}-{{fileName}}" 
-          name="{{fileName}}" module="{{module}}" 
-          sourcePath="{{sourcePath}}" documentPath="{{documentPath}}"
-          context-route="{{extractedRoute}}" context-components="{{componentUsage.list}}"
-          context-platform="{{platform_type}}-{{platform_subtype}}"
-          output="pageNode"/>
-    <loop over="{{componentUsage.list}}" as="component">
-      <task action="construct-node" type="component" id="component-{{module}}-{{component.name}}"
-            name="{{component.name}}" module="{{module}}"
-            sourcePath="{{component.path}}" documentPath="{{documentPath}}"
-            context-props="{{component.props}}" context-events="{{component.events}}"
-            output="componentNodes[]"/>
-    </loop>
-    <event action="log" message="Step 2 Status: COMPLETED - Constructed {{nodeCount}} nodes"/>
-  </checkpoint>
-  
-  <!-- Step 3: Construct Graph Edges -->
-  <checkpoint name="step-3-construct-edges">
+
+  <!-- ============================================================
+       Step 1: Read Source File
+       ============================================================ -->
+  <sequence id="S1" name="Step 1: Read Source File" status="pending" desc="Read source file and extract components">
+    <block type="task" id="B1" action="read-file" desc="Read source file content">
+      <field name="path" value="${sourcePath}"/>
+      <field name="output" var="sourceContent"/>
+    </block>
+
+    <block type="task" id="B2" action="analyze" desc="Extract API imports from source content">
+      <field name="input" value="${sourceContent}"/>
+      <field name="output" var="apiImports"/>
+    </block>
+
+    <block type="task" id="B3" action="analyze" desc="Extract component usage from source content">
+      <field name="input" value="${sourceContent}"/>
+      <field name="output" var="componentUsage"/>
+    </block>
+
+    <block type="task" id="B4" action="analyze" desc="Extract navigation patterns from source content">
+      <field name="input" value="${sourceContent}"/>
+      <field name="output" var="navigationPatterns"/>
+    </block>
+
+    <block type="event" id="E1" action="log" level="info" desc="Log Step 1 completion">
+Step 1 Status: COMPLETED - Read ${sourcePath}, found ${apiImports.count} APIs, ${componentUsage.count} components, ${navigationPatterns.count} navigations
+    </block>
+
+    <block type="checkpoint" id="CP1" name="step-1-read-source" desc="Source file read complete">
+      <field name="file" value="${completed_dir}/.progress.json"/>
+      <field name="verify" value="${sourceContent} != null"/>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 2: Construct Graph Nodes
+       ============================================================ -->
+  <sequence id="S2" name="Step 2: Construct Graph Nodes" status="pending" desc="Build page and component nodes">
+    <block type="task" id="B5" action="analyze" desc="Construct page node">
+      <field name="type" value="page"/>
+      <field name="id" value="page-${module}-${fileName}"/>
+      <field name="name" value="${fileName}"/>
+      <field name="module" value="${module}"/>
+      <field name="sourcePath" value="${sourcePath}"/>
+      <field name="documentPath" value="${documentPath}"/>
+      <field name="context_route" value="${extractedRoute}"/>
+      <field name="context_components" value="${componentUsage.list}"/>
+      <field name="context_platform" value="${platform_type}-${platform_subtype}"/>
+      <field name="output" var="pageNode"/>
+    </block>
+
+    <block type="loop" id="L1" over="${componentUsage.list}" as="component" desc="Construct component nodes">
+      <block type="task" id="B6" action="analyze" desc="Construct component node for ${component.name}">
+        <field name="type" value="component"/>
+        <field name="id" value="component-${module}-${component.name}"/>
+        <field name="name" value="${component.name}"/>
+        <field name="module" value="${module}"/>
+        <field name="sourcePath" value="${component.path}"/>
+        <field name="documentPath" value="${documentPath}"/>
+        <field name="context_props" value="${component.props}"/>
+        <field name="context_events" value="${component.events}"/>
+        <field name="output" var="componentNodes[]" append="true"/>
+      </block>
+    </block>
+
+    <block type="event" id="E2" action="log" level="info" desc="Log Step 2 completion">
+Step 2 Status: COMPLETED - Constructed ${nodeCount} nodes
+    </block>
+
+    <block type="checkpoint" id="CP2" name="step-2-construct-nodes" desc="Graph nodes constructed">
+      <field name="file" value="${completed_dir}/.progress.json"/>
+      <field name="verify" value="${nodeCount} > 0"/>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 3: Construct Graph Edges
+       ============================================================ -->
+  <sequence id="S3" name="Step 3: Construct Graph Edges" status="pending" desc="Build API call, navigation, and component usage edges">
     <!-- API Call Edges -->
-    <loop over="{{apiImports.list}}" as="api">
-      <task action="construct-edge" source="page-{{module}}-{{fileName}}"
-            target="api-{{api.module}}-{{api.name}}" type="calls"
-            metadata-trigger="{{api.trigger}}" metadata-method="{{api.method}}"
-            metadata-context="{{api.context}}"
-            output="apiEdges[]"/>
-    </loop>
+    <block type="loop" id="L2" over="${apiImports.list}" as="api" desc="Construct API call edges">
+      <block type="task" id="B7" action="analyze" desc="Construct calls edge for ${api.name}">
+        <field name="source" value="page-${module}-${fileName}"/>
+        <field name="target" value="api-${api.module}-${api.name}"/>
+        <field name="type" value="calls"/>
+        <field name="metadata_trigger" value="${api.trigger}"/>
+        <field name="metadata_method" value="${api.method}"/>
+        <field name="metadata_context" value="${api.context}"/>
+        <field name="output" var="apiEdges[]" append="true"/>
+      </block>
+    </block>
+
     <!-- Navigation Edges -->
-    <loop over="{{navigationPatterns.list}}" as="nav">
-      <task action="construct-edge" source="page-{{module}}-{{fileName}}"
-            target="page-{{nav.targetModule}}-{{nav.targetPage}}" type="navigates-to"
-            metadata-trigger="{{nav.trigger}}" metadata-method="{{nav.method}}"
-            output="navEdges[]"/>
-    </loop>
+    <block type="loop" id="L3" over="${navigationPatterns.list}" as="nav" desc="Construct navigation edges">
+      <block type="task" id="B8" action="analyze" desc="Construct navigates-to edge">
+        <field name="source" value="page-${module}-${fileName}"/>
+        <field name="target" value="page-${nav.targetModule}-${nav.targetPage}"/>
+        <field name="type" value="navigates-to"/>
+        <field name="metadata_trigger" value="${nav.trigger}"/>
+        <field name="metadata_method" value="${nav.method}"/>
+        <field name="output" var="navEdges[]" append="true"/>
+      </block>
+    </block>
+
     <!-- Component Usage Edges -->
-    <loop over="{{componentUsage.list}}" as="comp">
-      <task action="construct-edge" source="page-{{module}}-{{fileName}}"
-            target="component-{{module}}-{{comp.name}}" type="uses"
-            metadata-context="{{comp.usageContext}}"
-            output="useEdges[]"/>
-    </loop>
-    <event action="log" message="Step 3 Status: COMPLETED - Constructed {{edgeCount}} edges ({{apiEdges.count}} API calls, {{navEdges.count}} navigations, {{useEdges.count}} component uses)"/>
-  </checkpoint>
-  
-  <!-- Step 4: Write Graph JSON -->
-  <checkpoint name="step-4-write-graph-json" verify="valid-json-structure">
-    <task action="calculate-marker-filename" module="{{module}}" subpath="{{extractSubpath sourcePath}}"
-          fileName="{{fileName}}" output="markerFilename"/>
-    <task action="write" target="{{completed_dir}}/{{markerFilename}}.graph.json">
-      <content>
+    <block type="loop" id="L4" over="${componentUsage.list}" as="comp" desc="Construct component usage edges">
+      <block type="task" id="B9" action="analyze" desc="Construct uses edge for ${comp.name}">
+        <field name="source" value="page-${module}-${fileName}"/>
+        <field name="target" value="component-${module}-${comp.name}"/>
+        <field name="type" value="uses"/>
+        <field name="metadata_context" value="${comp.usageContext}"/>
+        <field name="output" var="useEdges[]" append="true"/>
+      </block>
+    </block>
+
+    <block type="event" id="E3" action="log" level="info" desc="Log Step 3 completion">
+Step 3 Status: COMPLETED - Constructed ${edgeCount} edges (${apiEdges.count} API calls, ${navEdges.count} navigations, ${useEdges.count} component uses)
+    </block>
+
+    <block type="checkpoint" id="CP3" name="step-3-construct-edges" desc="Graph edges constructed">
+      <field name="file" value="${completed_dir}/.progress.json"/>
+      <field name="verify" value="${edgeCount} >= 0"/>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 4: Write Graph JSON
+       ============================================================ -->
+  <sequence id="S4" name="Step 4: Write Graph JSON" status="pending" desc="Generate and write graph data file">
+    <block type="task" id="B10" action="analyze" desc="Calculate marker filename">
+      <field name="module" value="${module}"/>
+      <field name="subpath" value="${extractSubpath sourcePath}"/>
+      <field name="fileName" value="${fileName}"/>
+      <field name="output" var="markerFilename"/>
+    </block>
+
+    <block type="task" id="B11" action="write-file" desc="Write graph JSON file">
+      <field name="path" value="${completed_dir}/${markerFilename}.graph.json"/>
+      <field name="content_json">
         {
-          "module": "{{module}}",
+          "module": "${module}",
           "nodes": [
-            {{pageNode}},
-            {{#each componentNodes}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}}
+            ${pageNode},
+            ${componentNodes}
           ],
           "edges": [
-            {{#each apiEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each navEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each useEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}}
+            ${apiEdges},
+            ${navEdges},
+            ${useEdges}
           ]
         }
-      </content>
-    </task>
-    <event action="log" message="Step 4 Status: COMPLETED - Graph JSON written to {{completed_dir}}/{{markerFilename}}.graph.json"/>
-  </checkpoint>
-  
-  <!-- Step 5: Write Completion Marker -->
-  <checkpoint name="step-5-write-marker" verify="valid-marker-structure">
-    <task action="write" target="{{completed_dir}}/{{markerFilename}}.graph-done.json">
-      <content>
+      </field>
+    </block>
+
+    <block type="event" id="E4" action="log" level="info" desc="Log Step 4 completion">
+Step 4 Status: COMPLETED - Graph JSON written to ${completed_dir}/${markerFilename}.graph.json
+    </block>
+
+    <block type="checkpoint" id="CP4" name="step-4-write-graph-json" desc="Graph JSON written">
+      <field name="file" value="${completed_dir}/.progress.json"/>
+      <field name="verify" value="valid-json-structure"/>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5: Write Completion Marker
+       ============================================================ -->
+  <sequence id="S5" name="Step 5: Write Completion Marker" status="pending" desc="Generate and write completion marker file">
+    <block type="task" id="B12" action="write-file" desc="Write graph completion marker">
+      <field name="path" value="${completed_dir}/${markerFilename}.graph-done.json"/>
+      <field name="content_json">
         {
-          "fileName": "{{fileName}}",
-          "sourcePath": "{{sourcePath}}",
-          "sourceFile": "{{sourceFile}}",
-          "module": "{{module}}",
-          "documentPath": "{{documentPath}}",
+          "fileName": "${fileName}",
+          "sourcePath": "${sourcePath}",
+          "sourceFile": "${sourceFile}",
+          "module": "${module}",
+          "documentPath": "${documentPath}",
           "marker": "graph_completed",
-          "graphFile": "{{markerFilename}}.graph.json",
-          "nodeCount": {{nodeCount}},
-          "edgeCount": {{edgeCount}},
-          "status": "{{status}}",
-          "analysisNotes": "{{analysisNotes}}"
+          "graphFile": "${markerFilename}.graph.json",
+          "nodeCount": ${nodeCount},
+          "edgeCount": ${edgeCount},
+          "status": "${status}",
+          "analysisNotes": "${analysisNotes}"
         }
-      </content>
-    </task>
-    <event action="log" message="Step 5 Status: COMPLETED - Graph completion marker written to {{completed_dir}}/{{markerFilename}}.graph-done.json"/>
-  </checkpoint>
-  
-  <!-- Output Results -->
-  <output name="status" from="success"/>
-  <output name="module" from="{{module}}"/>
-  <output name="fileName" from="{{fileName}}"/>
-  <output name="graphFile" from="{{completed_dir}}/{{markerFilename}}.graph.json"/>
-  <output name="nodeCount" from="{{nodeCount}}"/>
-  <output name="edgeCount" from="{{edgeCount}}"/>
-  <output name="message" from="Generated graph data with {{nodeCount}} nodes and {{edgeCount}} edges"/>
-  
-  <!-- Constraints -->
-  <rule level="mandatory" description="100% API coverage - ALL imported API functions MUST be represented as calls edges"/>
-  <rule level="mandatory" description="Valid JSON format - Both .graph.json and .graph-done.json MUST be valid JSON"/>
-  <rule level="mandatory" description="Root-level module field - .graph.json MUST include module at root level"/>
-  <rule level="mandatory" description="Correct filename pattern - Use {module}-{subpath}-{fileName} composite naming"/>
-  <rule level="mandatory" description="No file extension in fileName - The fileName field in .graph-done.json MUST NOT include extension"/>
-  <rule level="mandatory" description="documentPath as N/A - Use N/A when no document exists, never empty string"/>
-  
+      </field>
+    </block>
+
+    <block type="event" id="E5" action="log" level="info" desc="Log Step 5 completion">
+Step 5 Status: COMPLETED - Graph completion marker written to ${completed_dir}/${markerFilename}.graph-done.json
+    </block>
+
+    <block type="checkpoint" id="CP5" name="step-5-write-marker" desc="Completion marker written">
+      <field name="file" value="${completed_dir}/.progress.json"/>
+      <field name="verify" value="valid-marker-structure"/>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="success" type="string" desc="Execution status"/>
+    <field name="module" from="${module}" type="string" desc="Module name"/>
+    <field name="fileName" from="${fileName}" type="string" desc="Feature file name"/>
+    <field name="graphFile" from="${completed_dir}/${markerFilename}.graph.json" type="string" desc="Graph JSON file path"/>
+    <field name="nodeCount" from="${nodeCount}" type="number" desc="Number of nodes constructed"/>
+    <field name="edgeCount" from="${edgeCount}" type="number" desc="Number of edges constructed"/>
+    <field name="message" from="Generated graph data with ${nodeCount} nodes and ${edgeCount} edges" type="string" desc="Summary message"/>
+  </block>
+
+  <!-- ============================================================
+       Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Graph data constraints">
+    <field name="text">100% API coverage - ALL imported API functions MUST be represented as calls edges</field>
+    <field name="text">Valid JSON format - Both .graph.json and .graph-done.json MUST be valid JSON</field>
+    <field name="text">Root-level module field - .graph.json MUST include module at root level</field>
+    <field name="text">Correct filename pattern - Use {module}-{subpath}-{fileName} composite naming</field>
+    <field name="text">No file extension in fileName - The fileName field in .graph-done.json MUST NOT include extension</field>
+    <field name="text">documentPath as N/A - Use N/A when no document exists, never empty string</field>
+  </block>
+
 </workflow>
-```
 
 ## Node Structure Reference
 

@@ -73,20 +73,23 @@ This skill operates in **strict sequential execution mode**:
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
-```xml
-<workflow name="api-knowledge-graph-construction" version="1.0">
-  
+<workflow id="api-knowledge-graph-construction" version="1.0" status="pending" desc="API knowledge graph construction workflow">
+
   <!-- Input Parameters -->
-  <input name="api_analysis_path" type="string" required="true" description="Path to the API analysis document"/>
-  <input name="platform_id" type="string" required="true" description="Target platform identifier"/>
-  <input name="output_dir" type="string" required="true" description="Output directory for graph data"/>
-  <input name="module" type="string" required="true" description="Business module name"/>
-  <input name="fileName" type="string" required="true" description="Controller class name without extension"/>
-  <input name="sourcePath" type="string" required="true" description="Relative path to source file"/>
-  <input name="sourceFile" type="string" required="true" description="Source features JSON filename"/>
-  <input name="language" type="string" required="true" description="Target language for content"/>
-  <input name="subpath" type="string" required="false" description="Subpath extracted from sourcePath"/>
-  
+  <block type="input" id="I1" desc="API graph construction input parameters">
+    <field name="api_analysis_path" required="true" type="string" desc="Path to the API analysis document"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform identifier"/>
+    <field name="output_dir" required="true" type="string" desc="Output directory for graph data"/>
+    <field name="module" required="true" type="string" desc="Business module name"/>
+    <field name="fileName" required="true" type="string" desc="Controller class name without extension"/>
+    <field name="sourcePath" required="true" type="string" desc="Relative path to source file"/>
+    <field name="sourceFile" required="true" type="string" desc="Source features JSON filename"/>
+    <field name="language" required="true" type="string" desc="Target language for content"/>
+    <field name="subpath" required="false" type="string" desc="Subpath extracted from sourcePath"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Sync state directory path"/>
+  </block>
+
   <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
   <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
     <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
@@ -96,209 +99,290 @@ This skill operates in **strict sequential execution mode**:
     <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
     <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
   </block>
-  
+
   <!-- Step 1: Read API Analysis Document -->
-  <checkpoint name="step-1-read-document">
-    <task action="read" target="{{api_analysis_path}}" output="apiAnalysisContent"/>
-    <task action="parse-endpoints" input="{{apiAnalysisContent}}" output="endpoints"/>
-    <task action="parse-service-references" input="{{apiAnalysisContent}}" output="serviceReferences"/>
-    <task action="parse-database-tables" input="{{apiAnalysisContent}}" output="databaseTables"/>
-    <task action="parse-dtos" input="{{apiAnalysisContent}}" output="dtos"/>
-    <task action="parse-business-rules" input="{{apiAnalysisContent}}" output="businessRules"/>
-    <event action="log" message="Step 1 Status: COMPLETED - Read {{api_analysis_path}} ({{lineCount}} lines), Found {{endpoints.count}} endpoints"/>
-  </checkpoint>
-  
+  <sequence id="S1" name="Step 1: Read Document" status="pending" desc="Read and parse API analysis document">
+    <block type="task" id="B1a" action="read-file" desc="Read API analysis document">
+      <field name="path" value="${api_analysis_path}"/>
+      <field name="output" var="apiAnalysisContent"/>
+    </block>
+
+    <block type="task" id="B1b" action="analyze" desc="Parse endpoints">
+      <field name="content" value="${apiAnalysisContent}"/>
+      <field name="output" var="endpoints"/>
+    </block>
+
+    <block type="task" id="B1c" action="analyze" desc="Parse service references">
+      <field name="content" value="${apiAnalysisContent}"/>
+      <field name="output" var="serviceReferences"/>
+    </block>
+
+    <block type="task" id="B1d" action="analyze" desc="Parse database tables">
+      <field name="content" value="${apiAnalysisContent}"/>
+      <field name="output" var="databaseTables"/>
+    </block>
+
+    <block type="task" id="B1e" action="analyze" desc="Parse DTOs">
+      <field name="content" value="${apiAnalysisContent}"/>
+      <field name="output" var="dtos"/>
+    </block>
+
+    <block type="task" id="B1f" action="analyze" desc="Parse business rules">
+      <field name="content" value="${apiAnalysisContent}"/>
+      <field name="output" var="businessRules"/>
+    </block>
+
+    <block type="checkpoint" id="CP1" name="step-1-read-document" desc="Document read checkpoint">
+      <field name="verify" value="${apiAnalysisContent} != null"/>
+    </block>
+
+    <block type="event" id="E1" action="log" level="info" desc="Log step 1 completion">
+Step 1 Status: COMPLETED - Read ${api_analysis_path}, Found ${endpoints.length} endpoints
+    </block>
+  </sequence>
+
   <!-- Step 2: Extract Graph Nodes -->
-  <checkpoint name="step-2-extract-nodes">
+  <sequence id="S2" name="Step 2: Extract Nodes" status="pending" desc="Extract graph nodes from API analysis">
     <!-- API Endpoint Nodes -->
-    <loop over="{{endpoints.list}}" as="endpoint">
-      <task action="construct-node" type="api" id="api-{{module}}-{{endpoint.name}}"
-            name="{{endpoint.displayName}}" module="{{module}}"
-            sourcePath="{{sourcePath}}" documentPath="{{api_analysis_path}}"
-            description="{{endpoint.description}}"
-            metadata-method="{{endpoint.method}}" metadata-path="{{endpoint.path}}"
-            metadata-permissions="{{endpoint.permissions}}"
-            output="apiNodes[]"/>
-    </loop>
+    <block type="loop" id="L2a" over="${endpoints}" as="endpoint" desc="Construct API nodes">
+      <block type="task" id="B2a" action="analyze" desc="Construct API node">
+        <field name="type" value="api"/>
+        <field name="id" value="api-${module}-${endpoint.name}"/>
+        <field name="name" value="${endpoint.displayName}"/>
+        <field name="module" value="${module}"/>
+        <field name="sourcePath" value="${sourcePath}"/>
+        <field name="documentPath" value="${api_analysis_path}"/>
+        <field name="description" value="${endpoint.description}"/>
+        <field name="metadata-method" value="${endpoint.method}"/>
+        <field name="metadata-path" value="${endpoint.path}"/>
+        <field name="metadata-permissions" value="${endpoint.permissions}"/>
+        <field name="output" var="apiNodes"/>
+      </block>
+    </block>
+
     <!-- Service Nodes -->
-    <loop over="{{serviceReferences.list}}" as="service">
-      <task action="construct-node" type="service" id="service-{{module}}-{{service.name}}"
-            name="{{service.className}}" module="{{module}}"
-            sourcePath="{{service.sourcePath}}" documentPath="{{api_analysis_path}}"
-            description="{{service.description}}"
-            metadata-methods="{{service.methods}}"
-            output="serviceNodes[]"/>
-    </loop>
+    <block type="loop" id="L2b" over="${serviceReferences}" as="service" desc="Construct service nodes">
+      <block type="task" id="B2b" action="analyze" desc="Construct service node">
+        <field name="type" value="service"/>
+        <field name="id" value="service-${module}-${service.name}"/>
+        <field name="name" value="${service.className}"/>
+        <field name="module" value="${module}"/>
+        <field name="sourcePath" value="${service.sourcePath}"/>
+        <field name="documentPath" value="${api_analysis_path}"/>
+        <field name="description" value="${service.description}"/>
+        <field name="metadata-methods" value="${service.methods}"/>
+        <field name="output" var="serviceNodes"/>
+      </block>
+    </block>
+
     <!-- Table Nodes -->
-    <loop over="{{databaseTables.list}}" as="table">
-      <task action="construct-node" type="table" id="table-{{module}}-{{table.name}}"
-            name="{{table.tableName}}" module="{{module}}"
-            sourcePath="" documentPath="{{api_analysis_path}}"
-            description="{{table.description}}"
-            metadata-fields="{{table.fields}}" metadata-indexes="{{table.indexes}}"
-            output="tableNodes[]"/>
-    </loop>
+    <block type="loop" id="L2c" over="${databaseTables}" as="table" desc="Construct table nodes">
+      <block type="task" id="B2c" action="analyze" desc="Construct table node">
+        <field name="type" value="table"/>
+        <field name="id" value="table-${module}-${table.name}"/>
+        <field name="name" value="${table.tableName}"/>
+        <field name="module" value="${module}"/>
+        <field name="sourcePath" value=""/>
+        <field name="documentPath" value="${api_analysis_path}"/>
+        <field name="description" value="${table.description}"/>
+        <field name="metadata-fields" value="${table.fields}"/>
+        <field name="metadata-indexes" value="${table.indexes}"/>
+        <field name="output" var="tableNodes"/>
+      </block>
+    </block>
+
     <!-- DTO Nodes -->
-    <loop over="{{dtos.list}}" as="dto">
-      <task action="construct-node" type="dto" id="dto-{{module}}-{{dto.name}}"
-            name="{{dto.className}}" module="{{module}}"
-            sourcePath="{{dto.sourcePath}}" documentPath="{{api_analysis_path}}"
-            description="{{dto.description}}"
-            metadata-fields="{{dto.fields}}" metadata-validation="{{dto.validation}}"
-            output="dtoNodes[]"/>
-    </loop>
-    <event action="log" message="Step 2 Status: COMPLETED - Extracted {{nodeCount}} graph nodes ({{apiNodes.count}} APIs, {{serviceNodes.count}} services, {{tableNodes.count}} tables, {{dtoNodes.count}} DTOs)"/>
-  </checkpoint>
-  
+    <block type="loop" id="L2d" over="${dtos}" as="dto" desc="Construct DTO nodes">
+      <block type="task" id="B2d" action="analyze" desc="Construct DTO node">
+        <field name="type" value="dto"/>
+        <field name="id" value="dto-${module}-${dto.name}"/>
+        <field name="name" value="${dto.className}"/>
+        <field name="module" value="${module}"/>
+        <field name="sourcePath" value="${dto.sourcePath}"/>
+        <field name="documentPath" value="${api_analysis_path}"/>
+        <field name="description" value="${dto.description}"/>
+        <field name="metadata-fields" value="${dto.fields}"/>
+        <field name="metadata-validation" value="${dto.validation}"/>
+        <field name="output" var="dtoNodes"/>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="CP2" name="step-2-extract-nodes" desc="Nodes extracted checkpoint">
+      <field name="verify" value="${apiNodes.length} > 0 OR ${serviceNodes.length} > 0"/>
+    </block>
+
+    <block type="event" id="E2" action="log" level="info" desc="Log step 2 completion">
+Step 2 Status: COMPLETED - Extracted graph nodes (${apiNodes.length} APIs, ${serviceNodes.length} services, ${tableNodes.length} tables, ${dtoNodes.length} DTOs)
+    </block>
+  </sequence>
+
   <!-- Step 3: Extract Graph Edges -->
-  <checkpoint name="step-3-extract-edges">
+  <sequence id="S3" name="Step 3: Extract Edges" status="pending" desc="Extract graph edges from API analysis">
     <!-- API to Table Edges (operates) -->
-    <loop over="{{endpoints.list}}" as="endpoint">
-      <loop over="{{endpoint.tablesAccessed}}" as="tableRef">
-        <task action="construct-edge" source="api-{{module}}-{{endpoint.name}}"
-              target="table-{{module}}-{{tableRef.tableName}}" type="operates"
-              metadata-operation="{{tableRef.operation}}"
-              metadata-description="{{tableRef.description}}"
-              output="operatesEdges[]"/>
-      </loop>
-    </loop>
+    <block type="loop" id="L3a" over="${endpoints}" as="endpoint" desc="Construct operates edges">
+      <block type="loop" id="L3a1" over="${endpoint.tablesAccessed}" as="tableRef" desc="Construct operates edge">
+        <block type="task" id="B3a" action="analyze" desc="Construct operates edge">
+          <field name="source" value="api-${module}-${endpoint.name}"/>
+          <field name="target" value="table-${module}-${tableRef.tableName}"/>
+          <field name="type" value="operates"/>
+          <field name="metadata-operation" value="${tableRef.operation}"/>
+          <field name="metadata-description" value="${tableRef.description}"/>
+          <field name="output" var="operatesEdges"/>
+        </block>
+      </block>
+    </block>
+
     <!-- API to Service Edges (invokes) -->
-    <loop over="{{endpoints.list}}" as="endpoint">
-      <loop over="{{endpoint.servicesInvoked}}" as="serviceRef">
-        <task action="construct-edge" source="api-{{module}}-{{endpoint.name}}"
-              target="service-{{module}}-{{serviceRef.serviceName}}" type="invokes"
-              metadata-method="{{serviceRef.method}}"
-              metadata-description="{{serviceRef.description}}"
-              output="invokesEdges[]"/>
-      </loop>
-    </loop>
+    <block type="loop" id="L3b" over="${endpoints}" as="endpoint" desc="Construct invokes edges">
+      <block type="loop" id="L3b1" over="${endpoint.servicesInvoked}" as="serviceRef" desc="Construct invokes edge">
+        <block type="task" id="B3b" action="analyze" desc="Construct invokes edge">
+          <field name="source" value="api-${module}-${endpoint.name}"/>
+          <field name="target" value="service-${module}-${serviceRef.serviceName}"/>
+          <field name="type" value="invokes"/>
+          <field name="metadata-method" value="${serviceRef.method}"/>
+          <field name="metadata-description" value="${serviceRef.description}"/>
+          <field name="output" var="invokesEdges"/>
+        </block>
+      </block>
+    </block>
+
     <!-- API to DTO Edges (references) -->
-    <loop over="{{endpoints.list}}" as="endpoint">
-      <loop over="{{endpoint.dtosUsed}}" as="dtoRef">
-        <task action="construct-edge" source="api-{{module}}-{{endpoint.name}}"
-              target="dto-{{module}}-{{dtoRef.dtoName}}" type="references"
-              metadata-usage="{{dtoRef.usage}}"
-              metadata-description="{{dtoRef.description}}"
-              output="referencesEdges[]"/>
-      </loop>
-    </loop>
+    <block type="loop" id="L3c" over="${endpoints}" as="endpoint" desc="Construct references edges">
+      <block type="loop" id="L3c1" over="${endpoint.dtosUsed}" as="dtoRef" desc="Construct references edge">
+        <block type="task" id="B3c" action="analyze" desc="Construct references edge">
+          <field name="source" value="api-${module}-${endpoint.name}"/>
+          <field name="target" value="dto-${module}-${dtoRef.dtoName}"/>
+          <field name="type" value="references"/>
+          <field name="metadata-usage" value="${dtoRef.usage}"/>
+          <field name="metadata-description" value="${dtoRef.description}"/>
+          <field name="output" var="referencesEdges"/>
+        </block>
+      </block>
+    </block>
+
     <!-- Service to Service Edges (depends-on) -->
-    <loop over="{{serviceReferences.list}}" as="service">
-      <loop over="{{service.dependencies}}" as="dep">
-        <task action="construct-edge" source="service-{{module}}-{{service.name}}"
-              target="service-{{module}}-{{dep.serviceName}}" type="depends-on"
-              metadata-description="{{dep.description}}"
-              output="dependsOnEdges[]"/>
-      </loop>
-    </loop>
+    <block type="loop" id="L3d" over="${serviceReferences}" as="service" desc="Construct depends-on edges">
+      <block type="loop" id="L3d1" over="${service.dependencies}" as="dep" desc="Construct depends-on edge">
+        <block type="task" id="B3d" action="analyze" desc="Construct depends-on edge">
+          <field name="source" value="service-${module}-${service.name}"/>
+          <field name="target" value="service-${module}-${dep.serviceName}"/>
+          <field name="type" value="depends-on"/>
+          <field name="metadata-description" value="${dep.description}"/>
+          <field name="output" var="dependsOnEdges"/>
+        </block>
+      </block>
+    </block>
+
     <!-- DTO to Table Edges (maps-to) -->
-    <loop over="{{dtos.list}}" as="dto">
-      <loop over="{{dto.mappedTables}}" as="mappedTable">
-        <task action="construct-edge" source="dto-{{module}}-{{dto.name}}"
-              target="table-{{module}}-{{mappedTable.tableName}}" type="maps-to"
-              metadata-description="{{mappedTable.description}}"
-              output="mapsToEdges[]"/>
-      </loop>
-    </loop>
-    <event action="log" message="Step 3 Status: COMPLETED - Extracted {{edgeCount}} graph edges"/>
-  </checkpoint>
-  
+    <block type="loop" id="L3e" over="${dtos}" as="dto" desc="Construct maps-to edges">
+      <block type="loop" id="L3e1" over="${dto.mappedTables}" as="mappedTable" desc="Construct maps-to edge">
+        <block type="task" id="B3e" action="analyze" desc="Construct maps-to edge">
+          <field name="source" value="dto-${module}-${dto.name}"/>
+          <field name="target" value="table-${module}-${mappedTable.tableName}"/>
+          <field name="type" value="maps-to"/>
+          <field name="metadata-description" value="${mappedTable.description}"/>
+          <field name="output" var="mapsToEdges"/>
+        </block>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="CP3" name="step-3-extract-edges" desc="Edges extracted checkpoint">
+      <field name="verify" value="${operatesEdges.length} >= 0"/>
+    </block>
+
+    <block type="event" id="E3" action="log" level="info" desc="Log step 3 completion">
+Step 3 Status: COMPLETED - Extracted graph edges (${operatesEdges.length + invokesEdges.length + referencesEdges.length + dependsOnEdges.length + mapsToEdges.length} total)
+    </block>
+  </sequence>
+
   <!-- Step 4: Write Graph JSON -->
-  <checkpoint name="step-4-write-graph-json" verify="valid-json-structure">
-    <task action="calculate-marker-filename" module="{{module}}" subpath="{{subpath}}"
-          fileName="{{fileName}}" output="markerFilename"/>
-    <task action="write" target="{{output_dir}}/{{markerFilename}}.graph.json">
-      <content>
-        {
-          "module": "{{module}}",
-          "nodes": [
-            {{#each apiNodes}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each serviceNodes}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each tableNodes}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each dtoNodes}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}}
-          ],
-          "edges": [
-            {{#each operatesEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each invokesEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each referencesEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each dependsOnEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}},
-            {{#each mapsToEdges}}
-            {{this}}{{#unless @last}},{{/unless}}
-            {{/each}}
-          ]
-        }
-      </content>
-    </task>
-    <event action="log" message="Step 4 Status: COMPLETED - Graph JSON written to {{output_dir}}/{{markerFilename}}.graph.json ({{fileSize}} bytes)"/>
-  </checkpoint>
-  
+  <sequence id="S4" name="Step 4: Write Graph JSON" status="pending" desc="Write graph JSON file">
+    <block type="task" id="B4a" action="analyze" desc="Calculate marker filename">
+      <field name="module" value="${module}"/>
+      <field name="subpath" value="${subpath}"/>
+      <field name="fileName" value="${fileName}"/>
+      <field name="output" var="markerFilename"/>
+    </block>
+
+    <block type="task" id="B4b" action="write-file" desc="Write graph JSON">
+      <field name="path" value="${output_dir}/${markerFilename}.graph.json"/>
+      <field name="content" desc="Graph JSON with nodes and edges arrays"/>
+      <field name="note">Write valid JSON with module field, nodes array, and edges array</field>
+    </block>
+
+    <block type="checkpoint" id="CP4" name="step-4-write-graph-json" desc="Graph JSON written checkpoint">
+      <field name="verify" value="valid-json-structure"/>
+    </block>
+
+    <block type="event" id="E4" action="log" level="info" desc="Log step 4 completion">
+Step 4 Status: COMPLETED - Graph JSON written to ${output_dir}/${markerFilename}.graph.json
+    </block>
+  </sequence>
+
   <!-- Step 5: Write Graph Completion Marker -->
-  <checkpoint name="step-5-write-marker" verify="valid-marker-structure">
-    <task action="write" target="{{output_dir}}/{{markerFilename}}.graph-done.json">
-      <content>
-        {
-          "fileName": "{{fileName}}",
-          "module": "{{module}}",
-          "marker": "graph_completed",
-          "graphFile": "{{markerFilename}}.graph.json",
-          "nodeCount": {{node_count}},
-          "edgeCount": {{edge_count}},
-          "status": "completed"
-        }
-      </content>
-    </task>
-    <event action="log" message="Step 5 Status: COMPLETED - Graph completion marker written to {{output_dir}}/{{markerFilename}}.graph-done.json"/>
-  </checkpoint>
-  
+  <sequence id="S5" name="Step 5: Write Marker" status="pending" desc="Write completion marker">
+    <block type="task" id="B5" action="write-file" desc="Write graph-done marker">
+      <field name="path" value="${output_dir}/${markerFilename}.graph-done.json"/>
+      <field name="content" desc="Marker JSON with fileName, module, marker, graphFile, nodeCount, edgeCount, status"/>
+    </block>
+
+    <block type="checkpoint" id="CP5" name="step-5-write-marker" desc="Marker written checkpoint">
+      <field name="verify" value="valid-marker-structure"/>
+    </block>
+
+    <block type="event" id="E5" action="log" level="info" desc="Log step 5 completion">
+Step 5 Status: COMPLETED - Graph completion marker written to ${output_dir}/${markerFilename}.graph-done.json
+    </block>
+  </sequence>
+
   <!-- Step 6: Report Results -->
-  <checkpoint name="step-6-report-results">
-    <gateway mode="exclusive">
-      <branch condition="{{success}}">
-        <output name="status" from="success"/>
-        <output name="module" from="{{module}}"/>
-        <output name="fileName" from="{{fileName}}"/>
-        <output name="graphFile" from="{{output_dir}}/{{markerFilename}}.graph.json"/>
-        <output name="nodeCount" from="{{node_count}}"/>
-        <output name="edgeCount" from="{{edge_count}}"/>
-        <output name="message" from="Generated graph data with {{node_count}} nodes and {{edge_count}} edges"/>
-        <event action="log" message="Step 6 Status: COMPLETED - Graph construction success: Generated graph data with {{node_count}} nodes and {{edge_count}} edges"/>
+  <sequence id="S6" name="Step 6: Report Results" status="pending" desc="Report graph construction results">
+    <block type="gateway" id="G6" mode="exclusive" desc="Determine result status">
+      <branch test="${success} == true" name="Success">
+        <block type="event" id="E6a" action="log" level="info" desc="Log success">
+Step 6 Status: COMPLETED - Graph construction success: Generated graph data with ${node_count} nodes and ${edge_count} edges
+        </block>
       </branch>
-      <branch condition="{{failure}}">
-        <output name="status" from="failed"/>
-        <output name="module" from="{{module}}"/>
-        <output name="fileName" from="{{fileName}}"/>
-        <output name="message" from="{{error_message}}"/>
-        <event action="log" message="Step 6 Status: COMPLETED - Graph construction failed: {{error_message}}"/>
+      <branch test="${success} == false" name="Failure">
+        <block type="event" id="E6b" action="log" level="error" desc="Log failure">
+Step 6 Status: COMPLETED - Graph construction failed: ${error_message}
+        </block>
       </branch>
-    </gateway>
-  </checkpoint>
-  
+    </block>
+  </sequence>
+
+  <!-- Output Block -->
+  <block type="output" id="O1" desc="API graph construction output results">
+    <field name="status" from="${success}"/>
+    <field name="module" from="${module}"/>
+    <field name="fileName" from="${fileName}"/>
+    <field name="graphFile" from="${output_dir}/${markerFilename}.graph.json"/>
+    <field name="nodeCount" from="${node_count}"/>
+    <field name="edgeCount" from="${edge_count}"/>
+    <field name="message" value="Generated graph data with ${node_count} nodes and ${edge_count} edges"/>
+  </block>
+
   <!-- Constraints -->
-  <rule level="mandatory" description="Single Document Input - This skill processes ONE API analysis document at a time"/>
-  <rule level="mandatory" description="JSON Format - All output files MUST be valid JSON"/>
-  <rule level="mandatory" description="Module Field - The root-level module field is MANDATORY in graph JSON"/>
-  <rule level="mandatory" description="Node Uniqueness - Each node ID must be unique within the graph"/>
-  <rule level="mandatory" description="Edge Validity - Edge source/target must reference existing node IDs"/>
-  <rule level="mandatory" description="Path Format - Use relative paths, NEVER absolute paths in JSON content"/>
-  
+  <block type="rule" id="R1" level="mandatory" desc="Single document input">
+    <field name="text">This skill processes ONE API analysis document at a time</field>
+  </block>
+  <block type="rule" id="R2" level="mandatory" desc="JSON format">
+    <field name="text">All output files MUST be valid JSON</field>
+  </block>
+  <block type="rule" id="R3" level="mandatory" desc="Module field">
+    <field name="text">The root-level module field is MANDATORY in graph JSON</field>
+  </block>
+  <block type="rule" id="R4" level="mandatory" desc="Node uniqueness">
+    <field name="text">Each node ID must be unique within the graph</field>
+  </block>
+  <block type="rule" id="R5" level="mandatory" desc="Edge validity">
+    <field name="text">Edge source/target must reference existing node IDs</field>
+  </block>
+  <block type="rule" id="R6" level="mandatory" desc="Path format">
+    <field name="text">Use relative paths, NEVER absolute paths in JSON content</field>
+  </block>
+
 </workflow>
-```
 
 ## Node ID Naming Convention
 
