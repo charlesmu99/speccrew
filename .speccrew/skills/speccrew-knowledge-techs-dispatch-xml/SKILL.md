@@ -118,6 +118,10 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
     <field name="text">DO NOT ask for confirmation before generating output files</field>
     <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
     <field name="text">ONLY pause at explicit &lt;event action="confirm"&gt; blocks defined in the workflow</field>
+    <field name="text">DO NOT offer "continue/pause/partial" options — EVER</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL phases in sequence</field>
+    <field name="text">When many platforms need analysis, dispatch ALL of them — do NOT skip or defer any</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
   </block>
 
   <!-- ============================================================

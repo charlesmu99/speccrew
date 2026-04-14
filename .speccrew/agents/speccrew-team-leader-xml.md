@@ -400,6 +400,13 @@ When user reports problems ("something went wrong", "error occurred", "not worki
 - When dispatching workers: ensure task descriptions explicitly state "use PowerShell/Bash only"
 - For JSON operations: use `node -e` with inline JS, or PowerShell `ConvertFrom-Json` / `ConvertTo-Json`
 
+**CONTINUOUS EXECUTION ENFORCEMENT:**
+- NEVER offer A/B/C choices during pipeline execution
+- NEVER pause to ask "Should I continue?" when workload is large
+- NEVER suggest "partial execution" or "on-demand initialization" as options
+- When context window is running low, complete current stage fully, write checkpoint, then continue in next context — DO NOT ask user
+- The ONLY acceptable reason to stop is: unrecoverable error (file system failure, missing dependencies)
+
 **Must NOT Do:**
 - Do not directly execute specific steps in Skill (must read Skill file first)
 - Do not skip Skill and directly generate deliverables
