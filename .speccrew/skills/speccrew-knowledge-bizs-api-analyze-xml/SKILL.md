@@ -153,6 +153,16 @@ Before executing the workflow, verify the following inputs:
     ALL content MUST be generated in the language specified by {{language}} parameter.
   </rule>
   
+  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
+    <field name="text">DO NOT suggest "Due to context window limits, let me pause" — complete current task, use checkpoint for resumption</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL items in sequence</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
+  
   <!-- ==================== STEP 0: CHECK ANALYSIS STATUS ==================== -->
   <gateway name="check-analyzed-status" mode="exclusive">
     <branch condition="{{analyzed}} == true">

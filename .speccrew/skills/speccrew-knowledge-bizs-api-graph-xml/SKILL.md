@@ -87,6 +87,16 @@ This skill operates in **strict sequential execution mode**:
   <input name="language" type="string" required="true" description="Target language for content"/>
   <input name="subpath" type="string" required="false" description="Subpath extracted from sourcePath"/>
   
+  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
+    <field name="text">DO NOT suggest "Due to context window limits, let me pause" — complete current task, use checkpoint for resumption</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL items in sequence</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
+  
   <!-- Step 1: Read API Analysis Document -->
   <checkpoint name="step-1-read-document">
     <task action="read" target="{{api_analysis_path}}" output="apiAnalysisContent"/>
