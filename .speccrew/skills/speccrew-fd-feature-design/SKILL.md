@@ -364,6 +364,45 @@ Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
 
 ## Step 5: Determine Output Path & Copy Template
 
+> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
+>
+> Steps 5 and 6 MUST be executed in two phases to ensure consistent document structure.
+
+### Phase A: Skeleton Construction (BEFORE any content filling)
+
+1. Read FEATURE-SPEC-TEMPLATE.md to identify the complete section structure
+2. Count the number of functions from `.feature-analysis.md` input
+3. For Section 2 Function Details, replicate the template's Function block structure for EACH function:
+   - Copy the EXACT template structure (all 4 sub-sections) from FEATURE-SPEC-TEMPLATE.md
+   - Create `### 2.1 Function: {function_name}` through `### 2.N Function: {function_name}`
+   - Each function block MUST contain these 4 sub-section headers (copied from template):
+     ```
+     #### 2.N.1 Frontend Prototype
+     [TO BE FILLED]
+     
+     #### 2.N.2 Interaction Flow
+     [TO BE FILLED]
+     
+     #### 2.N.3 Backend Interface
+     [TO BE FILLED]
+     
+     #### 2.N.4 Data Definition
+     [TO BE FILLED]
+     ```
+4. Verify skeleton: confirm ALL functions have ALL 4 sub-section headers before proceeding
+
+> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+
+### Phase B: Content Filling (AFTER skeleton is complete)
+
+Fill each `[TO BE FILLED]` placeholder with actual content:
+- **Frontend Prototype** → ASCII wireframes (Pattern A/B/C/M-A/M-B/M-C) + Interface Element Description table
+- **Interaction Flow** → Mermaid `sequenceDiagram` + Interaction Rules table
+- **Backend Interface** → Interface List table + Mermaid `flowchart TD` for Processing Logic + Data Access table
+- **Data Definition** → Fields table + Data Source table
+
+---
+
 ### 5.1 Determine Output Path
 
 **Single Feature Mode** (when `feature_id` provided):
@@ -398,6 +437,13 @@ Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
 4. Verify section structure exists (Sections 1-6 with proper numbering)
 
 ## Step 6: Fill Sections Using search_replace
+
+> **⚠️ CRITICAL: Section 2 Function Details Skeleton Verification**
+>
+> Before proceeding with content filling, verify the two-phase strategy was correctly applied:
+> 1. Confirm ALL functions in Section 2 have complete 4 sub-section skeletons (Frontend Prototype, Interaction Flow, Backend Interface, Data Definition)
+> 2. Confirm no `[TO BE FILLED]` placeholders remain unfilled after content filling
+> 3. Confirm each function follows the exact template structure from FEATURE-SPEC-TEMPLATE.md
 
 ### Section Mapping Table
 
@@ -504,6 +550,7 @@ Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review pass
 - [ ] Output path determined
 - [ ] Template copied using `create_file`
 - [ ] All sections filled using `search_replace`
+- [ ] **[CRITICAL]** Section 2 Function Details skeleton verified (all functions have 4 sub-sections)
 - [ ] **[CRITICAL]** Interaction Flow uses Mermaid sequenceDiagram (NOT ASCII)
 - [ ] **[CRITICAL]** Processing Logic uses Mermaid flowchart TD (NOT ASCII)
 - [ ] All Mermaid diagrams follow mermaid-rule.md compliance rules

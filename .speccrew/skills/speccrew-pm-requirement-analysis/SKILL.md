@@ -179,7 +179,56 @@ ELSE:
 | One list page with filters | Entire reporting subsystem |
 | One form with validation | Multi-step wizard with 10+ steps |
 
-### 4.2 Marking Existing vs New Features
+### 4.2 Section 3.5 Feature Details — Two-Phase Strategy
+
+> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
+>
+> This step MUST be executed in two phases to ensure consistent document structure.
+
+#### Phase A: Skeleton Construction (BEFORE any content filling)
+
+1. Read PRD-TEMPLATE.md to identify the complete Feature Details structure
+2. Count the number of features from `{module_features}` input
+3. For Section 3.5 Feature Details, replicate the template's Feature block structure for EACH feature:
+   - Copy the EXACT template structure (all 6 sub-sections) from PRD-TEMPLATE.md
+   - Create `#### Feature 1: {feature_name}` through `#### Feature N: {feature_name}`
+   - Each feature block MUST contain these 6 sub-section headers (copied from template):
+     ```
+     **Requirement Description:**
+     [TO BE FILLED]
+     
+     **Interaction Flow:**
+     [TO BE FILLED]
+     
+     **Boundary Conditions:**
+     [TO BE FILLED]
+     
+     **Exception Scenarios:**
+     [TO BE FILLED]
+     
+     **Operation Flow Diagram:**
+     [TO BE FILLED]
+     
+     **Operation Steps Detail:**
+     [TO BE FILLED]
+     ```
+4. Verify skeleton: confirm ALL features have ALL 6 sub-section headers before proceeding
+
+> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+
+#### Phase B: Content Filling (AFTER skeleton is complete)
+
+Fill each `[TO BE FILLED]` placeholder with actual content:
+- **Requirement Description** → Business requirements in business language
+- **Interaction Flow** → User interaction steps (numbered list)
+- **Boundary Conditions** → Table with Condition Type | Scenario | Handling Rule
+- **Exception Scenarios** → Bullet list of exception handling
+- **Operation Flow Diagram** → Mermaid `graph LR` diagram showing operation flow
+- **Operation Steps Detail** → Table: Step | Action | Expected Outcome | Exception Handling
+
+---
+
+### 4.3 Marking Existing vs New Features
 
 | Marker | Meaning |
 |--------|---------|
@@ -188,6 +237,13 @@ ELSE:
 | `[NEW]` | Brand new functionality |
 
 ## Step 5: Task Granularity Check
+
+> **⚠️ CRITICAL: Section 3.5 Feature Details Skeleton Verification**
+>
+> Before proceeding, verify the two-phase strategy was correctly applied:
+> 1. Confirm ALL features in Section 3.5 have complete 6 sub-section skeletons
+> 2. Confirm no `[TO BE FILLED]` placeholders remain unfilled
+> 3. Confirm each feature has: Requirement Description, Interaction Flow, Boundary Conditions, Exception Scenarios, Operation Flow Diagram, Operation Steps Detail
 
 **After PRD completion, verify user story granularity:**
 

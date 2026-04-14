@@ -126,6 +126,52 @@ Collect all business rules from feature details:
 
 ### Step 5: Generate Complete MODULE-OVERVIEW.md
 
+> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
+>
+> This step MUST be executed in two phases to ensure consistent document structure.
+
+### Phase A: Skeleton Construction (BEFORE any content filling)
+
+1. Read MODULE-OVERVIEW-TEMPLATE.md to identify the complete section structure
+2. Count data items from extracted information:
+   - Section 3: Count unique **Entities** (deduplicated by entity name)
+   - Section 4: Count unique **Dependencies** (internal + external)
+   - Section 5: Count unique **Core Business Flows**
+   - Section 6: Count unique **Business Rules**
+3. For each section with repeating data items, create complete skeleton structure:
+   - **Section 3 (Entities)**: For each entity, create table row with ALL column placeholders:
+     ```
+     | [Entity Name] | [TO BE FILLED] | [TO BE FILLED] | [TO BE FILLED] |
+     ```
+   - **Section 4 (Dependencies)**: For each dependency, create table row with ALL column placeholders:
+     ```
+     | [Direction] | [Target] | [Content] | [Method] |
+     ```
+   - **Section 5 (Core Business Flows)**: For each flow, create flow item with placeholders:
+     ```
+     **[Flow Name]**: [TO BE FILLED]
+     ```
+   - **Section 6 (Business Rules)**: For each rule, create table row with ALL column placeholders:
+     ```
+     | [Rule ID] | [Rule Name] | [Description] | [Related Features] |
+     ```
+4. Verify skeleton: confirm ALL data items have ALL required column/field placeholders before proceeding
+
+> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+
+### Phase B: Content Filling (AFTER skeleton is complete)
+
+Fill each `[TO BE FILLED]` placeholder with actual content:
+- Entity Description → Business description of the entity
+- Entity Key Attributes → Field names with types (deduplicated from all features)
+- Entity Business Rules → Constraints and validation rules aggregated from features
+- Dependency Content → What is provided/consumed
+- Dependency Method → How the dependency is realized (API call, import, injection)
+- Core Business Flow → Step sequence with actors and outcomes
+- Business Rule Description → Rule logic and enforcement point
+
+---
+
 **⚠️ CRITICAL CONSTRAINTS (apply to this step):**
 > 1. **FORBIDDEN: `create_file` for overview document** — If skeleton exists, use `search_replace`; if not, copy template first then fill with `search_replace`
 > 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections

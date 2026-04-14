@@ -562,6 +562,24 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > **Path B Step 5: Update Features Status**
 > After all analyze Workers complete, update each analyzed feature's `analyzed` field to `true` in the corresponding features-*.json file.
 >
+> **Path B Step 6: Generate System Overview**
+> Dispatch a Worker to generate system-overview.md from all module-overview files:
+>
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-knowledge-system-summarize skill
+> - context:
+>     skill: speccrew-knowledge-system-summarize
+>     modules_path: {workspace_path}/knowledges/bizs
+>     output_path: {workspace_path}/knowledges/bizs
+>     language: {language}
+> ```
+>
+> This step aggregates all module-overview.md files into a single system-overview.md, which PM Agent uses as the primary knowledge context when processing new requirements.
+>
+> ⚠️ This step MUST complete before Phase 1 exits. system-overview.md is required for subsequent requirement analysis.
+>
 > Only after ALL Steps complete, proceed to Phase 2 (Requirement Clarification).
 >
 > 🛑 **Path B Completion Check**:
@@ -571,6 +589,7 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > - [ ] Step 3 completed: analyze Workers dispatched and completed for ALL pending features
 > - [ ] Step 4 completed: module-summarize Workers completed for ALL matched modules
 > - [ ] Step 5 completed: features-*.json updated with analyzed=true
+> - [ ] Step 6 completed: system-overview.md generated
 > 
 > If ANY step is incomplete, DO NOT proceed. Execute the missing steps first.
 

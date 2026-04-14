@@ -208,6 +208,48 @@ Create flow-module mapping matrix:
 
 ### Step 7: Generate system-overview.md
 
+> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
+>
+> This step MUST be executed in two phases to ensure consistent document structure.
+
+### Phase A: Skeleton Construction (BEFORE any content filling)
+
+1. Read SYSTEM-OVERVIEW-TEMPLATE.md to identify the complete section structure
+2. Count aggregated data items from discovered modules:
+   - Section 2: Count unique **Modules** (including platform_type annotation for duplicates)
+   - Section 3: Count unique **End-to-End Business Flows**
+   - Section 4: Count unique **External Integrations**
+3. For each section with repeating data items, create complete skeleton structure:
+   - **Section 2 (Module Topology)**: For each module, create index table row with ALL column placeholders:
+     ```
+     | [Module Name] | [Domain] | [Purpose] | [Entities] | [APIs] | [Detail Doc] |
+     ```
+   - **Section 3 (Business Flows)**: For each flow, create mapping matrix row:
+     ```
+     | [Flow Name] | [Module 1] | [Module 2] | ... | [Module N] |
+     ```
+   - **Section 4 (External Integrations)**: For each integration, create table row:
+     ```
+     | [System Name] | [Integration Type] | [Data Exchanged] | [Protocol] |
+     ```
+4. Verify skeleton: confirm ALL data items have ALL required column placeholders before proceeding
+
+> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+
+### Phase B: Content Filling (AFTER skeleton is complete)
+
+Fill each `[TO BE FILLED]` placeholder with actual content:
+- Module Domain → Business domain classification from module overview
+- Module Purpose → Business purpose extracted from module overview
+- Module Entities → Entity count and key entity names
+- Module APIs → API/Interface count from module overview
+- Module Detail Doc → Relative link to module-overview.md
+- Flow Module Mapping → ✓ for involved modules, - for not involved
+- Integration Data Exchanged → Data structures and formats exchanged
+- Integration Protocol → HTTP/REST, gRPC, WebSocket, etc.
+
+---
+
 **⚠️ CRITICAL CONSTRAINTS (apply to Step 7a and 7b):**
 > 1. **FORBIDDEN: `create_file` for documents** — Document MUST be created by copying template (Step 7a) then filling with `search_replace` (Step 7b)
 > 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
