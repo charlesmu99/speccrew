@@ -44,18 +44,7 @@ This skill automatically adapts to the user's input language. All documentation 
 
 ## Workflow
 
-<!--
-== Block Types ==
-input      : Workflow input parameters (required=mandatory, default=default value)
-output     : Workflow output results (from=data source variable)
-task       : Execute action (action: run-skill | run-script | dispatch-to-worker)
-gateway    : Conditional branch/gate (mode: exclusive | guard | parallel)
-loop       : Iterate over collection (over=collection, as=current item)
-event      : Log/confirm/signal (action: log | confirm | signal)
-error-handler : Exception handling (try > catch > finally)
-checkpoint : Persistent milestone (name=checkpoint name, verify=verification condition)
-rule       : Constraint declaration (level: forbidden | mandatory | note)
--->
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
 ```xml
 <workflow name="ui-knowledge-graph-construction" version="1.0">

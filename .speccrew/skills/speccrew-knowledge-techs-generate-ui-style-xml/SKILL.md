@@ -41,20 +41,7 @@ Worker Agent (speccrew-task-worker)
 ## XML Workflow Definition
 
 <workflow id="techs-ui-style-generate" status="pending" version="1.0" desc="Generate UI style documents for frontend platform">
-  <!--
-  == Block Types ==
-  input      : Workflow input parameters (required=mandatory, default=default value)
-  output     : Workflow output results (from=data source variable)
-  task       : Execute action (action: run-skill | run-script | dispatch-to-worker)
-  gateway    : Conditional branch/gate (mode: exclusive | guard | parallel)
-  loop       : Iterate over collection (over=collection, as=current item)
-  event      : Log/confirm/signal (action: log | confirm | signal)
-  error-handler : Exception handling (try > catch > finally)
-  checkpoint : Persistent milestone (name=checkpoint name, verify=verification condition)
-  rule       : Constraint declaration (level: forbidden | mandatory | note)
-  == Field ==
-  field      : Parameter/variable/output (name=param name, var=bind variable, value=value)
-  -->
+  > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
   <!-- ============================================================
        Input Parameters Definition

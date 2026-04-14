@@ -75,18 +75,7 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 
 # Workflow (XML Block Definition)
 
-<!--
-== Block Types ==
-input      : Workflow input parameters (required=mandatory, default=default value)
-output     : Workflow output results (from=data source variable)
-task       : Execution action (action: run-skill | run-script | dispatch-to-worker)
-gateway    : Conditional branch/gate (mode: exclusive | guard | parallel)
-loop       : Iterate collection (over=collection, as=current item)
-event      : Log/confirm/signal (action: log | confirm | signal)
-error-handler : Exception handling (try > catch > finally)
-checkpoint : Persistence milestone (name=checkpoint name, verify=verification condition)
-rule       : Constraint declaration (level: forbidden | mandatory | note)
--->
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
 ```xml
 <workflow id="team-leader-main" status="pending">
