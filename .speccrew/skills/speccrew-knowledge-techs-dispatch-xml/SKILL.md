@@ -119,6 +119,8 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 ## XML Workflow Definition
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
+>
+> After reading the specification, parse the XML workflow below and **strictly execute each `<block>` in document order**. Every `<block type="task">` is a literal tool-call instruction — use the `action` attribute to determine which IDE tool to invoke, and pass the `<field name="command">` or `<field name="skill">` value **exactly as written**. Do NOT interpret the workflow as a goal description or improvise your own approach.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>

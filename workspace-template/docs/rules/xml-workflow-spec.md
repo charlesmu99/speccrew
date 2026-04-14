@@ -393,9 +393,10 @@ When executing `<block type="task">` blocks, the `action` attribute determines w
 ## Execution Rules
 
 1. **NEVER skip a block** — execute every block in document order
-2. **Read `rule` blocks as constraints** — check them continuously during execution
-3. **`checkpoint` blocks** = persist progress before continuing
-4. **`gateway mode="exclusive"`** = only execute the first matching branch
-5. **`loop parallel="true"`** = dispatch all iterations concurrently
-6. **`rule level="forbidden"`** = immediate stop if violated
-7. **Input/Output blocks** define the contract — respect required parameters
+2. **Literal execution** — each `<block type="task">` is a direct tool-call instruction, NOT a goal description. Pass `<field name="command">` values to the terminal **exactly as written**. Pass `<field name="skill">` values to the Skill tool **exactly as written**. Do NOT rephrase, combine, or improvise alternative commands.
+3. **Read `rule` blocks as constraints** — check them continuously during execution
+4. **`checkpoint` blocks** = persist progress before continuing
+5. **`gateway mode="exclusive"`** = only execute the first matching branch
+6. **`loop parallel="true"`** = dispatch all iterations concurrently
+7. **`rule level="forbidden"`** = immediate stop if violated
+8. **Input/Output blocks** define the contract — respect required parameters
