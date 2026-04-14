@@ -10,23 +10,28 @@ Orchestrate **techs knowledge base generation** with a 3-stage pipeline using **
 
 ## Invocation Method
 
-**CRITICAL**: This skill MUST be invoked via Task tool → speccrew-task-worker, NOT via direct Skill tool call.
+**CRITICAL**: This skill is an **orchestration playbook** — it MUST be loaded directly by Team Leader via Skill tool (NOT via Worker Agent).
 
 ```
-Correct: Use Task tool to create speccrew-task-worker with this skill
-Incorrect: Use Skill tool to call this skill directly
+Correct: Leader uses Skill tool to load this playbook directly
+Incorrect: Dispatch this skill to speccrew-task-worker
 ```
 
-**Why?** This skill requires run_in_terminal capability for script execution, which Worker Agents possess but direct Skill invocations may not support correctly. The Task tool creates a dedicated Worker Agent (speccrew-task-worker) that loads and executes this workflow autonomously.
+**Why?** This skill defines the orchestration workflow and prepares task plans for downstream workers. The Team Leader reads this playbook and dispatches individual worker tasks via Task tool → speccrew-task-worker for each stage.
 
 **Correct Invocation Pattern**:
 ```xml
-<block type="task" action="dispatch-to-worker" desc="Dispatch techs-dispatch via Task tool">
-  <field name="worker">speccrew-task-worker</field>
+<block type="task" action="run-skill" desc="Leader directly invokes techs-dispatch as orchestration playbook">
   <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
-  <field name="instructions">Execute the techs knowledge base generation pipeline.</field>
+  <field name="note">Leader directly calls this dispatch skill as an orchestration playbook. The dispatch skill defines the workflow; Leader dispatches downstream workers via Task tool → speccrew-task-worker for each stage.</field>
 </block>
 ```
+
+**Worker Dispatch Rule**:
+- Dispatch skills (bizs-dispatch-xml, techs-dispatch-xml): Leader calls directly via Skill tool
+- Downstream worker skills (techs-init, techs-generate-conventions, techs-generate-ui-style, etc.): Leader dispatches via Task tool → speccrew-task-worker
+
+**FORBIDDEN**: Worker Agents MUST NOT execute this dispatch skill. If a Worker Agent loads this skill, it must report error and abort.
 
 ## Quick Reference — Execution Flow
 
@@ -125,6 +130,15 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
     <field name="sync_state_techs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-techs/"/>
     <field name="completed_dir" required="true" type="string" desc="Marker file output directory for Worker results (absolute path required)"/>
     <field name="ide_skills_dir" required="true" type="string" desc="Absolute path to IDE skills directory (e.g., .qoder/skills, .cursor/skills)"/>
+  </block>
+
+  <!-- ============================================================
+       Global Invocation Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R-INVOCATION" level="forbidden" desc="Invocation constraints — NEVER violate">
+    <field name="text">This skill is an ORCHESTRATION PLAYBOOK — it MUST be loaded directly by Team Leader via Skill tool</field>
+    <field name="text">Worker Agents MUST NOT execute this dispatch skill — if loaded by a Worker, report error and abort</field>
+    <field name="text">Downstream worker skills (techs-init, techs-generate-conventions, techs-generate-ui-style, etc.) MUST be dispatched via Task tool → speccrew-task-worker</field>
   </block>
 
   <!-- ============================================================
