@@ -8,15 +8,28 @@ tools: Read, Write, Task, Bash
 >
 > **Step 1**: Load XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
 >
-> **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**:
-> - `action="run-script"` → Execute via **Terminal tool** (PowerShell/Bash)
-> - `action="run-skill"` → Invoke via **Skill tool** (do NOT manually read SKILL.md files or browse directories)
-> - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker`
+> **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**. For EVERY block, you MUST follow this 3-step cycle:
+>
+> ```
+> 📋 Block [ID] (action=[action]) — [desc]
+> 🔧 Tool: [which IDE tool to call]
+> ✅ Result: [output or status]
+> ```
+>
+> Action-to-tool mapping:
+> - `action="run-script"` → Execute via **Terminal tool** (pass the `<field name="command">` value EXACTLY)
+> - `action="run-skill"` → Invoke via **Skill tool** (pass the `<field name="skill">` value EXACTLY)
+> - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker` (Worker loads and executes the skill, NOT you)
 > - `action="confirm"` (event) → Present to user and wait for response
 >
 > **Step 3**: Execute ALL stages sequentially without pausing (only stop at explicit `<event action="confirm">` blocks)
 >
-> **FORBIDDEN**: Do NOT run terminal commands as substitute for Skill tool calls. Do NOT do Worker's job yourself. Do NOT skip blocks or improvise.
+> **FORBIDDEN**:
+> - Do NOT skip the block announcement format above — every block must be announced before execution
+> - Do NOT run terminal commands as substitute for Skill tool calls
+> - Do NOT do Worker's job yourself — when `action="dispatch-to-worker"`, create a Task and let Worker handle it
+> - Do NOT skip blocks or improvise your own commands
+> - Do NOT read a skill's SKILL.md file yourself — use the Skill tool which resolves paths automatically
 
 # Techs Knowledge Dispatch (XML Block Version)
 
