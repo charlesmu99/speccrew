@@ -195,8 +195,10 @@ If resuming from an interrupted session:
 | Checkpoint | If Passed | Resume Point |
 |------------|-----------|--------------|
 | `function_decomposition.passed == true` | Skip Checkpoint A | Start from Step 3 (Frontend Design) |
-| `feature_spec_review.passed == true` | Skip Checkpoint A & B | Start from Phase 4 (API Contract) |
-| `api_contract_joint.passed == true` | All checkpoints complete | Ask user: "Feature Design phase already completed. Do you want to redo?" |
+| `feature_spec_review.passed == true` | Skip Checkpoint A & B | Start from Phase 4 (API Contract Generation) |
+| `api_contract_joint.passed == true` | Feature Spec + API Contract joint confirmation already passed | Ask user: "Feature Design phase already completed. Do you want to redo?" |
+
+> Evaluate checkpoints from most complete to least complete. If `api_contract_joint.passed == true`, it takes precedence over all earlier checkpoints.
 
 3. **Display Resume Summary**:
    ```
@@ -647,19 +649,75 @@ Invoke API Contract skill directly:
 
 ### 4.3 Multiple Feature Specs (Parallel Worker Dispatch)
 
-Invoke `speccrew-task-worker` agents in parallel:
-- Each worker receives:
-  - `skill_path`: `speccrew-fd-api-contract/SKILL.md`
-  - `context`:
-    - `feature_spec_path`: Path to one Feature Spec document
-    - `feature_id`: Feature ID (e.g., `F-CRM-01`)
-    - `feature_type`: `Page+API` or `API-only`
-    - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+If **2+ Feature Specs** in registry:
 
-- **Parallel execution**: One worker per Feature Spec document
-- **Output file naming**:
-  - Format: `{feature-id}-{feature-name-slug}-api-contract.md`
-  - Example: `F-CRM-01-customer-list-api-contract.md`
+1. **Initialize DISPATCH-PROGRESS.json for API Contract stage**:
+
+   > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
+
+   ```bash
+   # Step 1: Write tasks JSON to temp file inside iteration directory
+   # Create .tasks-temp.json with the task array content
+   # Step 2: Initialize with --tasks-file
+   node {update_progress_script} init --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
+   # Step 3: Delete .tasks-temp.json after successful init
+   ```
+
+   Example `.tasks-temp.json` content:
+   ```json
+   [{"id":"F-CRM-01"},{"id":"F-CRM-02"},{"id":"F-CRM-03"}]
+   ```
+
+2. **Dispatch Workers** (batch of 6):
+   - Each worker receives:
+     - `skill_path`: `speccrew-fd-api-contract/SKILL.md`
+     - `context`:
+       - `feature_spec_path`: Path to one Feature Spec document
+       - `feature_id`: Feature ID (e.g., `F-CRM-01`)
+       - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
+       - `feature_type`: `Page+API` or `API-only`
+       - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+
+3. **Wait for batch completion**, update progress per worker:
+   ```bash
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status completed
+   ```
+
+4. **Update `.checkpoints.json`** for each completed Feature:
+   - Set `api_contract_status` = `completed`
+
+5. **Parallel execution**: One worker per Feature Spec document
+
+6. **Output file naming**:
+   - Format: `{feature-id}-{feature-name-slug}-api-contract.md`
+   - Example: `F-CRM-01-customer-list-api-contract.md`
+
+### 4.3.1 API Contract Error Handling
+
+When any API Contract worker reports failure:
+
+1. **Update status**:
+   ```bash
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[Phase 4] {error_message}"
+   ```
+
+2. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.
+
+3. **Report to user**:
+   ```
+   📊 Phase 4 (API Contract) — Batch complete: {success}/{total} succeeded, {failed} failed
+   ├── ✅ F-SYS-01, F-SYS-02, ...
+   └── ❌ F-MEMBER-02: [error description]
+   
+   Retry failed features? (yes/skip/abort)
+   ```
+
+4. **Retry strategy**: Same as Phase 3
+   - If user says "yes" → Re-dispatch failed features in next batch (Phase 4)
+   - If user says "skip" → Mark as `skipped`, continue to joint confirmation with partial results
+   - If user says "abort" → STOP workflow, report partial results
+
+5. **Batch failure threshold**: If >50% workers in a batch fail → STOP entire workflow
 
 ### 4.4 Joint Confirmation
 
@@ -668,6 +726,10 @@ After both Feature Spec and API Contract documents are ready, present summary to
 - List all API Contract documents with paths
 - Request user confirmation before proceeding to system design phase
 - After confirmation, API Contract becomes the read-only baseline for downstream stages
+- After confirmation, update `.checkpoints.json`:
+  ```bash
+  node {update_progress_script} write-checkpoint --file {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint api_contract_joint --passed true
+  ```
 
 ### 4.5 Finalize Stage (Update Workflow Progress)
 
