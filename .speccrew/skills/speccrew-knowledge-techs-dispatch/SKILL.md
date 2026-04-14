@@ -124,6 +124,12 @@ See [Platform Status Tracking Fields](#platform-status-tracking-fields) for stat
 
 ## Stage 2: Generate Platform Documents (Parallel)
 
+> **🚨 CRITICAL: PARALLEL EXECUTION IS MANDATORY**
+> - Prepare task plans for ALL platforms FIRST, then dispatch ALL workers SIMULTANEOUSLY
+> - DO NOT finish one platform before starting the next — this wastes time and violates the pipeline design
+> - The calling Agent MUST use concurrent task dispatch (e.g., dispatch 3 workers in one turn for 3 platforms)
+> - Sequential platform-by-platform execution is FORBIDDEN
+
 **Goal**: Generate technology documentation for each platform in parallel.
 
 **Action**:

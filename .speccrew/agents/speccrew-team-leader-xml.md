@@ -187,12 +187,18 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
         <block type="gateway" id="P05-G3" mode="exclusive" desc="Check techs knowledge base">
           <branch test="${techs_kb.exists} == false" name="Techs Not Initialized">
             <block type="event" id="P05-E3" action="log" desc="Guide to initialize techs knowledge base"/>
+            <block type="rule" id="P05-R-TECHS" level="mandatory" desc="Parallel worker dispatch for techs">
+              <field name="text">When techs-dispatch Stage 2 prepares task plans for multiple platforms, dispatch ALL platform workers IN PARALLEL — DO NOT execute sequentially</field>
+            </block>
             <block type="task" id="P05-B5" action="run-skill" desc="Invoke techs-dispatch">
               <field name="skill">speccrew-knowledge-techs-dispatch</field>
             </block>
           </branch>
           <branch test="${bizs_kb.exists} == false" name="Bizs Not Initialized">
             <block type="event" id="P05-E4" action="log" desc="Guide to initialize bizs knowledge base"/>
+            <block type="rule" id="P05-R-BIZS" level="mandatory" desc="Parallel worker dispatch for bizs">
+              <field name="text">When bizs-dispatch prepares worker task plans, dispatch ALL workers IN PARALLEL per stage — DO NOT execute sequentially</field>
+            </block>
             <block type="task" id="P05-B6" action="run-skill" desc="Invoke bizs-dispatch-xml">
               <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
             </block>
@@ -230,11 +236,19 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
         </block>
       </branch>
       <branch test="${intent} == 'knowledge_bizs'" name="Bizs Knowledge Base">
+        <block type="rule" id="P1-R-BIZS" level="mandatory" desc="Bizs dispatch parallel execution rules">
+          <field name="text">When bizs-dispatch prepares worker task plans for multiple features or platforms, dispatch ALL workers IN PARALLEL — DO NOT execute features or platforms sequentially one by one</field>
+          <field name="text">Each Worker (analysis, graph, summarize) runs independently — dispatch all of them at once per stage, then monitor completion markers</field>
+        </block>
         <block type="task" id="P1-B3" action="run-skill" status="pending" desc="Invoke bizs-dispatch XML version">
           <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
         </block>
       </branch>
       <branch test="${intent} == 'knowledge_techs'" name="Techs Knowledge Base">
+        <block type="rule" id="P1-R-TECHS" level="mandatory" desc="Techs dispatch parallel execution rules">
+          <field name="text">When techs-dispatch Stage 2 prepares task plans for multiple platforms, dispatch ALL platform workers IN PARALLEL using concurrent task dispatch — DO NOT execute platforms sequentially one by one</field>
+          <field name="text">Each platform worker (techs-generate-conventions, techs-generate-ui-style) runs independently — dispatch all of them at once, then monitor completion markers</field>
+        </block>
         <block type="task" id="P1-B4" action="run-skill" status="pending" desc="Invoke techs-dispatch Skill">
           <field name="skill">speccrew-knowledge-techs-dispatch</field>
         </block>

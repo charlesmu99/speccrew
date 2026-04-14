@@ -473,7 +473,7 @@ Preparing Graph data generation for completed Features
           </block>
 
           <!-- Step 2.5: Dispatch Graph Worker -->
-          <block type="loop" id="S2-L25" over="${batch_response.batch}" as="feature" desc="Dispatch Graph Worker for each Feature">
+          <block type="loop" id="S2-L25" over="${batch_response.batch}" as="feature" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch Graph Worker for each Feature IN PARALLEL">
             <block type="gateway" id="S2-G2" mode="exclusive" desc="Route Graph Worker based on analysis type">
               <branch test="${feature.platformType} == 'backend'" name="API Graph">
                 <block type="task" id="S2-B25a" action="dispatch-to-worker" status="pending" desc="Dispatch API Graph Worker">
@@ -637,11 +637,12 @@ Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized
     
     <block type="rule" id="S35-R1" level="mandatory" desc="Stage 3.5 mandatory rules">
       <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
+      <field name="text">ALL UI style extraction workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
       <field name="text">This stage writes to techs knowledge base, not bizs knowledge base</field>
     </block>
 
     <!-- Dispatch UI Style Extract Worker for each frontend platform -->
-    <block type="loop" id="S35-L1" over="${platforms}" as="platform" desc="Prepare UI style extraction tasks for frontend platforms">
+    <block type="loop" id="S35-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch UI style extraction Workers for frontend platforms IN PARALLEL">
       <block type="gateway" id="S35-G1" mode="exclusive" desc="Execute for UI platforms only">
         <branch test="${platform.platformType} in ['web', 'mobile', 'desktop']" name="UI platform">
           <block type="task" id="S35-B1" action="dispatch-to-worker" status="pending" desc="Dispatch UI style extraction Worker">
