@@ -546,6 +546,62 @@ No knowledge base exists. A lightweight feature inventory scan is triggered to d
 > The scope was already determined by the matcher in Step 1.
 > Asking "do you want to continue?" mid-way is FORBIDDEN.
 >
+> **Path B Step 3.5: Generate Graph Data**
+>
+> After ALL feature analysis Workers in Step 3 complete, dispatch Graph Workers for each completed analysis task:
+>
+> **For each completed API analysis task** (analyzer_skill = speccrew-knowledge-bizs-api-analyze):
+> - Dispatch Worker with skill: `speccrew-knowledge-bizs-api-graph`
+> - Input: the generated analysis document from Step 3
+> - Output: `.graph.json` file with nodes (api, service, table, dto) and edges (operates, invokes, references, depends-on, maps-to)
+>
+> **Agent Tool Invocation for API Graph Worker**:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-knowledge-bizs-api-graph for feature "{task.fileName}"
+> - context:
+>     skill: speccrew-knowledge-bizs-api-graph
+>     api_analysis_path: {workspace_path}/{task.documentPath}
+>     platform_id: {task.platform_id}
+>     output_dir: {sync_state_bizs_dir}/completed
+>     module: {task.module}
+>     fileName: {task.fileName}
+>     sourcePath: {task.sourcePath}
+>     sourceFile: features-{task.platform_id}.json
+>     language: {language}
+>     subpath: {task.subpath}
+> ```
+>
+> **For each completed UI analysis task** (analyzer_skill = speccrew-knowledge-bizs-ui-analyze):
+> - Dispatch Worker with skill: `speccrew-knowledge-bizs-ui-graph`
+> - Input: the generated UI analysis document from Step 3
+> - Output: `.graph.json` file with UI component nodes and relationships
+>
+> **Agent Tool Invocation for UI Graph Worker**:
+> ```
+> Use the Agent tool to invoke speccrew-task-worker:
+> - agent: speccrew-task-worker
+> - task: Execute speccrew-knowledge-bizs-ui-graph for feature "{task.fileName}"
+> - context:
+>     skill: speccrew-knowledge-bizs-ui-graph
+>     fileName: {task.fileName}
+>     sourcePath: {source_path}/{task.sourcePath}
+>     documentPath: {workspace_path}/{task.documentPath}
+>     module: {task.module}
+>     platform_type: {task.platform_type}
+>     platform_subtype: {task.platform_subtype}
+>     completed_dir: {sync_state_bizs_dir}/completed
+>     sourceFile: features-{task.platform_id}.json
+>     status: success
+>     analysisNotes: "Graph data generation from UI analysis"
+>     language: {language}
+> ```
+>
+> **Dispatch Strategy**: Same batch parallel strategy as Step 3 (max 5 Workers per batch).
+>
+> ⚠️ Step 3.5 MUST complete before Step 4 (Module Summaries). Graph data enriches module summaries.
+>
 > **Path B Step 4: Generate Module Summaries**
 > For each matched module, dispatch Worker with `speccrew-knowledge-module-summarize` skill:
 > ```
@@ -1187,9 +1243,12 @@ From the Skill's Step 12c output, collect:
 - `module_design_file`: Path to `.module-design.md`
 - `output_dir`: Directory for Sub-PRD files (same as Master PRD directory)
 - Module list with context for each module:
+  - `module_id`: Unique identifier for the module (used for feature list indexing)
   - `module_name`, `module_key`, `module_scope`, `module_entities`
-  - `module_user_stories`, `module_requirements`, `module_features`
+  - `module_user_stories`, `module_requirements`
   - `module_dependencies`
+
+> **Note**: The dispatch plan now contains only scheduling fields (module metadata, dependencies). Feature data (`module_features`) is stored separately in `.prd-feature-list.json`, which will be used by FD Agent for Feature Registry initialization.
 
 **Store these values as workflow context variables for use in Worker dispatches.**
 
@@ -1327,6 +1386,7 @@ Use the Agent tool to invoke speccrew-task-worker:
 - task: Generate Sub-PRD for module "{module_name}"
 - context:
     skill: speccrew-pm-sub-prd-generate
+    module_id: {module_id}
     module_name: {module_name}
     module_key: {module_key}
     module_scope: {module_scope}
@@ -1349,13 +1409,14 @@ Use the Agent tool to invoke speccrew-task-worker:
 | Parameter | Source | Description |
 |-----------|--------|-------------|
 | `skill` | Fixed | `speccrew-pm-sub-prd-generate` |
+| `module_id` | Dispatch Plan | Unique identifier for the module (used for feature list indexing) |
 | `module_name` | Dispatch Plan | Display name (e.g., "Customer Management") |
 | `module_key` | Dispatch Plan | Identifier for file naming (e.g., "customer") |
 | `module_scope` | Dispatch Plan | What this module covers |
 | `module_entities` | Dispatch Plan | Core business entities |
 | `module_user_stories` | Dispatch Plan | Module-specific user stories |
 | `module_requirements` | Dispatch Plan | Module-specific functional requirements (P0/P1/P2) |
-| `module_features` | Dispatch Plan | Feature Breakdown entries for this module |
+| `module_features` | Dispatch Plan | Feature Breakdown entries for this module (used by Sub-PRD Skill to generate content and write to feature list) |
 | `module_dependencies` | Dispatch Plan | Dependencies on other modules |
 | `master_prd_path` | Dispatch Plan | Path to the Master PRD |
 | `clarification_file` | Step 5.1 | Path to `.clarification-summary.md` |
@@ -1515,6 +1576,41 @@ node "{update_progress_script}" write-checkpoint `
   --checkpoint sub_prd_dispatch `
   --status passed
 ```
+
+**Step 5.5.5: Verify Feature List Completeness**
+
+After all Sub-PRDs are generated, verify that `.prd-feature-list.json` contains complete feature data:
+
+1. **Read feature list file**:
+   ```bash
+   Get-Content "{iterations_dir}/{iteration}/01.product-requirement/.prd-feature-list.json" | ConvertFrom-Json
+   ```
+
+2. **Verify structure**:
+   - File exists and is valid JSON
+   - Contains `modules` array
+   - Each module has `module_id` and `features` array
+
+3. **Verify completeness**:
+   - Module count in feature list should equal `totalModules` from dispatch plan
+   - If any module is missing, display WARNING:
+   ```
+   ⚠️ WARNING: Feature list incomplete
+   ├── Expected modules: {expected_count}
+   ├── Found modules: {actual_count}
+   └── Missing modules: {missing_module_ids}
+
+   Feature list will be used by FD Agent for Feature Registry initialization.
+   Missing modules may cause errors in Feature Design phase.
+   ```
+
+4. **If verification passes**:
+   ```
+   ✅ Feature list verification passed
+   ├── Modules: {count}
+   ├── Total features: {total_features}
+   └── Ready for Feature Design phase
+   ```
 
 **Before proceeding to Phase 6, verify:**
 - [ ] All workers were dispatched via speccrew-task-worker (one Worker per module)
@@ -1761,12 +1857,13 @@ After PRD verification passes and user has confirmed, delete intermediate proces
 - `{iteration_path}/01.product-requirement/.checkpoints.json` (execution checkpoint tracking)
 - `{iteration_path}/01.product-requirement/.prd-generation-report.md` (intermediate generation report)
 - `{iteration_path}/01.product-requirement/.prd-completion-report.md` (completion report)
-- `{iteration_path}/01.product-requirement/.sub-prd-dispatch-plan.json` (Sub-PRD dispatch plan)
+- `{iteration_path}/01.product-requirement/.sub-prd-dispatch-plan.json` (dispatch plan — no longer needed after dispatch complete)
 
 **Files to KEEP (referenced by downstream phases):**
 - Master PRD and all Sub-PRD documents (`*-prd.md`, `*-sub-*.md`)
 - `.clarification-summary.md`
 - `.module-design.md`
+- `.prd-feature-list.json` (Feature list for Feature Design phase — used by FD Agent to load Feature Registry)
 - `.clarification-questions-round-*.md` (optional, for reference)
 
 ⚠️ **Only execute cleanup AFTER:**

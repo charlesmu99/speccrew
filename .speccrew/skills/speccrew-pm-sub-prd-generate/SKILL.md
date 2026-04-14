@@ -30,6 +30,7 @@ tools: Read, Write, Glob, Grep
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
+| module_id | Yes | Module ID for feature registry (e.g., "M1", "M2") |
 | module_name | Yes | Human-readable module name (e.g., "Customer Management") |
 | module_key | Yes | Module identifier for file naming (e.g., "customer") |
 | module_scope | Yes | What this module covers |
@@ -188,3 +189,90 @@ IF verification fails:
   → Output: "❌ Sub-PRD verification failed: {reason}"
   → Attempt to fix the specific issue
 ```
+
+## Step 5: Write Module Features to Feature List
+
+> **Purpose:** Separate feature data from dispatch plan into dedicated `.prd-feature-list.json` file.
+> Each Sub-PRD Worker writes its module's features upon completion.
+
+### 5.1 Determine Feature List File Path
+
+```
+feature_list_path = dirname(output_path) + '/.prd-feature-list.json'
+```
+
+This is the same directory containing `.sub-prd-dispatch-plan.json`.
+
+### 5.2 Read or Initialize Feature List File
+
+```javascript
+IF file exists at feature_list_path:
+  feature_list = read_json(feature_list_path)
+ELSE:
+  feature_list = {
+    "created_at": "{timestamp from update-progress.js}",
+    "updated_at": "{timestamp from update-progress.js}",
+    "modules": []
+  }
+```
+
+> ⚠️ **Timestamp constraint:** Use `node scripts/update-progress.js write-checkpoint` or similar script to get accurate timestamps. DO NOT fabricate timestamps.
+
+### 5.3 Build Current Module Feature Entry
+
+Construct the module entry from input parameters:
+
+```json
+{
+  "module_id": "{module_id}",
+  "module_name": "{module_name}",
+  "module_key": "{module_key}",
+  "source_prd": "{feature_name}-sub-{module_key}.md",
+  "feature_count": {module_features.length},
+  "features": [
+    // Map each item in module_features to:
+    {
+      "feature_id": "{item.feature_id}",
+      "feature_name": "{item.feature_name}",
+      "type": "{item.type}",
+      "priority": "{item.priority}",
+      "sub_features": "{item.sub_features}",
+      "description": "{item.description}"
+    }
+  ]
+}
+```
+
+### 5.4 Merge into Feature List
+
+```javascript
+existing_index = find_index(feature_list.modules, m => m.module_key === module_key)
+
+IF existing_index >= 0:
+  // Retry scenario: replace existing entry
+  feature_list.modules[existing_index] = module_entry
+ELSE:
+  // New module: append
+  feature_list.modules.push(module_entry)
+
+// Update timestamp
+feature_list.updated_at = "{current timestamp}"
+```
+
+### 5.5 Write Feature List File
+
+Write the updated `feature_list` to `{feature_list_path}` using `create_file`.
+
+### 5.6 Report Result
+
+```
+IF write succeeds:
+  → Output: "✅ Feature list updated: {feature_count} features for module {module_id}"
+IF write fails:
+  → Output: "⚠️ Feature list write failed: {error}"
+  → Continue without blocking Sub-PRD completion
+```
+
+---
+
+> **Note:** Step 5 is a pure incremental operation. Failure here should NOT affect the Sub-PRD file generation result. The primary deliverable is the Sub-PRD document itself.
