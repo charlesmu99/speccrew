@@ -185,12 +185,12 @@ Worker Agent (speccrew-task-worker)
        Step 7: Report Results
        ============================================================ -->
   <block type="event" id="S7-E1" action="log" level="info" desc="Report generation results">
-Stage 3 completed: Root Technology Index Generated
+    <field name="message">Stage 3 completed: Root Technology Index Generated
 - Platforms Indexed: ${platform_count}
   - web-react: ✓
   - backend-nestjs: ✓
 - Root Index: ${output_path}/INDEX.md
-- Agent Mappings: Documented for all platforms
+- Agent Mappings: Documented for all platforms</field>
   </block>
 
   <!-- ============================================================

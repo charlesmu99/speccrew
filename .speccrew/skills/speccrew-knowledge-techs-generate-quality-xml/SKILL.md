@@ -177,7 +177,7 @@ Worker Agent (speccrew-task-worker)
   </block>
 
   <block type="event" id="E2" action="log" level="info" desc="Completeness check result">
-Completeness check: ${completeness_result.documents_found}/${completeness_result.documents_expected} documents, ${completeness_result.sections_passed}/${completeness_result.sections_checked} sections
+    <field name="message">Completeness check: ${completeness_result.documents_found}/${completeness_result.documents_expected} documents, ${completeness_result.sections_passed}/${completeness_result.sections_checked} sections</field>
   </block>
 
   <block type="checkpoint" id="CP2" name="completeness_checked" desc="Completeness check complete">
@@ -227,7 +227,7 @@ Completeness check: ${completeness_result.documents_found}/${completeness_result
   </block>
 
   <block type="event" id="E3" action="log" level="info" desc="Cross-validation result">
-Cross-validation: ${cross_validation_result.version_checks.passed}/${cross_validation_result.version_checks.total} version checks, ${cross_validation_result.reference_checks.passed}/${cross_validation_result.reference_checks.total} reference checks
+    <field name="message">Cross-validation: ${cross_validation_result.version_checks.passed}/${cross_validation_result.version_checks.total} version checks, ${cross_validation_result.reference_checks.passed}/${cross_validation_result.reference_checks.total} reference checks</field>
   </block>
 
   <block type="checkpoint" id="CP3" name="cross_validation_complete" desc="Cross-validation complete">
@@ -277,7 +277,7 @@ Cross-validation: ${cross_validation_result.version_checks.passed}/${cross_valid
   </block>
 
   <block type="event" id="E4" action="log" level="info" desc="Consistency check result">
-Consistency: ${consistency_result.status} - ${consistency_result.issues.length} issues found
+    <field name="message">Consistency: ${consistency_result.status} - ${consistency_result.issues.length} issues found</field>
   </block>
 
   <block type="checkpoint" id="CP4" name="consistency_checked" desc="Consistency check complete">
@@ -330,7 +330,7 @@ Consistency: ${consistency_result.status} - ${consistency_result.issues.length} 
   </block>
 
   <block type="event" id="E5" action="log" level="info" desc="Source traceability result">
-Source Traceability: ${traceability_result.documents_with_cite_block}/${traceability_result.documents_total} documents with cite blocks, ${traceability_result.absolute_paths_found} absolute paths, ${traceability_result.file_protocol_found} file:// protocols
+    <field name="message">Source Traceability: ${traceability_result.documents_with_cite_block}/${traceability_result.documents_total} documents with cite blocks, ${traceability_result.absolute_paths_found} absolute paths, ${traceability_result.file_protocol_found} file:// protocols</field>
   </block>
 
   <block type="checkpoint" id="CP5" name="traceability_checked" desc="Source traceability check complete">
@@ -376,7 +376,7 @@ Source Traceability: ${traceability_result.documents_with_cite_block}/${traceabi
   </block>
 
   <block type="event" id="E6" action="log" level="info" desc="Mermaid compatibility result">
-Mermaid Compatibility: ${mermaid_result.diagrams_passed}/${mermaid_result.diagrams_checked} diagrams passed, ${mermaid_result.issues.length} issues found
+    <field name="message">Mermaid Compatibility: ${mermaid_result.diagrams_passed}/${mermaid_result.diagrams_checked} diagrams passed, ${mermaid_result.issues.length} issues found</field>
   </block>
 
   <block type="checkpoint" id="CP6" name="mermaid_checked" desc="Mermaid compatibility check complete">
@@ -474,7 +474,7 @@ Mermaid Compatibility: ${mermaid_result.diagrams_passed}/${mermaid_result.diagra
   </block>
 
   <block type="event" id="E8" action="log" level="info" desc="Quality check complete">
-Quality check complete for {platform_id}
+    <field name="message">Quality check complete for {platform_id}
 - Total Checks: ${quality_report.summary.total_checks}
 - Passed: ${quality_report.summary.passed}
 - Warnings: ${quality_report.summary.warnings}
@@ -486,7 +486,7 @@ Quality check complete for {platform_id}
 - Cross-Validation: ${quality_report.cross_validation.status}
 - Consistency: ${quality_report.consistency.status}
 - Source Traceability: ${quality_report.source_traceability.status}
-- Mermaid Compatibility: ${quality_report.mermaid_compatibility.status}
+- Mermaid Compatibility: ${quality_report.mermaid_compatibility.status}</field>
   </block>
 
   <!-- ============================================================
@@ -515,7 +515,7 @@ Quality check complete for {platform_id}
     </try>
     <catch on="platform_dir_not_found">
       <block type="event" id="EH1-E1" action="log" level="error" desc="Platform directory not found">
-Platform directory not found: {platform_dir}
+        <field name="message">Platform directory not found: {platform_dir}</field>
       </block>
       <block type="output" id="EH1-O1">
         <field name="status" value="failed"/>
@@ -524,20 +524,20 @@ Platform directory not found: {platform_dir}
     </catch>
     <catch on="required_document_missing">
       <block type="event" id="EH1-E2" action="log" level="warn" desc="Required document missing">
-Required document missing: {missing_document}
+        <field name="message">Required document missing: {missing_document}</field>
       </block>
       <field name="continue" value="true"/>
       <field name="record_in" value="completeness.documents_missing"/>
     </catch>
     <catch on="analysis_report_missing">
       <block type="event" id="EH1-E3" action="log" level="warn" desc="Analysis report missing">
-Analysis report missing, skipping cross-validation with source
+        <field name="message">Analysis report missing, skipping cross-validation with source</field>
       </block>
       <field name="continue" value="true"/>
     </catch>
     <catch on="mermaid_parsing_error">
       <block type="event" id="EH1-E4" action="log" level="warn" desc="Mermaid parsing error">
-Mermaid parsing error in {diagram_location}
+        <field name="message">Mermaid parsing error in {diagram_location}</field>
       </block>
       <field name="continue" value="true"/>
       <field name="record_in" value="mermaid_compatibility.issues"/>

@@ -140,7 +140,7 @@ Generate comprehensive technology documentation for a specific platform by analy
     </branch>
     <branch default="true" name="Backend platform">
       <block type="event" id="S4-E1" action="log" level="info" desc="UI style analysis skipped">
-UI style analysis skipped for backend platform
+        <field name="message">UI style analysis skipped for backend platform</field>
       </block>
     </branch>
   </block>
@@ -181,7 +181,7 @@ UI style analysis skipped for backend platform
     </branch>
     <branch default="true" name="No data layer">
       <block type="event" id="S5b-E1" action="log" level="info" desc="Data conventions skipped">
-conventions-data.md skipped - not required for this platform
+        <field name="message">conventions-data.md skipped - not required for this platform</field>
       </block>
     </branch>
   </block>
@@ -213,7 +213,7 @@ conventions-data.md skipped - not required for this platform
        Step 8: Report Results
        ============================================================ -->
   <block type="event" id="S8-E1" action="log" level="info" desc="Report generation results">
-Platform Technology Documents Generated: ${platform_id}
+    <field name="message">Platform Technology Documents Generated: ${platform_id}
 - INDEX.md: ✓
 - tech-stack.md: ✓
 - architecture.md: ✓
@@ -224,7 +224,7 @@ Platform Technology Documents Generated: ${platform_id}
 - conventions-build.md: ✓
 - conventions-data.md: ✓ (or skipped)
 - ui-style-guide.md: ✓ (frontend only)
-- Output Directory: ${output_path}
+- Output Directory: ${output_path}</field>
   </block>
 
   <!-- ============================================================

@@ -97,7 +97,7 @@ flowchart TD
 
   <!-- Prerequisites Verification -->
   <block type="event" id="E1" action="log" level="info" desc="Log workflow start">
-Starting system summarization workflow
+    <field name="message">Starting system summarization workflow</field>
   </block>
 
   <!-- Step 0: Read System Overview Template -->
@@ -123,7 +123,7 @@ Starting system summarization workflow
   <block type="gateway" id="G1" mode="exclusive" desc="Check if modules discovered">
     <branch test="${module_files.length} == 0" name="No modules">
       <block type="event" id="E2" action="log" level="warning" desc="Log no modules found">
-No module overview files found in ${modules_path}
+        <field name="message">No module overview files found in ${modules_path}</field>
       </block>
       <block type="task" id="B2" action="run-script" desc="Generate skeleton document">
         <field name="script" value="generate-skeleton.js"/>
@@ -144,7 +144,7 @@ No module overview files found in ${modules_path}
     </branch>
     <branch test="${module_files.length} > 0" name="Modules found">
       <block type="event" id="E4" action="log" level="info" desc="Log modules discovered">
-Discovered ${module_files.length} module overview files
+        <field name="message">Discovered ${module_files.length} module overview files</field>
       </block>
     </branch>
   </block>
@@ -355,7 +355,7 @@ Discovered ${module_files.length} module overview files
         <field name="output" var="timestamp"/>
       </block>
       <block type="event" id="E5" action="log" level="warning" desc="Log fallback">
-Using system fallback timestamp
+        <field name="message">Using system fallback timestamp</field>
       </block>
     </branch>
   </block>
@@ -464,7 +464,7 @@ Using system fallback timestamp
     </try>
     <catch error-type="write_error">
       <block type="event" id="E6" action="log" level="error" desc="Log write error">
-Failed to write system overview: ${write_error.message}
+        <field name="message">Failed to write system overview: ${write_error.message}</field>
       </block>
       <block type="output" id="O-err" desc="Error output">
         <field name="status" value="failed"/>
@@ -472,7 +472,7 @@ Failed to write system overview: ${write_error.message}
     </catch>
     <finally>
       <block type="event" id="E7" action="log" level="info" desc="Log write complete">
-Document write operation completed
+        <field name="message">Document write operation completed</field>
       </block>
     </finally>
   </block>
@@ -513,14 +513,14 @@ Document write operation completed
 
   <!-- Event: Log completion -->
   <block type="event" id="E8" action="log" level="info" desc="Log completion summary">
-    System summarization completed:
+    <field name="message">System summarization completed:
     - Modules Processed: ${module_count}
     - Entities Aggregated: ${metrics.entity_count}
     - APIs Counted: ${metrics.api_count}
     - Dependencies Mapped: ${all_dependencies.length}
     - Business Flows Identified: ${flow_count}
     - Output: system-overview.md (complete)
-    - Status: success
+    - Status: success</field>
   </block>
 
   <!-- Output Block: Define workflow outputs -->

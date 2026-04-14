@@ -115,7 +115,9 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
        ============================================================ -->
   <block type="gateway" id="G1" mode="exclusive" desc="Check platform type for UI pattern extraction">
     <branch test="${platform_type} NOT IN ['web', 'mobile', 'desktop']" name="Backend platform">
-      <block type="event" id="E1" action="log" level="info" desc="Log skip reason">Skipping skill: backend platforms do not have UI patterns</block>
+      <block type="event" id="E1" action="log" level="info" desc="Log skip reason">
+        <field name="message">Skipping skill: backend platforms do not have UI patterns</field>
+      </block>
       <block type="task" id="B1" action="analyze" desc="Return skip status">
         <field name="status" value="skipped"/>
         <field name="reason" value="Backend platform does not have UI patterns"/>
@@ -210,7 +212,9 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
                ============================================================ -->
           <block type="gateway" id="G3" mode="exclusive" desc="Check if patterns were identified">
             <branch test="${identified_patterns.length} == 0" name="No patterns">
-              <block type="event" id="E2" action="log" level="warn" desc="Log no patterns">No patterns identified from feature documents</block>
+              <block type="event" id="E2" action="log" level="warn" desc="Log no patterns">
+                <field name="message">No patterns identified from feature documents</field>
+              </block>
               <block type="task" id="B8" action="analyze" desc="Return empty result">
                 <field name="status" value="completed"/>
                 <field name="platform_id" value="${platform_id}"/>
@@ -299,7 +303,9 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 
         </branch>
         <branch test="${completed_features.length} == 0" name="No completed features">
-          <block type="event" id="E3" action="log" level="warn" desc="Log no features">No completed features found - returning empty result</block>
+          <block type="event" id="E3" action="log" level="warn" desc="Log no features">
+            <field name="message">No completed features found - returning empty result</field>
+          </block>
           <block type="task" id="B15" action="analyze" desc="Return empty summary">
             <field name="status" value="completed"/>
             <field name="platform_id" value="${platform_id}"/>

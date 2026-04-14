@@ -108,7 +108,7 @@ flowchart TD
     <block type="gateway" id="G1" mode="exclusive" desc="Check if features exist">
       <branch test="${feature_files.length} == 0" name="No features">
         <block type="event" id="E1a" action="log" level="warning" desc="No features warning">
-No feature documents found for module ${module_name}
+          <field name="message">No feature documents found for module ${module_name}</field>
         </block>
         <block type="task" id="B1e" action="write-file" desc="Generate minimal overview">
           <field name="path" value="${module_path}/${module_name}-overview.md"/>
@@ -116,12 +116,12 @@ No feature documents found for module ${module_name}
         </block>
         <field name="status" value="partial"/>
         <block type="event" id="E1b" action="signal" desc="Signal complete">
-workflow_complete
+          <field name="message">workflow_complete</field>
         </block>
       </branch>
       <branch test="${feature_files.length} > 0" name="Features found">
         <block type="event" id="E1c" action="log" level="info" desc="Features found">
-Found ${feature_files.length} feature documents
+          <field name="message">Found ${feature_files.length} feature documents</field>
         </block>
       </branch>
     </block>
@@ -308,13 +308,13 @@ Found ${feature_files.length} feature documents
       </try>
       <catch error-type="write_error">
         <block type="event" id="EH1-E1" action="log" level="error" desc="Write error">
-Failed to write overview document: ${write_error.message}
+          <field name="message">Failed to write overview document: ${write_error.message}</field>
         </block>
         <field name="status" value="failed"/>
       </catch>
       <finally>
         <block type="event" id="EH1-E2" action="log" level="info" desc="Write completed">
-Document write operation completed
+          <field name="message">Document write operation completed</field>
         </block>
       </finally>
     </block>
@@ -351,14 +351,14 @@ Document write operation completed
 
     <!-- Event: Log completion -->
     <block type="event" id="E6" action="log" level="info" desc="Log completion">
-Module summarization completed:
+      <field name="message">Module summarization completed:
 - Module: ${module_name}
 - Features Processed: ${feature_files.length}
 - Entities Extracted: ${unique_entities.length}
 - Dependencies Identified: ${dependencies.length}
 - Business Rules Summarized: ${business_rules.length}
 - Output: ${module_name}-overview.md (complete)
-- Status: success
+- Status: success</field>
     </block>
   </sequence>
 

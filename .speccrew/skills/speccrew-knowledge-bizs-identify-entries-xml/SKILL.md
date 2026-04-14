@@ -166,7 +166,9 @@ For each platform, generates:
         <branch test="${validation_result.status} == 'failed'">
           <block type="error-handler" id="EH1" desc="Handle validation failure">
             <catch error-type="validation_failed">
-              <block type="event" id="E1" action="log" level="warn" desc="Log validation failure">Entry directory recognition failed for platform ${platform.platformId}</block>
+              <block type="event" id="E1" action="log" level="warn" desc="Log validation failure">
+                <field name="message">Entry directory recognition failed for platform ${platform.platformId}</field>
+              </block>
               <block type="task" id="B7" action="analyze" desc="Re-analyze the directory tree due to validation failure">
                 <field name="input" value="${directory_tree}"/>
                 <field name="output" var="re_analyzed_entries"/>
@@ -175,7 +177,9 @@ For each platform, generates:
           </block>
         </branch>
         <branch test="${validation_result.status} == 'passed'">
-          <block type="event" id="E2" action="log" level="info" desc="Log validation success">Platform ${platform.platformId} entry-dirs validation passed</block>
+          <block type="event" id="E2" action="log" level="info" desc="Log validation success">
+            <field name="message">Platform ${platform.platformId} entry-dirs validation passed</field>
+          </block>
         </branch>
       </block>
 

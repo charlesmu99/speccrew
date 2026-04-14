@@ -133,7 +133,7 @@ Analyze one specific UI feature from source code, extract business functionality
     <block type="gateway" id="G0" mode="exclusive" desc="Check analyzed status">
       <branch test="${analyzed} == true" name="Already analyzed">
         <block type="event" id="E0a" action="log" level="info" desc="Skip already analyzed feature">
-Step 0 Status: SKIPPED (already analyzed)
+          <field name="message">Step 0 Status: SKIPPED (already analyzed)</field>
         </block>
         <block type="output" id="O0a" desc="Skip output">
           <field name="status" value="skipped"/>
@@ -145,7 +145,7 @@ Step 0 Status: SKIPPED (already analyzed)
       </branch>
       <branch test="${analyzed} == false" name="Proceed with analysis">
         <block type="event" id="E0b" action="log" level="info" desc="Proceed with analysis">
-Step 0 Status: PROCEEDING (analysis required)
+          <field name="message">Step 0 Status: PROCEEDING (analysis required)</field>
         </block>
       </branch>
     </block>
@@ -183,7 +183,7 @@ Step 0 Status: PROCEEDING (analysis required)
       <field name="verify" value="${templateContent} != null AND ${templateContent} != ''"/>
     </block>
     <block type="event" id="E1" action="log" level="info" desc="Log template read">
-Step 1 Status: COMPLETED - Read template for ${platform_type}/${platform_subtype}
+      <field name="message">Step 1 Status: COMPLETED - Read template for ${platform_type}/${platform_subtype}</field>
     </block>
   </sequence>
 
@@ -211,7 +211,7 @@ Step 1 Status: COMPLETED - Read template for ${platform_type}/${platform_subtype
       <field name="verify" value="${sourceContent} != null"/>
     </block>
     <block type="event" id="E2" action="log" level="info" desc="Log source analysis">
-Step 2 Status: COMPLETED - Read ${sourcePath}, Analyzed ${componentCount} components, ${eventCount} events
+      <field name="message">Step 2 Status: COMPLETED - Read ${sourcePath}, Analyzed ${componentCount} components, ${eventCount} events</field>
     </block>
   </sequence>
 
@@ -251,7 +251,7 @@ Step 2 Status: COMPLETED - Read ${sourcePath}, Analyzed ${componentCount} compon
       <field name="verify" value="${flows.length} > 0 OR ${wireframes.length} > 0"/>
     </block>
     <block type="event" id="E3" action="log" level="info" desc="Log feature extraction">
-Step 3 Status: COMPLETED - Extracted ${wireframes.length} wireframes, ${flows.length} business flows
+      <field name="message">Step 3 Status: COMPLETED - Extracted ${wireframes.length} wireframes, ${flows.length} business flows</field>
     </block>
   </sequence>
 
@@ -277,7 +277,7 @@ Step 3 Status: COMPLETED - Extracted ${wireframes.length} wireframes, ${flows.le
     </block>
 
     <block type="event" id="E4" action="log" level="info" desc="Log reference search">
-Step 4 Status: COMPLETED - Found ${referencingPages.length} referencing pages
+      <field name="message">Step 4 Status: COMPLETED - Found ${referencingPages.length} referencing pages</field>
     </block>
   </sequence>
 
@@ -301,7 +301,7 @@ Step 4 Status: COMPLETED - Found ${referencingPages.length} referencing pages
       <field name="verify" value="file.exists(${documentPath})"/>
     </block>
     <block type="event" id="E5a" action="log" level="info" desc="Log template copy">
-Step 5a Status: COMPLETED - Template copied to ${documentPath}
+      <field name="message">Step 5a Status: COMPLETED - Template copied to ${documentPath}</field>
     </block>
   </sequence>
 
@@ -367,14 +367,14 @@ Step 5a Status: COMPLETED - Template copied to ${documentPath}
       <field name="verify" value="all.sections.filled"/>
     </block>
     <block type="event" id="E5b" action="log" level="info" desc="Log section filling">
-Step 5b Status: COMPLETED - All sections filled using search_replace
+      <field name="message">Step 5b Status: COMPLETED - All sections filled using search_replace</field>
     </block>
   </sequence>
 
   <!-- ==================== STEP 6: REPORT RESULTS ==================== -->
   <sequence id="S6" name="Step 6: Report Results" status="pending" desc="Report analysis results">
     <block type="event" id="E6" action="log" level="info" desc="Log final status">
-Step 6 Status: COMPLETED - Analysis success: Successfully analyzed ${fileName} feature from ${sourcePath}
+      <field name="message">Step 6 Status: COMPLETED - Analysis success: Successfully analyzed ${fileName} feature from ${sourcePath}</field>
     </block>
   </sequence>
 
@@ -395,28 +395,28 @@ Step 6 Status: COMPLETED - Analysis success: Successfully analyzed ${fileName} f
     </try>
     <catch error-type="file-not-found">
       <block type="event" id="EH1-E1" action="log" level="error" desc="File not found error">
-Source file not found: ${sourcePath}
+        <field name="message">Source file not found: ${sourcePath}</field>
       </block>
       <field name="status" value="failed"/>
       <field name="message" value="Source file not found: ${sourcePath}"/>
     </catch>
     <catch error-type="template-error">
       <block type="event" id="EH1-E2" action="log" level="error" desc="Template error">
-Template processing error
+        <field name="message">Template processing error</field>
       </block>
       <field name="status" value="failed"/>
       <field name="message" value="Failed to process template"/>
     </catch>
     <catch error-type="validation-error">
       <block type="event" id="EH1-E3" action="log" level="error" desc="Validation error">
-Validation failed: ${error.message}
+        <field name="message">Validation failed: ${error.message}</field>
       </block>
       <field name="status" value="partial"/>
       <field name="message" value="Analysis completed with validation errors"/>
     </catch>
     <finally>
       <block type="event" id="EH1-E4" action="log" level="info" desc="Workflow completed">
-Workflow execution completed
+        <field name="message">Workflow execution completed</field>
       </block>
     </finally>
   </block>

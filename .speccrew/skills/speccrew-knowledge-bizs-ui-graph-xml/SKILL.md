@@ -102,7 +102,7 @@ This skill automatically adapts to the user's input language. All documentation 
     </block>
 
     <block type="event" id="E1" action="log" level="info" desc="Log Step 1 completion">
-Step 1 Status: COMPLETED - Read ${sourcePath}, found ${apiImports.count} APIs, ${componentUsage.count} components, ${navigationPatterns.count} navigations
+      <field name="message">Step 1 Status: COMPLETED - Read ${sourcePath}, found ${apiImports.count} APIs, ${componentUsage.count} components, ${navigationPatterns.count} navigations</field>
     </block>
 
     <block type="checkpoint" id="CP1" name="step-1-read-source" desc="Source file read complete">
@@ -143,7 +143,7 @@ Step 1 Status: COMPLETED - Read ${sourcePath}, found ${apiImports.count} APIs, $
     </block>
 
     <block type="event" id="E2" action="log" level="info" desc="Log Step 2 completion">
-Step 2 Status: COMPLETED - Constructed ${nodeCount} nodes
+      <field name="message">Step 2 Status: COMPLETED - Constructed ${nodeCount} nodes</field>
     </block>
 
     <block type="checkpoint" id="CP2" name="step-2-construct-nodes" desc="Graph nodes constructed">
@@ -193,7 +193,7 @@ Step 2 Status: COMPLETED - Constructed ${nodeCount} nodes
     </block>
 
     <block type="event" id="E3" action="log" level="info" desc="Log Step 3 completion">
-Step 3 Status: COMPLETED - Constructed ${edgeCount} edges (${apiEdges.count} API calls, ${navEdges.count} navigations, ${useEdges.count} component uses)
+      <field name="message">Step 3 Status: COMPLETED - Constructed ${edgeCount} edges (${apiEdges.count} API calls, ${navEdges.count} navigations, ${useEdges.count} component uses)</field>
     </block>
 
     <block type="checkpoint" id="CP3" name="step-3-construct-edges" desc="Graph edges constructed">
@@ -232,7 +232,7 @@ Step 3 Status: COMPLETED - Constructed ${edgeCount} edges (${apiEdges.count} API
     </block>
 
     <block type="event" id="E4" action="log" level="info" desc="Log Step 4 completion">
-Step 4 Status: COMPLETED - Graph JSON written to ${completed_dir}/${markerFilename}.graph.json
+      <field name="message">Step 4 Status: COMPLETED - Graph JSON written to ${completed_dir}/${markerFilename}.graph.json</field>
     </block>
 
     <block type="checkpoint" id="CP4" name="step-4-write-graph-json" desc="Graph JSON written">
@@ -265,7 +265,7 @@ Step 4 Status: COMPLETED - Graph JSON written to ${completed_dir}/${markerFilena
     </block>
 
     <block type="event" id="E5" action="log" level="info" desc="Log Step 5 completion">
-Step 5 Status: COMPLETED - Graph completion marker written to ${completed_dir}/${markerFilename}.graph-done.json
+      <field name="message">Step 5 Status: COMPLETED - Graph completion marker written to ${completed_dir}/${markerFilename}.graph-done.json</field>
     </block>
 
     <block type="checkpoint" id="CP5" name="step-5-write-marker" desc="Completion marker written">

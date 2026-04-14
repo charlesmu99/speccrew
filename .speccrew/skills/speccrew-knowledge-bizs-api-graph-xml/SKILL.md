@@ -137,7 +137,7 @@ This skill operates in **strict sequential execution mode**:
     </block>
 
     <block type="event" id="E1" action="log" level="info" desc="Log step 1 completion">
-Step 1 Status: COMPLETED - Read ${api_analysis_path}, Found ${endpoints.length} endpoints
+      <field name="message">Step 1 Status: COMPLETED - Read ${api_analysis_path}, Found ${endpoints.length} endpoints</field>
     </block>
   </sequence>
 
@@ -212,7 +212,7 @@ Step 1 Status: COMPLETED - Read ${api_analysis_path}, Found ${endpoints.length} 
     </block>
 
     <block type="event" id="E2" action="log" level="info" desc="Log step 2 completion">
-Step 2 Status: COMPLETED - Extracted graph nodes (${apiNodes.length} APIs, ${serviceNodes.length} services, ${tableNodes.length} tables, ${dtoNodes.length} DTOs)
+      <field name="message">Step 2 Status: COMPLETED - Extracted graph nodes (${apiNodes.length} APIs, ${serviceNodes.length} services, ${tableNodes.length} tables, ${dtoNodes.length} DTOs)</field>
     </block>
   </sequence>
 
@@ -291,7 +291,7 @@ Step 2 Status: COMPLETED - Extracted graph nodes (${apiNodes.length} APIs, ${ser
     </block>
 
     <block type="event" id="E3" action="log" level="info" desc="Log step 3 completion">
-Step 3 Status: COMPLETED - Extracted graph edges (${operatesEdges.length + invokesEdges.length + referencesEdges.length + dependsOnEdges.length + mapsToEdges.length} total)
+      <field name="message">Step 3 Status: COMPLETED - Extracted graph edges (${operatesEdges.length + invokesEdges.length + referencesEdges.length + dependsOnEdges.length + mapsToEdges.length} total)</field>
     </block>
   </sequence>
 
@@ -315,7 +315,7 @@ Step 3 Status: COMPLETED - Extracted graph edges (${operatesEdges.length + invok
     </block>
 
     <block type="event" id="E4" action="log" level="info" desc="Log step 4 completion">
-Step 4 Status: COMPLETED - Graph JSON written to ${output_dir}/${markerFilename}.graph.json
+      <field name="message">Step 4 Status: COMPLETED - Graph JSON written to ${output_dir}/${markerFilename}.graph.json</field>
     </block>
   </sequence>
 
@@ -331,7 +331,7 @@ Step 4 Status: COMPLETED - Graph JSON written to ${output_dir}/${markerFilename}
     </block>
 
     <block type="event" id="E5" action="log" level="info" desc="Log step 5 completion">
-Step 5 Status: COMPLETED - Graph completion marker written to ${output_dir}/${markerFilename}.graph-done.json
+      <field name="message">Step 5 Status: COMPLETED - Graph completion marker written to ${output_dir}/${markerFilename}.graph-done.json</field>
     </block>
   </sequence>
 
@@ -340,12 +340,12 @@ Step 5 Status: COMPLETED - Graph completion marker written to ${output_dir}/${ma
     <block type="gateway" id="G6" mode="exclusive" desc="Determine result status">
       <branch test="${success} == true" name="Success">
         <block type="event" id="E6a" action="log" level="info" desc="Log success">
-Step 6 Status: COMPLETED - Graph construction success: Generated graph data with ${node_count} nodes and ${edge_count} edges
+          <field name="message">Step 6 Status: COMPLETED - Graph construction success: Generated graph data with ${node_count} nodes and ${edge_count} edges</field>
         </block>
       </branch>
       <branch test="${success} == false" name="Failure">
         <block type="event" id="E6b" action="log" level="error" desc="Log failure">
-Step 6 Status: COMPLETED - Graph construction failed: ${error_message}
+          <field name="message">Step 6 Status: COMPLETED - Graph construction failed: ${error_message}</field>
         </block>
       </branch>
     </block>

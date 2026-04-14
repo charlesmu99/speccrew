@@ -106,7 +106,9 @@ Conditional branching and guard checks.
     <block type="task" action="run-skill" desc="Run full initialization">...</block>
   </branch>
   <branch default="true" name="Fallback">
-    <block type="event" action="log" level="error">Unknown state</block>
+    <block type="event" action="log" level="error">
+        <field name="message">Unknown state</field>
+      </block>
   </branch>
 </block>
 ```
@@ -164,7 +166,7 @@ Logging, confirmation, and signaling.
 ```xml
 <!-- Log event -->
 <block type="event" action="log" level="info" desc="Log progress">
-  Processing ${tasks.length} tasks
+  <field name="message">Processing ${tasks.length} tasks</field>
 </block>
 
 <!-- Confirm event (pauses for user input) -->
@@ -194,13 +196,19 @@ Try/catch/finally error handling.
     </block>
   </try>
   <catch error-type="timeout">
-    <block type="event" action="log" level="error">Timeout: ${error.taskId}</block>
+    <block type="event" action="log" level="error">
+        <field name="message">Timeout: ${error.taskId}</field>
+      </block>
   </catch>
   <catch>
-    <block type="event" action="log" level="error">Unexpected: ${error.message}</block>
+    <block type="event" action="log" level="error">
+        <field name="message">Unexpected: ${error.message}</field>
+      </block>
   </catch>
   <finally>
-    <block type="event" action="log" level="info">Batch completed</block>
+    <block type="event" action="log" level="info">
+        <field name="message">Batch completed</field>
+      </block>
   </finally>
 </block>
 ```

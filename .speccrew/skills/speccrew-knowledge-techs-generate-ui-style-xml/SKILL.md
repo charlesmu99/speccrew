@@ -95,7 +95,7 @@ Worker Agent (speccrew-task-worker)
   <block type="gateway" id="G0" mode="exclusive" desc="Check platform type eligibility">
     <branch test="${platform_type} NOT IN ['web', 'mobile', 'desktop']" name="Skip non-frontend platform">
       <block type="event" id="E0-Skip" action="log" level="warn" desc="Log skip reason">
-Skipping UI style generation: {platform_type} is not a frontend platform
+        <field name="message">Skipping UI style generation: {platform_type} is not a frontend platform</field>
       </block>
       <block type="output" id="O-Skip" desc="Skip result">
         <field name="status" value="skipped"/>
@@ -169,7 +169,7 @@ Skipping UI style generation: {platform_type} is not a frontend platform
           </block>
 
           <block type="event" id="E1a" action="log" level="info" desc="Record analysis level">
-Primary path succeeded. ui_analysis_level = "full"
+            <field name="message">Primary path succeeded. ui_analysis_level = "full"</field>
           </block>
 
           <field name="ui_analysis_level" value="full"/>
@@ -259,7 +259,7 @@ Primary path succeeded. ui_analysis_level = "full"
           </block>
 
           <block type="event" id="E1b" action="log" level="info" desc="Record analysis level">
-Secondary path completed. ui_analysis_level = "minimal"
+            <field name="message">Secondary path completed. ui_analysis_level = "minimal"</field>
           </block>
 
           <field name="ui_analysis_level" value="minimal"/>
@@ -286,7 +286,7 @@ Secondary path completed. ui_analysis_level = "minimal"
           </block>
 
           <block type="event" id="E1c" action="log" level="info" desc="Record analysis level">
-Tertiary path completed. ui_analysis_level = "reference_only"
+            <field name="message">Tertiary path completed. ui_analysis_level = "reference_only"</field>
           </block>
 
           <field name="ui_analysis_level" value="reference_only"/>
@@ -313,7 +313,7 @@ Tertiary path completed. ui_analysis_level = "reference_only"
       </block>
 
       <block type="event" id="E2" action="log" level="info" desc="Output files written">
-All UI style documents written to {output_path}/ui-style/
+        <field name="message">All UI style documents written to {output_path}/ui-style/</field>
       </block>
 
       <block type="checkpoint" id="CP2" name="output_files_written" desc="Output files written">
@@ -382,7 +382,7 @@ All UI style documents written to {output_path}/ui-style/
       </block>
 
       <block type="event" id="E4" action="log" level="info" desc="Report completion">
-Platform UI Style Documents Generated: {platform_id}
+        <field name="message">Platform UI Style Documents Generated: {platform_id}
 - ui-style-guide.md: ✓ (analysis level: {ui_analysis_level})
 - page-types/page-type-summary.md: ✓
 - components/component-library.md: ✓
@@ -390,7 +390,7 @@ Platform UI Style Documents Generated: {platform_id}
 - styles/color-system.md: ✓
 - Output Directory: {output_path}/ui-style/
 - Analysis Report: {completed_dir}/{platform_id}.analysis-ui-style.json
-- Completion Marker: {completed_dir}/{platform_id}.done-ui-style.json
+- Completion Marker: {completed_dir}/{platform_id}.done-ui-style.json</field>
       </block>
 
       <!-- ============================================================
@@ -424,12 +424,12 @@ Platform UI Style Documents Generated: {platform_id}
     </try>
     <catch on="skill_invocation_failed">
       <block type="event" id="EH1-E1" action="log" level="warn" desc="Skill invocation failed">
-UI analyzer skill invocation failed, falling back to secondary path
+        <field name="message">UI analyzer skill invocation failed, falling back to secondary path</field>
       </block>
     </catch>
     <catch on="output_write_failed">
       <block type="event" id="EH1-E2" action="log" level="error" desc="Output write failed">
-Failed to write output files: {error.message}
+        <field name="message">Failed to write output files: {error.message}</field>
       </block>
     </catch>
   </block>

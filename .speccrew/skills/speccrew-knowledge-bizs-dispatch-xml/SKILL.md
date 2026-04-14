@@ -186,7 +186,7 @@ Stage 4: System Summary
         <field name="message">Skipping empty directory: ${module.name}</field>
       </block>
       <block type="event" id="S0-E1" action="log" level="info" desc="Log backend module">
-Discovered backend module: ${module.name} → Platform type: backend-${module.business_name}
+        <field name="message">Discovered backend module: ${module.name} → Platform type: backend-${module.business_name}</field>
       </block>
     </block>
 
@@ -199,7 +199,7 @@ Discovered backend module: ${module.name} → Platform type: backend-${module.bu
         <field name="message">Skipping non-frontend directory: ${frontend.name}</field>
       </block>
       <block type="event" id="S0-E2" action="log" level="info" desc="Log frontend platform">
-Discovered frontend platform: ${frontend.name} → Tech stack: Vue/React/UniApp
+        <field name="message">Discovered frontend platform: ${frontend.name} → Tech stack: Vue/React/UniApp</field>
       </block>
     </block>
 
@@ -228,10 +228,14 @@ Detected ${platforms.length} platforms:
 Continue with knowledge base generation?
       </field>
       <on-confirm>
-        <block type="event" action="log" level="info" desc="User confirmed">User confirmed platform list, continuing</block>
+        <block type="event" action="log" level="info" desc="User confirmed">
+                  <field name="message">User confirmed platform list, continuing</field>
+                </block>
       </on-confirm>
       <on-cancel>
-        <block type="event" action="log" level="warn" desc="User cancelled">User cancelled, terminating workflow</block>
+        <block type="event" action="log" level="warn" desc="User cancelled">
+                  <field name="message">User cancelled, terminating workflow</field>
+                </block>
         <field name="workflow.status" value="cancelled"/>
       </on-cancel>
     </block>
@@ -243,7 +247,7 @@ Continue with knowledge base generation?
     </block>
 
     <block type="event" id="S0-E4" action="log" level="info" desc="Report detected platform list">
-Detected ${platforms.length} platforms: ${platforms.names}
+    <field name="message">Detected ${platforms.length} platforms: ${platforms.names}</field>
     </block>
   </sequence>
 
@@ -313,7 +317,7 @@ Detected ${platforms.length} platforms: ${platforms.names}
     </block>
 
     <block type="event" id="S1b-E1" action="log" level="info" desc="Report Feature inventory statistics">
-Feature inventory initialized. ${feature_count} features across ${platform_count} platforms.
+    <field name="message">Feature inventory initialized. ${feature_count} features across ${platform_count} platforms.</field>
     </block>
   </sequence>
 
@@ -343,11 +347,11 @@ Feature inventory initialized. ${feature_count} features across ${platform_count
 
         <!-- Step 2: Report merge result -->
         <block type="event" id="S1c-E1" action="log" level="info" desc="Report merge result">
-Feature merge complete:
+        <field name="message">Feature merge complete:
 - Added: ${merge_result.added}
 - Removed: ${merge_result.removed}
 - Changed: ${merge_result.changed} (reset for re-analysis)
-- Unchanged: ${merge_result.unchanged} (analysis state preserved)
+- Unchanged: ${merge_result.unchanged} (analysis state preserved)</field>
         </block>
 
         <!-- Step 3: Mark stale Features -->
@@ -361,7 +365,7 @@ Feature merge complete:
       </branch>
       <branch default="true" name="Full mode">
         <block type="event" id="S1c-E2" action="log" level="info" desc="Full mode skip merge">
-Full mode, skipping Feature merge step
+        <field name="message">Full mode, skipping Feature merge step</field>
         </block>
       </branch>
     </block>
@@ -417,7 +421,7 @@ Full mode, skipping Feature merge step
       <block type="gateway" id="S2-G0" mode="exclusive" desc="Determine batch response">
         <branch test="${batch_response.action} == 'done'" name="All Features processed">
           <block type="event" id="S2-E-Done" action="log" level="info" desc="All Features processed">
-All Features analyzed, exiting Stage 2 loop
+          <field name="message">All Features analyzed, exiting Stage 2 loop</field>
           </block>
           <field name="stage2_complete" value="true"/>
         </branch>
@@ -425,7 +429,7 @@ All Features analyzed, exiting Stage 2 loop
           
           <!-- Step 2: Prepare analysis task specifications -->
           <block type="event" id="S2-E-Batch" action="log" level="info" desc="Report current batch">
-Processing batch: ${batch_response.batch.length} Features
+          <field name="message">Processing batch: ${batch_response.batch.length} Features</field>
           </block>
 
           <!-- Step 2: Dispatch Worker for each Feature -->
@@ -507,7 +511,7 @@ Requirements:
 
           <!-- Step 2.5: Graph Worker Task Preparation -->
           <block type="event" id="S2-E-Graph" action="log" level="info" desc="Prepare Graph Worker tasks">
-Preparing Graph data generation for completed Features
+          <field name="message">Preparing Graph data generation for completed Features</field>
           </block>
 
           <!-- Step 2.5: Dispatch Graph Worker -->
@@ -588,7 +592,7 @@ Requirements:
           </block>
 
           <block type="event" id="S2-E-Result" action="log" level="info" desc="Report batch processing result">
-Batch processing complete: ${batch_result.success} succeeded, ${batch_result.failed} failed
+          <field name="message">Batch processing complete: ${batch_result.success} succeeded, ${batch_result.failed} failed</field>
           </block>
         </branch>
       </block>
@@ -600,7 +604,7 @@ Batch processing complete: ${batch_result.success} succeeded, ${batch_result.fai
     </block>
 
     <block type="event" id="S2-E-Final" action="log" level="info" desc="Stage 2 complete">
-Stage 2 Milestone: Feature analysis complete. ${analyzed_count} features analyzed, ${failed_count} failed. ${graph_count} graph data files generated.
+    <field name="message">Stage 2 Milestone: Feature analysis complete. ${analyzed_count} features analyzed, ${failed_count} failed. ${graph_count} graph data files generated.</field>
     </block>
   </sequence>
 
@@ -664,7 +668,7 @@ Requirements:
     </block>
 
     <block type="event" id="S3-E1" action="log" level="info" desc="Stage 3 complete">
-Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized.
+    <field name="message">Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized.</field>
     </block>
   </sequence>
 
@@ -709,14 +713,14 @@ Requirements:
         </branch>
         <branch default="true" name="Non-UI platform">
           <block type="event" id="S35-E1" action="log" level="info" desc="Backend platform skip style extraction">
-Backend platform ${platform.platformId} skipping UI style extraction
+          <field name="message">Backend platform ${platform.platformId} skipping UI style extraction</field>
           </block>
         </branch>
       </block>
     </block>
 
     <block type="event" id="S35-E2" action="log" level="info" desc="Stage 3.5 complete">
-Stage 3.5 Milestone: UI style patterns extracted. ${pattern_count} patterns extracted from ${frontend_platform_count} platforms.
+    <field name="message">Stage 3.5 Milestone: UI style patterns extracted. ${pattern_count} patterns extracted from ${frontend_platform_count} platforms.</field>
     </block>
   </sequence>
 
@@ -766,7 +770,7 @@ Requirements:
     </block>
 
     <block type="event" id="S4-E1" action="log" level="info" desc="Stage 4 complete">
-Stage 4 Milestone: System overview generated. All stages complete. Pipeline finished successfully.
+    <field name="message">Stage 4 Milestone: System overview generated. All stages complete. Pipeline finished successfully.</field>
     </block>
   </sequence>
 
@@ -779,7 +783,7 @@ Stage 4 Milestone: System overview generated. All stages complete. Pipeline fini
     </try>
     <catch on="worker_failed">
       <block type="event" id="EH1-E1" action="log" level="warn" desc="Worker failed, log error and continue">
-Worker ${error.worker} failed: ${error.message}
+      <field name="message">Worker ${error.worker} failed: ${error.message}</field>
       </block>
       <block type="task" id="EH1-B1" action="run-script" desc="Update failed status">
         <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
@@ -793,15 +797,15 @@ Worker ${error.worker} failed: ${error.message}
     </catch>
     <catch on="script_error">
       <block type="event" id="EH1-E2" action="log" level="error" desc="Script execution failed">
-Script ${error.script} execution failed: ${error.message}
+      <field name="message">Script ${error.script} execution failed: ${error.message}</field>
       </block>
     </catch>
     <catch on="stage_abort">
       <block type="event" id="EH1-E3" action="log" level="error" desc="Stage aborted">
-Stage ${error.stage} execution aborted: ${error.message}
+      <field name="message">Stage ${error.stage} execution aborted: ${error.message}</field>
       </block>
       <block type="event" id="EH1-E4" action="log" level="warn" desc="High failure rate">
-Failure rate exceeds 50%, terminating entire pipeline
+      <field name="message">Failure rate exceeds 50%, terminating entire pipeline</field>
       </block>
     </catch>
   </block>

@@ -191,10 +191,10 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 
     <!-- Step 2: Prepare Task Plan for techs-init -->
     <block type="event" id="S1-E1" action="log" level="info" desc="Prepare techs-init task plan">
-Stage 1: Preparing task plan for speccrew-knowledge-techs-init-xml
+    <field name="message">Stage 1: Preparing task plan for speccrew-knowledge-techs-init-xml
 - Source path: ${source_path}
 - Output path: ${sync_state_techs_dir}
-- Language: ${language}
+- Language: ${language}</field>
     </block>
 
     <!-- Step 3: Prepare task specification -->
@@ -210,9 +210,9 @@ Stage 1: Preparing task plan for speccrew-knowledge-techs-init-xml
 
     <!-- Step 4: Monitor completion -->
     <block type="event" id="S1-E2" action="log" level="info" desc="Stage 1 task prepared">
-Stage 1 task plan prepared. Waiting for calling Agent to dispatch.
+    <field name="message">Stage 1 task plan prepared. Waiting for calling Agent to dispatch.
 Task: speccrew-knowledge-techs-init-xml
-Output: ${sync_state_techs_dir}/techs-manifest.json
+Output: ${sync_state_techs_dir}/techs-manifest.json</field>
     </block>
 
     <!-- Step 5: Read manifest after completion -->
@@ -233,7 +233,7 @@ Output: ${sync_state_techs_dir}/techs-manifest.json
     </block>
 
     <block type="event" id="S1-E3" action="log" level="info" desc="Report detected platforms">
-Stage 1 complete. Detected ${techs_manifest.platforms.length} platforms: ${techs_manifest.platforms.map(p => p.platform_id).join(', ')}
+    <field name="message">Stage 1 complete. Detected ${techs_manifest.platforms.length} platforms: ${techs_manifest.platforms.map(p => p.platform_id).join(', ')}</field>
     </block>
   </sequence>
 
@@ -284,7 +284,7 @@ if (platform) {
 
     <!-- Step 2: Prepare Conventions Worker Task Plans (ALL Platforms) -->
     <block type="event" id="S2-E1" action="log" level="info" desc="Prepare conventions worker tasks">
-Preparing conventions worker task plans for ${techs_manifest.platforms.length} platforms...
+    <field name="message">Preparing conventions worker task plans for ${techs_manifest.platforms.length} platforms...</field>
     </block>
 
     <block type="loop" id="S2-L2" over="${techs_manifest.platforms}" as="platform" desc="Prepare conventions worker task for each platform">
@@ -307,7 +307,7 @@ Preparing conventions worker task plans for ${techs_manifest.platforms.length} p
 
     <!-- Step 3: Prepare UI-Style Worker Task Plans (Frontend Platforms ONLY) -->
     <block type="event" id="S2-E2" action="log" level="info" desc="Prepare UI-style worker tasks">
-Preparing UI-style worker task plans for frontend platforms...
+    <field name="message">Preparing UI-style worker task plans for frontend platforms...</field>
     </block>
 
     <block type="loop" id="S2-L3" over="${techs_manifest.platforms}" as="platform" desc="Prepare UI-style worker task for frontend platforms">
@@ -331,7 +331,7 @@ Preparing UI-style worker task plans for frontend platforms...
 
     <!-- Step 4: Dispatch ALL Workers in PARALLEL -->
     <block type="event" id="S2-E3" action="log" level="info" desc="Dispatch all workers">
-Dispatching ALL workers in PARALLEL. The calling Agent should dispatch all prepared tasks simultaneously.
+    <field name="message">Dispatching ALL workers in PARALLEL. The calling Agent should dispatch all prepared tasks simultaneously.</field>
     </block>
 
     <!-- Step 5: Monitor Completion Markers -->
@@ -410,7 +410,7 @@ Dispatching ALL workers in PARALLEL. The calling Agent should dispatch all prepa
     </block>
 
     <block type="event" id="S2-E4" action="log" level="info" desc="Stage 2 complete">
-Stage 2 complete. All platform workers finished.
+    <field name="message">Stage 2 complete. All platform workers finished.</field>
     </block>
   </sequence>
 
@@ -427,7 +427,7 @@ Stage 2 complete. All platform workers finished.
 
     <!-- Step A: Scan Completion Markers -->
     <block type="event" id="S2_5-E1" action="log" level="info" desc="Step A: Scan completion markers">
-Stage 2.5 Step A: Scanning completion markers...
+    <field name="message">Stage 2.5 Step A: Scanning completion markers...</field>
     </block>
 
     <block type="loop" id="S2_5-L1" over="${techs_manifest.platforms}" as="platform" desc="Scan markers for each platform">
@@ -453,7 +453,7 @@ console.log(JSON.stringify(markers));
 
     <!-- Step B: Verify Output Integrity -->
     <block type="event" id="S2_5-E2" action="log" level="info" desc="Step B: Verify output integrity">
-Stage 2.5 Step B: Verifying output integrity...
+    <field name="message">Stage 2.5 Step B: Verifying output integrity...</field>
     </block>
 
     <block type="loop" id="S2_5-L2" over="${techs_manifest.platforms}" as="platform" desc="Verify documents for each platform">
@@ -497,7 +497,7 @@ console.log(JSON.stringify(results));
 
     <!-- Step C: Update Progress Status -->
     <block type="event" id="S2_5-E3" action="log" level="info" desc="Step C: Update progress status">
-Stage 2.5 Step C: Updating progress status...
+    <field name="message">Stage 2.5 Step C: Updating progress status...</field>
     </block>
 
     <block type="task" id="S2_5-B3" action="run-script" status="pending" desc="Generate stage2-status.json">
@@ -531,7 +531,7 @@ console.log('stage2-status.json written');
     </block>
 
     <block type="event" id="S2_5-E4" action="log" level="info" desc="Stage 2.5 complete">
-Stage 2.5 complete. Verification results written to stage2-status.json.
+    <field name="message">Stage 2.5 complete. Verification results written to stage2-status.json.</field>
     </block>
   </sequence>
 
@@ -554,10 +554,10 @@ Stage 2.5 complete. Verification results written to stage2-status.json.
 
     <!-- Step 2: Prepare Task Plan for techs-index -->
     <block type="event" id="S3-E1" action="log" level="info" desc="Prepare techs-index task plan">
-Stage 3: Preparing task plan for speccrew-knowledge-techs-index-xml
+    <field name="message">Stage 3: Preparing task plan for speccrew-knowledge-techs-index-xml
 - Manifest: ${sync_state_techs_dir}/techs-manifest.json
 - Output: ${workspace_path}/knowledges/techs/
-- Language: ${language}
+- Language: ${language}</field>
     </block>
 
     <!-- Step 3: Prepare task specification -->
@@ -574,9 +574,9 @@ Stage 3: Preparing task plan for speccrew-knowledge-techs-index-xml
 
     <!-- Step 4: Monitor completion -->
     <block type="event" id="S3-E2" action="log" level="info" desc="Stage 3 task prepared">
-Stage 3 task plan prepared. Waiting for calling Agent to dispatch.
+    <field name="message">Stage 3 task plan prepared. Waiting for calling Agent to dispatch.
 Task: speccrew-knowledge-techs-index-xml
-Output: ${workspace_path}/knowledges/techs/INDEX.md
+Output: ${workspace_path}/knowledges/techs/INDEX.md</field>
     </block>
 
     <!-- Step 5: Generate stage3-status.json -->
@@ -605,7 +605,7 @@ console.log('stage3-status.json written');
     </block>
 
     <block type="event" id="S3-E3" action="log" level="info" desc="Stage 3 complete">
-Stage 3 complete. Root INDEX.md generated.
+    <field name="message">Stage 3 complete. Root INDEX.md generated.</field>
     </block>
   </sequence>
 
