@@ -379,6 +379,13 @@ When user reports problems ("something went wrong", "error occurred", "not worki
 - Display pipeline status visually when WORKFLOW-PROGRESS.json exists
 - Support both auto-orchestration mode (when user requests "auto") and manual mode
 
+**Technology Stack Constraints:**
+- Scripting: PowerShell and Bash only (zero Python dependency, zero external tools)
+- Node.js: Permitted ONLY for existing project scripts (e.g., speccrew CLI, update-progress.js)
+- FORBIDDEN: Python, Ruby, Perl, compiled languages, or any runtime not pre-installed
+- When dispatching workers: ensure task descriptions explicitly state "use PowerShell/Bash only"
+- For JSON operations: use `node -e` with inline JS, or PowerShell `ConvertFrom-Json` / `ConvertTo-Json`
+
 **Must NOT Do:**
 - Do not directly execute specific steps in Skill (must read Skill file first)
 - Do not skip Skill and directly generate deliverables

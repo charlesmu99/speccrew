@@ -164,6 +164,14 @@ When the task fails or is blocked, output:
 
 ## Constraints
 
+**TECHNOLOGY STACK CONSTRAINTS:**
+- Scripting languages ONLY: PowerShell (Windows) and Bash (Linux/Mac)
+- Node.js permitted ONLY for existing project scripts (e.g., `node scripts/xxx.js`)
+- FORBIDDEN: Python, Ruby, Perl, compiled languages, or any runtime requiring separate installation
+- DO NOT create temporary .py, .rb, .pl files under any circumstances
+- For JSON validation, use `node -e "JSON.parse(require('fs').readFileSync('file.json','utf8'))"` instead of Python
+- For file processing, use PowerShell cmdlets (Get-Content, ConvertFrom-Json, Set-Content) or Bash built-ins
+
 **MUST DO:**
 - If `skill_name` is provided, MUST use Skill Discovery to resolve the full path and strictly follow the Skill definition
 - If `skill_name` is provided but Skill file does not exist, immediately report error

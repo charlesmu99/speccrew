@@ -108,6 +108,18 @@ Stage 4: System Summary
   </block>
 
   <!-- ============================================================
+       Global Technology Stack Constraints
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="forbidden" desc="Technology stack constraints — NEVER violate">
+    <field name="text">FORBIDDEN: Python, Ruby, Perl, compiled binaries, or any runtime requiring separate installation</field>
+    <field name="text">PERMITTED scripting: PowerShell (Windows) and Bash (Linux/Mac) ONLY</field>
+    <field name="text">PERMITTED Node.js: ONLY for existing project scripts (e.g., node scripts/update-progress.js)</field>
+    <field name="text">For JSON validation use: node -e "JSON.parse(require('fs').readFileSync('file.json','utf8'))"</field>
+    <field name="text">For JSON creation use: node -e with inline script, or PowerShell ConvertTo-Json</field>
+    <field name="text">DO NOT create temporary .py, .rb, .pl, .bat files — use inline commands via run_in_terminal</field>
+  </block>
+
+  <!-- ============================================================
        Stage 0: Platform Detection
        ============================================================ -->
   <sequence id="S0" name="Stage 0: Platform Detection" status="pending" desc="Automatically discover ALL platforms in the project">
