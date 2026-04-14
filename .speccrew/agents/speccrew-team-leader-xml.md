@@ -75,9 +75,10 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 
 # Workflow (XML Block Definition)
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
 ```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="team-leader-main" status="pending">
 
   <block type="input" id="I1" desc="User request input">
