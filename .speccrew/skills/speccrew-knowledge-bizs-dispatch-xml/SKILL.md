@@ -95,6 +95,19 @@ Stage 4: System Summary
   </block>
 
   <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" between stages</field>
+    <field name="text">DO NOT offer options like "Full execution / Sample execution / Pause" — always execute ALL stages to completion</field>
+    <field name="text">DO NOT suggest "Let me split this into batches" or "Let's do this in parts" — process ALL features sequentially</field>
+    <field name="text">DO NOT pause to list what you plan to do next — just do it</field>
+    <field name="text">DO NOT ask for confirmation before generating output files</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">ONLY pause at explicit &lt;event action="confirm"&gt; blocks defined in the workflow</field>
+  </block>
+
+  <!-- ============================================================
        Stage 0: Platform Detection
        ============================================================ -->
   <sequence id="S0" name="Stage 0: Platform Detection" status="pending" desc="Automatically discover ALL platforms in the project">
@@ -140,13 +153,12 @@ Discovered frontend platform: ${frontend.name} → Tech stack: Vue/React/UniApp
       </block>
     </block>
 
-    <!-- Step 4: Merge platform list -->
-    <block type="task" id="S0-B4" action="run-script" status="pending" desc="Merge and generate platform list">
-      <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/platform-detector.js"</field>
-      <field name="arg">--source</field>
-      <field name="arg">${source_path}</field>
-      <field name="arg">--output</field>
-      <field name="arg">${sync_state_bizs_dir}/platforms.json</field>
+    <!-- Step 4: Generate platform list JSON -->
+    <block type="task" id="S0-B4" action="run-script" status="pending" desc="Generate platforms.json from discovered modules and frontends">
+      <field name="command">node -e "const fs=require('fs'); const data=JSON.parse(process.argv[1]); fs.mkdirSync(process.argv[2], {recursive:true}); fs.writeFileSync(process.argv[2]+'/platforms.json', JSON.stringify(data,null,2)); console.log('platforms.json written')"</field>
+      <field name="note">The LLM constructs the platforms array from S0-L1 and S0-L2 discovery results, then writes it via this inline script. No external platform-detector.js is needed.</field>
+      <field name="arg">${platforms_json_string}</field>
+      <field name="arg">${sync_state_bizs_dir}</field>
       <field name="output" var="platforms" from="${sync_state_bizs_dir}/platforms.json"/>
     </block>
 
@@ -984,3 +996,33 @@ After all 5 stages complete, return a summary object to the caller:
   }
 }
 ```
+
+---
+
+## CONTINUOUS EXECUTION RULES
+
+This skill MUST execute all stages continuously without unnecessary interruptions.
+
+### FORBIDDEN Interruptions
+
+1. DO NOT ask user "Should I continue?" after completing a stage
+2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
+3. DO NOT pause to list what you plan to do next — just do it
+4. DO NOT ask for confirmation before generating output files
+5. DO NOT warn about "large number of files" — proceed with generation
+6. DO NOT offer "Should I proceed with the remaining items?"
+7. DO NOT present options like "Full execution / Sample execution / Pause"
+
+### When to Pause (ONLY these cases)
+
+1. Explicit `<event action="confirm">` blocks in the workflow (e.g., Stage 0 platform confirmation)
+2. Ambiguous requirements that genuinely need clarification
+3. Unrecoverable errors that prevent further progress (failure rate > 50%)
+4. Security-sensitive operations (e.g., deleting existing files)
+
+### Batch Execution Behavior
+
+- When multiple features need processing, process ALL of them sequentially without asking
+- Use marker files (.done.json) to track progress, enabling resumption if interrupted by context limits
+- If context window is approaching limit, save progress to checkpoint and inform user how to resume
+- NEVER voluntarily stop mid-batch to ask if user wants to continue
