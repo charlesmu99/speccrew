@@ -160,8 +160,8 @@ Read each platform's INDEX.md to extract:
    - Preserve all template section headers and structure
 
 3. **Get Timestamp**:
-   - **CRITICAL**: Use the Skill tool to invoke `speccrew-get-timestamp` (no format parameter needed, uses default)
-   - Store the returned timestamp as `{{generated_at}}` template variable
+   - **CRITICAL**: Run `node scripts/get-timestamp.js` to get current timestamp (no format parameter needed, uses default)
+   - Store the output as `{{generated_at}}` template variable
 
 4. **Fill the following sections** in the copied template:
 

@@ -308,7 +308,7 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 2. `speccrew-knowledge-techs-index` must check actual existing documents per platform and dynamically generate links
 
 **Status Tracking**:
-- **Get timestamp** using `speccrew-get-timestamp` skill
+- **Get timestamp**: Run `node scripts/get-timestamp.js` to get current timestamp
 - **Generate `stage2-status.json`** at `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage2-status.json`
 
 **Stage 2 status tracks**:
@@ -675,7 +675,7 @@ THRESHOLD: warnings > 5 → flag for manual review
 - `speccrew-workspace/knowledges/techs/INDEX.md` (complete with platform index and Agent mapping, dynamically generated)
 
 **Status Tracking**:
-- **Get timestamp** using `speccrew-get-timestamp` skill
+- **Get timestamp**: Run `node scripts/get-timestamp.js` to get current timestamp
 - **Generate `stage3-status.json`** at `speccrew-workspace/knowledges/base/sync-state/knowledge-techs/stage3-status.json`
 
 **Stage 3 status tracks**:

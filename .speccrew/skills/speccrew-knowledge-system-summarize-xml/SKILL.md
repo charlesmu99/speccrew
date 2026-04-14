@@ -292,9 +292,9 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
     <output name="mermaid_rules" />
   </task>
 
-  <!-- Invoke speccrew-get-timestamp skill -->
-  <task name="get_timestamp" action="run-skill" skill="speccrew-get-timestamp">
-    <output name="timestamp" />
+  <!-- Get timestamp via script -->
+  <task name="get_timestamp" action="run-script" description="Get current timestamp">
+    <run-script script="scripts/get-timestamp.js" output="timestamp" />
   </task>
 
   <!-- Gateway: Fallback for timestamp -->

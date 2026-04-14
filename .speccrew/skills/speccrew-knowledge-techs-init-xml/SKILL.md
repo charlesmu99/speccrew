@@ -132,8 +132,8 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
   </loop>
 
   <!-- Step 3: Get Timestamp -->
-  <task id="step3-get-timestamp" action="run-skill" description="Get current timestamp for generated_at field">
-    <run-skill skill="speccrew-get-timestamp" />
+  <task id="step3-get-timestamp" action="run-script" description="Get current timestamp for generated_at field">
+    <run-script script="scripts/get-timestamp.js" output="timestamp" />
   </task>
 
   <!-- Step 4: Generate techs-manifest.json -->

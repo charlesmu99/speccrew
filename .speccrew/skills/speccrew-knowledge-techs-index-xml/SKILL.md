@@ -120,8 +120,8 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
   </loop>
 
   <!-- Step 4: Get Timestamp -->
-  <task id="step4-get-timestamp" action="run-skill" description="Get current timestamp for generated_at field">
-    <run-skill skill="speccrew-get-timestamp" />
+  <task id="step4-get-timestamp" action="run-script" description="Get current timestamp for generated_at field">
+    <run-script script="scripts/get-timestamp.js" output="timestamp" />
   </task>
 
   <!-- Step 5: Generate Root INDEX.md -->

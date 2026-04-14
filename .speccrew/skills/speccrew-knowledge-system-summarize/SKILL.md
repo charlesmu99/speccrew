@@ -55,7 +55,7 @@ Before starting, verify:
 - **Empty modules directory**: If no `*-overview.md` files found, generate a skeleton system-overview.md with empty statistics and return `status: "warning"`.
 - **Incomplete module overviews**: If a module-overview.md only has Section 1-2 (initial version), use available data and note gaps with `<!-- DATA INCOMPLETE -->`.
 - **Same module name from different platforms**: Treat as separate modules. Use `{module_name} ({platform_type})` for display and `{module_name}_{platform_type}` as internal ID.
-- **Missing timestamp service**: If `speccrew-get-timestamp` is unavailable, use system current time as fallback.
+- **Timestamp generation**: Run `node scripts/get-timestamp.js` to get current timestamp. If the script is unavailable, use system current time as fallback.
 
 ```mermaid
 flowchart TD
@@ -261,10 +261,10 @@ Fill each `[TO BE FILLED]` placeholder with actual content:
    - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` → system tech stacks and display names
    - Read `speccrew-workspace/docs/rules/mermaid-rule.md` → Mermaid diagram guidelines
 
-2. **Invoke** `speccrew-get-timestamp` using Skill tool:
-   - Parameters: none (uses default format `YYYY-MM-DD-HHmmss`)
-   - Returns: timestamp string (e.g., `2026-03-17-132645`)
-   - Use the returned timestamp as generation timestamp in document
+2. **Get timestamp** by running the script:
+   - Run: `node scripts/get-timestamp.js`
+   - Default format: `YYYY-MM-DD-HHmmss` (e.g., `2026-03-17-132645`)
+   - Use the output as generation timestamp in document
 
 3. **Determine Technology Stack**:
    - Extract platform types from discovered module paths
