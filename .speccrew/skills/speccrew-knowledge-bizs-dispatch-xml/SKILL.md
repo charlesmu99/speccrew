@@ -6,7 +6,7 @@ tools: Read, Write, Task, Bash
 
 > **⚠️ MANDATORY EXECUTION PROTOCOL — READ BEFORE EXECUTING ANY BLOCK**
 >
-> **Step 1**: Load XML workflow specification: `docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
+> **Step 1**: Load XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
 >
 > **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**:
 > - `action="run-script"` → Execute via **Terminal tool** (PowerShell/Bash)
@@ -98,6 +98,10 @@ Stage 4: System Summary
 
 ## XML Workflow Definition
 
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="bizs-dispatch-main" status="pending" version="1.0" desc="bizs knowledge base generation 5-stage pipeline">
 
   <!-- ============================================================
@@ -221,9 +225,7 @@ Stage 4: System Summary
     <block type="event" id="S0-E3" action="confirm" title="Confirm Platform List" type="yesno" desc="Wait for user to confirm detected platform list">
       <field name="preview">
 Detected ${platforms.length} platforms:
-<loop over="${platforms}" as="platform">
-- ${platform.platformId}: ${platform.sourcePath} (${platform.platformType}/${platform.platformSubtype})
-</loop>
+(For each platform in ${platforms}, display: ${platform.platformId}: ${sourcePath} (${platformType}/${platformSubtype}))
 
 Continue with knowledge base generation?
       </field>
@@ -824,6 +826,7 @@ Requirements:
     <field name="graph_root" from="${graph_root}" type="string" desc="Graph data output directory"/>
   </block>
 </workflow>
+```
 
 ---
 

@@ -71,8 +71,10 @@ This skill operates in **strict sequential execution mode**:
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="api-knowledge-graph-construction" version="1.0" status="pending" desc="API knowledge graph construction workflow">
 
   <!-- Input Parameters -->
@@ -383,6 +385,7 @@ This skill operates in **strict sequential execution mode**:
   </block>
 
 </workflow>
+```
 
 ## Node ID Naming Convention
 

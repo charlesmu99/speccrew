@@ -76,8 +76,10 @@ Analyze one specific UI feature from source code, extract business functionality
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="ui-feature-analysis" version="1.0" status="pending" desc="UI feature analysis workflow">
 
   <!-- ==================== INPUT PARAMETERS ==================== -->
@@ -422,6 +424,7 @@ Analyze one specific UI feature from source code, extract business functionality
   </block>
 
 </workflow>
+```
 
 ## Constraints
 

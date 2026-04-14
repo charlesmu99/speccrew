@@ -38,8 +38,10 @@ For each platform, generates:
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="identify-entries-main" status="pending" version="1.0" desc="Identify business module entry directories for each platform">
 
   <!-- ============================================================
@@ -196,6 +198,7 @@ For each platform, generates:
   </block>
 
 </workflow>
+```
 
 ## Output JSON Format
 

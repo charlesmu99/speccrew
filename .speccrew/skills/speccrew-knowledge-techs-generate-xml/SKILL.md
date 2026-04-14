@@ -38,8 +38,10 @@ Generate comprehensive technology documentation for a specific platform by analy
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="techs-generate-main" status="pending" version="1.0" desc="Platform technology documentation generation">
 
   <!-- ============================================================
@@ -237,6 +239,7 @@ Generate comprehensive technology documentation for a specific platform by analy
   </block>
 
 </workflow>
+```
 
 ---
 

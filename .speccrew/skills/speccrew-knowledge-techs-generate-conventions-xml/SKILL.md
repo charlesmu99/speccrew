@@ -72,8 +72,10 @@ ${output_path}/
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="platform-conventions-generation" status="pending" version="1.0" desc="Platform conventions generation workflow">
 
   <!-- ==================== INPUT PARAMETERS ==================== -->
@@ -866,6 +868,7 @@ ${output_path}/
   </block>
 
 </workflow>
+```
 
 ## Constraints
 

@@ -51,8 +51,10 @@ flowchart TD
     Step6 --> End([End])
 ```
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="module-summarize" version="1.0" status="pending" desc="Module summarization workflow">
 
   <!-- Input Block: Define workflow inputs -->
@@ -371,6 +373,7 @@ flowchart TD
   </block>
 
 </workflow>
+```
 
 ## Constraints
 

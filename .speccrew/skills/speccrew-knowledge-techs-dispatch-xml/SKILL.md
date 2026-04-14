@@ -6,7 +6,7 @@ tools: Read, Write, Task, Bash
 
 > **⚠️ MANDATORY EXECUTION PROTOCOL — READ BEFORE EXECUTING ANY BLOCK**
 >
-> **Step 1**: Load XML workflow specification: `docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
+> **Step 1**: Load XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
 >
 > **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**:
 > - `action="run-script"` → Execute via **Terminal tool** (PowerShell/Bash)
@@ -118,8 +118,10 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 
 ## XML Workflow Definition
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="techs-dispatch-main" status="pending" version="1.0" desc="techs knowledge base generation 3-stage pipeline">
 
   <!-- ============================================================
@@ -621,6 +623,7 @@ console.log('stage3-status.json written');
   </block>
 
 </workflow>
+```
 
 ---
 

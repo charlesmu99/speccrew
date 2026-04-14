@@ -32,10 +32,10 @@ Worker Agent (speccrew-task-worker)
 ---
 
 ## XML Workflow Definition
-
+  > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="techs-quality-check" status="pending" version="1.0" desc="Quality assurance for tech documentation">
-  > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
-
   <!-- ============================================================
        Input Parameters Definition
        ============================================================ -->
@@ -81,30 +81,14 @@ Worker Agent (speccrew-task-worker)
   <!-- ============================================================
        Step 1: Read Generated Documentation
        ============================================================ -->
+  <!-- Step 1: Read Generated Documentation -->
   <block type="task" id="S1-B1" action="run-skill" status="pending" desc="Read all generated documentation files">
-    <description>Read all generated documentation files in the platform directory</description>
-    <required-documents>
-      <file>{platform_dir}/INDEX.md</file>
-      <file>{platform_dir}/tech-stack.md</file>
-      <file>{platform_dir}/architecture.md</file>
-      <file>{platform_dir}/conventions-design.md</file>
-      <file>{platform_dir}/conventions-dev.md</file>
-      <file>{platform_dir}/conventions-unit-test.md</file>
-      <file>{platform_dir}/conventions-system-test.md</file>
-      <file>{platform_dir}/conventions-build.md</file>
-    </required-documents>
-    <optional-documents>
-      <file condition="backend OR has_data_layer">{platform_dir}/conventions-data.md</file>
-      <file condition="frontend">{platform_dir}/ui-style/ui-style-guide.md</file>
-    </optional-documents>
-    <analysis-report>
-      <file>{platform_id}.analysis.json</file>
-    </analysis-report>
-    <output var="documents_read"/>
-    <record>
-      <item>All files found</item>
-      <item>File sizes</item>
-    </record>
+    <field name="description">Read all generated documentation files in the platform directory</field>
+    <field name="required_documents">INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md</field>
+    <field name="optional_documents">conventions-data.md (backend OR has_data_layer), ui-style/ui-style-guide.md (frontend)</field>
+    <field name="analysis_report">{platform_id}.analysis.json</field>
+    <field name="output" var="documents_read"/>
+    <field name="record">All files found, File sizes</field>
   </block>
 
   <block type="checkpoint" id="CP1" name="documents_read" desc="All documents read">
@@ -115,65 +99,27 @@ Worker Agent (speccrew-task-worker)
        Step 2: Completeness Check
        ============================================================ -->
   <block type="task" id="S2-B1" action="run-skill" status="pending" desc="Perform completeness check">
-    <description>Verify all expected documents and sections exist</description>
+    <field name="description">Verify all expected documents and sections exist</field>
 
     <!-- 2.1 Document Existence Check -->
-    <subtask name="document_existence">
-      <check table="platform_type">
-        <row condition="all" required="INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md"/>
-        <row condition="backend" additional="+ conventions-data.md"/>
-        <row condition="web/mobile/desktop" additional="+ ui-style/ui-style-guide.md"/>
-      </check>
-    </subtask>
+    <!-- document_existence: Check documents based on platform_type -->
+    <field name="check">All platforms require: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md</field>
+    <field name="check">Backend platforms additionally require: conventions-data.md</field>
+    <field name="check">Web/mobile/desktop platforms additionally require: ui-style/ui-style-guide.md</field>
 
     <!-- 2.2 Section Completeness Check -->
-    <subtask name="section_completeness">
-      <document name="INDEX.md">
-        <check-item>Platform summary</check-item>
-        <check-item>Technology stack overview</check-item>
-        <check-item>Navigation links to all convention documents</check-item>
-        <check-item>Agent usage guide</check-item>
-      </document>
-      <document name="tech-stack.md">
-        <check-item>Overview section</check-item>
-        <check-item>Core Technologies table</check-item>
-        <check-item>Dependencies section (grouped by category)</check-item>
-        <check-item>Development Tools section</check-item>
-        <check-item>Configuration Files list</check-item>
-      </document>
-      <document name="architecture.md">
-        <check-item>Component/Module Architecture section</check-item>
-        <check-item>State Management / Dependency Injection section</check-item>
-        <check-item>API Integration / Module Organization section</check-item>
-        <check-item>Styling Approach / Middleware section</check-item>
-      </document>
-      <document name="conventions-dev.md">
-        <check-item>Naming Conventions section</check-item>
-        <check-item>Directory Structure section</check-item>
-        <check-item>Code Style section</check-item>
-        <check-item>Import/Export Patterns section</check-item>
-        <check-item>Pre-Development Checklist section</check-item>
-      </document>
-      <document name="conventions-build.md">
-        <check-item>Build Tool &amp; Configuration section</check-item>
-        <check-item>Environment Management section</check-item>
-        <check-item>Build Profiles &amp; Outputs section</check-item>
-      </document>
-    </subtask>
+    <!-- section_completeness: Verify required sections in each document -->
+    <field name="check">INDEX.md must contain: Platform summary, Technology stack overview, Navigation links to all convention documents, Agent usage guide</field>
+    <field name="check">tech-stack.md must contain: Overview section, Core Technologies table, Dependencies section (grouped by category), Development Tools section, Configuration Files list</field>
+    <field name="check">architecture.md must contain: Component/Module Architecture section, State Management / Dependency Injection section, API Integration / Module Organization section, Styling Approach / Middleware section</field>
+    <field name="check">conventions-dev.md must contain: Naming Conventions section, Directory Structure section, Code Style section, Import/Export Patterns section, Pre-Development Checklist section</field>
+    <field name="check">conventions-build.md must contain: Build Tool &amp; Configuration section, Environment Management section, Build Profiles &amp; Outputs section</field>
 
     <!-- 2.3 Analysis Report Completeness -->
-    <subtask name="analysis_report_completeness">
-      <check file="{platform_id}.analysis.json">
-        <check-item>platform_id field</check-item>
-        <check-item>platform_type field</check-item>
-        <check-item>analyzed_at timestamp</check-item>
-        <check-item>topics object with all expected topics</check-item>
-        <check-item>documents_generated array</check-item>
-        <check-item>coverage_summary object</check-item>
-      </check>
-    </subtask>
+    <!-- analysis_report_completeness: Verify analysis.json structure -->
+    <field name="check">{platform_id}.analysis.json must contain: platform_id field, platform_type field, analyzed_at timestamp, topics object with all expected topics, documents_generated array, coverage_summary object</field>
 
-    <output var="completeness_result"/>
+    <field name="output" var="completeness_result"/>
   </block>
 
   <block type="event" id="E2" action="log" level="info" desc="Completeness check result">
@@ -188,42 +134,38 @@ Worker Agent (speccrew-task-worker)
        Step 3: Cross-Validation
        ============================================================ -->
   <block type="task" id="S3-B1" action="run-skill" status="pending" desc="Perform cross-validation">
-    <description>Verify information is consistent across documents and with source code</description>
+    <field name="description">Verify information is consistent across documents and with source code</field>
 
     <!-- 3.1 Version Consistency Check -->
-    <subtask name="version_consistency">
-      <action>Read {source_path}/package.json</action>
-      <check>Framework versions match documentation</check>
-      <check>Key dependency versions match documentation</check>
-      <check>Build tool versions match documentation</check>
-      <output var="version_checks"/>
-    </subtask>
+    <!-- version_consistency: Read {source_path}/package.json and verify versions -->
+    <field name="action">Read {source_path}/package.json</field>
+    <field name="check">Framework versions match documentation</field>
+    <field name="check">Key dependency versions match documentation</field>
+    <field name="check">Build tool versions match documentation</field>
+    <field name="output" var="version_checks"/>
 
     <!-- 3.2 Dependency Reference Consistency -->
-    <subtask name="dependency_consistency">
-      <check>Each dependency in tech-stack.md exists in package.json</check>
-      <check>Version format is consistent</check>
-      <output var="dependency_checks"/>
-    </subtask>
+    <!-- dependency_consistency: Verify dependencies exist and formats match -->
+    <field name="check">Each dependency in tech-stack.md exists in package.json</field>
+    <field name="check">Version format is consistent</field>
+    <field name="output" var="dependency_checks"/>
 
     <!-- 3.3 Cross-Document Reference Check -->
-    <subtask name="cross_document_references">
-      <check>INDEX.md links to all other documents</check>
-      <check condition="frontend">conventions-design.md references ui-style/ui-style-guide.md</check>
-      <check>All documents have consistent platform_id references</check>
-      <check>All documents have consistent platform_type references</check>
-      <output var="reference_checks"/>
-    </subtask>
+    <!-- cross_document_references: Verify cross-references between documents -->
+    <field name="check">INDEX.md links to all other documents</field>
+    <field name="check">conventions-design.md references ui-style/ui-style-guide.md (for frontend)</field>
+    <field name="check">All documents have consistent platform_id references</field>
+    <field name="check">All documents have consistent platform_type references</field>
+    <field name="output" var="reference_checks"/>
 
     <!-- 3.4 Configuration File Reference Check -->
-    <subtask name="config_file_references">
-      <check>ESLint config path → file exists</check>
-      <check>Prettier config path → file exists</check>
-      <check>Build config path → file exists</check>
-      <output var="config_checks"/>
-    </subtask>
+    <!-- config_file_references: Verify config file paths point to existing files -->
+    <field name="check">ESLint config path → file exists</field>
+    <field name="check">Prettier config path → file exists</field>
+    <field name="check">Build config path → file exists</field>
+    <field name="output" var="config_checks"/>
 
-    <output var="cross_validation_result"/>
+    <field name="output" var="cross_validation_result"/>
   </block>
 
   <block type="event" id="E3" action="log" level="info" desc="Cross-validation result">
@@ -238,42 +180,38 @@ Worker Agent (speccrew-task-worker)
        Step 4: Consistency Check
        ============================================================ -->
   <block type="task" id="S4-B1" action="run-skill" status="pending" desc="Perform consistency check">
-    <description>Verify naming conventions and style are uniform across all documents</description>
+    <field name="description">Verify naming conventions and style are uniform across all documents</field>
 
     <!-- 4.1 Naming Convention Consistency -->
-    <subtask name="naming_conventions">
-      <check>Component naming (PascalCase vs camelCase) matches conventions-dev.md</check>
-      <check>File naming conventions match conventions-dev.md</check>
-      <check>Variable naming conventions match conventions-dev.md</check>
-      <output var="naming_issues"/>
-    </subtask>
+    <!-- naming_conventions: Check naming patterns match conventions-dev.md -->
+    <field name="check">Component naming (PascalCase vs camelCase) matches conventions-dev.md</field>
+    <field name="check">File naming conventions match conventions-dev.md</field>
+    <field name="check">Variable naming conventions match conventions-dev.md</field>
+    <field name="output" var="naming_issues"/>
 
     <!-- 4.2 Platform Terminology Consistency -->
-    <subtask name="terminology_consistency">
-      <check>Platform identifier is consistent (e.g., web-react vs react-web)</check>
-      <check>Framework name is consistent (e.g., React vs react)</check>
-      <check>Language name is consistent (e.g., TypeScript vs Typescript)</check>
-      <output var="terminology_issues"/>
-    </subtask>
+    <!-- terminology_consistency: Verify consistent terminology usage -->
+    <field name="check">Platform identifier is consistent (e.g., web-react vs react-web)</field>
+    <field name="check">Framework name is consistent (e.g., React vs react)</field>
+    <field name="check">Language name is consistent (e.g., TypeScript vs Typescript)</field>
+    <field name="output" var="terminology_issues"/>
 
     <!-- 4.3 Code Style Consistency -->
-    <subtask name="code_style_consistency">
-      <check>Quote style matches conventions-dev.md (single vs double)</check>
-      <check>Semicolon usage matches conventions-dev.md</check>
-      <check>Indentation style matches conventions-dev.md</check>
-      <output var="style_issues"/>
-    </subtask>
+    <!-- code_style_consistency: Verify code style matches conventions-dev.md -->
+    <field name="check">Quote style matches conventions-dev.md (single vs double)</field>
+    <field name="check">Semicolon usage matches conventions-dev.md</field>
+    <field name="check">Indentation style matches conventions-dev.md</field>
+    <field name="output" var="style_issues"/>
 
     <!-- 4.4 UI Reference Consistency (Frontend Platforms) -->
     <block type="gateway" id="G4" mode="guard" test="${platform_type} IN ['web', 'mobile', 'desktop']" desc="Check UI reference for frontend platforms">
-      <subtask name="ui_reference_consistency">
-        <check>conventions-design.md contains reference to ui-style/ui-style-guide.md</check>
-        <check>ui_style_analysis_level indicator exists</check>
-        <output var="ui_reference_issues"/>
-      </subtask>
+      <!-- ui_reference_consistency: Verify UI style references for frontend platforms -->
+      <field name="check">conventions-design.md contains reference to ui-style/ui-style-guide.md</field>
+      <field name="check">ui_style_analysis_level indicator exists</field>
+      <field name="output" var="ui_reference_issues"/>
     </block>
 
-    <output var="consistency_result"/>
+    <field name="output" var="consistency_result"/>
   </block>
 
   <block type="event" id="E4" action="log" level="info" desc="Consistency check result">
@@ -288,45 +226,35 @@ Worker Agent (speccrew-task-worker)
        Step 5: Source Traceability Check
        ============================================================ -->
   <block type="task" id="S5-B1" action="run-skill" status="pending" desc="Perform source traceability check">
-    <description>Verify all documents properly cite their sources</description>
+    <field name="description">Verify all documents properly cite their sources</field>
 
     <!-- 5.1 File Reference Block Check -->
-    <subtask name="file_reference_blocks">
-      <loop over="documents" as="doc">
-        <check>File reference block exists at document beginning</check>
-        <check>Contains list of referenced files</check>
-        <check>File paths use relative paths (NOT absolute or file://)</check>
-      </loop>
-      <output var="cite_block_checks"/>
-    </subtask>
+    <!-- file_reference_blocks: For each document, verify file reference blocks -->
+    <field name="check">File reference block exists at document beginning</field>
+    <field name="check">Contains list of referenced files</field>
+    <field name="check">File paths use relative paths (NOT absolute or file://)</field>
+    <field name="output" var="cite_block_checks"/>
 
     <!-- 5.2 Diagram Source Annotation Check -->
-    <subtask name="diagram_source_annotations">
-      <loop over="mermaid_diagrams" as="diagram">
-        <check>**Diagram Source** annotation exists after diagram</check>
-        <check>Source file path is provided</check>
-        <check>Path uses relative format</check>
-      </loop>
-      <output var="diagram_source_checks"/>
-    </subtask>
+    <!-- diagram_source_annotations: For each Mermaid diagram, verify source annotations -->
+    <field name="check">**Diagram Source** annotation exists after diagram</field>
+    <field name="check">Source file path is provided</field>
+    <field name="check">Path uses relative format</field>
+    <field name="output" var="diagram_source_checks"/>
 
     <!-- 5.3 Section Source Annotation Check -->
-    <subtask name="section_source_annotations">
-      <loop over="major_sections" as="section">
-        <check>**Section Source** annotation exists at section end OR generic guidance note is present</check>
-      </loop>
-      <output var="section_source_checks"/>
-    </subtask>
+    <!-- section_source_annotations: For each major section, verify source annotations -->
+    <field name="check">**Section Source** annotation exists at section end OR generic guidance note is present</field>
+    <field name="output" var="section_source_checks"/>
 
     <!-- 5.4 Path Format Validation -->
-    <subtask name="path_format_validation">
-      <check>No paths start with drive letter (e.g., d:/, C:\)</check>
-      <check>No paths use file:// protocol</check>
-      <check>Correct relative depth used (e.g., ../../../../ for 4 levels)</check>
-      <output var="path_format_issues"/>
-    </subtask>
+    <!-- path_format_validation: Verify path formats are correct -->
+    <field name="check">No paths start with drive letter (e.g., d:/, C:\)</field>
+    <field name="check">No paths use file:// protocol</field>
+    <field name="check">Correct relative depth used (e.g., ../../../../ for 4 levels)</field>
+    <field name="output" var="path_format_issues"/>
 
-    <output var="traceability_result"/>
+    <field name="output" var="traceability_result"/>
   </block>
 
   <block type="event" id="E5" action="log" level="info" desc="Source traceability result">
@@ -341,38 +269,31 @@ Worker Agent (speccrew-task-worker)
        Step 6: Mermaid Compatibility Check
        ============================================================ -->
   <block type="task" id="S6-B1" action="run-skill" status="pending" desc="Perform Mermaid compatibility check">
-    <description>Verify all Mermaid diagrams are compatible with standard rendering</description>
+    <field name="description">Verify all Mermaid diagrams are compatible with standard rendering</field>
 
     <!-- 6.1 Forbidden Elements Check -->
-    <subtask name="forbidden_elements">
-      <loop over="mermaid_diagrams" as="diagram">
-        <check>No `style` definitions</check>
-        <check>No `direction` keyword</check>
-        <check>No HTML tags (e.g., &lt;br/>, &lt;div>)</check>
-        <check>No nested subgraphs</check>
-      </loop>
-      <output var="forbidden_element_issues"/>
-    </subtask>
+    <!-- forbidden_elements: For each Mermaid diagram, check for forbidden elements -->
+    <field name="check">No `style` definitions</field>
+    <field name="check">No `direction` keyword</field>
+    <field name="check">No HTML tags (e.g., &lt;br/>, &lt;div>)</field>
+    <field name="check">No nested subgraphs</field>
+    <field name="output" var="forbidden_element_issues"/>
 
     <!-- 6.2 Syntax Validation -->
-    <subtask name="syntax_validation">
-      <loop over="mermaid_diagrams" as="diagram">
-        <check>Valid diagram type declaration</check>
-        <check>Properly closed brackets</check>
-        <check>Valid node syntax</check>
-      </loop>
-      <output var="syntax_issues"/>
-    </subtask>
+    <!-- syntax_validation: For each Mermaid diagram, verify syntax -->
+    <field name="check">Valid diagram type declaration</field>
+    <field name="check">Properly closed brackets</field>
+    <field name="check">Valid node syntax</field>
+    <field name="output" var="syntax_issues"/>
 
     <!-- 6.3 Diagram Type Usage -->
-    <subtask name="diagram_type_usage">
-      <check condition="structure">Use graph TB/LR for structure diagrams</check>
-      <check condition="process">Use flowchart TD for process diagrams</check>
-      <check condition="api">Use sequenceDiagram for API diagrams</check>
-      <output var="type_usage_issues"/>
-    </subtask>
+    <!-- diagram_type_usage: Verify correct diagram types are used -->
+    <field name="check">Use graph TB/LR for structure diagrams</field>
+    <field name="check">Use flowchart TD for process diagrams</field>
+    <field name="check">Use sequenceDiagram for API diagrams</field>
+    <field name="output" var="type_usage_issues"/>
 
-    <output var="mermaid_result"/>
+    <field name="output" var="mermaid_result"/>
   </block>
 
   <block type="event" id="E6" action="log" level="info" desc="Mermaid compatibility result">
@@ -387,9 +308,9 @@ Worker Agent (speccrew-task-worker)
        Step 7: Generate Quality Report
        ============================================================ -->
   <block type="task" id="S7-B1" action="run-script" status="pending" desc="Generate quality report JSON">
-    <description>Generate comprehensive quality report in JSON format</description>
-    <output-file>{platform_dir}/quality-report.json</output-file>
-    <format>
+    <field name="description">Generate comprehensive quality report in JSON format</field>
+    <field name="output_file">{platform_dir}/quality-report.json</field>
+    <field name="format">
 {
   "platform_id": "{platform_id}",
   "platform_type": "{platform_type}",
@@ -435,13 +356,9 @@ Worker Agent (speccrew-task-worker)
   },
   "recommendations": []
 }
-    </format>
-    <quality-score-calculation>
-      <formula>quality_score = (passed / total_checks) * 100</formula>
-      <warning-penalty>Warnings count as 0.5 towards failed</warning-penalty>
-      <critical-penalty>Critical failures (missing required documents) deduct 10 points each</critical-penalty>
-    </quality-score-calculation>
-    <output var="quality_report"/>
+    </field>
+    <field name="quality_score_calculation">quality_score = (passed / total_checks) * 100; Warnings count as 0.5 towards failed; Critical failures (missing required documents) deduct 10 points each</field>
+    <field name="output" var="quality_report"/>
   </block>
 
   <block type="checkpoint" id="CP7" name="quality_report_generated" desc="Quality report generated">
@@ -452,12 +369,10 @@ Worker Agent (speccrew-task-worker)
        Step 8: Write Completion Marker
        ============================================================ -->
   <block type="task" id="S8-B1" action="run-script" status="pending" desc="Write completion marker">
-    <description>Create completion marker file to signal quality check completion</description>
-    <validation>
-      <rule level="mandatory">Verify quality-report.json exists before writing marker</rule>
-    </validation>
-    <output-file>{platform_dir}/quality-done.json</output-file>
-    <format>
+    <field name="description">Create completion marker file to signal quality check completion</field>
+    <field name="validation">MUST verify quality-report.json exists before writing marker</field>
+    <field name="output_file">{platform_dir}/quality-done.json</field>
+    <field name="format">
 {
   "platform_id": "{platform_id}",
   "status": "completed",
@@ -465,12 +380,9 @@ Worker Agent (speccrew-task-worker)
   "report_path": "quality-report.json",
   "completed_at": "{ISO 8601 timestamp}"
 }
-    </format>
-    <status-values>
-      <value name="completed">Quality check finished successfully</value>
-      <value name="failed">Critical error during quality check</value>
-    </status-values>
-    <output var="completion_marker"/>
+    </field>
+    <field name="status_values">completed: Quality check finished successfully; failed: Critical error during quality check</field>
+    <field name="output" var="completion_marker"/>
   </block>
 
   <block type="event" id="E8" action="log" level="info" desc="Quality check complete">
@@ -498,12 +410,7 @@ Worker Agent (speccrew-task-worker)
     <field name="quality_score" from="${quality_report.summary.quality_score}" type="number"/>
     <field name="quality_report" from="${platform_dir}/quality-report.json" type="string"/>
     <field name="completion_marker" from="${platform_dir}/quality-done.json" type="string"/>
-    <field name="summary">
-      <total_checks from="${quality_report.summary.total_checks}"/>
-      <passed from="${quality_report.summary.passed}"/>
-      <warnings from="${quality_report.summary.warnings}"/>
-      <failed from="${quality_report.summary.failed}"/>
-    </field>
+    <field name="summary">total_checks: ${quality_report.summary.total_checks}, passed: ${quality_report.summary.passed}, warnings: ${quality_report.summary.warnings}, failed: ${quality_report.summary.failed}</field>
   </block>
 
   <!-- ============================================================
@@ -545,6 +452,7 @@ Worker Agent (speccrew-task-worker)
   </block>
 
 </workflow>
+```
 
 ---
 

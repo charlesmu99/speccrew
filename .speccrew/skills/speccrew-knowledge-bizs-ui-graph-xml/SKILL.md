@@ -44,8 +44,10 @@ This skill automatically adapts to the user's input language. All documentation 
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="ui-knowledge-graph-construction" version="1.0" status="pending" desc="Construct graph data from UI analysis results">
 
   <!-- ============================================================
@@ -300,6 +302,7 @@ This skill automatically adapts to the user's input language. All documentation 
   </block>
 
 </workflow>
+```
 
 ## Node Structure Reference
 

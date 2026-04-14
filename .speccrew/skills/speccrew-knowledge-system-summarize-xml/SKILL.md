@@ -58,8 +58,10 @@ flowchart TD
     Step8 --> End([End])
 ```
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="system-summarize-main" status="pending" version="1.0" desc="System summarization workflow">
   <!-- ============================================================
        Input Parameters Definition
@@ -530,6 +532,7 @@ flowchart TD
     <field name="message" value="System summarization completed with ${module_count} modules processed"/>
   </block>
 </workflow>
+```
 
 ## Constraints
 

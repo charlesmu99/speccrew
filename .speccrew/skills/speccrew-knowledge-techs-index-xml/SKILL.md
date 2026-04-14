@@ -48,8 +48,10 @@ Worker Agent (speccrew-task-worker)
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="techs-index-main" status="pending" version="1.0" desc="Root technology index generation from platform manifests">
 
   <!-- ============================================================
@@ -203,6 +205,7 @@ Worker Agent (speccrew-task-worker)
   </block>
 
 </workflow>
+```
 
 ---
 

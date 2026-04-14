@@ -39,9 +39,11 @@ Worker Agent (speccrew-task-worker)
 ---
 
 ## XML Workflow Definition
-
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="techs-ui-style-generate" status="pending" version="1.0" desc="Generate UI style documents for frontend platform">
-  > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+  
 
   <!-- ============================================================
        Input Parameters Definition
@@ -95,7 +97,7 @@ Worker Agent (speccrew-task-worker)
   <block type="gateway" id="G0" mode="exclusive" desc="Check platform type eligibility">
     <branch test="${platform_type} NOT IN ['web', 'mobile', 'desktop']" name="Skip non-frontend platform">
       <block type="event" id="E0-Skip" action="log" level="warn" desc="Log skip reason">
-        <field name="message">Skipping UI style generation: {platform_type} is not a frontend platform</field>
+        <field name="message">Skipping UI style generation: ${platform_type} is not a frontend platform</field>
       </block>
       <block type="output" id="O-Skip" desc="Skip result">
         <field name="status" value="skipped"/>
@@ -108,15 +110,13 @@ Worker Agent (speccrew-task-worker)
            Step 0: Read UI Style Templates
            ============================================================ -->
       <block type="task" id="S0-B1" action="run-skill" status="pending" desc="Read UI style template files">
-        <description>Read all UI style template files to understand the required content structure</description>
-        <template-files>
-          <file>../speccrew-knowledge-techs-generate-ui-style/templates/COMPONENT-LIBRARY-TEMPLATE.md</file>
-          <file>../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-LAYOUTS-TEMPLATE.md</file>
-          <file>../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-TYPE-SUMMARY-TEMPLATE.md</file>
-          <file>../speccrew-knowledge-techs-generate-ui-style/templates/COLOR-SYSTEM-TEMPLATE.md</file>
-        </template-files>
-        <purpose>Understand template structure for fallback path copy+fill workflow</purpose>
-        <output var="templates_loaded"/>
+        <field name="description">Read all UI style template files to understand the required content structure</field>
+        <field name="template_file" value="../speccrew-knowledge-techs-generate-ui-style/templates/COMPONENT-LIBRARY-TEMPLATE.md"/>
+        <field name="template_file" value="../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-LAYOUTS-TEMPLATE.md"/>
+        <field name="template_file" value="../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-TYPE-SUMMARY-TEMPLATE.md"/>
+        <field name="template_file" value="../speccrew-knowledge-techs-generate-ui-style/templates/COLOR-SYSTEM-TEMPLATE.md"/>
+        <field name="purpose">Understand template structure for fallback path copy+fill workflow</field>
+        <field name="output" var="templates_loaded"/>
       </block>
 
       <block type="checkpoint" id="CP0" name="templates_read" desc="Templates read successfully">
@@ -137,30 +137,26 @@ Worker Agent (speccrew-task-worker)
 
           <!-- Step 1.1: Invoke UI Analyzer Skill -->
           <block type="task" id="S1-B1a" action="run-skill" status="pending" desc="Invoke UI analyzer skill">
-            <description>CRITICAL: Use Skill tool to invoke speccrew-knowledge-techs-ui-analyze</description>
-            <skill>speccrew-knowledge-techs-ui-analyze</skill>
-            <parameters>
-              source_path={source_path}
-              platform_id={platform_id}
-              platform_type={platform_type}
-              framework={framework}
-              output_path={output_path}/ui-style/
-              language={language}
-            </parameters>
-            <output var="ui_analyze_result"/>
+            <field name="description">CRITICAL: Use Skill tool to invoke speccrew-knowledge-techs-ui-analyze</field>
+            <field name="skill">speccrew-knowledge-techs-ui-analyze</field>
+            <field name="source_path" value="${source_path}"/>
+            <field name="platform_id" value="${platform_id}"/>
+            <field name="platform_type" value="${platform_type}"/>
+            <field name="framework" value="${framework}"/>
+            <field name="output_path" value="${output_path}/ui-style/"/>
+            <field name="language" value="${language}"/>
+            <field name="output" var="ui_analyze_result"/>
           </block>
 
           <!-- Verify Primary Path Output -->
           <block type="task" id="S1-B1b" action="run-script" status="pending" desc="Verify UI analyzer output files">
-            <description>Wait for completion and verify output files exist</description>
-            <required-files>
-              <file>{output_path}/ui-style/ui-style-guide.md</file>
-              <file>{output_path}/ui-style/page-types/page-type-summary.md</file>
-              <file>{output_path}/ui-style/components/component-library.md</file>
-              <file>{output_path}/ui-style/layouts/page-layouts.md</file>
-              <file>{output_path}/ui-style/styles/color-system.md</file>
-            </required-files>
-            <output var="primary_output_verified"/>
+            <field name="description">Wait for completion and verify output files exist</field>
+            <field name="required_file" value="${output_path}/ui-style/ui-style-guide.md"/>
+            <field name="required_file" value="${output_path}/ui-style/page-types/page-type-summary.md"/>
+            <field name="required_file" value="${output_path}/ui-style/components/component-library.md"/>
+            <field name="required_file" value="${output_path}/ui-style/layouts/page-layouts.md"/>
+            <field name="required_file" value="${output_path}/ui-style/styles/color-system.md"/>
+            <field name="output" var="primary_output_verified"/>
           </block>
 
           <block type="gateway" id="G1a" mode="guard" test="${primary_output_verified} == true" fail-action="fallback" desc="Check primary path success">
@@ -179,83 +175,73 @@ Worker Agent (speccrew-task-worker)
 
           <!-- Step 1.2: Secondary Path - Create Directory Structure -->
           <block type="task" id="S1-B2a" action="run-script" status="pending" desc="Create ui-style directory structure">
-            <description>Create all required directories for UI style output</description>
-            <create-directories>
-              <path>{output_path}/ui-style/</path>
-              <path>{output_path}/ui-style/page-types/</path>
-              <path>{output_path}/ui-style/components/</path>
-              <path>{output_path}/ui-style/layouts/</path>
-              <path>{output_path}/ui-style/styles/</path>
-            </create-directories>
+            <field name="description">Create all required directories for UI style output</field>
+            <field name="create_directory" value="${output_path}/ui-style/"/>
+            <field name="create_directory" value="${output_path}/ui-style/page-types/"/>
+            <field name="create_directory" value="${output_path}/ui-style/components/"/>
+            <field name="create_directory" value="${output_path}/ui-style/layouts/"/>
+            <field name="create_directory" value="${output_path}/ui-style/styles/"/>
           </block>
 
           <!-- Step 1.2.1: Generate ui-style-guide.md -->
           <block type="task" id="S1-B2b" action="run-skill" status="pending" desc="Generate minimal ui-style-guide.md">
-            <description>Manually scan source code and generate ui-style-guide.md</description>
-            <scan-directories>
-              <dir>{source_path}/src/styles/</dir>
-              <dir>{source_path}/src/theme/</dir>
-              <dir>{source_path}/src/components/</dir>
-              <dir>{source_path}/src/pages/</dir>
-              <dir>{source_path}/src/views/</dir>
-            </scan-directories>
-            <extract>
-              <item>Design system: identify UI framework from dependencies</item>
-              <item>Color system: scan CSS variables, theme files</item>
-              <item>Typography: scan font-family declarations</item>
-              <item>Component library: list component directories</item>
-              <item>Page types: list page directories/files</item>
-            </extract>
-            <output-file>{output_path}/ui-style/ui-style-guide.md</output-file>
-            <note>If automated analysis unavailable, use reference-only format</note>
+            <field name="description">Manually scan source code and generate ui-style-guide.md</field>
+            <field name="scan_directory" value="${source_path}/src/styles/"/>
+            <field name="scan_directory" value="${source_path}/src/theme/"/>
+            <field name="scan_directory" value="${source_path}/src/components/"/>
+            <field name="scan_directory" value="${source_path}/src/pages/"/>
+            <field name="scan_directory" value="${source_path}/src/views/"/>
+            <field name="extract">Design system: identify UI framework from dependencies</field>
+            <field name="extract">Color system: scan CSS variables, theme files</field>
+            <field name="extract">Typography: scan font-family declarations</field>
+            <field name="extract">Component library: list component directories</field>
+            <field name="extract">Page types: list page directories/files</field>
+            <field name="output_file" value="${output_path}/ui-style/ui-style-guide.md"/>
+            <field name="note">If automated analysis unavailable, use reference-only format</field>
           </block>
 
           <!-- Step 1.2.2: Copy and Fill Templates -->
           <block type="task" id="S1-B2c" action="run-skill" status="pending" desc="Copy template and fill component-library.md">
-            <description>Copy COMPONENT-LIBRARY-TEMPLATE.md and fill with search_replace</description>
-            <template-source>../speccrew-knowledge-techs-generate-ui-style/templates/COMPONENT-LIBRARY-TEMPLATE.md</template-source>
-            <output-file>{output_path}/ui-style/components/component-library.md</output-file>
-            <constraints>
-              <rule level="forbidden">Using create_file to write entire document</rule>
-              <rule level="mandatory">Use search_replace to fill each section</rule>
-              <rule level="mandatory">Include props tables for top 5 components</rule>
-            </constraints>
-            <fill-sections>COMPONENT_CATEGORIES, API_REFERENCE, COMPOSITION_PATTERNS, AGENT_GUIDE</fill-sections>
+            <field name="description">Copy COMPONENT-LIBRARY-TEMPLATE.md and fill with search_replace</field>
+            <field name="template_source" value="../speccrew-knowledge-techs-generate-ui-style/templates/COMPONENT-LIBRARY-TEMPLATE.md"/>
+            <field name="output_file" value="${output_path}/ui-style/components/component-library.md"/>
+            <field name="constraint" value="FORBIDDEN: Using create_file to write entire document"/>
+            <field name="constraint" value="MANDATORY: Use search_replace to fill each section"/>
+            <field name="constraint" value="MANDATORY: Include props tables for top 5 components"/>
+            <field name="fill_sections" value="COMPONENT_CATEGORIES, API_REFERENCE, COMPOSITION_PATTERNS, AGENT_GUIDE"/>
           </block>
 
           <block type="task" id="S1-B2d" action="run-skill" status="pending" desc="Copy template and fill page-layouts.md">
-            <description>Copy PAGE-LAYOUTS-TEMPLATE.md and fill with search_replace</description>
-            <template-source>../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-LAYOUTS-TEMPLATE.md</template-source>
-            <output-file>{output_path}/ui-style/layouts/page-layouts.md</output-file>
-            <fill-sections>LAYOUT_TYPES, LAYOUT_DETAILS, NAVIGATION</fill-sections>
+            <field name="description">Copy PAGE-LAYOUTS-TEMPLATE.md and fill with search_replace</field>
+            <field name="template_source" value="../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-LAYOUTS-TEMPLATE.md"/>
+            <field name="output_file" value="${output_path}/ui-style/layouts/page-layouts.md"/>
+            <field name="fill_sections" value="LAYOUT_TYPES, LAYOUT_DETAILS, NAVIGATION"/>
           </block>
 
           <block type="task" id="S1-B2e" action="run-skill" status="pending" desc="Copy template and fill page-type-summary.md">
-            <description>Copy PAGE-TYPE-SUMMARY-TEMPLATE.md and fill with search_replace</description>
-            <template-source>../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-TYPE-SUMMARY-TEMPLATE.md</template-source>
-            <output-file>{output_path}/ui-style/page-types/page-type-summary.md</output-file>
-            <fill-sections>PAGE_TYPES, PAGE_TYPE_DETAILS, ROUTING</fill-sections>
+            <field name="description">Copy PAGE-TYPE-SUMMARY-TEMPLATE.md and fill with search_replace</field>
+            <field name="template_source" value="../speccrew-knowledge-techs-generate-ui-style/templates/PAGE-TYPE-SUMMARY-TEMPLATE.md"/>
+            <field name="output_file" value="${output_path}/ui-style/page-types/page-type-summary.md"/>
+            <field name="fill_sections" value="PAGE_TYPES, PAGE_TYPE_DETAILS, ROUTING"/>
           </block>
 
           <block type="task" id="S1-B2f" action="run-skill" status="pending" desc="Copy template and fill color-system.md">
-            <description>Copy COLOR-SYSTEM-TEMPLATE.md and fill with search_replace</description>
-            <template-source>../speccrew-knowledge-techs-generate-ui-style/templates/COLOR-SYSTEM-TEMPLATE.md</template-source>
-            <output-file>{output_path}/ui-style/styles/color-system.md</output-file>
-            <fill-sections>THEME_COLORS, FUNCTIONAL_COLORS, SEMANTIC_TOKENS, TYPOGRAPHY, SPACING</fill-sections>
+            <field name="description">Copy COLOR-SYSTEM-TEMPLATE.md and fill with search_replace</field>
+            <field name="template_source" value="../speccrew-knowledge-techs-generate-ui-style/templates/COLOR-SYSTEM-TEMPLATE.md"/>
+            <field name="output_file" value="${output_path}/ui-style/styles/color-system.md"/>
+            <field name="fill_sections" value="THEME_COLORS, FUNCTIONAL_COLORS, SEMANTIC_TOKENS, TYPOGRAPHY, SPACING"/>
           </block>
 
           <!-- Self-Verification -->
           <block type="task" id="S1-B2g" action="run-script" status="pending" desc="Verify all mandatory files exist">
-            <description>Self-verification checklist - MUST complete before proceeding</description>
-            <checklist>
-              <item verify="exists">{output_path}/ui-style/ui-style-guide.md</item>
-              <item verify="exists">{output_path}/ui-style/page-types/page-type-summary.md</item>
-              <item verify="exists">{output_path}/ui-style/components/component-library.md</item>
-              <item verify="exists">{output_path}/ui-style/layouts/page-layouts.md</item>
-              <item verify="exists">{output_path}/ui-style/styles/color-system.md</item>
-            </checklist>
-            <on-fail>Generate missing file before proceeding</on-fail>
-            <output var="secondary_verification"/>
+            <field name="description">Self-verification checklist - MUST complete before proceeding</field>
+            <field name="checklist_item" value="exists: ${output_path}/ui-style/ui-style-guide.md"/>
+            <field name="checklist_item" value="exists: ${output_path}/ui-style/page-types/page-type-summary.md"/>
+            <field name="checklist_item" value="exists: ${output_path}/ui-style/components/component-library.md"/>
+            <field name="checklist_item" value="exists: ${output_path}/ui-style/layouts/page-layouts.md"/>
+            <field name="checklist_item" value="exists: ${output_path}/ui-style/styles/color-system.md"/>
+            <field name="on_fail">Generate missing file before proceeding</field>
+            <field name="output" var="secondary_verification"/>
           </block>
 
           <block type="event" id="E1b" action="log" level="info" desc="Record analysis level">
@@ -269,20 +255,18 @@ Worker Agent (speccrew-task-worker)
 
           <!-- Step 1.3: Tertiary Path - Reference Only -->
           <block type="task" id="S1-B3a" action="run-skill" status="pending" desc="Generate reference-only ui-style-guide.md">
-            <description>Create ui-style-guide.md with references only when analysis is not possible</description>
-            <output-file>{output_path}/ui-style/ui-style-guide.md</output-file>
-            <content>
-# UI Style Guide - {platform_id}
+            <field name="description">Create ui-style-guide.md with references only when analysis is not possible</field>
+            <field name="output_file" value="${output_path}/ui-style/ui-style-guide.md"/>
+            <field name="content"># UI Style Guide - ${platform_id}
 
 > Note: Automated and manual UI analysis were not possible for this platform.
 > Manual inspection of source code is required.
 
 ## References
-- Source components: {source_path}/src/components/ (if exists)
-- Source pages: {source_path}/src/pages/ (if exists)
-- Style files: {source_path}/src/styles/ (if exists)
-- Package dependencies: {source_path}/package.json
-            </content>
+- Source components: ${source_path}/src/components/ (if exists)
+- Source pages: ${source_path}/src/pages/ (if exists)
+- Style files: ${source_path}/src/styles/ (if exists)
+- Package dependencies: ${source_path}/package.json</field>
           </block>
 
           <block type="event" id="E1c" action="log" level="info" desc="Record analysis level">
@@ -302,37 +286,34 @@ Worker Agent (speccrew-task-worker)
            Step 2: Write Output Files
            ============================================================ -->
       <block type="task" id="S2-B1" action="run-script" status="pending" desc="Ensure output directories exist">
-        <description>Create output directory structure if not exists</description>
-        <create-directories>
-          <path>{output_path}/ui-style/</path>
-          <path>{output_path}/ui-style/page-types/</path>
-          <path>{output_path}/ui-style/components/</path>
-          <path>{output_path}/ui-style/layouts/</path>
-          <path>{output_path}/ui-style/styles/</path>
-        </create-directories>
+        <field name="description">Create output directory structure if not exists</field>
+        <field name="create_directory" value="${output_path}/ui-style/"/>
+        <field name="create_directory" value="${output_path}/ui-style/page-types/"/>
+        <field name="create_directory" value="${output_path}/ui-style/components/"/>
+        <field name="create_directory" value="${output_path}/ui-style/layouts/"/>
+        <field name="create_directory" value="${output_path}/ui-style/styles/"/>
       </block>
 
       <block type="event" id="E2" action="log" level="info" desc="Output files written">
-        <field name="message">All UI style documents written to {output_path}/ui-style/</field>
+        <field name="message">All UI style documents written to ${output_path}/ui-style/</field>
       </block>
 
       <block type="checkpoint" id="CP2" name="output_files_written" desc="Output files written">
-        <field name="verify" value="file_exists({output_path}/ui-style/ui-style-guide.md)"/>
+        <field name="verify" value="file_exists(${output_path}/ui-style/ui-style-guide.md)"/>
       </block>
 
       <!-- ============================================================
            Step 3: Generate Analysis Report
            ============================================================ -->
       <block type="task" id="S3-B1" action="run-script" status="pending" desc="Generate analysis report JSON">
-        <description>Generate analysis report with topic coverage details</description>
-        <output-file>{completed_dir}/{platform_id}.analysis-ui-style.json</output-file>
-        <format>
-{
-  "platform_id": "{platform_id}",
-  "platform_type": "{platform_type}",
+        <field name="description">Generate analysis report with topic coverage details</field>
+        <field name="output_file" value="${completed_dir}/${platform_id}.analysis-ui-style.json"/>
+        <field name="format">{
+  "platform_id": "${platform_id}",
+  "platform_type": "${platform_type}",
   "worker_type": "ui-style",
-  "analyzed_at": "{ISO 8601 timestamp}",
-  "ui_analysis_level": "{ui_analysis_level}",
+  "analyzed_at": "${ISO_8601_timestamp}",
+  "ui_analysis_level": "${ui_analysis_level}",
   "topics": {
     "page_types": { "status": "found|not_found|partial", "count": N, "files_analyzed": [...] },
     "components": { "status": "found|not_found|partial", "count": N, "files_analyzed": [...] },
@@ -342,55 +323,48 @@ Worker Agent (speccrew-task-worker)
   "documents_generated": [...],
   "source_dirs_scanned": [...],
   "coverage_summary": { "total_topics": 4, "found": N, "not_found": N, "partial": N, "coverage_percent": N }
-}
-        </format>
-        <output var="analysis_report"/>
+}</field>
+        <field name="output" var="analysis_report"/>
       </block>
 
       <block type="checkpoint" id="CP3" name="analysis_report_generated" desc="Analysis report generated">
-        <field name="verify" value="file_exists({completed_dir}/{platform_id}.analysis-ui-style.json)"/>
+        <field name="verify" value="file_exists(${completed_dir}/${platform_id}.analysis-ui-style.json)"/>
       </block>
 
       <!-- ============================================================
            Step 4: Report Results
            ============================================================ -->
       <block type="task" id="S4-B1" action="run-script" status="pending" desc="Generate completion marker">
-        <description>Create completion marker file after verifying all required files</description>
-        <validation>
-          <rule level="mandatory">Verify all required files exist before writing marker</rule>
-          <required-files>
-            <file>{output_path}/ui-style/ui-style-guide.md</file>
-            <file>{output_path}/ui-style/page-types/page-type-summary.md</file>
-            <file>{output_path}/ui-style/components/component-library.md</file>
-            <file>{output_path}/ui-style/layouts/page-layouts.md</file>
-            <file>{output_path}/ui-style/styles/color-system.md</file>
-          </required-files>
-        </validation>
-        <output-file>{completed_dir}/{platform_id}.done-ui-style.json</output-file>
-        <format>
-{
-  "platform_id": "{platform_id}",
+        <field name="description">Create completion marker file after verifying all required files</field>
+        <field name="validation_rule" value="MANDATORY: Verify all required files exist before writing marker"/>
+        <field name="required_file" value="${output_path}/ui-style/ui-style-guide.md"/>
+        <field name="required_file" value="${output_path}/ui-style/page-types/page-type-summary.md"/>
+        <field name="required_file" value="${output_path}/ui-style/components/component-library.md"/>
+        <field name="required_file" value="${output_path}/ui-style/layouts/page-layouts.md"/>
+        <field name="required_file" value="${output_path}/ui-style/styles/color-system.md"/>
+        <field name="output_file" value="${completed_dir}/${platform_id}.done-ui-style.json"/>
+        <field name="format">{
+  "platform_id": "${platform_id}",
   "worker_type": "ui-style",
   "status": "completed",
-  "ui_analysis_level": "{ui_analysis_level}",
+  "ui_analysis_level": "${ui_analysis_level}",
   "documents_generated": [...],
-  "analysis_file": "{platform_id}.analysis-ui-style.json",
-  "completed_at": "{ISO timestamp}"
-}
-        </format>
-        <output var="completion_marker"/>
+  "analysis_file": "${platform_id}.analysis-ui-style.json",
+  "completed_at": "${ISO_timestamp}"
+}</field>
+        <field name="output" var="completion_marker"/>
       </block>
 
       <block type="event" id="E4" action="log" level="info" desc="Report completion">
-        <field name="message">Platform UI Style Documents Generated: {platform_id}
-- ui-style-guide.md: ✓ (analysis level: {ui_analysis_level})
+        <field name="message">Platform UI Style Documents Generated: ${platform_id}
+- ui-style-guide.md: ✓ (analysis level: ${ui_analysis_level})
 - page-types/page-type-summary.md: ✓
 - components/component-library.md: ✓
 - layouts/page-layouts.md: ✓
 - styles/color-system.md: ✓
-- Output Directory: {output_path}/ui-style/
-- Analysis Report: {completed_dir}/{platform_id}.analysis-ui-style.json
-- Completion Marker: {completed_dir}/{platform_id}.done-ui-style.json</field>
+- Output Directory: ${output_path}/ui-style/
+- Analysis Report: ${completed_dir}/${platform_id}.analysis-ui-style.json
+- Completion Marker: ${completed_dir}/${platform_id}.done-ui-style.json</field>
       </block>
 
       <!-- ============================================================
@@ -401,15 +375,13 @@ Worker Agent (speccrew-task-worker)
         <field name="status" value="completed"/>
         <field name="ui_analysis_level" from="${ui_analysis_level}" type="string"/>
         <field name="output_directory" from="${output_path}/ui-style/" type="string"/>
-        <field name="documents_generated" type="array">
-          <item>ui-style-guide.md</item>
-          <item>page-types/page-type-summary.md</item>
-          <item>components/component-library.md</item>
-          <item>layouts/page-layouts.md</item>
-          <item>styles/color-system.md</item>
-        </field>
-        <field name="analysis_report" from="${completed_dir}/{platform_id}.analysis-ui-style.json" type="string"/>
-        <field name="completion_marker" from="${completed_dir}/{platform_id}.done-ui-style.json" type="string"/>
+        <field name="documents_generated" value="ui-style-guide.md"/>
+        <field name="documents_generated" value="page-types/page-type-summary.md"/>
+        <field name="documents_generated" value="components/component-library.md"/>
+        <field name="documents_generated" value="layouts/page-layouts.md"/>
+        <field name="documents_generated" value="styles/color-system.md"/>
+        <field name="analysis_report" from="${completed_dir}/${platform_id}.analysis-ui-style.json" type="string"/>
+        <field name="completion_marker" from="${completed_dir}/${platform_id}.done-ui-style.json" type="string"/>
       </block>
 
     </branch>
@@ -429,12 +401,13 @@ Worker Agent (speccrew-task-worker)
     </catch>
     <catch on="output_write_failed">
       <block type="event" id="EH1-E2" action="log" level="error" desc="Output write failed">
-        <field name="message">Failed to write output files: {error.message}</field>
+        <field name="message">Failed to write output files: ${error.message}</field>
       </block>
     </catch>
   </block>
 
 </workflow>
+```
 
 ---
 

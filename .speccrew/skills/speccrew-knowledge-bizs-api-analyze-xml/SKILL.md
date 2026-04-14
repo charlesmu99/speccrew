@@ -105,8 +105,10 @@ Before executing the workflow, verify the following inputs:
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="api-controller-analysis" status="pending" version="1.0" desc="API controller analysis workflow">
   
   <!-- ==================== INPUT PARAMETERS ==================== -->
@@ -616,6 +618,7 @@ Before executing the workflow, verify the following inputs:
   </block>
   
 </workflow>
+```
 
 ## Reference Guides
 

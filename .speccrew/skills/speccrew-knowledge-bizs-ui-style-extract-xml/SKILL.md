@@ -68,8 +68,10 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 
 ## Workflow
 
-> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/xml-workflow-spec.md`
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
 <workflow id="ui-style-extract-main" status="pending" version="1.0" desc="Extract and aggregate UI design patterns from feature documents">
 
   <!-- ============================================================
@@ -330,6 +332,7 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
   </block>
 
 </workflow>
+```
 
 ## Generation Rules
 
