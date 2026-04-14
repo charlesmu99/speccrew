@@ -30,9 +30,11 @@ ISA-95 Stages 4-6 as internal thinking framework:
 - `.feature-analysis.md` missing OR Checkpoint A not passed → HARD STOP
 - Template file missing → HARD STOP
 
-**FORBIDDEN:**
-- `create_file` for final documents in section-fill phase — use template + search_replace
-- Full-file rewrite — use targeted search_replace per section
+⛔ **ABSOLUTE PROHIBITION — Phase B Content Filling:**
+- NEVER use `create_file` to rewrite or recreate the document after Step 5 skeleton creation
+- NEVER abandon `search_replace` mid-way and switch to `create_file`
+- Even if the document is very long, you MUST continue using `search_replace` for EVERY section
+- Violation of this rule invalidates the entire output
 
 **MANDATORY:**
 - Template-first workflow — Step 5 (copy template) MUST precede Step 6 (fill content)
@@ -438,6 +440,16 @@ Fill each `[TO BE FILLED]` placeholder with actual content:
 
 ## Step 6: Fill Sections Using search_replace
 
+#### ⛔ HARD RULE — NO FULL-FILE REWRITE
+
+Even if the document is very long or complex:
+- You MUST use `search_replace` to fill each `[TO BE FILLED]` placeholder individually
+- You MUST NOT use `create_file` to recreate the document
+- You MUST NOT give up on `search_replace` and switch strategies mid-execution
+- If a `search_replace` fails, fix the search pattern — do NOT fall back to `create_file`
+
+This rule has ZERO exceptions. "Document too long" is NOT a valid reason to switch to `create_file`.
+
 > **⚠️ CRITICAL: Section 2 Function Details Skeleton Verification**
 >
 > Before proceeding with content filling, verify the two-phase strategy was correctly applied:
@@ -474,6 +486,8 @@ Fill each `[TO BE FILLED]` placeholder with actual content:
 - Preserve all section titles and numbering
 - No applicable content → "N/A"
 - Multi-platform: Create separate sub-sections per platform
+
+⚠️ REMINDER: If you find yourself thinking "the document is too long, let me use create_file instead" — STOP. This is explicitly forbidden. Continue with search_replace.
 
 ### Legacy Master-Sub Mode
 
@@ -570,6 +584,7 @@ Where:
 - [ ] Output path determined
 - [ ] Template copied using `create_file`
 - [ ] All sections filled using `search_replace`
+- [ ] Phase B used ONLY search_replace (no create_file after Step 5)
 - [ ] **[CRITICAL]** Section 2 Function Details skeleton verified (all functions have 4 sub-sections)
 - [ ] **[CRITICAL]** Interaction Flow uses Mermaid sequenceDiagram (NOT ASCII)
 - [ ] **[CRITICAL]** Processing Logic uses Mermaid flowchart TD (NOT ASCII)
