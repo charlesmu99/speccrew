@@ -261,93 +261,63 @@ Check if feature specification documents already exist in the current iteration:
 - If feature specification documents already exist → Ask user whether to overwrite or create a new version
 - If no feature specification documents exist → Proceed directly to design phase
 
-## Phase 2: Knowledge Loading
+## Phase 2: Feature Registry Initialization
 
-After user confirmation, load knowledge in the following order:
+> 🛑 **ORCHESTRATOR RULES — Phase 2**
+> - ❌ DO NOT read PRD files directly — dispatch Worker
+> - ❌ DO NOT parse Feature Breakdown tables yourself
+> - ❌ DO NOT read techs-manifest.json directly
+> - ❌ DO NOT build Feature Registry manually
+> - ✅ ONLY dispatch Worker with `speccrew-fd-feature-registry-init` skill
+> - ✅ ONLY read `.feature-registry.json` after Worker completes
+> - ✅ ONLY present summary and collect user confirmation
 
-### Must Read
-Read all confirmed PRD documents specified by the user. PRD documents contain:
-- Feature background and goals
-- User stories and scenarios
-- Functional requirements description
-- Business process flows
-- Acceptance criteria
+### Step 1: Confirm PRD Path
 
-### Discover Frontend Platforms
+Confirm the PRD directory path with user. The PRD directory should contain:
+- Master PRD (`*-master-prd.md`)
+- Sub-PRD files (`*-sub-*.md`)
 
-Read `{workspace_path}/knowledges/techs/techs-manifest.json` to identify all frontend platforms:
-- Look for platform entries with type starting with `web-` or `mobile-`
-- If multiple frontend platforms exist (e.g., web-vue + mobile-uniapp), frontend design MUST cover each platform separately
-- If only one frontend platform exists, design for that single platform
-- Store discovered platform list for use in Phase 3 worker dispatch
+Default path: `{iteration_path}/01.product-requirement`
 
-### Extract Feature Breakdown (Section 3.4)
+### Step 2: Dispatch Feature Registry Worker
 
-After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
+Dispatch a Worker to execute `speccrew-fd-feature-registry-init` skill:
 
-1. **Locate Section 3.4**: In each Sub-PRD, find the "Feature Breakdown" table under Section 3.4
+```
+Worker dispatch parameters:
+- skill: speccrew-fd-feature-registry-init
+- prd_dir: {iteration_path}/01.product-requirement
+- workspace_path: {workspace_path}
+- language: {language}
+```
 
-2. **Parse Feature Table**: Extract the following columns for each Feature:
+Worker will:
+- Read all PRD files and techs-manifest.json
+- Extract Feature Breakdown from each Sub-PRD Section 3.4
+- Generate `.feature-registry.json`
+- Return summary statistics
+
+### Step 3: Verify Feature Registry
+
+After Worker completes:
+1. Read `{prd_dir}/.feature-registry.json` — verify it exists and contains valid data
+2. Extract the following for each Feature:
    - `Feature ID`: Unique identifier (e.g., `F-CRM-01`, `F-CRM-02`)
    - `Feature Name`: Descriptive name (e.g., `Customer List Management`)
    - `Type`: Either `Page+API` or `API-only`
-   - `Module`: Module identifier the feature belongs to (e.g., `M1-System`, `M2-Member`). Derive from the Sub-PRD's module classification.
-   - `Source PRD`: The Sub-PRD filename this feature was extracted from (e.g., `crm-system-sub-member.md`)
+   - `Module`: Module identifier the feature belongs to
+   - `Source PRD`: The Sub-PRD filename this feature was extracted from
    - `Dependencies`: List of prerequisite Feature IDs (if any)
 
-3. **Build Feature Registry**: Consolidate all features across Sub-PRDs into a unified list.
+3. **Write Feature Registry to `.checkpoints.json`**:
 
-4. **Write Feature Registry to `.checkpoints.json`**:
-
-   Write or update the checkpoint file at:
-   ```
-   {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json
-   ```
-
-   Structure — each feature has individual status fields for full checklist tracking:
-   ```json
-   {
-     "stage": "02_feature_design",
-     "checkpoints": {
-       "function_decomposition": {
-         "passed": false,
-         "confirmed_at": null,
-         "description": "Feature Registry extraction and confirmation",
-         "total_features": 42,
-         "total_modules": 13,
-         "features": [
-           {
-             "feature_id": "F-SYS-01",
-             "feature_name": "Account Login",
-             "type": "Page+API",
-             "module": "M1-System",
-             "source_prd": "crm-system-sub-system.md",
-             "dependencies": [],
-             "feature_spec_status": "pending",
-             "api_contract_status": "pending"
-           },
-           {
-             "feature_id": "F-MEMBER-01",
-             "feature_name": "Customer Info Management",
-             "type": "Page+API",
-             "module": "M2-Member",
-             "source_prd": "crm-system-sub-member.md",
-             "dependencies": ["F-SYS-01"],
-             "feature_spec_status": "pending",
-             "api_contract_status": "pending"
-           }
-         ]
-       },
-       "feature_spec_review": {
-         "passed": false,
-         "confirmed_at": null
-       },
-       "api_contract_joint": {
-         "passed": false,
-         "confirmed_at": null
-       }
-     }
-   }
+   ```bash
+   node {update_progress_script} write-checkpoint \
+     --file {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json \
+     --stage 02_feature_design \
+     --checkpoint function_decomposition \
+     --data '{"features": [...], "total_features": N, "total_modules": M}'
    ```
 
    **Feature status values:**
@@ -361,38 +331,31 @@ After reading PRD documents, extract Feature Breakdown from each Sub-PRD:
    - Feature Spec worker done → set `feature_spec_status` = `completed`
    - API Contract worker done → set `api_contract_status` = `completed`
 
-### 2.5a Feature Name Normalization
+### Step 4: HARD STOP — User Confirmation
 
-Before presenting the Feature Registry to user:
+Present the Feature Registry to user and wait for confirmation before proceeding:
 
-1. **Extract exact names** from PRD Section 3.4 table — use the name column value verbatim
-2. **Store as-is** in `.checkpoints.json` `feature_name` field — no translation, no slug conversion
-3. **Validate uniqueness**: Ensure no two Features share the same `feature_name`
-4. **Language rule**: `feature_name` MUST preserve the PRD's original language (Chinese names stay Chinese)
+Display the full feature table:
 
-5. **Present Feature Registry to user for confirmation**:
+| # | Feature ID | Feature Name | Type | Module | Dependencies |
+|---|-----------|-------------|------|--------|--------------|
+| 1 | F-SYS-01 | Account Login | Page+API | M1-System | - |
+| 2 | F-MEMBER-01 | Customer Info | Page+API | M2-Member | F-SYS-01 |
+| ... | ... | ... | ... | ... | ... |
 
-   Display the full feature table:
+⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
 
-   | # | Feature ID | Feature Name | Type | Module | Dependencies |
-   |---|-----------|-------------|------|--------|--------------|
-   | 1 | F-SYS-01 | Account Login | Page+API | M1-System | - |
-   | 2 | F-MEMBER-01 | Customer Info | Page+API | M2-Member | F-SYS-01 |
-   | ... | ... | ... | ... | ... | ... |
+```
+DO NOT dispatch Feature Spec workers until user explicitly confirms the Feature Registry.
+Ask user:
+- Is the feature decomposition granularity appropriate?
+- Are Feature IDs, Types, and dependencies correct?
+- Any features to add, remove, or merge?
 
-   ⚠️ **HARD STOP — WAIT FOR USER CONFIRMATION**
-
-   ```
-   DO NOT dispatch Feature Spec workers until user explicitly confirms the Feature Registry.
-   Ask user:
-   - Is the feature decomposition granularity appropriate?
-   - Are Feature IDs, Types, and dependencies correct?
-   - Any features to add, remove, or merge?
-
-   IF user requests changes → update .checkpoints.json, then re-present.
-   ONLY after user confirms → update function_decomposition.passed = true.
-   Then proceed to Phase 3.
-   ```
+IF user requests changes → update .checkpoints.json, then re-present.
+ONLY after user confirms → update function_decomposition.passed = true.
+Then proceed to Phase 3.
+```
 
 ### Read on Demand
 When involving related business domains, read `{workspace_path}/knowledges/bizs/system-overview.md` first, then follow the links within it to navigate to:
@@ -551,41 +514,59 @@ If only **1 Feature** in registry:
 
 ### Phase 3c: Confirm — Batch Spec Review (Multi-Feature Only)
 
+> 🛑 **ORCHESTRATOR RULES — Phase 3c**
+> - ❌ DO NOT read feature-spec.md files for summary aggregation
+> - ❌ DO NOT count functions/components/APIs by parsing Spec documents
+> - ✅ ONLY read DISPATCH-PROGRESS.json for summary data
+> - ✅ Summary metadata is written by each Worker via update-progress.js
+
 **Condition**: Execute ONLY when 2+ Features exist
 
 **Purpose**: Present batch Feature Spec summary and obtain user confirmation before proceeding to API Contract generation.
 
-1. **Read all `feature-spec.md` files** generated in Phase 3b
+#### Step 1: Read Progress Summary
 
-2. **Build Batch Spec Summary**:
+Read DISPATCH-PROGRESS.json to get completion status and metadata for all features:
 
-   | Feature ID | Feature Name | Functions | Frontend Components | APIs | Data Entities |
-   |------------|--------------|-----------|---------------------|------|---------------|
-   | F-CRM-01 | Customer List | 5 | 3 | 4 | 2 new, 1 mod |
-   | F-CRM-02 | Customer Detail | 4 | 2 | 3 | 1 new |
-   | ... | ... | ... | ... | ... | ... |
+```bash
+node {workspace_path}/scripts/update-progress.js read --file {dispatch_progress_path} --overview
+```
 
-3. **Present to User**:
-   ```
-   📋 Batch Feature Spec Summary
-   
-   Total Features: {N}
-   ├── Functions Designed: {total}
-   ├── Frontend Components: {total}
-   ├── Backend APIs: {total}
-   └── Data Entities: {new} new, {modified} modified
-   
-   [Summary table above]
-   
-   ⚠️ HARD STOP — Please review all Feature Specs before proceeding to API Contract generation.
-   ```
+The progress file contains each task's status and metadata (function_count, component_count, api_count, entity_count) updated by Workers upon completion.
 
-4. **HARD STOP**: Wait for user confirmation
-   - If user requests modification for specific Feature → Re-dispatch design worker for that Feature only
-   - If user confirms → Update `.checkpoints.json`:
-     ```bash
-     node {update_progress_script} write-checkpoint --file {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true
-     ```
+#### Step 2: Build Summary from Progress Data
+
+From the progress data, build the batch summary table:
+
+| Feature ID | Feature Name | Functions | Frontend Components | APIs | Data Entities | Status |
+|---|---|---|---|---|---|---|
+
+> 🛑 **DO NOT read individual feature-spec.md files to build this summary.**
+> All summary data comes from DISPATCH-PROGRESS.json metadata fields.
+
+#### Step 3: Present Summary to User
+
+```
+📋 Batch Feature Spec Summary
+
+Total Features: {N}
+├── Functions Designed: {total}
+├── Frontend Components: {total}
+├── Backend APIs: {total}
+└── Data Entities: {new} new, {modified} modified
+
+[Summary table above]
+
+⚠️ HARD STOP — Please review all Feature Specs before proceeding to API Contract generation.
+```
+
+#### Step 4: HARD STOP — Wait for User Confirmation
+
+- If user requests modification for specific Feature → Re-dispatch design worker for that Feature only
+- If user confirms → Update `.checkpoints.json`:
+  ```bash
+  node {update_progress_script} write-checkpoint --file {iterations_dir}/{iteration}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true
+  ```
 
 ---
 

@@ -510,6 +510,26 @@ node speccrew-workspace/scripts/update-progress.js write-checkpoint \
 
 Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review passed."
 
+## Step 9: Update Progress with Metadata
+
+After generating the Feature Spec document, update the task in DISPATCH-PROGRESS.json with summary metadata:
+
+```bash
+node {workspace_path}/scripts/update-progress.js update-task \
+  --file {dispatch_progress_path} \
+  --task-id {feature_task_id} \
+  --status completed \
+  --metadata '{"function_count": X, "component_count": Y, "api_count": Z, "entity_count": W}'
+```
+
+Where:
+- `function_count`: Number of functions defined in the Feature Spec
+- `component_count`: Number of frontend components identified
+- `api_count`: Number of API endpoints defined
+- `entity_count`: Number of data entities defined
+
+⚠️ This step is MANDATORY — the FD Agent relies on this metadata for batch summary in Phase 3c.
+
 ---
 
 # Key Rules
@@ -555,6 +575,7 @@ Log: "✅ Feature Spec generation completed. Checkpoint feature_spec_review pass
 - [ ] **[CRITICAL]** Processing Logic uses Mermaid flowchart TD (NOT ASCII)
 - [ ] All Mermaid diagrams follow mermaid-rule.md compliance rules
 - [ ] `.checkpoints.json` updated via script
+- [ ] **CRITICAL**: DISPATCH-PROGRESS.json updated with metadata (function_count, component_count, api_count, entity_count)
 - [ ] No technology decisions included
 - [ ] No intermediate design-data artifact created
 - [ ] **CRITICAL — Business Content Only**: Verify ALL sections use business-level descriptions. Zero tolerance for: file paths, code snippets, SQL, framework names, component names, technical types
