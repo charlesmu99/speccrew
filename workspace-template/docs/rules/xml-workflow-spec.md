@@ -390,6 +390,87 @@ When executing `<block type="task">` blocks, the `action` attribute determines w
 3. **`<loop parallel="true">` with `dispatch-to-worker`** — Create ALL worker tasks in ONE batch call, not sequentially. This enables true parallel execution.
 4. **Variable binding** — After a tool call completes, bind the result to the variable specified in `<field name="output" var="..."/>` for use in subsequent blocks.
 
+### Invocation Examples
+
+**Example 1: `action="run-script"` — Team Leader runs terminal command directly**
+
+Given this XML block:
+```xml
+<block type="task" id="S0-B4" action="run-script" desc="Generate platforms.json">
+  <field name="command">node scripts/generate-platforms.js</field>
+  <field name="output" var="platforms_file"/>
+</block>
+```
+
+Team Leader executes:
+```
+→ Call run_in_terminal(command="node scripts/generate-platforms.js")
+→ Store result in variable ${platforms_file}
+```
+
+**Example 2: `action="run-skill"` — Team Leader loads a Skill (dispatch playbook)**
+
+Given this XML block:
+```xml
+<block type="task" id="B3" action="run-skill" desc="Load dispatch playbook">
+  <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
+</block>
+```
+
+Team Leader executes:
+```
+→ Call Skill(name="speccrew-knowledge-bizs-dispatch-xml")
+→ Read and execute the loaded workflow block-by-block
+```
+
+**Example 3: `action="dispatch-to-worker"` — Team Leader creates Task for Worker Agent**
+
+Given this XML block:
+```xml
+<block type="task" id="S1-B1" action="dispatch-to-worker" desc="Identify entry directories for backend">
+  <field name="agent">speccrew-task-worker</field>
+  <field name="skill">speccrew-knowledge-bizs-identify-entries-xml</field>
+  <field name="context_platform_id">${platform.platformId}</field>
+  <field name="context_source_path">${platform.sourcePath}</field>
+  <field name="output" var="entry_result"/>
+</block>
+```
+
+Team Leader executes:
+```
+→ Call Task tool to create a new task:
+    - Assign to: speccrew-task-worker
+    - Worker must call: Skill(name="speccrew-knowledge-bizs-identify-entries-xml")
+    - Pass context: platform_id=backend-system, source_path=d:/dev/project/backend
+→ Wait for Worker Agent to complete the task
+→ Store Worker's result in variable ${entry_result}
+```
+
+**CRITICAL**: When block says `action="dispatch-to-worker"`, Team Leader MUST NOT load the skill itself or execute it directly. Team Leader creates a Task, Worker Agent loads and executes the skill.
+
+**Example 4: `<loop parallel="true">` with `dispatch-to-worker` — Batch dispatch**
+
+Given this XML block:
+```xml
+<block type="loop" id="S1-L1" over="${platforms}" var="platform" parallel="true">
+  <block type="task" id="S1-B1" action="dispatch-to-worker" desc="Identify entries">
+    <field name="agent">speccrew-task-worker</field>
+    <field name="skill">speccrew-knowledge-bizs-identify-entries-xml</field>
+    <field name="context_platform_id">${platform.platformId}</field>
+  </block>
+</block>
+```
+
+Team Leader executes:
+```
+→ For each platform in ${platforms}, create a Task in ONE batch:
+    - Task 1: Worker runs identify-entries-xml for backend-system
+    - Task 2: Worker runs identify-entries-xml for frontend-web
+    - Task 3: Worker runs identify-entries-xml for mobile-app
+→ All 3 tasks run in parallel on Worker Agents
+→ Wait for all tasks to complete before proceeding
+```
+
 ## Execution Rules
 
 1. **NEVER skip a block** — execute every block in document order
