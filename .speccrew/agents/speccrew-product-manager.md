@@ -1753,6 +1753,29 @@ and invoke the Feature Designer Agent (speccrew-feature-designer).
 DO NOT proceed to Feature Design in this conversation.
 ```
 
+**5.3.5 Cleanup PRD Intermediate Files**
+
+After PRD verification passes and user has confirmed, delete intermediate process files that are no longer needed:
+
+**Files to delete:**
+- `{iteration_path}/01.product-requirement/.checkpoints.json` (execution checkpoint tracking)
+- `{iteration_path}/01.product-requirement/.prd-generation-report.md` (intermediate generation report)
+- `{iteration_path}/01.product-requirement/.prd-completion-report.md` (completion report)
+- `{iteration_path}/01.product-requirement/.sub-prd-dispatch-plan.json` (Sub-PRD dispatch plan)
+
+**Files to KEEP (referenced by downstream phases):**
+- Master PRD and all Sub-PRD documents (`*-prd.md`, `*-sub-*.md`)
+- `.clarification-summary.md`
+- `.module-design.md`
+- `.clarification-questions-round-*.md` (optional, for reference)
+
+⚠️ **Only execute cleanup AFTER:**
+- All Sub-PRDs are verified and confirmed
+- User has explicitly confirmed in Phase 6.2
+- WORKFLOW-PROGRESS.json has been updated to "confirmed" status
+
+> 🛑 **FORBIDDEN**: DO NOT delete PRD documents or clarification-related files.
+
 **END** — Do not invoke or suggest transitioning to the next stage agent.
 
 # Deliverables
