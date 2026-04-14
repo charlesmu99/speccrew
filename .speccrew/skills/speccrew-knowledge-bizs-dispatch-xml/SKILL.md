@@ -99,7 +99,6 @@ Stage 4: System Summary
 ## XML Workflow Definition
 
 <workflow id="bizs-dispatch-main" status="pending" version="1.0" desc="bizs knowledge base generation 5-stage pipeline">
-  > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `docs/rules/xml-workflow-spec.md`
 
   <!-- ============================================================
        Input Parameters Definition
@@ -824,41 +823,11 @@ Failure rate exceeds 50%, terminating entire pipeline
 
 ---
 
-## Input/Output Specification (Supplementary)
+## Appendix: Reference
 
-### Input Parameters
+### Skill Routing Table (Stage 2)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `source_path` | Source code path (can be a subdirectory; auto-detects platform root by traversing upward) | project root |
-| `language` | User's language code (e.g., "zh", "en") | **REQUIRED** |
-| `sync_mode` | `"full"` or `"incremental"` | `"full"` |
-| `base_commit` | (incremental only) Git base commit hash | — |
-| `head_commit` | (incremental only) Git HEAD commit hash | `HEAD` |
-| `changed_files` | (incremental only) Pre-computed changed file list | — |
-| `max_concurrent_workers` | Maximum parallel Worker Agents | `5` |
-| `workspace_path` | **(required)** Absolute path to speccrew-workspace directory | — |
-| `sync_state_bizs_dir` | **(required)** Absolute path to `knowledges/base/sync-state/knowledge-bizs/` | — |
-| `ide_skills_dir` | **(required)** Absolute path to IDE skills directory (e.g., `.qoder/skills`, `.cursor/skills`) | — |
-| `configs_dir` | **(required)** Absolute path to `docs/configs/` directory | — |
-| `graph_root` | Graph data output root path (absolute path preferred) | `{workspace_path}/knowledges/bizs/graph` |
-| `completed_dir` | **(required)** Marker file output directory for Worker results (absolute path required) | — |
-
-> **MANDATORY**: All path parameters MUST be absolute paths provided by the caller. DO NOT use ListDir to search for script locations. DO NOT construct paths by guessing or relative path resolution.
-
-### Output Files
-
-- Entry directories: `{sync_state_bizs_dir}/entry-dirs-{platform}.json`
-- Feature inventory: `{sync_state_bizs_dir}/features-{platform}.json`
-- Feature docs: `{workspace_path}/knowledges/bizs/{platform}/{module}/features/*.md`
-- Module overviews: `{workspace_path}/knowledges/bizs/{platform}/{module}/*-overview.md`
-- UI style patterns: `{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/` (page-types/, components/, layouts/)
-- System overview: `{workspace_path}/knowledges/bizs/system-overview.md`
-- Graph data: `{workspace_path}/knowledges/bizs/graph/`
-
----
-
-## Skill Routing Table (Stage 2)
+> **Note**: Detailed routing logic is defined in XML Stage 2 gateway (S2-G1).
 
 | platformType | skill_name | Description |
 |--------------|------------|-------------|
@@ -867,11 +836,9 @@ Failure rate exceeds 50%, terminating entire pipeline
 | `desktop` | `speccrew-knowledge-bizs-ui-analyze-xml` | Desktop apps (Electron/WPF) |
 | `backend` | `speccrew-knowledge-bizs-api-analyze-xml` | Backend APIs (Java/Python/Node.js) |
 
-> **CRITICAL**: Use this routing table to select the correct skill for each feature.
-
 ---
 
-## Platform Types
+### Platform Types
 
 | Platform Type | Platform Subtype | Description |
 |---------------|------------------|-------------|
@@ -882,9 +849,9 @@ Failure rate exceeds 50%, terminating entire pipeline
 
 ---
 
-## Worker Completion Marker Format
+### Worker Completion Marker Format
 
-### Marker File Naming Convention
+#### Marker File Naming Convention
 
 **Pattern**: `{module}-{subpath}-{fileName}.{type}.json`
 
@@ -903,7 +870,7 @@ Failure rate exceeds 50%, terminating entire pipeline
 | `user/admin/UserController.java` | `user-admin-UserController.done.json` |
 | `order/api/v2/OrderService.java` | `order-api-v2-OrderService.done.json` |
 
-### .done.json Required Fields
+#### .done.json Required Fields
 
 ```json
 {
@@ -921,9 +888,9 @@ Failure rate exceeds 50%, terminating entire pipeline
 
 ---
 
-## Batch Processing Details
+### Batch Processing Details
 
-### get-batch Script Output Format
+#### get-batch Script Output Format
 
 ```json
 {
@@ -944,7 +911,7 @@ Failure rate exceeds 50%, terminating entire pipeline
 }
 ```
 
-### process-results Script Behavior
+#### process-results Script Behavior
 
 - Scans `.done.json` files → updates feature status to `completed` in features-*.json
 - Scans `.graph-done.json` files → confirms graph data generation complete
@@ -953,128 +920,14 @@ Failure rate exceeds 50%, terminating entire pipeline
 
 ---
 
-## Stateless Design (Context Recovery)
+### Stateless Design
 
-Dispatch adopts a fully stateless file-driven design. If context compression or interruption occurs during execution:
-
-- No need to memorize any batch state or Worker output
-- Re-execute loop: `get-batch` will automatically recover from file state, skipping completed and in-progress features
-- `process-results` will process all uncleaned marker files
-- The entire flow is safely re-entrant
+Dispatch adopts a fully stateless file-driven design. Re-execute loop to recover: `get-batch` auto-recovers from file state; `process-results` handles uncleaned markers. The entire flow is safely re-entrant.
 
 ---
 
-## Large-Scale Scenario Guidance
+### Large-Scale Scenario Guidance
 
-When modules contain **more than 20 Features**:
+For modules with >20 features: dispatch multiple Worker Agents in parallel (each handles a subset). Use `get-next-batch` for resume support across sessions. Run `process-batch-results --validateDocs` after completion to verify.
 
-- **Single Agent Limit**: A single Worker Agent can reliably process ~20 features per session due to context window constraints. Beyond this, context degradation may cause incomplete document generation.
-- **Multi-Worker Strategy**: For modules with >20 features, the calling Agent should dispatch multiple Worker Agents in parallel, each handling a non-overlapping subset of features.
-- **Resume Support**: The `get-next-batch` script naturally supports resume across sessions — it skips features that already have `.done` files.
-- **Validation After Completion**: After all features are marked `analyzed=true`, run `process-batch-results` with `--validateDocs --syncStatePath` to verify document completeness.
 
----
-
-## Error Handling Strategy
-
-| Stage | Failure Scenario | Handling | Retry |
-|-------|-----------------|----------|-------|
-| Stage 0 | Platform detection fails | Abort pipeline, report error | No retry |
-| Stage 1a | Entry directory recognition fails | Abort pipeline, report platform details | No retry |
-| Stage 1b | Script execution fails | Abort pipeline, report error | No retry |
-| Stage 1c | Feature merge fails | Abort pipeline, do not proceed to Stage 2 until resolved | No retry |
-| Stage 2 | Single Worker fails | Mark feature as `failed`, continue other Workers | No auto-retry |
-| Stage 2 | Failure rate > 50% | Abort pipeline, report all failures | — |
-| Stage 3 | Single Worker fails | Skip that module, continue others | Retry once |
-| Stage 3.5 | Pattern extraction fails | Continue pipeline, report warning | — |
-| Stage 4 | Worker fails | Abort, preserve all generated content | Retry once |
-
-**Failed Feature Handling**: Features marked as `failed` via `update-feature-status` script retain their error details in `features-{platform}.json` for manual inspection or re-run.
-
----
-
-## Task Completion Report Format
-
-Upon completing all stages, output the following structured report:
-
-```json
-{
-  "status": "success | partial | failed",
-  "skill": "speccrew-knowledge-bizs-dispatch-xml",
-  "stages_completed": ["stage_0", "stage_1a", "stage_1b", "stage_1c", "stage_2", "stage_3", "stage_3.5", "stage_4"],
-  "stages_failed": [],
-  "output_summary": {
-    "platforms_processed": ["web-vue", "backend-system"],
-    "features_analyzed": 32,
-    "modules_summarized": 8,
-    "ui_patterns_extracted": 15,
-    "system_overview_generated": true
-  },
-  "output_files": [
-    "knowledges/bizs/{platform}/{module}/features/*.md",
-    "knowledges/bizs/{platform}/{module}/*-overview.md",
-    "knowledges/techs/{platform_id}/ui-style-patterns/",
-    "knowledges/bizs/system-overview.md",
-    "knowledges/bizs/graph/"
-  ],
-  "errors": [],
-  "next_steps": ["Initialize techs knowledge base"]
-}
-```
-
----
-
-## Return Value Structure
-
-After all 5 stages complete, return a summary object to the caller:
-
-```json
-{
-  "status": "completed",
-  "pipeline": "bizs",
-  "stages": {
-    "stage0": { "status": "completed", "platforms": 2 },
-    "stage1a": { "status": "completed", "platforms": 2, "modules": 12 },
-    "stage1b": { "status": "completed", "platforms": 2, "features": 32 },
-    "stage1c": { "status": "completed", "mode": "full" },
-    "stage2": { "status": "completed", "analyzed": 32, "failed": 0, "graphWritten": 32 },
-    "stage3": { "status": "completed", "modules": 8, "failed": 0 },
-    "stage3_5": { "status": "completed", "platforms": 2, "patterns": 15 },
-    "stage4": { "status": "completed" }
-  },
-  "output": {
-    "system_overview": "{workspace_path}/knowledges/bizs/system-overview.md",
-    "graph_root": "{workspace_path}/knowledges/bizs/graph/"
-  }
-}
-```
-
----
-
-## CONTINUOUS EXECUTION RULES
-
-This skill MUST execute all stages continuously without unnecessary interruptions.
-
-### FORBIDDEN Interruptions
-
-1. DO NOT ask user "Should I continue?" after completing a stage
-2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
-3. DO NOT pause to list what you plan to do next — just do it
-4. DO NOT ask for confirmation before generating output files
-5. DO NOT warn about "large number of files" — proceed with generation
-6. DO NOT offer "Should I proceed with the remaining items?"
-7. DO NOT present options like "Full execution / Sample execution / Pause"
-
-### When to Pause (ONLY these cases)
-
-1. Explicit `<event action="confirm">` blocks in the workflow (e.g., Stage 0 platform confirmation)
-2. Ambiguous requirements that genuinely need clarification
-3. Unrecoverable errors that prevent further progress (failure rate > 50%)
-4. Security-sensitive operations (e.g., deleting existing files)
-
-### Batch Execution Behavior
-
-- When multiple features need processing, process ALL of them sequentially without asking
-- Use marker files (.done.json) to track progress, enabling resumption if interrupted by context limits
-- If context window is approaching limit, save progress to checkpoint and inform user how to resume
-- NEVER voluntarily stop mid-batch to ask if user wants to continue

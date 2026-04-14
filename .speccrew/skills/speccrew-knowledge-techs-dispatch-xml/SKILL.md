@@ -624,11 +624,13 @@ Stage 3 complete. Root INDEX.md generated.
 
 ---
 
-## Worker Completion Marker Format
+## Appendix: Reference
+
+### Worker Completion Marker Format
 
 Each Worker MUST create a completion marker file after generating documents.
 
-### Conventions Worker Done File
+#### Conventions Worker Done File
 
 **File**: `{completed_dir}/{platform_id}.done-conventions.json`
 
@@ -648,7 +650,7 @@ Each Worker MUST create a completion marker file after generating documents.
 }
 ```
 
-### UI-Style Worker Done File
+#### UI-Style Worker Done File
 
 **File**: `{completed_dir}/{platform_id}.done-ui-style.json`
 
@@ -673,7 +675,7 @@ Each Worker MUST create a completion marker file after generating documents.
 
 If a Worker encounters a fatal error, it should still attempt to create the done file with `status: "failed"` and include error details in an `"error"` field.
 
-### Quality Worker Done File
+#### Quality Worker Done File
 
 **File**: `{completed_dir}/{platform_id}.quality-done.json`
 
@@ -691,7 +693,7 @@ If a Worker encounters a fatal error, it should still attempt to create the done
 
 ---
 
-## Platform Status Tracking Fields
+### Platform Status Tracking Fields
 
 Each platform entry in techs-manifest.json includes status tracking fields for monitoring the analysis pipeline progress:
 
@@ -735,7 +737,7 @@ pending → processing → completed
 
 ---
 
-## Output per Platform
+### Output per Platform
 
 ```
 speccrew-workspace/knowledges/techs/{platform_id}/
@@ -773,9 +775,9 @@ speccrew-workspace/knowledges/techs/{platform_id}/
 
 ---
 
-## Error Handling
+### Error Handling
 
-### Error Handling Strategy
+#### Error Handling Strategy
 
 ```
 ON Worker Failure:
@@ -788,7 +790,7 @@ ON Worker Failure:
      - IF some platforms succeeded → CONTINUE to Stage 3 with successful platforms only
 ```
 
-### Stage-Level Failure Handling
+#### Stage-Level Failure Handling
 
 | Stage | Failure Handling |
 |-------|-----------------|
@@ -797,7 +799,7 @@ ON Worker Failure:
 | Stage 2.5 | Continue pipeline, report warnings |
 | Stage 3 | Abort if Stage 2 had critical failures |
 
-### Worker Failure Details
+#### Worker Failure Details
 
 **When a Worker Agent fails:**
 - **No automatic retry**: Worker failures are recorded as-is
@@ -807,7 +809,7 @@ ON Worker Failure:
 
 ---
 
-## Checklist
+### Checklist
 
 - [ ] Stage 1: Platform manifest generated with techs-manifest.json
 - [ ] Stage 2: All platforms processed in parallel
@@ -815,89 +817,9 @@ ON Worker Failure:
 - [ ] Stage 3: Root INDEX.md generated with Agent mapping
 - [ ] Stage 3: `stage3-status.json` generated with index info
 
-### Document Completeness Verification
+#### Document Completeness Verification
 - [ ] Each platform directory contains required documents: INDEX.md, tech-stack.md, architecture.md, conventions-design.md, conventions-dev.md, conventions-unit-test.md, conventions-system-test.md, conventions-build.md
 - [ ] `conventions-data.md` exists only for appropriate platforms (backend required, others optional)
 - [ ] All documents include file reference blocks (pure Markdown format for VS Code preview compatibility)
 - [ ] All documents include AI-TAG and AI-CONTEXT comments
 - [ ] techs/INDEX.md links only to existing documents
-
----
-
-## Task Completion Report Format
-
-Upon completing all stages, output the following structured report:
-
-```json
-{
-  "status": "success | partial | failed",
-  "skill": "speccrew-knowledge-techs-dispatch-xml",
-  "stages_completed": ["stage_1", "stage_2", "stage_2_5", "stage_3"],
-  "stages_failed": [],
-  "output_summary": {
-    "platforms_processed": ["frontend", "backend"],
-    "docs_generated_per_platform": {"frontend": 5, "backend": 4},
-    "root_index_generated": true,
-    "cross_platform_check_passed": true
-  },
-  "output_files": [
-    "knowledges/techs/{platform}/README.md",
-    "knowledges/techs/{platform}/conventions.md",
-    "knowledges/techs/README.md"
-  ],
-  "errors": [],
-  "next_steps": ["Review generated tech documentation"]
-}
-```
-
----
-
-## Return Value Structure
-
-After all 3 stages complete, return a summary object to the caller:
-
-```json
-{
-  "status": "completed",
-  "pipeline": "techs",
-  "stages": {
-    "stage1": { "status": "completed", "platforms": 3 },
-    "stage2": { "status": "completed", "completed": 3, "failed": 0 },
-    "stage3": { "status": "completed" }
-  },
-  "output": {
-    "index": "speccrew-workspace/knowledges/techs/INDEX.md",
-    "manifest": "speccrew-workspace/knowledges/base/sync-state/knowledge-techs/techs-manifest.json"
-  }
-}
-```
-
----
-
-## CONTINUOUS EXECUTION RULES
-
-This skill MUST execute all stages continuously without unnecessary interruptions.
-
-### FORBIDDEN Interruptions
-
-1. DO NOT ask user "Should I continue?" after completing a stage
-2. DO NOT suggest "Let me split this into batches" or "Let's do this in parts"
-3. DO NOT pause to list what you plan to do next — just do it
-4. DO NOT ask for confirmation before generating output files
-5. DO NOT warn about "large number of files" — proceed with generation
-6. DO NOT offer "Should I proceed with the remaining items?"
-7. DO NOT present options like "Full execution / Sample execution / Pause"
-
-### When to Pause (ONLY these cases)
-
-1. Explicit `<event action="confirm">` blocks in the workflow (e.g., platform confirmation if needed)
-2. Ambiguous requirements that genuinely need clarification
-3. Unrecoverable errors that prevent further progress (failure rate > 50%)
-4. Security-sensitive operations (e.g., deleting existing files)
-
-### Batch Execution Behavior
-
-- When multiple platforms need processing, process ALL of them without asking
-- Use marker files (.done.json) to track progress, enabling resumption if interrupted by context limits
-- If context window is approaching limit, save progress to checkpoint and inform user how to resume
-- NEVER voluntarily stop mid-batch to ask if user wants to continue
