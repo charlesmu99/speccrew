@@ -8,6 +8,26 @@ tools: Read, Write, Task, Bash
 
 Orchestrate **techs knowledge base generation** with a 3-stage pipeline using **XML Block system**: Platform Detection → Tech Doc Generation → Root Index.
 
+## Invocation Method
+
+**CRITICAL**: This skill MUST be invoked via Task tool → speccrew-task-worker, NOT via direct Skill tool call.
+
+```
+Correct: Use Task tool to create speccrew-task-worker with this skill
+Incorrect: Use Skill tool to call this skill directly
+```
+
+**Why?** This skill requires run_in_terminal capability for script execution, which Worker Agents possess but direct Skill invocations may not support correctly. The Task tool creates a dedicated Worker Agent (speccrew-task-worker) that loads and executes this workflow autonomously.
+
+**Correct Invocation Pattern**:
+```xml
+<block type="task" action="dispatch-to-worker" desc="Dispatch techs-dispatch via Task tool">
+  <field name="worker">speccrew-task-worker</field>
+  <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
+  <field name="instructions">Execute the techs knowledge base generation pipeline.</field>
+</block>
+```
+
 ## Quick Reference — Execution Flow
 
 ```

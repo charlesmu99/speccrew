@@ -8,6 +8,26 @@ tools: Read, Write, Task, Bash
 
 Orchestrate **bizs knowledge base generation** with a 5-stage pipeline using **XML Block system**: Feature Inventory → Feature Analysis + Graph Write → Module Summarize → UI Style Pattern Extract → System Summary.
 
+## Invocation Method
+
+**CRITICAL**: This skill MUST be invoked via Task tool → speccrew-task-worker, NOT via direct Skill tool call.
+
+```
+Correct: Use Task tool to create speccrew-task-worker with this skill
+Incorrect: Use Skill tool to call this skill directly
+```
+
+**Why?** This skill requires run_in_terminal capability for script execution, which Worker Agents possess but direct Skill invocations may not support correctly. The Task tool creates a dedicated Worker Agent (speccrew-task-worker) that loads and executes this workflow autonomously.
+
+**Correct Invocation Pattern**:
+```xml
+<block type="task" action="dispatch-to-worker" desc="Dispatch bizs-dispatch via Task tool">
+  <field name="worker">speccrew-task-worker</field>
+  <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
+  <field name="instructions">Execute the bizs knowledge base generation pipeline.</field>
+</block>
+```
+
 ## Quick Reference — Execution Flow
 
 ```

@@ -190,8 +190,16 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
             <block type="rule" id="P05-R-TECHS" level="mandatory" desc="Parallel worker dispatch for techs">
               <field name="text">When techs-dispatch Stage 2 prepares task plans for multiple platforms, dispatch ALL platform workers IN PARALLEL — DO NOT execute sequentially</field>
             </block>
-            <block type="task" id="P05-B5" action="run-skill" desc="Invoke techs-dispatch">
+            <block type="task" id="P05-B5" action="dispatch-to-worker" desc="Dispatch techs-dispatch via Task tool → speccrew-task-worker">
+              <field name="worker">speccrew-task-worker</field>
               <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
+              <field name="instructions">
+CRITICAL: This skill MUST be invoked via Task tool creating a Worker Agent (speccrew-task-worker), NOT via direct Skill tool call.
+
+Use the Task tool to create a Worker Agent with the skill speccrew-knowledge-techs-dispatch-xml.
+The Worker Agent will load and execute the dispatch workflow autonomously.
+DO NOT call the Skill tool directly for speccrew-knowledge-* skills.
+              </field>
             </block>
           </branch>
           <branch test="${bizs_kb.exists} == false" name="Bizs Not Initialized">
@@ -199,8 +207,16 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
             <block type="rule" id="P05-R-BIZS" level="mandatory" desc="Parallel worker dispatch for bizs">
               <field name="text">When bizs-dispatch prepares worker task plans, dispatch ALL workers IN PARALLEL per stage — DO NOT execute sequentially</field>
             </block>
-            <block type="task" id="P05-B6" action="run-skill" desc="Invoke bizs-dispatch-xml">
+            <block type="task" id="P05-B6" action="dispatch-to-worker" desc="Dispatch bizs-dispatch via Task tool → speccrew-task-worker">
+              <field name="worker">speccrew-task-worker</field>
               <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
+              <field name="instructions">
+CRITICAL: This skill MUST be invoked via Task tool creating a Worker Agent (speccrew-task-worker), NOT via direct Skill tool call.
+
+Use the Task tool to create a Worker Agent with the skill speccrew-knowledge-bizs-dispatch-xml.
+The Worker Agent will load and execute the dispatch workflow autonomously.
+DO NOT call the Skill tool directly for speccrew-knowledge-* skills.
+              </field>
             </block>
           </branch>
           <branch default="true" name="Knowledge Base Ready">
@@ -221,6 +237,7 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
       <field name="text">DO NOT trigger business process Skills (PRD, Solution, Design, Dev) — these are loaded by corresponding role Agents</field>
       <field name="text">DO NOT handle business development requests (feature requirements, code modifications, bug fixes) — prompt user to talk directly to Qoder</field>
       <field name="text">DO NOT delete or modify WORKFLOW-PROGRESS.json (read-only)</field>
+      <field name="text">DO NOT call the Skill tool directly for speccrew-knowledge-* skills (speccrew-knowledge-bizs-dispatch-xml, speccrew-knowledge-techs-dispatch-xml) — MUST use Task tool to create speccrew-task-worker Agent for indirect execution</field>
     </block>
 
     <block type="gateway" id="P1-G1" mode="exclusive" desc="Intent Recognition Routing">
@@ -240,8 +257,16 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
           <field name="text">When bizs-dispatch prepares worker task plans for multiple features or platforms, dispatch ALL workers IN PARALLEL — DO NOT execute features or platforms sequentially one by one</field>
           <field name="text">Each Worker (analysis, graph, summarize) runs independently — dispatch all of them at once per stage, then monitor completion markers</field>
         </block>
-        <block type="task" id="P1-B3" action="run-skill" status="pending" desc="Invoke bizs-dispatch XML version">
+        <block type="task" id="P1-B3" action="dispatch-to-worker" status="pending" desc="Dispatch bizs-dispatch via Task tool → speccrew-task-worker">
+          <field name="worker">speccrew-task-worker</field>
           <field name="skill">speccrew-knowledge-bizs-dispatch-xml</field>
+          <field name="instructions">
+CRITICAL: This skill MUST be invoked via Task tool creating a Worker Agent (speccrew-task-worker), NOT via direct Skill tool call.
+
+Use the Task tool to create a Worker Agent with the skill speccrew-knowledge-bizs-dispatch-xml.
+The Worker Agent will load and execute the dispatch workflow autonomously.
+DO NOT call the Skill tool directly for speccrew-knowledge-* skills.
+          </field>
         </block>
       </branch>
       <branch test="${intent} == 'knowledge_techs'" name="Techs Knowledge Base">
@@ -249,8 +274,16 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
           <field name="text">When techs-dispatch Stage 2 prepares task plans for multiple platforms, dispatch ALL platform workers IN PARALLEL using concurrent task dispatch — DO NOT execute platforms sequentially one by one</field>
           <field name="text">Each platform worker (techs-generate-conventions, techs-generate-ui-style) runs independently — dispatch all of them at once, then monitor completion markers</field>
         </block>
-        <block type="task" id="P1-B4" action="run-skill" status="pending" desc="Invoke techs-dispatch Skill">
+        <block type="task" id="P1-B4" action="dispatch-to-worker" status="pending" desc="Dispatch techs-dispatch via Task tool → speccrew-task-worker">
+          <field name="worker">speccrew-task-worker</field>
           <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
+          <field name="instructions">
+CRITICAL: This skill MUST be invoked via Task tool creating a Worker Agent (speccrew-task-worker), NOT via direct Skill tool call.
+
+Use the Task tool to create a Worker Agent with the skill speccrew-knowledge-techs-dispatch-xml.
+The Worker Agent will load and execute the dispatch workflow autonomously.
+DO NOT call the Skill tool directly for speccrew-knowledge-* skills.
+          </field>
         </block>
       </branch>
 
