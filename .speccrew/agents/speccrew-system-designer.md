@@ -23,10 +23,10 @@ Phase 0.5: IDE Directory Detection
   └── Detect IDE directory → Set skill path → Verify skills exist
         ↓
 Phase 1: Preparation
-  └── Identify Feature Specs & API Contracts → Parse Feature Registry → Present scope
+  └── Load Feature Registry from .prd-feature-list.json → Verify file existence → Present scope
         ↓
-Phase 2: Knowledge Loading
-  └── Read Feature Specs → Load techs-manifest → Load platform knowledge
+Phase 2: Resource Verification
+  └── Verify techs-manifest exists → Verify platform knowledge files exist → Prepare dispatch params
         ↓
 Phase 3: Framework Evaluation (HARD STOP)
   └── Dispatch speccrew-sd-framework-evaluate skill → User confirms
@@ -119,6 +119,8 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase | Rule | Description |
 |-------|------|-------------|
 | Phase 0 | STAGE GATE | Feature Design must be confirmed before starting. If not → STOP |
+| Phase 1 | REGISTRY ONLY | Agent reads .prd-feature-list.json + WORKFLOW-PROGRESS.json only. DO NOT use Glob to discover files |
+| Phase 2 | VERIFY ONLY | Agent verifies file existence only. DO NOT read Feature Spec, API Contract, or techs knowledge content |
 | Phase 2 | KNOWLEDGE-FIRST | MUST load ALL techs knowledge before Phase 3. DO NOT assume technology stack |
 | Phase 3 | SKILL-ONLY | Framework evaluation MUST use speccrew-sd-framework-evaluate skill. Agent MUST NOT evaluate frameworks itself |
 | Phase 3 | HARD STOP | User must confirm framework decisions before proceeding to Phase 4 |
@@ -262,90 +264,87 @@ Set variables:
 
 ## Phase 1: Preparation
 
+> 🛑 **ORCHESTRATOR RULES — Phase 1**
+> - ❌ DO NOT use Glob to explore file system
+> - ❌ DO NOT parse filenames to discover Features
+> - ✅ ONLY read `.prd-feature-list.json` and WORKFLOW-PROGRESS.json
+> - ✅ Build Feature Registry in memory from structured data
+
 When user requests to start system design (and Phase 0 gates are passed):
 
-### 1.1 Identify Feature Spec and API Contract Documents
+### 1.1 Load Feature Registry from Upstream Outputs
 
-Use Glob to find relevant documents in the current iteration:
+Read `.prd-feature-list.json` from PRD directory:
+- Path: `{iteration_path}/01.product-requirement/.prd-feature-list.json`
+- Extract: `modules[]`, `features[]` with `feature_id`, `feature_name`, `type`, `module`, `dependencies`
 
-- Feature Spec pattern: `{iterations_dir}/{current}/02.feature-design/*-feature-spec.md`
-- API Contract pattern: `{iterations_dir}/{current}/02.feature-design/*-api-contract.md`
+Combine with WORKFLOW-PROGRESS.json outputs (already loaded in Phase 0):
+- Extract Feature Spec paths from `stages.02_feature_design.outputs`
+- Extract API Contract paths from `stages.02_feature_design.outputs`
 
-**文件命名格式说明**:
-- **新格式**（细粒度 Feature）: 文件名以 Feature ID 开头，格式为 `{feature-id}-{feature-name}-feature-spec.md`
-  - 示例: `F-CRM-01-customer-list-feature-spec.md`
-  - Feature ID 格式: `F-{MODULE}-{NN}`（如 `F-CRM-01`）
-- **旧格式**（向后兼容）: 文件名以模块名开头，格式为 `{module-name}-feature-spec.md`
-  - 示例: `crm-feature-spec.md`
-  - 无 Feature ID 前缀
+Build Feature Registry (in memory only, no file exploration):
 
-**格式检测**: 文件名以 `F-` 开头 → 新格式；否则 → 旧格式
+| Feature ID | Feature Name | Type | Module | Feature Spec Path | API Contract Path |
+|------------|--------------|------|--------|-------------------|-------------------|
+| F-CRM-01 | customer-list | list | CRM | `.../02.feature-design/F-CRM-01-customer-list-feature-spec.md` | `.../02.feature-design/F-CRM-01-customer-list-api-contract.md` |
+| F-CRM-02 | customer-detail | detail | CRM | `.../02.feature-design/F-CRM-02-customer-detail-feature-spec.md` | `.../02.feature-design/F-CRM-02-customer-detail-api-contract.md` |
 
-### 1.2 Parse Feature Registry
+**Registry Build Logic**:
+1. Read `.prd-feature-list.json` to get feature metadata (id, name, type, module)
+2. Match with paths from WORKFLOW-PROGRESS.json `stages.02_feature_design.outputs`
+3. For each feature in `.prd-feature-list.json`, find corresponding paths:
+   - Feature Spec path: look for output with pattern `*-feature-spec.md`
+   - API Contract path: look for output with pattern `*-api-contract.md`
+4. If paths not found in outputs → mark as missing for 1.2 verification
 
-从发现的文件中提取 Feature 信息并建立 Registry:
+### 1.2 Verify File Existence
 
-```javascript
-// Feature Registry 结构
-{
-  "F-CRM-01": {
-    "feature_id": "F-CRM-01",
-    "feature_name": "customer-list",
-    "feature_spec_path": ".../02.feature-design/F-CRM-01-customer-list-feature-spec.md",
-    "api_contract_path": ".../02.feature-design/F-CRM-01-customer-list-api-contract.md"
-  },
-  "crm": {  // 旧格式，使用模块名作为标识
-    "feature_id": null,
-    "feature_name": "crm",
-    "feature_spec_path": ".../02.feature-design/crm-feature-spec.md",
-    "api_contract_path": ".../02.feature-design/crm-api-contract.md"
-  }
-}
+For each Feature in registry, verify:
+- Feature Spec file exists at the path from WORKFLOW-PROGRESS.json
+- API Contract file exists at the path from WORKFLOW-PROGRESS.json
+- If any missing → STOP and report which files are missing
+
+**If files missing**:
+```
+❌ Feature Files Missing
+
+Missing Files:
+├── Feature: F-CRM-01 (customer-list)
+│   ├── Feature Spec: .../02.feature-design/F-CRM-01-customer-list-feature-spec.md → ✗ NOT FOUND
+│   └── API Contract: .../02.feature-design/F-CRM-01-customer-list-api-contract.md → ✓ FOUND
+└── Feature: F-ORDER-01 (order-list)
+    ├── Feature Spec: .../02.feature-design/F-ORDER-01-order-list-feature-spec.md → ✓ FOUND
+    └── API Contract: .../02.feature-design/F-ORDER-01-order-list-api-contract.md → ✗ NOT FOUND
+
+REQUIRED ACTIONS:
+1. Verify Feature Design stage completed successfully
+2. Check WORKFLOW-PROGRESS.json outputs are correct
+3. Retry after fixing missing files
 ```
 
-**解析逻辑**:
-1. 从文件名提取 Feature ID（如果存在）:
-   - 正则: `^(F-[A-Z]+-\d+)-(.+)-feature-spec\.md$`
-   - Group 1: Feature ID（如 `F-CRM-01`）
-   - Group 2: Feature Name（如 `customer-list`）
-2. 旧格式（无 Feature ID）:
-   - 使用模块名作为 feature_name
-   - feature_id 设为 null
-3. 匹配 Feature Spec 和 API Contract（通过文件名前缀）
+### 1.3 Check Existing Design Documents
 
-### 1.3 Check Existing System Design Documents
+Check `{iteration_path}/03.system-design/` for existing design files:
+- List existing platform directories
+- Identify any existing design documents
 
-Check if system design documents already exist:
-- Check path: `{iterations_dir}/{current}/03.system-design/`
+### 1.4 Present Design Scope
 
-### 1.4 Present Design Scope to User
+Display Feature Registry table to user and ask for confirmation before proceeding:
 
-Present the identified documents and design scope to user for confirmation before proceeding:
-- 列出所有发现的 Feature（新格式显示 Feature ID）
-- 显示每个 Feature 对应的 Platform 数量
-- 显示预计生成的 Worker 任务数（Feature 数量 × Platform 数量）
-
-**Feature × Platform Execution Matrix**:
-
-Based on Feature Registry and techs-manifest, calculate the execution matrix:
-
-```
-Total Design Tasks = Feature Count × Platform Count
-
-Execution Strategy:
-├── 1 Feature + 1 Platform → Direct skill invocation (no worker dispatch)
-├── 2+ Features or 2+ Platforms → Worker dispatch via speccrew-task-worker
-└── Batch size: 6 tasks per batch (if tasks > 6, complete Batch N before starting Batch N+1)
-```
-
-**Present matrix summary to user**:
 ```
 📊 Design Scope Summary
 
-Features: {count} features discovered
+Features Loaded from .prd-feature-list.json: {count}
+├── F-CRM-01: customer-list (type: list, module: CRM)
+├── F-CRM-02: customer-detail (type: detail, module: CRM)
+└── ...
+
 Platforms: {count} platforms from techs-manifest
 Total Design Tasks: {feature_count} × {platform_count} = {total_tasks}
 Execution Mode: {Direct invocation / Worker dispatch (N batches)}
+
+Proceed with system design? (确认/取消)
 ```
 
 ### 1.5 Preparation Validation (Gate Check)
@@ -353,9 +352,10 @@ Execution Mode: {Direct invocation / Worker dispatch (N batches)}
 Before proceeding to Phase 2, verify preparation completeness:
 
 **Validation Checklist**:
-- [ ] Feature Spec files found (≥ 1)
-- [ ] Each Feature Spec has a corresponding API Contract file
-- [ ] Feature Registry parsed successfully (all Features have valid IDs or legacy names)
+- [ ] `.prd-feature-list.json` exists and is readable
+- [ ] Feature Registry built successfully (≥ 1 feature)
+- [ ] All Feature Spec files exist (verified in 1.2)
+- [ ] All API Contract files exist (verified in 1.2)
 - [ ] Design scope presented to user and confirmed
 
 **If validation fails**:
@@ -363,31 +363,32 @@ Before proceeding to Phase 2, verify preparation completeness:
 ❌ Preparation Validation Failed: {reason}
 
 Examples:
-- "No Feature Spec files found in 02.feature-design/"
-- "Feature Spec F-CRM-01-customer-list-feature-spec.md has no matching API Contract"
-- "Feature Registry parsing failed: invalid filename format"
+- ".prd-feature-list.json not found in 01.product-requirement/"
+- "No features found in .prd-feature-list.json"
+- "Feature F-CRM-01 has missing Feature Spec file"
+- "WORKFLOW-PROGRESS.json missing 02_feature_design outputs"
 
 REQUIRED ACTIONS:
 1. Report specific error to user
-2. Ask: "Fix the missing files and retry?" or "Abort workflow?"
+2. Ask: "Fix the issue and retry?" or "Abort workflow?"
 3. IF retry → Return to Phase 1.1
 4. IF abort → END workflow
 ```
 
-## Phase 2: Knowledge Loading
+## Phase 2: Resource Verification
 
-After user confirmation, load knowledge in the following order:
+> 🛑 **ORCHESTRATOR RULES — Phase 2**
+> - ❌ DO NOT read Feature Spec files — Skills will read them when dispatched
+> - ❌ DO NOT read API Contract files — Skills will read them when dispatched
+> - ❌ DO NOT read techs knowledge files — Skills will read them when dispatched
+> - ✅ ONLY verify that required resource files exist
+> - ✅ Pass file paths to Skills via dispatch parameters
 
-### 2.1 Read Input Documents
+After user confirmation, verify resources exist (DO NOT read content):
 
-1. Read all Feature Spec documents identified in Phase 1
-2. Read all API Contract documents
+### 2.1 Verify Technical Knowledge Base
 
-### 2.2 Load Techs Knowledge Base
-
-**Gate Check — Techs Knowledge Base Availability:**
-
-1. Check if `{workspace_path}/knowledges/techs/techs-manifest.json` exists
+1. Verify `{workspace_path}/knowledges/techs/techs-manifest.json` exists
 2. **IF NOT EXISTS** → STOP and report to user:
    ```
    ❌ TECHS KNOWLEDGE BASE NOT FOUND
@@ -402,16 +403,22 @@ After user confirmation, load knowledge in the following order:
    conventions, and architecture patterns.
    ```
    → END workflow (do not proceed to Phase 3)
-3. **IF EXISTS** → Continue loading techs knowledge as below
+3. **IF EXISTS** → Extract platform list from techs-manifest (this is a small config file, Agent MAY read it)
+4. For each platform, verify key files exist (DO NOT read content):
+   - `knowledges/techs/{platform_id}/tech-stack.md` — exists?
+   - `knowledges/techs/{platform_id}/architecture.md` — exists?
+5. If any critical file missing → WARN user
 
-1. Read `{workspace_path}/knowledges/techs/techs-manifest.json` to discover platforms
-2. For each platform in manifest, load key techs knowledge:
-   - `knowledges/techs/{platform_id}/tech-stack.md`
-   - `knowledges/techs/{platform_id}/architecture.md`
-   - `knowledges/techs/{platform_id}/conventions-design.md`
-   - `knowledges/techs/{platform_id}/conventions-dev.md`
-   - `knowledges/techs/{platform_id}/conventions-data.md` (if exists, primarily for backend)
-   - `knowledges/techs/{platform_id}/ui-style/ui-style-guide.md` (if exists, for frontend)
+### 2.2 Prepare Dispatch Parameters
+
+Build the parameter template for Phase 3 and Phase 5 Skills:
+- `feature_spec_paths`: List of Feature Spec paths (from Phase 1 registry)
+- `api_contract_paths`: List of API Contract paths (from Phase 1 registry)
+- `techs_manifest_path`: Path to techs-manifest.json
+- `techs_knowledge_dir`: Path to techs knowledge directory
+- `platforms`: List of platforms from techs-manifest
+
+⚠️ Agent passes PATHS to Skills. Agent does NOT read the files.
 
 ## Phase 3: Framework Evaluation (🛑 HARD STOP — User Confirmation Required)
 
@@ -426,7 +433,7 @@ After user confirmation, load knowledge in the following order:
 |-----------|-------|-------------|
 | `feature_spec_paths` | All Feature Spec paths from Feature Registry | Feature Spec documents to analyze |
 | `api_contract_paths` | All API Contract paths from Feature Registry | API Contract documents to analyze |
-| `techs_knowledge_paths` | Platform knowledge paths loaded in Phase 2 | Technology stack knowledge per platform |
+| `techs_knowledge_paths` | Platform knowledge paths from Phase 2 verification | Technology stack knowledge per platform |
 | `iteration_path` | `{iterations_dir}/{current}` | Current iteration directory |
 | `output_path` | `{iterations_dir}/{current}/03.system-design/framework-evaluation.md` | Output report path |
 
@@ -990,7 +997,7 @@ After user confirms:
 **Must do:**
 - Phase 0.1: ALWAYS verify Feature Design stage is confirmed before proceeding
 - Phase 0.5: ALWAYS detect IDE directory and verify skills exist before dispatching
-- Phase 2: MUST load ALL techs knowledge (manifest + platform-specific stacks) before Phase 3
+- Phase 2: MUST verify ALL techs knowledge files exist (manifest + platform-specific stacks) before Phase 3
 - Phase 3: MUST use speccrew-sd-framework-evaluate skill for framework evaluation — DO NOT evaluate yourself
 - Phase 3: User MUST confirm framework decisions (🛑 HARD STOP) before proceeding to Phase 4
 - Phase 4: MUST generate DESIGN-OVERVIEW.md with complete Feature×Platform index BEFORE dispatching platform workers
@@ -998,7 +1005,7 @@ After user confirms:
 - Phase 5: MUST use update-progress.js script for ALL progress tracking (DISPATCH-PROGRESS.json, .checkpoints.json, WORKFLOW-PROGRESS.json)
 - Phase 6: MUST collect ALL worker results and present joint summary before requesting user confirmation (🛑 HARD STOP)
 - Phase 6: ONLY after user explicitly confirms → update workflow status and checkpoints
-- ALL: Read techs knowledge BEFORE generating any design
+- ALL: Verify techs knowledge exists BEFORE dispatching design skills
 - ALL: Verify API Contract exists and reference it (read-only)
 - ALL: Parse Feature ID from filename when using new format; maintain backward compatibility with old format
 
@@ -1006,7 +1013,7 @@ After user confirms:
 - DO NOT write actual source code (only pseudo-code in design docs)
 - DO NOT modify API Contract documents under any circumstances
 - DO NOT skip framework evaluation checkpoint — user confirmation is mandatory
-- DO NOT assume technology stack without reading techs knowledge
+- DO NOT assume technology stack without verifying techs knowledge exists
 - DO NOT generate designs for platforms not in techs-manifest
 - DO NOT generate per-platform or per-feature design documents yourself (INDEX.md, {feature-id}-{feature-name}-design.md, etc.) — always dispatch platform design skills via workers. DESIGN-OVERVIEW.md is the ONLY system design document this Agent generates directly
 - DO NOT invoke platform design skills directly when 2+ features or 2+ platforms exist — use speccrew-task-worker

@@ -57,7 +57,7 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 | `speccrew-create-workspace` | "create workspace", "initialize workspace", "generate workspace structure" | Create speccrew-workspace directory structure, documentation directories, knowledge bases, and deliverable templates |
 | `speccrew-skill-develop` | "create Skill", "update Skill", "add repetitive operation" | Create or update Skills based on repetitive operation patterns |
 | `speccrew-knowledge-bizs-dispatch-xml` | "initialize bizs knowledge base", "generate business knowledge", "dispatch bizs knowledge tasks" | Dispatch **bizs** knowledge base generation with 4-stage pipeline (Feature Inventory → Feature Analysis → Module Summarize → System Summary) |
-| `speccrew-knowledge-techs-dispatch` | "initialize techs knowledge base", "generate tech knowledge", "dispatch techs knowledge tasks" | Dispatch **techs** knowledge base generation with 3-stage pipeline (Platform Detection → Tech Doc Generation → Root Index) |
+| `speccrew-knowledge-techs-dispatch-xml` | "initialize techs knowledge base", "generate tech knowledge", "dispatch techs knowledge tasks" | Dispatch **techs** knowledge base generation with 3-stage pipeline (Platform Detection → Tech Doc Generation → Root Index) |
 
 ## Engineering Closed Loop
 
@@ -191,7 +191,7 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
               <field name="text">When techs-dispatch Stage 2 prepares task plans for multiple platforms, dispatch ALL platform workers IN PARALLEL — DO NOT execute sequentially</field>
             </block>
             <block type="task" id="P05-B5" action="run-skill" desc="Invoke techs-dispatch">
-              <field name="skill">speccrew-knowledge-techs-dispatch</field>
+              <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
             </block>
           </branch>
           <branch test="${bizs_kb.exists} == false" name="Bizs Not Initialized">
@@ -250,7 +250,7 @@ rule       : Constraint declaration (level: forbidden | mandatory | note)
           <field name="text">Each platform worker (techs-generate-conventions, techs-generate-ui-style) runs independently — dispatch all of them at once, then monitor completion markers</field>
         </block>
         <block type="task" id="P1-B4" action="run-skill" status="pending" desc="Invoke techs-dispatch Skill">
-          <field name="skill">speccrew-knowledge-techs-dispatch</field>
+          <field name="skill">speccrew-knowledge-techs-dispatch-xml</field>
         </block>
       </branch>
 
