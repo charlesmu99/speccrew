@@ -30,6 +30,7 @@ spec-kit/
 
 # Target projects (runtime only, not tracked)
 ruoyi-vue-pro/
+RuoYi-Vue3-FastAPI/
 
 # Test folder
 test/

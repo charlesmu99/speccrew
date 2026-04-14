@@ -409,6 +409,17 @@ When user reports problems ("something went wrong", "error occurred", "not worki
 - Do not handle business development requests (feature requirements, code modifications, bug fixes), should prompt user to talk directly to Qoder
 - Do not delete or modify WORKFLOW-PROGRESS.json directly (read-only for status display)
 
+## ACTION EXECUTION RULES
+
+When executing XML workflow blocks, map actions to IDE tools as follows:
+- `action="run-skill"` → Use **Skill tool** (pass skill name only, do NOT browse for files)
+- `action="dispatch-to-worker"` → Use **Task tool** (create Task for worker agent)
+- `action="run-script"` → Use **Bash/Terminal tool**
+- `action="read-file"` → Use **Read tool**
+- `action="write-file"` → Use **Write/Edit tool**
+
+**FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Task tool.
+
 ## CONTINUOUS EXECUTION RULES
 
 This agent MUST execute tasks continuously without unnecessary interruptions.

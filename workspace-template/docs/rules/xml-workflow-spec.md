@@ -329,6 +329,27 @@ Use `${variable_name}` syntax throughout block attributes and content.
 </block>
 ```
 
+## Action to IDE Tool Mapping
+
+When executing `<block type="task">` blocks, the `action` attribute determines which **IDE tool** to invoke. Do NOT interpret actions freely — use the exact tool specified below:
+
+| Action | IDE Tool to Use | How to Invoke |
+|--------|----------------|---------------|
+| `run-skill` | **Skill tool** | Call the IDE Skill tool with the skill name from `<field name="skill">`. Do NOT manually browse directories or read SKILL.md files — the Skill tool resolves paths automatically. |
+| `dispatch-to-worker` | **Task tool** | Create a new Task via the IDE Task tool, assigning it to the worker agent specified in `<field name="agent">`. Pass all context fields as task parameters. For `<loop parallel="true">`, create ALL tasks in a single batch. |
+| `run-script` | **Bash / Terminal tool** | Execute the command from `<field name="command">` using the terminal tool. Use PowerShell syntax on Windows, Bash on Unix. |
+| `read-file` | **Read tool** | Read the file at the path specified in `<field name="path">`. |
+| `write-file` | **Write / Edit tool** | Write content to the file at `<field name="path">`. For new files use create_file; for modifications use search_replace. |
+| `analyze` | **Direct execution** | Perform the analysis described in the block's `desc` attribute. Read relevant source files, extract information, and store results in the specified output variables. |
+| `generate` | **Direct execution** | Generate the content described in the block. Use templates when specified, write output to the target path. |
+
+### Critical Rules
+
+1. **`run-skill` MUST use the Skill tool** — NEVER manually search for or read SKILL.md files. The IDE Skill tool handles path resolution across different IDE directories (.qoder/, .cursor/, .claude/).
+2. **`dispatch-to-worker` MUST use the Task tool** — NEVER execute worker tasks yourself. Create a Task and let the worker agent handle it.
+3. **`<loop parallel="true">` with `dispatch-to-worker`** — Create ALL worker tasks in ONE batch call, not sequentially. This enables true parallel execution.
+4. **Variable binding** — After a tool call completes, bind the result to the variable specified in `<field name="output" var="..."/>` for use in subsequent blocks.
+
 ## Execution Rules
 
 1. **NEVER skip a block** — execute every block in document order
