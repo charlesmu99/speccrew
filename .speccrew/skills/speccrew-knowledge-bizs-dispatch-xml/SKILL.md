@@ -197,7 +197,7 @@ Detected ${platforms.length} platforms: ${platforms.names}
     <block type="loop" id="S1a-L1" over="${platforms}" as="platform" desc="Iterate each platform to identify entry directories">
       <!-- Step 1: Read source directory tree -->
       <block type="task" id="S1a-B1" action="run-skill" status="pending" desc="Invoke entry identification Skill">
-        <field name="skill">speccrew-knowledge-bizs-identify-entries</field>
+        <field name="skill">speccrew-knowledge-bizs-identify-entries-xml</field>
         <field name="source_path" value="${platform.sourcePath}"/>
         <field name="platform_id" value="${platform.platformId}"/>
         <field name="platform_type" value="${platform.platformType}"/>
@@ -373,7 +373,7 @@ Processing batch: ${batch_response.batch.length} Features
             <block type="gateway" id="S2-G1" mode="exclusive" desc="Route analysis Skill based on platform type">
               <branch test="${feature.platformType} == 'web' or ${feature.platformType} == 'mobile' or ${feature.platformType} == 'desktop'" name="UI platform">
                 <block type="task" id="S2-B2a" action="dispatch-to-worker" status="pending" desc="Dispatch UI Feature analysis Worker">
-                  <field name="worker">speccrew-knowledge-bizs-ui-analyze</field>
+                  <field name="worker">speccrew-knowledge-bizs-ui-analyze-xml</field>
                   <field name="instructions">
 Analyze the following source code file and generate detailed feature documentation.
 
@@ -388,7 +388,7 @@ Requirements:
 - Read source code file, understand related functionality interfaces
 - Generate detailed documentation to documentPath
 - Create two marker files to completed_dir
-- Use speccrew-knowledge-bizs-ui-analyze skill to complete this task
+- Use speccrew-knowledge-bizs-ui-analyze-xml skill to complete this task
                   </field>
                   <field name="context">{
   "fileName": "${feature.fileName}",
@@ -408,7 +408,7 @@ Requirements:
               </branch>
               <branch default="true" name="Backend platform">
                 <block type="task" id="S2-B2b" action="dispatch-to-worker" status="pending" desc="Dispatch API Feature analysis Worker">
-                  <field name="worker">speccrew-knowledge-bizs-api-analyze</field>
+                  <field name="worker">speccrew-knowledge-bizs-api-analyze-xml</field>
                   <field name="instructions">
 Analyze the following source code file and generate detailed API feature documentation.
 
@@ -453,7 +453,7 @@ Preparing Graph data generation for completed Features
             <block type="gateway" id="S2-G2" mode="exclusive" desc="Route Graph Worker based on analysis type">
               <branch test="${feature.platformType} == 'backend'" name="API Graph">
                 <block type="task" id="S2-B25a" action="dispatch-to-worker" status="pending" desc="Dispatch API Graph Worker">
-                  <field name="worker">speccrew-knowledge-bizs-api-graph</field>
+                  <field name="worker">speccrew-knowledge-bizs-api-graph-xml</field>
                   <field name="instructions">
 Generate graph data nodes and edges from the analyzed API feature document.
 
@@ -482,7 +482,7 @@ Requirements:
               </branch>
               <branch default="true" name="UI Graph">
                 <block type="task" id="S2-B25b" action="dispatch-to-worker" status="pending" desc="Dispatch UI Graph Worker">
-                  <field name="worker">speccrew-knowledge-bizs-ui-graph</field>
+                  <field name="worker">speccrew-knowledge-bizs-ui-graph-xml</field>
                   <field name="instructions">
 Generate graph data nodes and edges from the analyzed UI feature document.
 
@@ -575,7 +575,7 @@ Stage 2 Milestone: Feature analysis complete. ${analyzed_count} features analyze
       <!-- Step 2.3: Dispatch Worker for each module -->
       <block type="loop" id="S3-L2" over="${platform_modules}" as="module_name" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch summary Worker for each module">
         <block type="task" id="S3-B4" action="dispatch-to-worker" status="pending" desc="Dispatch module summary Worker">
-          <field name="worker">speccrew-knowledge-bizs-module-summarize</field>
+          <field name="worker">speccrew-knowledge-module-summarize-xml</field>
           <field name="instructions">
 Generate complete module overview documentation for the specified module.
 
@@ -621,7 +621,7 @@ Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized
       <block type="gateway" id="S35-G1" mode="exclusive" desc="Execute for UI platforms only">
         <branch test="${platform.platformType} in ['web', 'mobile', 'desktop']" name="UI platform">
           <block type="task" id="S35-B1" action="dispatch-to-worker" status="pending" desc="Dispatch UI style extraction Worker">
-            <field name="worker">speccrew-knowledge-bizs-ui-style-extract</field>
+            <field name="worker">speccrew-knowledge-bizs-ui-style-extract-xml</field>
             <field name="instructions">
 Extract UI design patterns from frontend platform Feature documents.
 
@@ -676,7 +676,7 @@ Stage 3.5 Milestone: UI style patterns extracted. ${pattern_count} patterns extr
 
     <!-- Step 2: Dispatch System Summarize Worker -->
     <block type="task" id="S4-B2" action="dispatch-to-worker" status="pending" desc="Dispatch system summary Worker">
-      <field name="worker">speccrew-knowledge-bizs-system-summarize</field>
+      <field name="worker">speccrew-knowledge-system-summarize-xml</field>
       <field name="instructions">
 Generate complete system-level business knowledge summary.
 
@@ -798,10 +798,10 @@ Failure rate exceeds 50%, terminating entire pipeline
 
 | platformType | skill_name | Description |
 |--------------|------------|-------------|
-| `web` | `speccrew-knowledge-bizs-ui-analyze` | Web frontend (Vue/React/Angular) |
-| `mobile` | `speccrew-knowledge-bizs-ui-analyze` | Mobile apps (Flutter/React Native/UniApp) |
-| `desktop` | `speccrew-knowledge-bizs-ui-analyze` | Desktop apps (Electron/WPF) |
-| `backend` | `speccrew-knowledge-bizs-api-analyze` | Backend APIs (Java/Python/Node.js) |
+| `web` | `speccrew-knowledge-bizs-ui-analyze-xml` | Web frontend (Vue/React/Angular) |
+| `mobile` | `speccrew-knowledge-bizs-ui-analyze-xml` | Mobile apps (Flutter/React Native/UniApp) |
+| `desktop` | `speccrew-knowledge-bizs-ui-analyze-xml` | Desktop apps (Electron/WPF) |
+| `backend` | `speccrew-knowledge-bizs-api-analyze-xml` | Backend APIs (Java/Python/Node.js) |
 
 > **CRITICAL**: Use this routing table to select the correct skill for each feature.
 
