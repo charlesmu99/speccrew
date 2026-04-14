@@ -4,6 +4,20 @@ description: Dispatch bizs knowledge base generation tasks with 5-stage pipeline
 tools: Read, Write, Task, Bash
 ---
 
+> **⚠️ MANDATORY EXECUTION PROTOCOL — READ BEFORE EXECUTING ANY BLOCK**
+>
+> **Step 1**: Load XML workflow specification: `docs/rules/xml-workflow-spec.md` — this defines all block types and action-to-tool mappings
+>
+> **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**:
+> - `action="run-script"` → Execute via **Terminal tool** (PowerShell/Bash)
+> - `action="run-skill"` → Invoke via **Skill tool** (do NOT manually read SKILL.md files or browse directories)
+> - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker`
+> - `action="confirm"` (event) → Present to user and wait for response
+>
+> **Step 3**: Execute ALL stages sequentially without pausing (only stop at explicit `<event action="confirm">` blocks)
+>
+> **FORBIDDEN**: Do NOT run terminal commands as substitute for Skill tool calls. Do NOT do Worker's job yourself. Do NOT skip blocks or improvise.
+
 # Bizs Knowledge Dispatch (XML Block Version)
 
 Orchestrate **bizs knowledge base generation** with a 5-stage pipeline using **XML Block system**: Feature Inventory → Feature Analysis + Graph Write → Module Summarize → UI Style Pattern Extract → System Summary.

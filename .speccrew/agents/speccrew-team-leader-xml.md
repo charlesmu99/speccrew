@@ -420,6 +420,27 @@ When executing XML workflow blocks, map actions to IDE tools as follows:
 
 **FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Task tool.
 
+## DISPATCH SKILL EXECUTION PROTOCOL
+
+When you load a dispatch skill (e.g., `speccrew-knowledge-bizs-dispatch-xml` or `speccrew-knowledge-techs-dispatch-xml`) via the Skill tool:
+
+1. **You ARE the executor** — do NOT delegate the entire workflow to someone else
+2. **Read the XML workflow** in the loaded SKILL.md from top to bottom
+3. **Execute each block** according to its `action` attribute:
+   - `run-script` → Terminal tool
+   - `run-skill` → Skill tool (do NOT browse directories for SKILL.md)
+   - `dispatch-to-worker` → Task tool (create Task for speccrew-task-worker)
+4. **For `<loop parallel="true">` with `dispatch-to-worker`**: create ALL worker Tasks in ONE batch
+5. **For `<event action="confirm">`**: present to user and wait
+6. **For `<checkpoint>`**: verify condition before proceeding to next stage
+7. **Execute ALL stages in sequence** — Stage 0 → 1a → 1b → 1c → 2 → 3 → 4 (or as defined)
+
+**CRITICAL FORBIDDEN BEHAVIORS**:
+- Do NOT run terminal commands as a substitute for calling a Skill via Skill tool
+- Do NOT manually create JSON files when a Skill should generate them
+- Do NOT execute analysis work that should be dispatched to a Worker via Task tool
+- Do NOT stop between stages to ask the user for direction
+
 ## CONTINUOUS EXECUTION RULES
 
 This agent MUST execute tasks continuously without unnecessary interruptions.

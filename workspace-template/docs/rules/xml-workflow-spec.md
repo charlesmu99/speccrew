@@ -329,6 +329,38 @@ Use `${variable_name}` syntax throughout block attributes and content.
 </block>
 ```
 
+## Dispatch Skill Execution Model
+
+Dispatch skills (naming pattern: `*-dispatch-xml`) are **orchestration playbooks** loaded directly by Team Leader via the Skill tool. They contain the complete multi-stage workflow definition.
+
+### Execution Protocol
+
+When Team Leader loads a dispatch skill via `action="run-skill"`:
+
+1. **Load**: Team Leader invokes the Skill tool with the dispatch skill name (e.g., `speccrew-knowledge-bizs-dispatch-xml`)
+2. **Parse**: Read and understand the complete XML workflow in the loaded SKILL.md
+3. **Execute block-by-block**: Walk through each Stage's blocks in document order, mapping each `action` attribute to the correct IDE tool:
+
+| Block Action | What Team Leader MUST Do |
+|---|---|
+| `action="run-script"` | Execute the command via **Terminal tool** (PowerShell/Bash) |
+| `action="run-skill"` | Invoke the skill via **Skill tool** — do NOT manually read SKILL.md files |
+| `action="dispatch-to-worker"` | Create Task via **Task tool**, assign to `speccrew-task-worker` |
+| `action="analyze"` | Perform analysis directly (read files, extract info) |
+| `action="generate"` | Generate content directly (use templates, write output) |
+| `action="confirm"` (event) | Present confirmation to user, wait for response |
+
+4. **Respect control flow**: Honor `<gateway>` branches, `<loop parallel="true">` concurrency, and `<checkpoint>` verification
+5. **Continuous execution**: Proceed from Stage N to Stage N+1 automatically — ONLY pause at explicit `<event action="confirm">` blocks
+
+### FORBIDDEN During Dispatch Execution
+
+- **NEVER** execute commands manually when a block says `action="run-skill"` — use the Skill tool
+- **NEVER** do a worker's job yourself when a block says `action="dispatch-to-worker"` — use the Task tool
+- **NEVER** skip stages or blocks
+- **NEVER** pause between stages to ask "Should I continue?"
+- **NEVER** improvise your own approach — follow the XML blocks exactly
+
 ## Action to IDE Tool Mapping
 
 When executing `<block type="task">` blocks, the `action` attribute determines which **IDE tool** to invoke. Do NOT interpret actions freely — use the exact tool specified below:
