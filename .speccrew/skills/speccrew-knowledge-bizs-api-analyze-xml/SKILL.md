@@ -385,6 +385,34 @@ Before executing the workflow, verify the following inputs:
     <field name="message" value="Step 5a Status: COMPLETED - Template copied to ${documentPath}, ready for section filling"/>
   </block>
   
+  <!-- ==================== STEP 5-DYNAMIC: DYNAMIC SECTION GENERATION ==================== -->
+  <!-- Dynamic Section Generation Rule -->
+  <block type="rule" id="R-DYNAMIC-SECTIONS" level="mandatory" desc="Dynamic section generation rule">
+    <field name="text">BEFORE filling template sections, you MUST first count identified items (endpoints, components, etc.) and dynamically create the corresponding number of sections in the document.</field>
+    <field name="text">Step 1: Copy template skeleton to target path</field>
+    <field name="text">Step 2: For each identified endpoint/component, insert a new numbered sub-section (e.g., 2.1, 2.2, 2.3...) into the document</field>
+    <field name="text">Step 3: Fill each sub-section with the specific endpoint/component details</field>
+    <field name="text">NEVER rely on fixed template sections alone — the number of sections MUST match the number of identified items</field>
+  </block>
+  
+  <!-- Dynamically Generate Endpoint Sections -->
+  <block type="loop" id="L-ENDPOINT-SECTIONS" over="${endpoints}" as="endpoint" desc="Dynamically generate a section for each API endpoint">
+    <block type="task" id="B-EP-SECTION" action="generate" desc="Insert endpoint sub-section into document">
+      <field name="target" value="${documentPath}"/>
+      <field name="content">For endpoint ${endpoint.method} ${endpoint.path}: insert a ## 2.X sub-section containing Endpoint Information table, Request Parameters, Response Data, Business Flow, and Error Codes</field>
+      <field name="output" var="section_${endpoint.index}"/>
+    </block>
+  </block>
+  
+  <!-- Verify Section Count Matches Endpoint Count -->
+  <block type="checkpoint" id="CP-SECTIONS-COUNT" desc="Verify section count matches endpoint count">
+    <field name="verify" value="Number of generated 2.X sections == ${endpoints.length}"/>
+  </block>
+  
+  <block type="event" id="E-DYNAMIC" action="log" level="info" desc="Log dynamic sections status">
+    <field name="message" value="Step 5-Dynamic Status: COMPLETED - Generated ${endpoints.length} endpoint sections dynamically"/>
+  </block>
+  
   <!-- ==================== STEP 5B: FILL EACH SECTION USING SEARCH_REPLACE ==================== -->
   <!-- Calculate Dynamic Path Prefix -->
   <block type="task" id="B17" action="calculate-path-prefix" desc="Calculate path prefix">

@@ -306,7 +306,31 @@ Analyze one specific UI feature from source code, extract business functionality
       <field name="message">Step 5a Status: COMPLETED - Template copied to ${documentPath}</field>
     </block>
   </sequence>
-
+  
+  <!-- ==================== STEP 5-MID: DYNAMIC SECTION GENERATION ==================== -->
+  <!-- Rule: Dynamic section generation before filling fixed sections -->
+  <block type="rule" id="R-DYNAMIC-SECTIONS" level="mandatory" desc="Dynamic section generation rule">
+    <field name="text">BEFORE filling template sections, you MUST first count identified UI components and dynamically create the corresponding number of sections in the document.</field>
+    <field name="text">Step 1: Copy template skeleton to target path</field>
+    <field name="text">Step 2: For each identified UI component/area, insert a new numbered sub-section (e.g., 2.1, 2.2, 2.3...) into the document</field>
+    <field name="text">Step 3: Fill each sub-section with the specific component details (wireframe, interactions, events)</field>
+    <field name="text">NEVER rely on fixed template sections alone — the number of sections MUST match the number of identified UI components</field>
+  </block>
+  
+  <!-- Loop: Dynamically generate a section for each UI component -->
+  <block type="loop" id="L-COMPONENT-SECTIONS" over="${analysisResult.components}" as="component" desc="Dynamically generate a section for each UI component">
+    <block type="task" id="B-COMP-SECTION" action="generate" desc="Insert component sub-section into document">
+      <field name="target" value="${documentPath}"/>
+      <field name="content">For component ${component.name} (type: ${component.type}): insert a ## 2.X sub-section containing Component Wireframe, Props/Events table, Interaction Flow, and State Management</field>
+      <field name="output" var="section_${component.index}"/>
+    </block>
+  </block>
+  
+  <!-- Checkpoint: Verify section count matches component count -->
+  <block type="checkpoint" id="CP-SECTIONS-COUNT" desc="Verify section count matches component count">
+    <field name="verify">Number of generated 2.X sections == ${analysisResult.components.length}</field>
+  </block>
+  
   <!-- ==================== STEP 5B: FILL EACH SECTION USING SEARCH_REPLACE ==================== -->
   <sequence id="S5b" name="Step 5b: Fill Sections" status="pending" desc="Fill document sections">
     <!-- Section 1: Content Overview -->
