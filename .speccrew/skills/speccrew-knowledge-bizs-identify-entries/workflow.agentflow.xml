@@ -63,9 +63,10 @@
         <field name="tech_stack" value="${platform.techStack}"/>
         <field name="logic_module_scan" value="Read tech-stack-mappings.json for the techStack's module_scan configuration. Use module_scan.root as the scan starting point and module_scan.depth as the grouping level (depth=1 means first-level subdirectories = one module each)"/>
         <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files under module_scan.root. These are API entry directories. Module name = the business package name of the entry directory. Apply module_scan.depth for grouping level"/>
-        <field name="logic_frontend_vue_react" value="Find directories under module_scan.root (e.g., src/views or src/pages). First-level subdirectories under module_scan.root are business modules when depth=1"/>
+        <field name="logic_frontend_vue_react" value="STRICT DEPTH RULE: Read module_scan.depth from tech-stack-mappings.json. When depth=1, ONLY the first-level subdirectories directly under module_scan.root are modules. DO NOT recurse into subdirectories. Example for depth=1 with root=src/views: if directories are src/views/system/, src/views/bpm/, src/views/ai/, src/views/dashboard/ — output modules: system, bpm, ai, dashboard. WRONG: system-config, system-dept, bpm-category, bpm-form. Each module's entryDirs = [&quot;src/views/{module_name}&quot;]."/>
         <field name="logic_mobile_uniapp" value="Find first-level subdirectories under module_scan.root (e.g., src/pages). Plus top-level pages-* directories (module name = directory name without pages- prefix)"/>
         <field name="logic_mobile_miniprogram" value="Find first-level subdirectories under module_scan.root (e.g., pages) as modules"/>
+        <field name="depth_enforcement" value="CRITICAL: When module_scan.depth=1, the module name MUST be exactly the first-level directory name (e.g. 'system', 'bpm', 'monitor'). NEVER concatenate parent-child directory names with hyphens (e.g. NEVER 'system-config', 'bpm-form'). Count directory levels from module_scan.root: root/X is depth=1, root/X/Y is depth=2."/>
         <field name="output" var="identified_entries"/>
       </block>
 
@@ -103,7 +104,8 @@
             "sourcePath": "${platform.sourcePath}",
             "techStack": "${platform.techStack}",
             "modules": [
-              { "name": "module-name", "entryDirs": ["relative/path/to/entry"] }
+              IMPORTANT: When depth=1, each module = one first-level subdirectory.
+              Example: {"name": "system", "entryDirs": ["src/views/system"]}, NOT {"name": "system-config", "entryDirs": ["src/views/system/config"]}
             ]
           }
         </field>
@@ -143,6 +145,8 @@
           - module names are business-meaningful (not technical terms like config, util)
           - entryDirs paths are correct and accessible
           - JSON format is valid
+          - DEPTH CHECK: If module_scan.depth=1, verify NO module name contains a hyphen that corresponds to parent-child directory structure (e.g., "system-config" is invalid if "system" is a first-level directory under module_scan.root)
+          - Module count should roughly match the number of first-level subdirectories under module_scan.root (not second-level)
         </field>
         <field name="output" var="validation_result"/>
       </block>

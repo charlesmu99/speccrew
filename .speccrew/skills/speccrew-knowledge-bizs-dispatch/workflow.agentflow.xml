@@ -44,6 +44,10 @@
     <field name="text">DO NOT estimate workload and suggest breaking it into phases 鈥?execute ALL phases in sequence</field>
     <field name="text">When many features need analysis, dispatch ALL of them 鈥?do NOT skip or defer any</field>
     <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume 鈥?do NOT ask user for guidance</field>
+    <field name="text">WHEN batch-orchestrator.js returns action=process, you MUST dispatch ALL workers in the batch and continue to the next iteration 鈥?DO NOT stop to report progress or ask for guidance</field>
+    <field name="text">DO NOT estimate total workload (e.g., "52 batches needed") and present it as a reason to pause 鈥?just execute batch by batch until done</field>
+    <field name="text">DO NOT present "progress reports" with options to continue/skip/defer 鈥?the ONLY acceptable output between batches is a one-line log of completed count</field>
+    <field name="text">If a required script (e.g., batch-orchestrator.js) is missing, report the error and STOP 鈥?DO NOT attempt manual batch management as a workaround</field>
   </block>
 
   <!-- ============================================================
