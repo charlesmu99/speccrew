@@ -35,7 +35,7 @@ All generated documents must match the user's language. Detect the language from
 | `entryDirsFile` | string | Yes | Absolute path to entry-dirs JSON file |
 | `outputDir` | string | Yes | Absolute path to features JSON output directory |
 | `workspace_path` | string | Yes | Absolute path to speccrew-workspace directory |
-| `sync_state_bizs_dir` | string | Yes | Absolute path to sync-state/knowledge-bizs directory |
+| `sync_state_bizs_dir` | string | Yes | Absolute path to knowledges/base/sync-state/knowledge-bizs/ (✓ correct: .../knowledges/base/sync-state/knowledge-bizs/ | ✗ wrong: .../knowledges/bizs/sync-state/knowledge-bizs/) |
 | `language` | string | Yes | Language code for generated content |
 
 ## Output
@@ -61,7 +61,7 @@ All generated documents must match the user's language. Detect the language from
     <field name="entryDirsFile" required="true" type="string" desc="Absolute path to entry-dirs JSON file"/>
     <field name="outputDir" required="true" type="string" desc="Absolute path to features JSON output directory"/>
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
-    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to sync-state/knowledge-bizs directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/ (✓ correct: .../knowledges/base/sync-state/knowledge-bizs/ | ✗ wrong: .../knowledges/bizs/sync-state/knowledge-bizs/)"/>
     <field name="language" required="true" type="string" desc="Language code for generated content"/>
   </block>
 

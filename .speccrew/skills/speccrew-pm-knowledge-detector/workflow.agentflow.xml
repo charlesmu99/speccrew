@@ -6,7 +6,7 @@
        ============================================================ -->
   <block type="input" id="I1" desc="Workflow input parameters">
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew workspace"/>
-    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to sync-state/knowledge-bizs directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/ (✓ correct: .../knowledges/base/sync-state/knowledge-bizs/ | ✗ wrong: .../knowledges/bizs/sync-state/knowledge-bizs/)"/>
     <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs directory"/>
     <field name="language" required="true" type="string" desc="Language code for output content"/>
   </block>

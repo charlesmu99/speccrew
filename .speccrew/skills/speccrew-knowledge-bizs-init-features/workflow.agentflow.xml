@@ -14,7 +14,7 @@
     <field name="entryDirsFile" required="true" type="string" desc="Absolute path to entry-dirs JSON file"/>
     <field name="outputDir" required="true" type="string" desc="Absolute path to features JSON output directory"/>
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
-    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to sync-state/knowledge-bizs directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/ (✓ correct: .../knowledges/base/sync-state/knowledge-bizs/ | ✗ wrong: .../knowledges/bizs/sync-state/knowledge-bizs/)"/>
     <field name="language" required="true" type="string" desc="Language code for generated content"/>
   </block>
 

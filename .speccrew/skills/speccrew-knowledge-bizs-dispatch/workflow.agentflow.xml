@@ -13,7 +13,7 @@
     <field name="changed_files" required="false" type="array" desc="(incremental only) Pre-computed changed file list"/>
     <field name="max_concurrent_workers" required="false" type="number" default="5" desc="Maximum parallel Worker count"/>
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
-    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/ (✓ correct: .../knowledges/base/sync-state/knowledge-bizs/ | ✗ wrong: .../knowledges/bizs/sync-state/knowledge-bizs/)"/>
     <field name="ide_skills_dir" required="true" type="string" desc="Absolute path to IDE-specific skills directory (e.g., .qoder/skills/, .cursor/skills/, .claude/skills/) where skill scripts are deployed"/>
     <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs/ directory"/>
     <field name="graph_root" required="false" type="string" desc="Graph data output root path (absolute path preferred)" default="${workspace_path}/knowledges/bizs/graph"/>
@@ -70,6 +70,13 @@
     <block type="rule" id="S0-R1" level="mandatory" desc="Stage 0 mandatory rules">
       <field name="text">MUST scan project directory to discover ALL platforms 鈥?NEVER hardcode a fixed number of platforms</field>
       <field name="text">Missing a platform means incomplete knowledge base generation</field>
+    </block>
+
+    <block type="rule" id="S0-R2" level="mandatory" desc="platformId format constraints">
+      <field name="text">platformId MUST use format: {platformType}-{techStack}</field>
+      <field name="text">platformType values: web (NOT frontend), mobile, desktop, backend</field>
+      <field name="text">✓ Correct: backend-fastapi, web-vue3, mobile-uniapp, desktop-electron</field>
+      <field name="text">✗ Wrong: backend-system, frontend-web, mobile-app, frontend-vue3</field>
     </block>
 
     <!-- Step 1: Scan backend modules -->
