@@ -104,7 +104,7 @@ For each platform, generates:
         <field name="platform_type" value="${platform.platformType}"/>
         <field name="platform_subtype" value="${platform.platformSubtype}"/>
         <field name="tech_stack" value="${platform.techStack}"/>
-        <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files. These are API entry directories. Module name = the business package name of the entry directory"/>
+        <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files. These are API entry directories. Module name = the business package name of the entry directory. CRITICAL: Group by DIRECTORY, not by individual controller files. If multiple controllers reside in the same directory, that is ONE module with that directory as entryDirs"/>
         <field name="logic_frontend_vue_react" value="Find views/ or pages/ directories. First-level subdirectories under these directories are business modules"/>
         <field name="logic_mobile_uniapp" value="Find first-level subdirectories under pages/. Plus top-level pages-* directories (module name = directory name without pages- prefix)"/>
         <field name="logic_mobile_miniprogram" value="Find first-level subdirectories under pages/ as modules"/>
@@ -161,8 +161,12 @@ For each platform, generates:
           - Each module in "modules" array MUST have exactly two fields: "name" (string) and "entryDirs" (array of strings)
           - For platforms with hierarchical directory structure (e.g. frontend views/system/user/), flatten into individual modules
           - Module names should use hyphen-separated composite names for sub-modules (e.g. "system-user", "system-role")
+          - Multiple modules MUST NOT share the same entryDirs value. If multiple business areas share the same directory, they belong to ONE module.
           - If the generated JSON does not match this format, you MUST regenerate it before proceeding
         </field>
+        <field name="text">The ONLY output file from this skill is the entry-dirs JSON file specified in the output path.</field>
+        <field name="text">DO NOT generate any additional files such as reports (.md), logs, or summaries.</field>
+        <field name="text">Any extra files beyond the entry-dirs JSON are considered errors.</field>
       </block>
 
       <!-- Checkpoint: Persist Generated JSON -->
@@ -236,6 +240,37 @@ For each platform, generates:
     { "name": "image", "entryDirs": ["controller/admin/image"] },
     { "name": "knowledge", "entryDirs": ["controller/admin/knowledge"] },
     { "name": "_root", "entryDirs": ["controller/admin"] }
+  ]
+}
+```
+
+### Module Granularity (CRITICAL)
+
+- **modules = directory-level groupings**, NOT file-level features
+- Each module represents a distinct source directory (or set of directories) containing entry files
+- **NEVER create multiple modules pointing to the SAME entryDirs** — if 10 controller files all reside in `module_admin/controller/`, that is ONE module named `admin` with entryDirs `["module_admin/controller"]`, NOT 10 separate modules
+- The downstream `generate-inventory.js` script handles file-level decomposition within each module's entryDirs — that is NOT the job of this skill
+- Module names should correspond to directory names, not individual file names
+- Typical module count for a medium project: 3-10 modules (not 30+)
+
+**Correct example** (directory-level):
+```json
+{
+  "modules": [
+    { "name": "admin", "entryDirs": ["module_admin/controller"] },
+    { "name": "ai", "entryDirs": ["module_ai/controller"] },
+    { "name": "bpm", "entryDirs": ["module_bpm/controller"] }
+  ]
+}
+```
+
+**WRONG example** (file-level — FORBIDDEN):
+```json
+{
+  "modules": [
+    { "name": "system-user", "entryDirs": ["module_admin/controller"] },
+    { "name": "system-config", "entryDirs": ["module_admin/controller"] },
+    { "name": "system-dept", "entryDirs": ["module_admin/controller"] }
   ]
 }
 ```

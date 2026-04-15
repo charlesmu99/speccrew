@@ -330,11 +330,31 @@ Continue with knowledge base generation?
     </block>
 
     <block type="loop" id="S1b-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Generate Feature inventory for each platform IN PARALLEL">
-      <!-- Step 1: Read platform mapping config -->
-      <block type="task" id="S1b-B1" action="run-script" status="pending" desc="Read platform mapping config">
-        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
-        <field name="arg">--entryDirsFile</field>
-        <field name="arg">${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json</field>
+      <!-- Step 1: Dispatch Worker to generate feature inventory -->
+      <block type="task" id="S1b-B1" action="dispatch-to-worker" status="pending" desc="Dispatch Worker to generate feature inventory">
+        <field name="worker">speccrew-knowledge-bizs-init-features-xml</field>
+        <field name="instructions">
+Generate feature inventory for the specified platform by analyzing entry directories.
+
+Requirements:
+- Read entry-dirs JSON file to get module entry directories
+- Scan source files in each entry directory
+- Generate features JSON with feature metadata
+- Output to features-{platformId}.json in sync_state_bizs_dir
+        </field>
+        <field name="context">{
+  "platformId": "${platform.platformId}",
+  "platformName": "${platform.platformName}",
+  "platformType": "${platform.platformType}",
+  "platformSubtype": "${platform.platformSubtype}",
+  "sourcePath": "${platform.sourcePath}",
+  "techIdentifier": "${platform.techIdentifier}",
+  "entryDirsFile": "${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json",
+  "outputDir": "${sync_state_bizs_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "language": "${language}"
+}</field>
         <field name="output" var="features_${platform.platformId}"/>
       </block>
 
