@@ -481,3 +481,20 @@ Team Leader executes:
 6. **`loop parallel="true"`** = dispatch all iterations concurrently
 7. **`rule level="forbidden"`** = immediate stop if violated
 8. **Input/Output blocks** define the contract — respect required parameters
+
+### Block Execution Announcement Protocol
+
+Before executing each `<block>`, the agent MUST announce the block being executed. The announcement format is:
+
+```
+📋 Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
+```
+
+**Rules:**
+1. The announcement MUST be made BEFORE the block execution begins, not after.
+2. ALL block types require announcement: `task`, `loop`, `checkpoint`, `rule`, `gateway`, `input`, `output`.
+3. For `<block type="loop">` blocks, announce the loop entry with iteration context (e.g., "Loop [S2-L2] — Iterating over ${batch}, 5 items, parallel=true").
+4. For `<block type="checkpoint">` blocks, announce the checkpoint and its validation result.
+5. For `<block type="rule">` blocks, announce the rule being applied.
+6. This protocol applies to ALL agents executing XML workflows — both orchestrating agents (Team Leader) and worker agents.
+7. Nested blocks inside loops should also be announced for each iteration.

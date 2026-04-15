@@ -353,6 +353,21 @@ Before executing the workflow, verify the following inputs:
   </block>
   
   <!-- ==================== STEP 5A: COPY TEMPLATE TO DOCUMENT PATH ==================== -->
+  <!-- Document Output Path Rule -->
+  <block type="rule" id="R-DOCPATH" level="mandatory" desc="Document output path MUST use documentPath parameter">
+    <field name="text">
+      The output document file MUST be created at the EXACT path specified by ${documentPath} input parameter.
+      DO NOT use the template file name (e.g., FEATURE-DETAIL-TEMPLATE-*.md) as the output file name.
+      The documentPath already contains the correct target path including file name (e.g., speccrew-workspace/knowledges/bizs/backend-system/admin/cache/cache_controller.md).
+      Before creating the file, ensure the parent directory exists (create if necessary).
+    </field>
+  </block>
+
+  <!-- Ensure Document Output Directory Exists -->
+  <block type="task" id="B14a" action="run-script" desc="Ensure document output directory exists">
+    <field name="command">node -e "require('fs').mkdirSync(require('path').dirname('${documentPath}'), {recursive: true})"</field>
+  </block>
+
   <!-- Replace Top-Level Placeholders -->
   <block type="task" id="B14" action="replace-placeholders" desc="Replace template placeholders">
     <field name="template" value="${templateContent}"/>
