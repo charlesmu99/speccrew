@@ -296,6 +296,37 @@ function loadTechStackConfig(platformType, framework, projectRoot) {
 }
 
 /**
+ * Validate entry-dirs JSON schema
+ * @param {object} data - Parsed entry-dirs JSON data
+ * @returns {string[]|null} Array of error messages or null if valid
+ */
+function validateEntryDirsSchema(data) {
+  const errors = [];
+  if (!data.platformId || typeof data.platformId !== 'string') {
+    errors.push('platformId must be a non-empty string');
+  } else if (!/^[a-zA-Z0-9_-]+$/.test(data.platformId)) {
+    errors.push(`platformId format invalid: "${data.platformId}" (only alphanumeric, hyphen, underscore allowed)`);
+  }
+  if (!data.sourcePath || typeof data.sourcePath !== 'string') {
+    errors.push('sourcePath must be a non-empty string');
+  }
+  if (!Array.isArray(data.modules) || data.modules.length === 0) {
+    errors.push('modules must be a non-empty array');
+  } else {
+    for (let i = 0; i < data.modules.length; i++) {
+      const mod = data.modules[i];
+      if (!mod.name || typeof mod.name !== 'string') {
+        errors.push(`modules[${i}].name must be a non-empty string`);
+      }
+      if (!Array.isArray(mod.entryDirs) || mod.entryDirs.length === 0) {
+        errors.push(`modules[${i}].entryDirs must be a non-empty array`);
+      }
+    }
+  }
+  return errors.length > 0 ? errors : null;
+}
+
+/**
  * Infer platform info from platformId
  * @param {string} platformId - Platform ID like "backend-ai", "web-vue", "mobile-uniapp"
  * @returns {object} Inferred platform info { platformType, platformSubtype }
@@ -533,7 +564,7 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
     platformName: platformConfig.platformName,
     platformType: platformType,
     sourcePath: sourcePath,
-    techStack: [framework],
+    techStack: entryDirsData.techStack || [framework],
     modules: [...new Set(moduleNames)].sort(),
     totalFiles: features.length,
     analyzedCount: 0,
@@ -667,7 +698,15 @@ function main() {
       console.error(`Found top-level keys: ${foundKeys}`);
       process.exit(1);
     }
-    
+
+    // Validate entry-dirs JSON schema
+    const schemaErrors = validateEntryDirsSchema(entryDirsData);
+    if (schemaErrors) {
+      console.error('Error: entry-dirs JSON schema validation failed:');
+      schemaErrors.forEach(err => console.error(`  - ${err}`));
+      process.exit(1);
+    }
+
     // Find project root (use current directory or entryDirsFile directory)
     const projectRoot = findProjectRoot(path.dirname(entryDirsFilePath));
         
@@ -718,7 +757,10 @@ function main() {
       outputDir = path.resolve(params.outputDir);
       console.log(`Using outputDir from parameter: ${outputDir}`);
     } else {
+      console.warn('WARNING: --outputDir not specified, falling back to default path.');
+      console.warn('  Recommended: explicitly pass --outputDir to avoid incorrect output location.');
       outputDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+      console.warn(`  Using fallback outputDir: ${outputDir}`);
     }
     
     // Generate features from entry dirs
@@ -840,7 +882,10 @@ function main() {
     syncStateDir = path.resolve(params.outputDir);
     console.log(`Using outputDir from parameter: ${syncStateDir}`);
   } else {
+    console.warn('WARNING: --outputDir not specified, falling back to default path.');
+    console.warn('  Recommended: explicitly pass --outputDir to avoid incorrect output location.');
     syncStateDir = path.join(projectRoot, 'speccrew-workspace', 'knowledges', 'base', 'sync-state', 'knowledge-bizs');
+    console.warn(`  Using fallback outputDir: ${syncStateDir}`);
   }
   const outputPath = path.join(syncStateDir, outputFileName);
 
