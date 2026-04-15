@@ -264,12 +264,17 @@ Output: ${sync_state_techs_dir}/techs-manifest.json</field>
       <field name="text">DO NOT finish one platform before starting the next — this wastes time and violates the pipeline design</field>
       <field name="text">The calling Agent MUST use concurrent task dispatch (e.g., dispatch 3 workers in one turn for 3 platforms)</field>
       <field name="text">Sequential platform-by-platform execution is FORBIDDEN</field>
+      <field name="text">Loops S2-L1, S2-L2, S2-L3, and S2-L4 have parallel="true" and MUST execute concurrently for ALL platforms</field>
+      <field name="text">ALL platform status updates (S2-L1) MUST be done SIMULTANEOUSLY in PARALLEL</field>
+      <field name="text">ALL conventions worker task preparations (S2-L2) MUST be done SIMULTANEOUSLY in PARALLEL</field>
+      <field name="text">ALL UI-style worker task preparations (S2-L3) MUST be done SIMULTANEOUSLY in PARALLEL</field>
     </block>
 
     <block type="rule" id="S2-R2" level="forbidden" desc="Stage 2 forbidden actions">
       <field name="text">DO NOT process platforms sequentially — PARALLEL execution is MANDATORY</field>
       <field name="text">DO NOT wait for one platform to complete before starting another</field>
       <field name="text">DO NOT proceed to Stage 2.5 until ALL workers have completed or failed</field>
+      <field name="text">Sequential execution of S2-L1, S2-L2, S2-L3, or S2-L4 is STRICTLY FORBIDDEN</field>
     </block>
 
     <!-- Step 0: Ensure completed_dir exists -->
@@ -278,7 +283,7 @@ Output: ${sync_state_techs_dir}/techs-manifest.json</field>
     </block>
 
     <!-- Step 1: Update manifest status to processing -->
-    <block type="loop" id="S2-L1" over="${techs_manifest.platforms}" as="platform" desc="Update each platform status to processing">
+    <block type="loop" id="S2-L1" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Update each platform status to processing">
       <block type="task" id="S2-B1a" action="run-script" status="pending" desc="Update platform status in manifest">
         <field name="command">node -e "
 const fs = require('fs');
@@ -304,7 +309,7 @@ if (platform) {
     <field name="message">Preparing conventions worker task plans for ${techs_manifest.platforms.length} platforms...</field>
     </block>
 
-    <block type="loop" id="S2-L2" over="${techs_manifest.platforms}" as="platform" desc="Prepare conventions worker task for each platform">
+    <block type="loop" id="S2-L2" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Prepare conventions worker task for each platform">
       <block type="task" id="S2-B2" action="prepare-task" status="pending" desc="Prepare conventions worker task specification">
         <field name="skill_name">speccrew-knowledge-techs-generate-conventions-xml</field>
         <field name="context">
@@ -327,7 +332,7 @@ if (platform) {
     <field name="message">Preparing UI-style worker task plans for frontend platforms...</field>
     </block>
 
-    <block type="loop" id="S2-L3" over="${techs_manifest.platforms}" as="platform" desc="Prepare UI-style worker task for frontend platforms">
+    <block type="loop" id="S2-L3" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Prepare UI-style worker task for frontend platforms">
       <block type="gateway" id="S2-G1" mode="guard" test="${platform.platform_type} IN ['web', 'mobile', 'desktop']" fail-action="skip" desc="Only for frontend platforms">
         <field name="message">Skipping UI-style for backend platform: ${platform.platform_id}</field>
       </block>
@@ -352,6 +357,12 @@ if (platform) {
     </block>
 
     <!-- Step 5: Monitor Completion Markers -->
+    <block type="rule" id="S2-R3" level="mandatory" desc="Platform monitoring parallel execution rule">
+      <field name="text">ALL platform monitoring tasks MUST be dispatched SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT process platforms one-by-one. Sequential execution is FORBIDDEN</field>
+      <field name="text">ALL completion marker checks for ALL platforms MUST run in PARALLEL</field>
+    </block>
+
     <block type="loop" id="S2-L4" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Monitor completion markers for each platform">
       
       <!-- Check conventions worker marker -->
@@ -440,6 +451,9 @@ if (platform) {
       <field name="text">MUST scan ALL completion markers before proceeding</field>
       <field name="text">MUST verify document existence and completeness</field>
       <field name="text">MUST update stage2-status.json with verification results</field>
+      <field name="text">ALL platform scans MUST be executed SIMULTANEOUSLY in PARALLEL — sequential scanning is FORBIDDEN</field>
+      <field name="text">ALL platform integrity checks MUST be executed SIMULTANEOUSLY in PARALLEL — sequential verification is FORBIDDEN</field>
+      <field name="text">Stage 2.5 loops S2_5-L1 and S2_5-L2 have parallel="true" and MUST execute concurrently</field>
     </block>
 
     <!-- Step A: Scan Completion Markers -->
@@ -447,7 +461,7 @@ if (platform) {
     <field name="message">Stage 2.5 Step A: Scanning completion markers...</field>
     </block>
 
-    <block type="loop" id="S2_5-L1" over="${techs_manifest.platforms}" as="platform" desc="Scan markers for each platform">
+    <block type="loop" id="S2_5-L1" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Scan markers for each platform">
       <block type="task" id="S2_5-B1" action="run-script" status="pending" desc="Check all markers for platform">
         <field name="command">node -e "
 const fs = require('fs');
@@ -473,7 +487,7 @@ console.log(JSON.stringify(markers));
     <field name="message">Stage 2.5 Step B: Verifying output integrity...</field>
     </block>
 
-    <block type="loop" id="S2_5-L2" over="${techs_manifest.platforms}" as="platform" desc="Verify documents for each platform">
+    <block type="loop" id="S2_5-L2" over="${techs_manifest.platforms}" as="platform" parallel="true" max-concurrency="${techs_manifest.platforms.length}" desc="Verify documents for each platform">
       <block type="task" id="S2_5-B2" action="run-script" status="pending" desc="Check required documents exist">
         <field name="command">node -e "
 const fs = require('fs');

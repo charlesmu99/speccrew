@@ -278,13 +278,17 @@ Continue with knowledge base generation?
   <sequence id="S1a" name="Stage 1a: Entry Directory Recognition" status="pending" desc="Identify entry directories for each platform and classify into business modules">
     
     <block type="rule" id="S1a-R1" level="mandatory" desc="Stage 1a mandatory rules">
-      <field name="text">This stage is executed DIRECTLY by the dispatch agent (Leader), NOT delegated to a Worker Agent</field>
+      <field name="text">ALL platform entry directory recognition tasks MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S1a-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
     </block>
 
-    <block type="loop" id="S1a-L1" over="${platforms}" as="platform" desc="Iterate each platform to identify entry directories">
+    <block type="loop" id="S1a-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch entry directory recognition for each platform IN PARALLEL">
       <!-- Step 1: Read source directory tree -->
-      <block type="task" id="S1a-B1" action="run-skill" status="pending" desc="Invoke entry identification Skill">
-        <field name="skill">speccrew-knowledge-bizs-identify-entries-xml</field>
+      <block type="task" id="S1a-B1" action="dispatch-to-worker" status="pending" desc="Dispatch entry identification to Worker">
+        <field name="worker">speccrew-knowledge-bizs-identify-entries-xml</field>
         <field name="source_path" value="${platform.sourcePath}"/>
         <field name="platform_id" value="${platform.platformId}"/>
         <field name="platform_type" value="${platform.platformType}"/>
@@ -317,11 +321,15 @@ Continue with knowledge base generation?
   <sequence id="S1b" name="Stage 1b: Generate Feature Inventory" status="pending" desc="Generate Feature inventory for each platform">
     
     <block type="rule" id="S1b-R1" level="mandatory" desc="Stage 1b mandatory rules">
-      <field name="text">This stage is executed DIRECTLY by the dispatch agent (Leader), NOT delegated to a Worker Agent</field>
+      <field name="text">ALL platform feature inventory generation tasks MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S1b-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
       <field name="text">Worker Agents do not have run_in_terminal capability, which is required for script execution</field>
     </block>
 
-    <block type="loop" id="S1b-L1" over="${platforms}" as="platform" desc="Generate Feature inventory for each platform">
+    <block type="loop" id="S1b-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Generate Feature inventory for each platform IN PARALLEL">
       <!-- Step 1: Read platform mapping config -->
       <block type="task" id="S1b-B1" action="run-script" status="pending" desc="Read platform mapping config">
         <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
@@ -422,6 +430,10 @@ Continue with knowledge base generation?
       <field name="text">MUST use batch-orchestrator for batch management — DO NOT manually track batches</field>
       <field name="text">MUST dispatch Workers for feature analysis — DO NOT analyze features yourself</field>
       <field name="text">ALL workers for the same stage MUST be dispatched in PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S2-L2 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
       <field name="text">Monitor completion via marker files, NOT by polling worker status</field>
     </block>
 
@@ -470,6 +482,7 @@ Continue with knowledge base generation?
           </block>
 
           <!-- Step 2: Dispatch Worker for each Feature -->
+          <!-- PARALLEL EXECUTION MANDATORY: All Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
           <block type="loop" id="S2-L2" over="${batch_response.batch}" as="feature" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch analysis Worker for each Feature">
             
             <!-- Route to different Skill based on platformType -->
@@ -552,6 +565,7 @@ Requirements:
           </block>
 
           <!-- Step 2.5: Dispatch Graph Worker -->
+          <!-- PARALLEL EXECUTION MANDATORY: All Graph Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
           <block type="loop" id="S2-L25" over="${batch_response.batch}" as="feature" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch Graph Worker for each Feature IN PARALLEL">
             <block type="gateway" id="S2-G2" mode="exclusive" desc="Route Graph Worker based on analysis type">
               <branch test="${feature.platformType} == 'backend'" name="API Graph">
@@ -656,6 +670,11 @@ Requirements:
     
     <block type="rule" id="S3-R1" level="mandatory" desc="Stage 3 mandatory rules">
       <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
+      <field name="text">ALL module summary workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S3-L2 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
       <field name="text">Workers MUST NOT create any temporary scripts or workaround files</field>
     </block>
 
@@ -666,7 +685,7 @@ Requirements:
     </block>
 
     <!-- Step 2: Prepare module summary tasks for each platform -->
-    <block type="loop" id="S3-L1" over="${platforms}" as="platform" desc="Prepare module summary tasks for each platform">
+    <block type="loop" id="S3-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Prepare module summary tasks for each platform IN PARALLEL">
       <!-- Step 2.1: Read platform features -->
       <block type="task" id="S3-B2" action="run-script" status="pending" desc="Read platform features">
         <field name="command">node -e "console.log(require('fs').readFileSync('${sync_state_bizs_dir}/features-${platform.platformId}.json', 'utf8'))"</field>
@@ -680,6 +699,7 @@ Requirements:
       </block>
 
       <!-- Step 2.3: Dispatch Worker for each module -->
+      <!-- PARALLEL EXECUTION MANDATORY: All Module Summary Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
       <block type="loop" id="S3-L2" over="${platform_modules}" as="module_name" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch summary Worker for each module">
         <block type="task" id="S3-B4" action="dispatch-to-worker" status="pending" desc="Dispatch module summary Worker">
           <field name="worker">speccrew-knowledge-module-summarize-xml</field>
@@ -725,10 +745,15 @@ Requirements:
     <block type="rule" id="S35-R1" level="mandatory" desc="Stage 3.5 mandatory rules">
       <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
       <field name="text">ALL UI style extraction workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S35-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
       <field name="text">This stage writes to techs knowledge base, not bizs knowledge base</field>
     </block>
 
     <!-- Dispatch UI Style Extract Worker for each frontend platform -->
+    <!-- PARALLEL EXECUTION MANDATORY: All UI Style Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
     <block type="loop" id="S35-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch UI style extraction Workers for frontend platforms IN PARALLEL">
       <block type="gateway" id="S35-G1" mode="exclusive" desc="Execute for UI platforms only">
         <branch test="${platform.platformType} in ['web', 'mobile', 'desktop']" name="UI platform">

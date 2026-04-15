@@ -63,6 +63,14 @@ For each platform, generates:
     <field name="text">Do not include leading or trailing slashes in entryDirs paths</field>
   </block>
 
+  <block type="rule" id="R-TECHSTACK" level="mandatory" desc="techStack values MUST match tech-stack-mappings.json keys">
+    <field name="text">
+      The techStack array values MUST exactly match keys defined in tech-stack-mappings.json (e.g., "fastapi", "vue3", "uniapp").
+      DO NOT prefix with language name (e.g., use "fastapi" NOT "python-fastapi", use "express" NOT "node-express").
+      The tech_identifier input parameter value should be used as the primary techStack entry.
+    </field>
+  </block>
+
   <!-- ============================================================
        Global Continuous Execution Rules
        ============================================================ -->

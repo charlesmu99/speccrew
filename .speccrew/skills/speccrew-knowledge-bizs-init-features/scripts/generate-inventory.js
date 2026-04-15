@@ -110,6 +110,21 @@ function parseArgs() {
   return params;
 }
 
+/**
+ * Parse boolean parameter from string value
+ * @param {string|boolean} value - Parameter value
+ * @param {boolean} defaultValue - Default value if not provided
+ * @returns {boolean} Parsed boolean value
+ */
+function parseBooleanParam(value, defaultValue = false) {
+  if (value === undefined || value === null) return defaultValue;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true';
+  }
+  return defaultValue;
+}
+
 // Normalize path separators to forward slashes
 function normalizePath(filePath) {
   if (!filePath) return '';
@@ -216,6 +231,23 @@ function loadPlatformConfig(platformId, projectRoot) {
 }
 
 /**
+ * Normalize tech identifier by removing common language prefixes.
+ * @param {string} id - Tech identifier like "python-fastapi", "node-express"
+ * @returns {string} Normalized identifier like "fastapi", "express"
+ */
+function normalizeTechIdentifier(id) {
+  if (!id) return id;
+  // Remove common language prefixes: python-, node-, java-, etc.
+  const prefixes = ['python-', 'node-', 'java-', 'kotlin-', 'swift-', 'dart-', 'go-', 'rust-', 'php-', 'ruby-'];
+  for (const prefix of prefixes) {
+    if (id.toLowerCase().startsWith(prefix)) {
+      return id.substring(prefix.length);
+    }
+  }
+  return id;
+}
+
+/**
  * Load tech stack configuration from tech-stack-mappings.json
  * @param {string} platformType - Platform type like "backend", "web"
  * @param {string} framework - Framework like "spring", "vue"
@@ -228,21 +260,38 @@ function loadTechStackConfig(platformType, framework, projectRoot) {
     console.error(`Warning: tech-stack-mappings.json not found at ${configPath}`);
     return { extensions: [], exclude_file_suffixes: [] };
   }
-  
+
   const configContent = fs.readFileSync(configPath, 'utf8');
   const config = JSON.parse(configContent);
-  
-  if (config.tech_stacks && 
-      config.tech_stacks[platformType] && 
+
+  // Try exact match first
+  let techConfig = null;
+  if (config.tech_stacks &&
+      config.tech_stacks[platformType] &&
       config.tech_stacks[platformType][framework]) {
-    const techConfig = config.tech_stacks[platformType][framework];
+    techConfig = config.tech_stacks[platformType][framework];
+  }
+
+  // If not found, try normalized identifier (remove language prefix)
+  if (!techConfig) {
+    const normalizedFramework = normalizeTechIdentifier(framework);
+    if (normalizedFramework !== framework &&
+        config.tech_stacks &&
+        config.tech_stacks[platformType] &&
+        config.tech_stacks[platformType][normalizedFramework]) {
+      techConfig = config.tech_stacks[platformType][normalizedFramework];
+      console.log(`Using normalized tech identifier: ${framework} → ${normalizedFramework}`);
+    }
+  }
+
+  if (techConfig) {
     return {
       extensions: techConfig.extensions || [],
       exclude_file_suffixes: techConfig.exclude_file_suffixes || [],
       exclude_file_names: techConfig.exclude_file_names || []
     };
   }
-  
+
   return { extensions: [], exclude_file_suffixes: [], exclude_file_names: [] };
 }
 
@@ -389,7 +438,7 @@ function findFilesInDir(dir, extensions, baseDir) {
  * @param {string} outputDir - Output directory for features JSON
  * @returns {boolean} Success status
  */
-function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outputDir) {
+function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outputDir, overwrite) {
   const { platformId, sourcePath, modules } = entryDirsData;
   const { platformType, platformSubtype, framework } = platformConfig;
   
@@ -506,8 +555,8 @@ function generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outpu
   const outputFileName = `features-${platformId}.json`;
   const outputPath = path.join(outputDir, outputFileName);
 
-  // Incremental: if features file already exists, write to *.new.json
-  const actualOutputPath = fs.existsSync(outputPath)
+  // Incremental: if features file already exists and overwrite is not set, write to *.new.json
+  const actualOutputPath = (!overwrite && fs.existsSync(outputPath))
     ? outputPath.replace(/\.json$/, '.new.json')
     : outputPath;
 
@@ -565,6 +614,9 @@ function findFiles(dir, extensions, excludeDirs, baseDir) {
 // Main function
 function main() {
   const params = parseArgs();
+
+  // Parse overwrite parameter (default: false for backward compatibility)
+  const overwrite = parseBooleanParam(params.overwrite, false);
 
   // Check for whitelist mode (--entryDirsFile provided)
   if (params.entryDirsFile) {
@@ -654,7 +706,7 @@ function main() {
     }
     
     // Generate features from entry dirs
-    const success = generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outputDir);
+    const success = generateFromEntryDirs(entryDirsData, platformConfig, projectRoot, outputDir, overwrite);
     process.exit(success ? 0 : 1);
   }
 
@@ -696,38 +748,53 @@ function main() {
         
         // Load tech-stack-specific exclude_dirs
         let techExcludeDirs = [];
-        if (config.tech_stacks && 
-            config.tech_stacks[platformType] && 
+        let effectiveTechIdentifier = techIdentifier;
+
+        // Try exact match first
+        if (config.tech_stacks &&
+            config.tech_stacks[platformType] &&
             config.tech_stacks[platformType][techIdentifier] &&
             config.tech_stacks[platformType][techIdentifier].exclude_dirs) {
           techExcludeDirs = config.tech_stacks[platformType][techIdentifier].exclude_dirs;
+        } else {
+          // Try normalized identifier (remove language prefix like "python-fastapi" → "fastapi")
+          const normalizedIdentifier = normalizeTechIdentifier(techIdentifier);
+          if (normalizedIdentifier !== techIdentifier &&
+              config.tech_stacks &&
+              config.tech_stacks[platformType] &&
+              config.tech_stacks[platformType][normalizedIdentifier] &&
+              config.tech_stacks[platformType][normalizedIdentifier].exclude_dirs) {
+            techExcludeDirs = config.tech_stacks[platformType][normalizedIdentifier].exclude_dirs;
+            effectiveTechIdentifier = normalizedIdentifier;
+            console.log(`Using normalized tech identifier for exclude_dirs: ${techIdentifier} → ${normalizedIdentifier}`);
+          }
         }
-        
+
         // Load global exclude_dirs (applies to all platforms)
         const globalExcludeDirs = config.global_exclude_dirs || [];
-        
+
         // Merge: global + tech-specific
         const mergedDirs = [...new Set([...globalExcludeDirs, ...techExcludeDirs])];
         excludeDirsStr = JSON.stringify(mergedDirs);
         console.log(`Loaded exclude_dirs from tech-stack-mappings.json (${globalExcludeDirs.length} global + ${techExcludeDirs.length} tech-specific = ${mergedDirs.length} total)`);
-        
+
         // Load tech-stack-specific exclude_file_suffixes
-        if (config.tech_stacks && 
-            config.tech_stacks[platformType] && 
-            config.tech_stacks[platformType][techIdentifier] &&
-            config.tech_stacks[platformType][techIdentifier].exclude_file_suffixes) {
-          excludeFileSuffixes = config.tech_stacks[platformType][techIdentifier].exclude_file_suffixes;
+        if (config.tech_stacks &&
+            config.tech_stacks[platformType] &&
+            config.tech_stacks[platformType][effectiveTechIdentifier] &&
+            config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_suffixes) {
+          excludeFileSuffixes = config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_suffixes;
           if (excludeFileSuffixes.length > 0) {
             console.log(`Loaded exclude_file_suffixes from tech-stack-mappings.json: ${excludeFileSuffixes.join(', ')}`);
           }
         }
-        
+
         // Load tech-stack-specific exclude_file_names
-        if (config.tech_stacks && 
-            config.tech_stacks[platformType] && 
-            config.tech_stacks[platformType][techIdentifier] &&
-            config.tech_stacks[platformType][techIdentifier].exclude_file_names) {
-          excludeFileNames = config.tech_stacks[platformType][techIdentifier].exclude_file_names;
+        if (config.tech_stacks &&
+            config.tech_stacks[platformType] &&
+            config.tech_stacks[platformType][effectiveTechIdentifier] &&
+            config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_names) {
+          excludeFileNames = config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_names;
           if (excludeFileNames.length > 0) {
             console.log(`Loaded exclude_file_names from tech-stack-mappings.json: ${excludeFileNames.join(', ')}`);
           }
@@ -924,8 +991,8 @@ function main() {
     fs.mkdirSync(syncStateDir, { recursive: true });
   }
 
-  // Incremental: if features file already exists, write to *.new.json
-  const actualOutputPath = fs.existsSync(outputPath)
+  // Incremental: if features file already exists and overwrite is not set, write to *.new.json
+  const actualOutputPath = (!overwrite && fs.existsSync(outputPath))
     ? outputPath.replace(/\.json$/, '.new.json')
     : outputPath;
 
