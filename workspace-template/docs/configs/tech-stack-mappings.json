@@ -12,6 +12,29 @@
     ".next", ".nuxt", ".output",
     "docs", "scripts", "public", "assets", "mock", "fixtures"
   ],
+  "tech_aliases": {
+    "vue3": "vue",
+    "vue2": "vue",
+    "react18": "react",
+    "react17": "react",
+    "next": "nextjs",
+    "nuxt3": "nuxt",
+    "nuxt2": "nuxt",
+    "svelte-kit": "svelte",
+    "spring-boot": "spring",
+    "springboot": "spring",
+    "nest": "nestjs",
+    "fast-api": "fastapi",
+    "python-fastapi": "fastapi",
+    "gin": "go",
+    "echo": "go",
+    "actix": "rust",
+    "axum": "rust",
+    "uni-app": "uniapp",
+    "weapp": "miniprogram",
+    "wechat-miniprogram": "miniprogram",
+    "rn": "react-native"
+  },
   "tech_stacks": {
     "web": {
       "react": {

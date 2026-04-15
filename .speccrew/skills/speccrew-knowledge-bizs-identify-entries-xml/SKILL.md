@@ -93,8 +93,8 @@ For each platform, generates:
 
       <!-- Step 1: Read Directory Tree -->
       <block type="task" id="B1" action="run-script" desc="Read each platform's sourcePath directory structure (3 levels deep)">
-        <field name="command">tree /F /A "${platform.sourcePath}" | Select-Object -First 100</field>
-        <field name="alt_command">tree -L 3 "${platform.sourcePath}"</field>
+        <field name="command">Get-ChildItem -Path "${platform.sourcePath}" -Recurse -Directory -Depth 2 | Select-Object -ExpandProperty FullName</field>
+        <field name="note">MUST use Get-ChildItem (NOT tree command). MUST use ${platform.sourcePath} absolute path (NOT relative path). Scan depth follows module_scan.depth configuration from tech-stack-mappings.json.</field>
         <field name="output" var="directory_tree"/>
       </block>
 
