@@ -107,6 +107,27 @@ If the skill file is not found, report an error with the attempted paths.
 > - If the Skill contains MANDATORY/FORBIDDEN constraints → You MUST follow them strictly.
 > - DO NOT improvise alternative execution paths. If a step fails, report the error — do not attempt workarounds.
 
+### XML Workflow Block Announcement Protocol
+
+When executing a Skill that uses XML workflow format (`<workflow>` root element), you MUST follow the Block Execution Announcement Protocol defined in `docs/rules/xml-workflow-spec.md`:
+
+1. **Before executing each `<block>`**, announce it using this exact format:
+   ```
+   📋 Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
+   ```
+   
+2. **ALL block types require announcement**: `task`, `loop`, `checkpoint`, `rule`, `gateway`, `input`, `output`.
+
+3. **Special block announcements**:
+   - `loop`: Include iteration context — e.g., "Loop [L1] — Iterating over ${endpoints}, 6 items"
+   - `checkpoint`: Include validation result — e.g., "✅ Result: Template loaded, 15KB"
+   - `rule`: Include rule being applied — e.g., "✅ Result: MANDATORY constraint applied"
+   - `gateway`: Include branch taken — e.g., "Branch: fastapi template selected"
+
+4. **FORBIDDEN**: Do NOT replace block announcements with your own numbering scheme (e.g., "步骤 1", "Step 1", "Phase 1"). You MUST use the block IDs defined in the Skill's XML workflow.
+
+5. **Sequential execution**: Execute blocks strictly in document order (top-to-bottom), announcing each one before execution.
+
 **If `skill_name` is NOT provided:**
 1. Parse `context` to understand the task requirements
 2. Execute the task directly based on context description
