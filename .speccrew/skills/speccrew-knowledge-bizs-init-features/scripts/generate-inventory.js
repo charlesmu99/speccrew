@@ -66,6 +66,16 @@
 const fs = require('fs');
 const path = require('path');
 
+// Platform type to tech-stack-mappings category mapping
+const PLATFORM_TYPE_TO_CATEGORY = {
+  'frontend': 'web',
+  'web': 'web',
+  'backend': 'backend',
+  'mobile': 'mobile',
+  'desktop': 'desktop',
+  'api': 'api'
+};
+
 /**
  * Parse array parameter that supports both JSON format and comma-separated format.
  * JSON format: '["vue","typescript"]'
@@ -264,12 +274,15 @@ function loadTechStackConfig(platformType, framework, projectRoot) {
   const configContent = fs.readFileSync(configPath, 'utf8');
   const config = JSON.parse(configContent);
 
+  // Map platformType to tech-stack-mappings category
+  const techCategory = PLATFORM_TYPE_TO_CATEGORY[platformType] || platformType;
+
   // Try exact match first
   let techConfig = null;
   if (config.tech_stacks &&
-      config.tech_stacks[platformType] &&
-      config.tech_stacks[platformType][framework]) {
-    techConfig = config.tech_stacks[platformType][framework];
+      config.tech_stacks[techCategory] &&
+      config.tech_stacks[techCategory][framework]) {
+    techConfig = config.tech_stacks[techCategory][framework];
   }
 
   // If not found, try normalized identifier (remove language prefix)
@@ -277,9 +290,9 @@ function loadTechStackConfig(platformType, framework, projectRoot) {
     const normalizedFramework = normalizeTechIdentifier(framework);
     if (normalizedFramework !== framework &&
         config.tech_stacks &&
-        config.tech_stacks[platformType] &&
-        config.tech_stacks[platformType][normalizedFramework]) {
-      techConfig = config.tech_stacks[platformType][normalizedFramework];
+        config.tech_stacks[techCategory] &&
+        config.tech_stacks[techCategory][normalizedFramework]) {
+      techConfig = config.tech_stacks[techCategory][normalizedFramework];
       console.log(`Using normalized tech identifier: ${framework} → ${normalizedFramework}`);
     }
   }
@@ -804,25 +817,28 @@ function main() {
         const configContent = fs.readFileSync(configPath, 'utf8');
         const config = JSON.parse(configContent);
         
+        // Map platformType to tech-stack-mappings category
+        const techCategory = PLATFORM_TYPE_TO_CATEGORY[platformType] || platformType;
+
         // Load tech-stack-specific exclude_dirs
         let techExcludeDirs = [];
         let effectiveTechIdentifier = techIdentifier;
 
         // Try exact match first
         if (config.tech_stacks &&
-            config.tech_stacks[platformType] &&
-            config.tech_stacks[platformType][techIdentifier] &&
-            config.tech_stacks[platformType][techIdentifier].exclude_dirs) {
-          techExcludeDirs = config.tech_stacks[platformType][techIdentifier].exclude_dirs;
+            config.tech_stacks[techCategory] &&
+            config.tech_stacks[techCategory][techIdentifier] &&
+            config.tech_stacks[techCategory][techIdentifier].exclude_dirs) {
+          techExcludeDirs = config.tech_stacks[techCategory][techIdentifier].exclude_dirs;
         } else {
           // Try normalized identifier (remove language prefix like "python-fastapi" → "fastapi")
           const normalizedIdentifier = normalizeTechIdentifier(techIdentifier);
           if (normalizedIdentifier !== techIdentifier &&
               config.tech_stacks &&
-              config.tech_stacks[platformType] &&
-              config.tech_stacks[platformType][normalizedIdentifier] &&
-              config.tech_stacks[platformType][normalizedIdentifier].exclude_dirs) {
-            techExcludeDirs = config.tech_stacks[platformType][normalizedIdentifier].exclude_dirs;
+              config.tech_stacks[techCategory] &&
+              config.tech_stacks[techCategory][normalizedIdentifier] &&
+              config.tech_stacks[techCategory][normalizedIdentifier].exclude_dirs) {
+            techExcludeDirs = config.tech_stacks[techCategory][normalizedIdentifier].exclude_dirs;
             effectiveTechIdentifier = normalizedIdentifier;
             console.log(`Using normalized tech identifier for exclude_dirs: ${techIdentifier} → ${normalizedIdentifier}`);
           }
@@ -838,10 +854,10 @@ function main() {
 
         // Load tech-stack-specific exclude_file_suffixes
         if (config.tech_stacks &&
-            config.tech_stacks[platformType] &&
-            config.tech_stacks[platformType][effectiveTechIdentifier] &&
-            config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_suffixes) {
-          excludeFileSuffixes = config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_suffixes;
+            config.tech_stacks[techCategory] &&
+            config.tech_stacks[techCategory][effectiveTechIdentifier] &&
+            config.tech_stacks[techCategory][effectiveTechIdentifier].exclude_file_suffixes) {
+          excludeFileSuffixes = config.tech_stacks[techCategory][effectiveTechIdentifier].exclude_file_suffixes;
           if (excludeFileSuffixes.length > 0) {
             console.log(`Loaded exclude_file_suffixes from tech-stack-mappings.json: ${excludeFileSuffixes.join(', ')}`);
           }
@@ -849,10 +865,10 @@ function main() {
 
         // Load tech-stack-specific exclude_file_names
         if (config.tech_stacks &&
-            config.tech_stacks[platformType] &&
-            config.tech_stacks[platformType][effectiveTechIdentifier] &&
-            config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_names) {
-          excludeFileNames = config.tech_stacks[platformType][effectiveTechIdentifier].exclude_file_names;
+            config.tech_stacks[techCategory] &&
+            config.tech_stacks[techCategory][effectiveTechIdentifier] &&
+            config.tech_stacks[techCategory][effectiveTechIdentifier].exclude_file_names) {
+          excludeFileNames = config.tech_stacks[techCategory][effectiveTechIdentifier].exclude_file_names;
           if (excludeFileNames.length > 0) {
             console.log(`Loaded exclude_file_names from tech-stack-mappings.json: ${excludeFileNames.join(', ')}`);
           }
