@@ -50,6 +50,12 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 
 # Skill Inventory
 
+## Routing
+
+| Skill | Trigger Scenario | Function |
+|-------|------------------|----------|
+| `speccrew-team-leader-routing` | All user inputs | Intent recognition and routing to corresponding Skill/Agent |
+
 ## Infrastructure (Project-level)
 
 | Skill | Trigger Scenario | Function |
@@ -89,7 +95,7 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @skill: speccrew-team-leader-routing -->
 
 ---
 
