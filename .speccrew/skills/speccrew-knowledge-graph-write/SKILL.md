@@ -25,7 +25,7 @@ Dispatch Agent (speccrew-knowledge-dispatch)
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
 | `{{action}}` | string | Write action to perform | `"batch-write"`, `"init-module"`, `"update-node"`, `"remove-node"` |
-| `{{platformId}}` | string | Platform identifier for directory segregation | `"backend-system"`, `"backend-ai"`, `"web-vue"`, `"mobile-uniapp"` |
+| `{{platformId}}` | string | Platform identifier for directory segregation | `"backend-fastapi"`, `"backend-spring"`, `"web-vue"`, `"mobile-uniapp"` |
 | `{{module}}` | string | Target business module | `"system"`, `"trade"`, `"infra"` |
 | `{{graphData}}` | object | Graph data from skill output (for batch-write) | `{ "nodes": [...], "edges": [...] }` |
 | `{{nodeId}}` | string | Node ID (for update-node / remove-node) | `"api-system-user-list"` |

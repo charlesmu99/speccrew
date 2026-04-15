@@ -3,7 +3,7 @@
  * reindex-modules.js - Deterministic script to re-extract module names from existing features JSON with updated exclude_dirs
  * 
  * Usage:
- *   node reindex-modules.js --featuresFile "path/to/features-backend-system.json" --projectRoot "d:\dev\ruoyi-vue-pro"
+ *   node reindex-modules.js --featuresFile "path/to/features-backend-fastapi.json" --projectRoot "d:\dev\ruoyi-vue-pro"
  * 
  * Optional parameters:
  *   --platformType "backend" - If not provided, read from features JSON's platformType field

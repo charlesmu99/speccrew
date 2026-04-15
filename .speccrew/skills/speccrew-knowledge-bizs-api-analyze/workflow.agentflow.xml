@@ -15,6 +15,7 @@
     <field name="completed_dir" required="true" type="string" desc="Marker files output directory"/>
     <field name="sourceFile" required="true" type="string" desc="Source features JSON file name"/>
     <field name="language" required="true" type="string" desc="Target language for content"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path"/>
   </block>
   
   <!-- ==================== CONSTRAINT RULES ==================== -->
@@ -248,7 +249,7 @@
     <field name="text">
       The output document file MUST be created at the EXACT path specified by ${documentPath} input parameter.
       DO NOT use the template file name (e.g., FEATURE-DETAIL-TEMPLATE-*.md) as the output file name.
-      The documentPath already contains the correct target path including file name (e.g., speccrew-workspace/knowledges/bizs/backend-system/admin/cache/cache_controller.md).
+      The documentPath already contains the correct target path including file name (e.g., speccrew-workspace/knowledges/bizs/backend-fastapi/admin/cache/cache_controller.md).
       Before creating the file, ensure the parent directory exists (create if necessary).
     </field>
   </block>
@@ -478,16 +479,124 @@
     <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
   </block>
   
-  <!-- Dispatch to Graph Skill for .graph.json -->
-  <block type="task" id="B32" action="dispatch-to-worker" desc="Dispatch graph generation">
-    <field name="skill">speccrew-knowledge-bizs-api-graph</field>
-    <field name="parameters">
-      <field name="controllerFile">${fileName}</field>
-      <field name="sourcePath">${sourcePath}</field>
-      <field name="endpoints">${endpoints}</field>
-      <field name="completed_dir">${completed_dir}</field>
-      <field name="markerName">${markerName}</field>
+  <!-- Step 7b: Construct and Append Graph Data -->
+  <!-- Construct Graph Nodes from API Analysis -->
+  <block type="task" id="B32a" action="analyze" desc="Construct API endpoint nodes">
+    <field name="endpoints" value="${endpoints}"/>
+    <field name="module" value="${module}"/>
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="output" var="apiNodes"/>
+  </block>
+
+  <block type="task" id="B32b" action="analyze" desc="Construct service nodes">
+    <field name="services" value="${services}"/>
+    <field name="module" value="${module}"/>
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="output" var="serviceNodes"/>
+  </block>
+
+  <block type="task" id="B32c" action="analyze" desc="Construct table nodes">
+    <field name="tables" value="${databaseTables}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="tableNodes"/>
+  </block>
+
+  <!-- Construct Graph Edges -->
+  <block type="task" id="B32d" action="analyze" desc="Construct API-to-Service edges">
+    <field name="endpoints" value="${endpoints}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="invokesEdges"/>
+  </block>
+
+  <block type="task" id="B32e" action="analyze" desc="Construct API-to-Table edges">
+    <field name="endpoints" value="${endpoints}"/>
+    <field name="tables" value="${databaseTables}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="operatesEdges"/>
+  </block>
+
+  <!-- Append Graph Data to nodes.json and edges.json -->
+  <block type="task" id="B32f" action="run-script" desc="Append graph nodes to nodes.json">
+    <field name="command">node -e "
+const fs = require('fs');
+const path = require('path');
+const graphDir = path.join('${workspace_path}', 'speccrew-workspace', 'knowledges', 'bizs', 'graph');
+const nodesFile = path.join(graphDir, 'nodes.json');
+
+// Ensure directory exists
+if (!fs.existsSync(graphDir)) {
+  fs.mkdirSync(graphDir, { recursive: true });
+}
+
+// Read existing nodes or initialize empty array
+let existingNodes = [];
+if (fs.existsSync(nodesFile)) {
+  try {
+    existingNodes = JSON.parse(fs.readFileSync(nodesFile, 'utf8'));
+    if (!Array.isArray(existingNodes)) existingNodes = [];
+  } catch (e) {
+    existingNodes = [];
+  }
+}
+
+// Parse new nodes from input
+const newNodes = JSON.parse('${apiNodes}' || '[]').concat(JSON.parse('${serviceNodes}' || '[]')).concat(JSON.parse('${tableNodes}' || '[]'));
+
+// Deduplicate by id
+const nodeMap = new Map();
+existingNodes.forEach(n => nodeMap.set(n.id, n));
+newNodes.forEach(n => nodeMap.set(n.id, n));
+
+// Write back
+fs.writeFileSync(nodesFile, JSON.stringify(Array.from(nodeMap.values()), null, 2));
+console.log('Nodes appended:', newNodes.length);
+"
     </field>
+  </block>
+
+  <block type="task" id="B32g" action="run-script" desc="Append graph edges to edges.json">
+    <field name="command">node -e "
+const fs = require('fs');
+const path = require('path');
+const graphDir = path.join('${workspace_path}', 'speccrew-workspace', 'knowledges', 'bizs', 'graph');
+const edgesFile = path.join(graphDir, 'edges.json');
+
+// Read existing edges or initialize empty array
+let existingEdges = [];
+if (fs.existsSync(edgesFile)) {
+  try {
+    existingEdges = JSON.parse(fs.readFileSync(edgesFile, 'utf8'));
+    if (!Array.isArray(existingEdges)) existingEdges = [];
+  } catch (e) {
+    existingEdges = [];
+  }
+}
+
+// Parse new edges from input
+const newEdges = JSON.parse('${invokesEdges}' || '[]').concat(JSON.parse('${operatesEdges}' || '[]'));
+
+// Deduplicate by composite key (source+target+type)
+const edgeMap = new Map();
+existingEdges.forEach(e => {
+  const key = e.source + '|' + e.target + '|' + e.type;
+  edgeMap.set(key, e);
+});
+newEdges.forEach(e => {
+  const key = e.source + '|' + e.target + '|' + e.type;
+  edgeMap.set(key, e);
+});
+
+// Write back
+fs.writeFileSync(edgesFile, JSON.stringify(Array.from(edgeMap.values()), null, 2));
+console.log('Edges appended:', newEdges.length);
+"
+    </field>
+  </block>
+
+  <block type="checkpoint" id="CP-graph" name="graph-written" desc="Graph data written">
+    <field name="verify" value="true"/>
   </block>
   
   <block type="event" id="E10" action="log" level="info" desc="Log marker status">

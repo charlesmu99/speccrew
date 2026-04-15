@@ -14,7 +14,7 @@
     <field name="features_file" required="true" type="string" desc="Path to the platform's features-{platform}.json file"/>
     <field name="output_path" required="true" type="string" desc="Knowledge base output root path"/>
     <field name="completed_dir" required="true" type="string" desc="Marker file output directory for api-analyze .done.json markers"/>
-    <field name="sourceFile" required="true" type="string" desc="Features JSON filename (e.g., features-backend-system.json)"/>
+    <field name="sourceFile" required="true" type="string" desc="Features JSON filename (e.g., features-backend-fastapi.json)"/>
     <field name="language" required="true" type="string" desc="Output language (zh / en)"/>
     <field name="workspace_path" required="true" type="string" desc="Workspace root path for constructing absolute paths"/>
   </block>

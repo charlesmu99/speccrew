@@ -376,12 +376,179 @@
   <block type="checkpoint" id="CP7" name="marker-written" desc="Marker file written">
     <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
   </block>
-  
-  <block type="event" id="E10" action="log" level="info" desc="Log marker status">
-    <field name="message" value="Step 7 Status: COMPLETED - Done marker file written to ${completed_dir}/${markerName}.done.json"/>
+
+  <!-- Step 7b: Construct and Append Graph Data -->
+  <!-- Construct Graph Nodes from UI Analysis -->
+  <block type="task" id="B32a" action="analyze" desc="Construct page node">
+    <field name="type" value="page"/>
+    <field name="id" value="page-${module}-${fileName}"/>
+    <field name="name" value="${fileName}"/>
+    <field name="module" value="${module}"/>
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="platform" value="${platform_type}-${platform_subtype}"/>
+    <field name="output" var="pageNode"/>
   </block>
 
-  <!-- ==================== FINAL OUTPUT ==================== -->
+  <block type="task" id="B32b" action="analyze" desc="Construct component nodes">
+    <field name="components" value="${analysisResult.components}"/>
+    <field name="module" value="${module}"/>
+    <field name="documentPath" value="${documentPath}"/>
+    <field name="output" var="componentNodes"/>
+  </block>
+
+  <block type="task" id="B32c" action="analyze" desc="Construct route nodes">
+    <field name="routes" value="${analysisResult.routes}"/>
+    <field name="module" value="${module}"/>
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="output" var="routeNodes"/>
+  </block>
+
+  <!-- Construct Graph Edges -->
+  <block type="task" id="B32d" action="analyze" desc="Construct navigates edges">
+    <field name="pageId" value="page-${module}-${fileName}"/>
+    <field name="navigations" value="${analysisResult.navigations}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="navigatesEdges"/>
+  </block>
+
+  <block type="task" id="B32e" action="analyze" desc="Construct contains edges">
+    <field name="pageId" value="page-${module}-${fileName}"/>
+    <field name="components" value="${analysisResult.components}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="containsEdges"/>
+  </block>
+
+  <block type="task" id="B32f" action="analyze" desc="Construct calls-api edges">
+    <field name="pageId" value="page-${module}-${fileName}"/>
+    <field name="apiCalls" value="${analysisResult.apis}"/>
+    <field name="module" value="${module}"/>
+    <field name="output" var="callsApiEdges"/>
+  </block>
+
+  <!-- Append Graph Data to nodes.json and edges.json -->
+  <block type="task" id="B32g" action="run-script" desc="Append graph nodes to nodes.json">
+    <field name="command">node -e "
+const fs = require('fs');
+const path = require('path');
+const graphDir = path.join('${workspace_path}', 'speccrew-workspace', 'knowledges', 'bizs', 'graph');
+const nodesFile = path.join(graphDir, 'nodes.json');
+
+// Ensure directory exists
+if (!fs.existsSync(graphDir)) {
+  fs.mkdirSync(graphDir, { recursive: true });
+}
+
+// Read existing nodes or initialize empty array
+let existingNodes = [];
+if (fs.existsSync(nodesFile)) {
+  try {
+    existingNodes = JSON.parse(fs.readFileSync(nodesFile, 'utf8'));
+    if (!Array.isArray(existingNodes)) existingNodes = [];
+  } catch (e) {
+    existingNodes = [];
+  }
+}
+
+// Parse new nodes from input
+const newNodes = [];
+if ('${pageNode}') {
+  try {
+    const page = JSON.parse('${pageNode}');
+    if (page && page.id) newNodes.push(page);
+  } catch (e) {}
+}
+if ('${componentNodes}') {
+  try {
+    const comps = JSON.parse('${componentNodes}');
+    if (Array.isArray(comps)) newNodes.push(...comps);
+  } catch (e) {}
+}
+if ('${routeNodes}') {
+  try {
+    const routes = JSON.parse('${routeNodes}');
+    if (Array.isArray(routes)) newNodes.push(...routes);
+  } catch (e) {}
+}
+
+// Deduplicate by id
+const nodeMap = new Map();
+existingNodes.forEach(n => nodeMap.set(n.id, n));
+newNodes.forEach(n => nodeMap.set(n.id, n));
+
+// Write back
+fs.writeFileSync(nodesFile, JSON.stringify(Array.from(nodeMap.values()), null, 2));
+console.log('Nodes appended:', newNodes.length);
+"
+    </field>
+  </block>
+
+  <block type="task" id="B32h" action="run-script" desc="Append graph edges to edges.json">
+    <field name="command">node -e "
+const fs = require('fs');
+const path = require('path');
+const graphDir = path.join('${workspace_path}', 'speccrew-workspace', 'knowledges', 'bizs', 'graph');
+const edgesFile = path.join(graphDir, 'edges.json');
+
+// Read existing edges or initialize empty array
+let existingEdges = [];
+if (fs.existsSync(edgesFile)) {
+  try {
+    existingEdges = JSON.parse(fs.readFileSync(edgesFile, 'utf8'));
+    if (!Array.isArray(existingEdges)) existingEdges = [];
+  } catch (e) {
+    existingEdges = [];
+  }
+}
+
+// Parse new edges from input
+const newEdges = [];
+if ('${navigatesEdges}') {
+  try {
+    const edges = JSON.parse('${navigatesEdges}');
+    if (Array.isArray(edges)) newEdges.push(...edges);
+  } catch (e) {}
+}
+if ('${containsEdges}') {
+  try {
+    const edges = JSON.parse('${containsEdges}');
+    if (Array.isArray(edges)) newEdges.push(...edges);
+  } catch (e) {}
+}
+if ('${callsApiEdges}') {
+  try {
+    const edges = JSON.parse('${callsApiEdges}');
+    if (Array.isArray(edges)) newEdges.push(...edges);
+  } catch (e) {}
+}
+
+// Deduplicate by composite key (source+target+type)
+const edgeMap = new Map();
+existingEdges.forEach(e => {
+  const key = (e.source || '') + '|' + (e.target || '') + '|' + (e.type || '');
+  edgeMap.set(key, e);
+});
+newEdges.forEach(e => {
+  const key = (e.source || '') + '|' + (e.target || '') + '|' + (e.type || '');
+  edgeMap.set(key, e);
+});
+
+// Write back
+fs.writeFileSync(edgesFile, JSON.stringify(Array.from(edgeMap.values()), null, 2));
+console.log('Edges appended:', newEdges.length);
+"
+    </field>
+  </block>
+
+  <block type="checkpoint" id="CP-graph" name="graph-written" desc="Graph data written">
+    <field name="verify" value="true"/>
+  </block>
+
+  <block type="event" id="E10" action="log" level="info" desc="Log marker status">
+    <field name="message" value="Step 7 Status: COMPLETED - Done marker and graph data written to ${completed_dir}/${markerName}.done.json"/>
+  </block>
+
+  <!-- ==================== FINAL OUTPUT ================= === -->
   <block type="output" id="O1" desc="UI feature analysis output results">
     <field name="status" value="success"/>
     <field name="feature_name" from="${fileName}"/>

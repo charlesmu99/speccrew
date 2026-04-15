@@ -26,7 +26,7 @@ All generated documents must match the user's language. Detect the language from
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `platformId` | string | Yes | Platform identifier (e.g., "backend-system", "frontend-web", "mobile-app") |
+| `platformId` | string | Yes | Platform identifier (e.g., "backend-fastapi", "web-vue3", "mobile-uniapp") |
 | `platformName` | string | Yes | Platform display name |
 | `platformType` | string | Yes | Platform type: backend, web, mobile |
 | `platformSubtype` | string | No | Platform subtype (e.g., vue, react, uniapp) |

@@ -39,7 +39,7 @@ Generate analyze task plan for a single business module. Reads features-*.json, 
 | `features_file` | string | Yes | Path to the platform's features-{platform}.json file |
 | `output_path` | string | Yes | Knowledge base output root path (e.g., speccrew-workspace/knowledges) |
 | `completed_dir` | string | Yes | Marker file output directory for api-analyze .done.json markers. Value from PM Agent: `{sync_state_bizs_dir}/completed` |
-| `sourceFile` | string | Yes | Features JSON filename (e.g., "features-backend-system.json"), used for api-analyze marking |
+| `sourceFile` | string | Yes | Features JSON filename (e.g., "features-backend-fastapi.json"), used for api-analyze marking |
 | `language` | string | Yes | Output language (zh / en) |
 | `workspace_path` | string | Yes | Workspace root path for constructing absolute paths |
 

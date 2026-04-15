@@ -1001,11 +1001,11 @@ Requirements:
       "fileName": "UserController",
       "sourcePath": "controller/admin/user/UserController.java",
       "module": "user",
-      "documentPath": "speccrew-workspace/knowledges/bizs/backend-system/user/UserController.md",
+      "documentPath": "speccrew-workspace/knowledges/bizs/backend-spring/user/UserController.md",
       "platformType": "backend",
       "platformSubtype": "spring",
-      "platformId": "backend-system",
-      "sourceFile": "features-backend-system.json"
+      "platformId": "backend-spring",
+      "sourceFile": "features-backend-spring.json"
     }
   ]
 }
