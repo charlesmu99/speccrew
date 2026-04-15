@@ -66,21 +66,21 @@ source-path: {sourcePath}
 
 | Area | Element | Component | Description | Interaction | Source Link |
 |------|---------|-----------|-------------|-------------|-------------|
-| Nav | Title | NavigationBar | {Page title} | - | [Source](../../{sourcePath}) |
-| Search | Search Input | search | {Search input} | bind:input/bind:confirm | [Source](../../{sourcePath}) |
-| Content | Card | view + image + text | {Display item} | bind:tap | [Source](../../{sourcePath}) |
-| Action | FAB | button | {Primary action} | bind:tap | [Source](../../{sourcePath}) |
+| Nav | Title | NavigationBar | {Page title} | - | [Source](../../../../../../{sourcePath}) |
+| Search | Search Input | search | {Search input} | bind:input/bind:confirm | [Source](../../../../../../{sourcePath}) |
+| Content | Card | view + image + text | {Display item} | bind:tap | [Source](../../../../../../{sourcePath}) |
+| Action | FAB | button | {Primary action} | bind:tap | [Source](../../../../../../{sourcePath}) |
 
 **Mini Program Specific Interactions:**
 
 | Event | Trigger | Description | Source |
 |-------|---------|-------------|--------|
-| bind:tap | Tap | Click element | [Source](../../{sourcePath}) |
-| bind:longpress | Long press | Long press element | [Source](../../{sourcePath}) |
-| bind:touchstart | Touch start | Start touch | [Source](../../{sourcePath}) |
-| bind:touchend | Touch end | End touch | [Source](../../{sourcePath}) |
-| bind:scrolltolower | Scroll to bottom | Load more | [Source](../../{sourcePath}) |
-| bind:pullDownRefresh | Pull down | Refresh page | [Source](../../{sourcePath}) |
+| bind:tap | Tap | Click element | [Source](../../../../../../{sourcePath}) |
+| bind:longpress | Long press | Long press element | [Source](../../../../../../{sourcePath}) |
+| bind:touchstart | Touch start | Start touch | [Source](../../../../../../{sourcePath}) |
+| bind:touchend | Touch end | End touch | [Source](../../../../../../{sourcePath}) |
+| bind:scrolltolower | Scroll to bottom | Load more | [Source](../../../../../../{sourcePath}) |
+| bind:pullDownRefresh | Pull down | Refresh page | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -110,11 +110,11 @@ graph TB
 
 | Step | Business Operation | Lifecycle | Source |
 |------|-------------------|-----------|--------|
-| 1 | Parse page options | onLoad | [Source](../../{sourcePath}) |
-| 2 | Page becomes visible | onShow | [Source](../../{sourcePath}) |
-| 3 | Check/get user info | onShow | [Source](../../{sourcePath}) |
-| 4 | Load page data | onShow | [Source](../../{sourcePath}) |
-| 5 | Page render complete | onReady | [Source](../../{sourcePath}) |
+| 1 | Parse page options | onLoad | [Source](../../../../../../{sourcePath}) |
+| 2 | Page becomes visible | onShow | [Source](../../../../../../{sourcePath}) |
+| 3 | Check/get user info | onShow | [Source](../../../../../../{sourcePath}) |
+| 4 | Load page data | onShow | [Source](../../../../../../{sourcePath}) |
+| 5 | Page render complete | onReady | [Source](../../../../../../{sourcePath}) |
 
 ### 3.2 User Interaction Flows
 
@@ -134,9 +134,9 @@ graph TB
 
 | Step | Business Operation | Event | Source |
 |------|-------------------|-------|--------|
-| 1 | Get data from dataset | bind:tap | [Source](../../{sourcePath}) |
-| 2 | Navigate to detail | wx.navigateTo | [Source](../../{sourcePath}) |
-| 3 | Pass data via URL | query parameter | [Source](../../{sourcePath}) |
+| 1 | Get data from dataset | bind:tap | [Source](../../../../../../{sourcePath}) |
+| 2 | Navigate to detail | wx.navigateTo | [Source](../../../../../../{sourcePath}) |
+| 3 | Pass data via URL | query parameter | [Source](../../../../../../{sourcePath}) |
 
 #### 3.2.2 {Event Name: e.g., Pull Down Refresh}
 
@@ -168,14 +168,14 @@ graph TB
 
 | Function | Trigger | Purpose | Source |
 |----------|---------|---------|--------|
-| onLoad | Page created | Parse options, init | [Source](../../{sourcePath}) |
-| onShow | Page visible | Refresh data | [Source](../../{sourcePath}) |
-| onReady | Render done | DOM operations | [Source](../../{sourcePath}) |
-| onHide | Page hidden | Pause operations | [Source](../../{sourcePath}) |
-| onUnload | Page closed | Cleanup | [Source](../../{sourcePath}) |
-| onPullDownRefresh | Pull down | Refresh data | [Source](../../{sourcePath}) |
-| onReachBottom | Scroll bottom | Load more | [Source](../../{sourcePath}) |
-| onShareAppMessage | Share | Custom share | [Source](../../{sourcePath}) |
+| onLoad | Page created | Parse options, init | [Source](../../../../../../{sourcePath}) |
+| onShow | Page visible | Refresh data | [Source](../../../../../../{sourcePath}) |
+| onReady | Render done | DOM operations | [Source](../../../../../../{sourcePath}) |
+| onHide | Page hidden | Pause operations | [Source](../../../../../../{sourcePath}) |
+| onUnload | Page closed | Cleanup | [Source](../../../../../../{sourcePath}) |
+| onPullDownRefresh | Pull down | Refresh data | [Source](../../../../../../{sourcePath}) |
+| onReachBottom | Scroll bottom | Load more | [Source](../../../../../../{sourcePath}) |
+| onShareAppMessage | Share | Custom share | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -185,17 +185,17 @@ graph TB
 
 | Field Name | Type | Description | Source |
 |------------|------|-------------|--------|
-| {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../{sourcePath}) |
-| {loading} | Boolean | {Loading state} | [Source](../../{sourcePath}) |
-| {list} | Array | {List data} | [Source](../../{sourcePath}) |
-| {hasMore} | Boolean | {Has more data} | [Source](../../{sourcePath}) |
+| {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../../../../../{sourcePath}) |
+| {loading} | Boolean | {Loading state} | [Source](../../../../../../{sourcePath}) |
+| {list} | Array | {List data} | [Source](../../../../../../{sourcePath}) |
+| {hasMore} | Boolean | {Has more data} | [Source](../../../../../../{sourcePath}) |
 
 ### 4.2 Form Fields (if applicable)
 
 | Field Name | Type | Validation | Component | Source |
 |------------|------|------------|-----------|--------|
-| {Field 1} | String | {Required} | input | [Source](../../{sourcePath}) |
-| {Field 2} | String | {Phone format} | input type=digit | [Source](../../{sourcePath}) |
+| {Field 1} | String | {Required} | input | [Source](../../../../../../{sourcePath}) |
+| {Field 2} | String | {Phone format} | input type=digit | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -205,34 +205,34 @@ graph TB
 
 | API Name | Type | Main Function | Source | Document Path |
 |----------|------|---------------|--------|---------------|
-| {API Name} | Query/Mutation | {Brief description} | [Source](../../{apiSourcePath}) | [API Doc](../../apis/{api-name}.md) |
+| {API Name} | Query/Mutation | {Brief description} | [Source](../../../../../../{apiSourcePath}) | [API Doc](../../../../../../apis/{api-name}.md) |
 
 ### 5.2 Mini Program APIs
 
 | API | Purpose | Usage | Source |
 |-----|---------|-------|--------|
-| wx.request | HTTP request | Call backend API | [Source](../../{sourcePath}) |
-| wx.navigateTo | Page navigation | Navigate to page | [Source](../../{sourcePath}) |
-| wx.showToast | Show toast | Display message | [Source](../../{sourcePath}) |
-| wx.getUserInfo | Get user info | Authentication | [Source](../../{sourcePath}) |
+| wx.request | HTTP request | Call backend API | [Source](../../../../../../{sourcePath}) |
+| wx.navigateTo | Page navigation | Navigate to page | [Source](../../../../../../{sourcePath}) |
+| wx.showToast | Show toast | Display message | [Source](../../../../../../{sourcePath}) |
+| wx.getUserInfo | Get user info | Authentication | [Source](../../../../../../{sourcePath}) |
 
 ### 5.3 Components
 
 | Component | Type | Main Function | Source | Document Path |
 |-----------|------|---------------|--------|---------------|
-| {Custom Component} | UI | {Description} | [Source](../../{componentSourcePath}) | [Component Doc](../../components/{component-name}.md) |
+| {Custom Component} | UI | {Description} | [Source](../../../../../../{componentSourcePath}) | [Component Doc](../../../../../../components/{component-name}.md) |
 
 ### 5.4 Other Pages
 
 | Page Name | Relation Type | Description | Source | Document Path |
 |-----------|---------------|-------------|--------|---------------|
-| {Page Name} | navigateTo | {Navigation description} | [Source](../../{pageSourcePath}) | [Page Doc](../{page-path}.md) |
+| {Page Name} | navigateTo | {Navigation description} | [Source](../../../../../../{pageSourcePath}) | [Page Doc](../{page-path}.md) |
 
 ### 5.5 Referenced By
 
 | Page Name | Function Description | Source Path | Document Path |
 |-------------|---------------------|-------------|---------------|
-| {Referencing Page} | {e.g., "Navigate to this page"} | {source-path} | [Page Doc](../{page-path}.md) |
+| {Referencing Page} | {e.g., "Navigate to this page"} | {source-path} | [Page Doc](../../../../../../{page-path}.md) |
 
 ---
 
@@ -242,20 +242,20 @@ graph TB
 
 | Operation | Permission | No Permission Handling | Source |
 |-----------|------------|----------------------|--------|
-| View page | {None/Login} | Show login modal | [Source](../../{sourcePath}) |
-| Use feature | {Scope required} | Guide to authorize | [Source](../../{sourcePath}) |
+| View page | {None/Login} | Show login modal | [Source](../../../../../../{sourcePath}) |
+| Use feature | {Scope required} | Guide to authorize | [Source](../../../../../../{sourcePath}) |
 
 ### 6.2 Mini Program Specific Rules
 
-1. **Package Size**: {e.g., Main package ≤ 2MB} | [Source](../../{sourcePath})
-2. **API Limit**: {e.g., Concurrent request limit} | [Source](../../{sourcePath})
-3. **Storage**: {e.g., Use wx.setStorage for cache} | [Source](../../{sourcePath})
+1. **Package Size**: {e.g., Main package ≤ 2MB} | [Source](../../../../../../{sourcePath})
+2. **API Limit**: {e.g., Concurrent request limit} | [Source](../../../../../../{sourcePath})
+3. **Storage**: {e.g., Use wx.setStorage for cache} | [Source](../../../../../../{sourcePath})
 
 ### 6.3 Validation Rules
 
 | Scenario | Rule | Handling | Source |
 |----------|------|----------|--------|
-| Form submit | {Validation} | wx.showToast / showModal | [Source](../../{sourcePath}) |
+| Form submit | {Validation} | wx.showToast / showModal | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -288,5 +288,5 @@ graph TB
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{page}.js/{page}.wxml](../../{sourcePath})
-- [{page}.json](../../{configPath})
+- [{page}.js/{page}.wxml](../../../../../../{sourcePath})
+- [{page}.json](../../../../../../{configPath})

@@ -11,10 +11,10 @@
 
 | # | File | Source |
 |---|------|--------|
-| 1 | {router} | [View](../../{routerSourcePath}) |
-| 2 | {service} | [View](../../{serviceSourcePath}) |
-| 3 | {model} | [View](../../{modelSourcePath}) |
-| 4 | {schema} | [View](../../{schemaSourcePath}) |
+| 1 | {router} | [View](../../../../../../{routerSourcePath}) |
+| 2 | {service} | [View](../../../../../../{serviceSourcePath}) |
+| 3 | {model} | [View](../../../../../../{modelSourcePath}) |
+| 4 | {schema} | [View](../../../../../../{schemaSourcePath}) |
 
 ---
 
@@ -152,11 +152,11 @@ graph TB
 
 | # | Layer | File | Function/Class | Responsibility | Source |
 |---|-------|------|----------------|----------------|--------|
-| 1 | Router | {users.py} | {create_user} | Receive request, validate params, call service | [Source](../../{routerSourcePath}) |
-| 2 | Service | {user_service.py} | {create_user} | Business validation, data processing, call CRUD | [Source](../../{serviceSourcePath}) |
-| 3 | Service | {user_service.py} | {validate_user_email} | Check email uniqueness | [Source](../../{serviceSourcePath}) |
-| 4 | CRUD | {user_crud.py} | {create} | Execute INSERT via SQLAlchemy | [Source](../../{crudSourcePath}) |
-| 5 | Model | {user.py} | {User model} | SQLAlchemy ORM model definition | [Source](../../{modelSourcePath}) |
+| 1 | Router | {users.py} | {create_user} | Receive request, validate params, call service | [Source](../../../../../../{routerSourcePath}) |
+| 2 | Service | {user_service.py} | {create_user} | Business validation, data processing, call CRUD | [Source](../../../../../../{serviceSourcePath}) |
+| 3 | Service | {user_service.py} | {validate_user_email} | Check email uniqueness | [Source](../../../../../../{serviceSourcePath}) |
+| 4 | CRUD | {user_crud.py} | {create} | Execute INSERT via SQLAlchemy | [Source](../../../../../../{crudSourcePath}) |
+| 5 | Model | {user.py} | {User model} | SQLAlchemy ORM model definition | [Source](../../../../../../{modelSourcePath}) |
 
 **Database Operations:**
 
@@ -213,7 +213,7 @@ graph TB
 | {related_table} | {One-to-Many} | {ForeignKey("related.id")} | {Relationship description} |
 | {another_table} | {Many-to-One} | {ForeignKey("another.id")} | {Relationship description} |
 
-**Source:** [Model](../../{modelSourcePath})
+**Source:** [Model](../../../../../../{modelSourcePath})
 
 ### 3.2 Model-Database Mapping
 
@@ -260,23 +260,23 @@ class {UserResponse}(BaseModel):
 
 | Service Name | Purpose | Source Path |
 |--------------|---------|-------------|
-| {user_service} | {e.g., User business logic} | [Source](../../{serviceSourcePath}) |
-| {auth_service} | {e.g., Authentication validation} | [Source](../../{serviceSourcePath}) |
+| {user_service} | {e.g., User business logic} | [Source](../../../../../../{serviceSourcePath}) |
+| {auth_service} | {e.g., Authentication validation} | [Source](../../../../../../{serviceSourcePath}) |
 
 ### 4.2 Data Access Layer
 
 | CRUD/Repository | Model | Purpose | Source Path |
 |-----------------|-------|---------|-------------|
-| {user_crud} | {User} | {e.g., User CRUD operations} | [Source](../../{crudSourcePath}) |
-| {role_crud} | {Role} | {e.g., Role query} | [Source](../../{crudSourcePath}) |
+| {user_crud} | {User} | {e.g., User CRUD operations} | [Source](../../../../../../{crudSourcePath}) |
+| {role_crud} | {Role} | {e.g., Role query} | [Source](../../../../../../{crudSourcePath}) |
 
 ### 4.3 Schemas and Models
 
 | Class Name | Type | Purpose | Source Path |
 |------------|------|---------|-------------|
-| {UserCreate} | Request Schema | {e.g., Create user request} | [Source](../../{schemaSourcePath}) |
-| {UserResponse} | Response Schema | {e.g., User detail response} | [Source](../../{schemaSourcePath}) |
-| {User} | SQLAlchemy Model | {e.g., User database model} | [Source](../../{modelSourcePath}) |
+| {UserCreate} | Request Schema | {e.g., Create user request} | [Source](../../../../../../{schemaSourcePath}) |
+| {UserResponse} | Response Schema | {e.g., User detail response} | [Source](../../../../../../{schemaSourcePath}) |
+| {User} | SQLAlchemy Model | {e.g., User database model} | [Source](../../../../../../{modelSourcePath}) |
 
 ### 4.4 API Consumers
 
@@ -284,8 +284,8 @@ class {UserResponse}(BaseModel):
 
 | Page Name | Function Description | Source Path | Document Path |
 |-----------|---------------------|-------------|---------------|
-| {PageName} | {e.g., User management list page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
-| {PageName} | {e.g., User form page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
+| {PageName} | {e.g., User management list page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
+| {PageName} | {e.g., User form page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
 
 ---
 
@@ -339,7 +339,7 @@ graph LR
 ```
 
 **Diagram Source**
-- [{Service}.py](../../{serviceSourcePath})
+- [{Service}.py](../../../../../../{serviceSourcePath})
 
 ### 6.3 External Dependencies
 
@@ -458,6 +458,6 @@ router = APIRouter(
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{Router}.py](../../{routerSourcePath})
-- [{Service}.py](../../{serviceSourcePath})
-- [{Model}.py](../../{modelSourcePath})
+- [{Router}.py](../../../../../../{routerSourcePath})
+- [{Service}.py](../../../../../../{serviceSourcePath})
+- [{Model}.py](../../../../../../{modelSourcePath})

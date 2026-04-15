@@ -68,22 +68,22 @@ source-path: {sourcePath}
 
 | Area | Element | Type | Description | Interaction | Source Link |
 |------|---------|------|-------------|-------------|-------------|
-| Nav Bar | Back Button | Button | {Return to previous screen} | Tap to navigate back | [Source](../../{sourcePath}) |
-| Nav Bar | Title | Label | {Screen title} | - | [Source](../../{sourcePath}) |
-| Nav Bar | More Menu | Button | {Show action sheet} | Tap to show options | [Source](../../{sourcePath}) |
-| Content | List Item | Cell | {Display data item} | Tap to view detail | [Source](../../{sourcePath}) |
-| Content | Pull Refresh | Gesture | {Pull down to refresh} | Pull down gesture | [Source](../../{sourcePath}) |
-| FAB | Action Button | Button | {Primary action} | Tap to create/add | [Source](../../{sourcePath}) |
+| Nav Bar | Back Button | Button | {Return to previous screen} | Tap to navigate back | [Source](../../../../../../{sourcePath}) |
+| Nav Bar | Title | Label | {Screen title} | - | [Source](../../../../../../{sourcePath}) |
+| Nav Bar | More Menu | Button | {Show action sheet} | Tap to show options | [Source](../../../../../../{sourcePath}) |
+| Content | List Item | Cell | {Display data item} | Tap to view detail | [Source](../../../../../../{sourcePath}) |
+| Content | Pull Refresh | Gesture | {Pull down to refresh} | Pull down gesture | [Source](../../../../../../{sourcePath}) |
+| FAB | Action Button | Button | {Primary action} | Tap to create/add | [Source](../../../../../../{sourcePath}) |
 
 **Mobile-Specific Interactions:**
 
 | Gesture | Action | Description | Source |
 |---------|--------|-------------|--------|
-| Tap | Select item | Navigate to detail | [Source](../../{sourcePath}) |
-| Long Press | Context menu | Show action sheet | [Source](../../{sourcePath}) |
-| Swipe Left | Delete/Reveal | Show delete/edit actions | [Source](../../{sourcePath}) |
-| Pull Down | Refresh | Reload data | [Source](../../{sourcePath}) |
-| Infinite Scroll | Load more | Pagination | [Source](../../{sourcePath}) |
+| Tap | Select item | Navigate to detail | [Source](../../../../../../{sourcePath}) |
+| Long Press | Context menu | Show action sheet | [Source](../../../../../../{sourcePath}) |
+| Swipe Left | Delete/Reveal | Show delete/edit actions | [Source](../../../../../../{sourcePath}) |
+| Pull Down | Refresh | Reload data | [Source](../../../../../../{sourcePath}) |
+| Infinite Scroll | Load more | Pagination | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -112,10 +112,10 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Initialize ViewModel | viewDidLoad/onCreate | [Source](../../{sourcePath}) |
-| 2 | Check authentication | After init | [Source](../../{sourcePath}) |
-| 3 | Load data | Auth passed | [Source](../../{sourcePath}) |
-| 4 | Render UI | Data loaded | [Source](../../{sourcePath}) |
+| 1 | Initialize ViewModel | viewDidLoad/onCreate | [Source](../../../../../../{sourcePath}) |
+| 2 | Check authentication | After init | [Source](../../../../../../{sourcePath}) |
+| 3 | Load data | Auth passed | [Source](../../../../../../{sourcePath}) |
+| 4 | Render UI | Data loaded | [Source](../../../../../../{sourcePath}) |
 
 ### 3.2 User Interaction Flows
 
@@ -136,9 +136,9 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Detect tap | onTap | [Source](../../{sourcePath}) |
-| 2 | Check item type | Tap detected | [Source](../../{sourcePath}) |
-| 3 | Navigate or show actions | Based on type | [Source](../../{sourcePath}) |
+| 1 | Detect tap | onTap | [Source](../../../../../../{sourcePath}) |
+| 2 | Check item type | Tap detected | [Source](../../../../../../{sourcePath}) |
+| 3 | Navigate or show actions | Based on type | [Source](../../../../../../{sourcePath}) |
 
 #### 3.2.2 {Event Name: e.g., Pull to Refresh}
 
@@ -170,12 +170,12 @@ graph TB
 
 | Event | Platform | Handler | Purpose | Source |
 |-------|----------|---------|---------|--------|
-| Create | iOS | viewDidLoad | Initial setup | [Source](../../{sourcePath}) |
-| Create | Android | onCreate | Initial setup | [Source](../../{sourcePath}) |
-| Appear | iOS | viewWillAppear | Prepare data | [Source](../../{sourcePath}) |
-| Appear | Android | onStart | Prepare data | [Source](../../{sourcePath}) |
-| Destroy | iOS | deinit | Cleanup | [Source](../../{sourcePath}) |
-| Destroy | Android | onDestroy | Cleanup | [Source](../../{sourcePath}) |
+| Create | iOS | viewDidLoad | Initial setup | [Source](../../../../../../{sourcePath}) |
+| Create | Android | onCreate | Initial setup | [Source](../../../../../../{sourcePath}) |
+| Appear | iOS | viewWillAppear | Prepare data | [Source](../../../../../../{sourcePath}) |
+| Appear | Android | onStart | Prepare data | [Source](../../../../../../{sourcePath}) |
+| Destroy | iOS | deinit | Cleanup | [Source](../../../../../../{sourcePath}) |
+| Destroy | Android | onDestroy | Cleanup | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -185,16 +185,16 @@ graph TB
 
 | Field Name | Field Type | Description | Platform | Source |
 |------------|------------|-------------|----------|--------|
-| {Field 1} | String/Int/Boolean | {Description} | iOS/Android | [Source](../../{sourcePath}) |
-| {isLoading} | Boolean | {Loading state} | iOS/Android | [Source](../../{sourcePath}) |
-| {dataList} | Array | {List data source} | iOS/Android | [Source](../../{sourcePath}) |
+| {Field 1} | String/Int/Boolean | {Description} | iOS/Android | [Source](../../../../../../{sourcePath}) |
+| {isLoading} | Boolean | {Loading state} | iOS/Android | [Source](../../../../../../{sourcePath}) |
+| {dataList} | Array | {List data source} | iOS/Android | [Source](../../../../../../{sourcePath}) |
 
 ### 4.2 Form Fields (if applicable)
 
 | Field Name | Field Type | Validation | Input Type | Source |
 |------------|------------|------------|------------|--------|
-| {Field 1} | String | {Required} | TextField/EditText | [Source](../../{sourcePath}) |
-| {Field 2} | String | {Email format} | Keyboard: Email | [Source](../../{sourcePath}) |
+| {Field 1} | String | {Required} | TextField/EditText | [Source](../../../../../../{sourcePath}) |
+| {Field 2} | String | {Email format} | Keyboard: Email | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -204,26 +204,26 @@ graph TB
 
 | API Name | Type | Main Function | Source | Document Path |
 |----------|------|---------------|--------|---------------|
-| {API Name} | Query/Mutation | {Brief description} | [Source](../../{apiSourcePath}) | [API Doc](../../apis/{api-name}.md) |
+| {API Name} | Query/Mutation | {Brief description} | [Source](../../../../../../{apiSourcePath}) | [API Doc](../../../../../../apis/{api-name}.md) |
 
 ### 5.2 Native Components/Views
 
 | Component | Platform | Type | Main Function | Source | Document Path |
 |-----------|----------|------|---------------|--------|---------------|
-| {UITableView/RecyclerView} | iOS/Android | List | {Display scrollable list} | [Source](../../{componentSourcePath}) | [Component Doc](../../components/{component-name}.md) |
-| {UICollectionView} | iOS | Grid | {Display grid layout} | [Source](../../{componentSourcePath}) | [Component Doc](../../components/{component-name}.md) |
+| {UITableView/RecyclerView} | iOS/Android | List | {Display scrollable list} | [Source](../../../../../../{componentSourcePath}) | [Component Doc](../../../../../../components/{component-name}.md) |
+| {UICollectionView} | iOS | Grid | {Display grid layout} | [Source](../../../../../../{componentSourcePath}) | [Component Doc](../../../../../../components/{component-name}.md) |
 
 ### 5.3 Other Screens
 
 | Screen Name | Relation Type | Description | Source | Document Path |
 |-------------|---------------|-------------|--------|---------------|
-| {Screen Name} | Push/Modal | {Navigation description} | [Source](../../{screenSourcePath}) | [Screen Doc](../{screen-path}.md) |
+| {Screen Name} | Push/Modal | {Navigation description} | [Source](../../../../../../{screenSourcePath}) | [Screen Doc](../{screen-path}.md) |
 
 ### 5.4 Referenced By
 
 | Screen Name | Function Description | Source Path | Document Path |
 |-------------|---------------------|-------------|---------------|
-| {Referencing Screen} | {e.g., "Tap item to navigate to this screen"} | {source-path} | [Screen Doc](../{screen-path}.md) |
+| {Referencing Screen} | {e.g., "Tap item to navigate to this screen"} | {source-path} | [Screen Doc](../../../../../../{screen-path}.md) |
 
 ---
 
@@ -233,20 +233,20 @@ graph TB
 
 | Operation | Permission Requirement | No Permission Handling | Source |
 |-----------|----------------------|----------------------|--------|
-| View screen | {Authentication required} | Navigate to login | [Source](../../{sourcePath}) |
-| Perform action | {Role/Permission required} | Hide button / Show alert | [Source](../../{sourcePath}) |
+| View screen | {Authentication required} | Navigate to login | [Source](../../../../../../{sourcePath}) |
+| Perform action | {Role/Permission required} | Hide button / Show alert | [Source](../../../../../../{sourcePath}) |
 
 ### 6.2 Mobile-Specific Rules
 
-1. **Offline Support**: {e.g., Cache data for offline viewing} | [Source](../../{sourcePath})
-2. **Network Detection**: {e.g., Show offline banner when no connection} | [Source](../../{sourcePath})
-3. **Loading States**: {e.g., Show skeleton screens during load} | [Source](../../{sourcePath})
+1. **Offline Support**: {e.g., Cache data for offline viewing} | [Source](../../../../../../{sourcePath})
+2. **Network Detection**: {e.g., Show offline banner when no connection} | [Source](../../../../../../{sourcePath})
+3. **Loading States**: {e.g., Show skeleton screens during load} | [Source](../../../../../../{sourcePath})
 
 ### 6.3 Validation Rules
 
 | Scenario | Rule | Error Handling | Source |
 |----------|------|----------------|--------|
-| Form input | {Validation rule} | Show inline error / Toast | [Source](../../{sourcePath}) |
+| Form input | {Validation rule} | Show inline error / Toast | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -277,5 +277,5 @@ graph TB
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{ViewController}.swift/{Activity}.kt](../../{sourcePath})
-- [{ViewModel}.swift/{ViewModel}.kt](../../{viewModelPath})
+- [{ViewController}.swift/{Activity}.kt](../../../../../../{sourcePath})
+- [{ViewModel}.swift/{ViewModel}.kt](../../../../../../{viewModelPath})

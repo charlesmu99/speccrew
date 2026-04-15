@@ -11,10 +11,10 @@
 
 | # | File | Source |
 |---|------|--------|
-| 1 | {Controller} | [View](../../{controllerSourcePath}) |
-| 2 | {Service} | [View](../../{serviceSourcePath}) |
-| 3 | {Repository} | [View](../../{repositorySourcePath}) |
-| 4 | {Entity} | [View](../../{entitySourcePath}) |
+| 1 | {Controller} | [View](../../../../../../{controllerSourcePath}) |
+| 2 | {Service} | [View](../../../../../../{serviceSourcePath}) |
+| 3 | {Repository} | [View](../../../../../../{repositorySourcePath}) |
+| 4 | {Entity} | [View](../../../../../../{entitySourcePath}) |
 
 ---
 
@@ -152,11 +152,11 @@ graph TB
 
 | # | Layer | File | Method/Class | Responsibility | Source |
 |---|-------|------|--------------|----------------|--------|
-| 1 | Controller | {UsersController.cs} | {CreateUser} | Receive request, validate params, call service | [Source](../../{controllerSourcePath}) |
-| 2 | Service | {UserService.cs} | {CreateUserAsync} | Business validation, data processing, call repository | [Source](../../{serviceSourcePath}) |
-| 3 | Service | {UserService.cs} | {ValidateUserEmailAsync} | Check email uniqueness | [Source](../../{serviceSourcePath}) |
-| 4 | Repository | {UserRepository.cs} | {AddAsync} | Execute Add via EF Core | [Source](../../{repositorySourcePath}) |
-| 5 | Entity | {User.cs} | {User entity} | EF Core entity definition | [Source](../../{entitySourcePath}) |
+| 1 | Controller | {UsersController.cs} | {CreateUser} | Receive request, validate params, call service | [Source](../../../../../../{controllerSourcePath}) |
+| 2 | Service | {UserService.cs} | {CreateUserAsync} | Business validation, data processing, call repository | [Source](../../../../../../{serviceSourcePath}) |
+| 3 | Service | {UserService.cs} | {ValidateUserEmailAsync} | Check email uniqueness | [Source](../../../../../../{serviceSourcePath}) |
+| 4 | Repository | {UserRepository.cs} | {AddAsync} | Execute Add via EF Core | [Source](../../../../../../{repositorySourcePath}) |
+| 5 | Entity | {User.cs} | {User entity} | EF Core entity definition | [Source](../../../../../../{entitySourcePath}) |
 
 **Database Operations:**
 
@@ -213,7 +213,7 @@ graph TB
 | {RelatedTable} | {One-to-Many} | {RelatedId} | {Relationship description} |
 | {AnotherTable} | {Many-to-One} | {AnotherId} | {Relationship description} |
 
-**Source:** [Entity](../../{entitySourcePath}) | [DbContext](../../{dbContextSourcePath})
+**Source:** [Entity](../../../../../../{entitySourcePath}) | [DbContext](../../../../../../{dbContextSourcePath})
 
 ### 3.2 Entity-Database Mapping
 
@@ -262,23 +262,23 @@ public class {UserResponse}
 
 | Service Name | Purpose | Source Path |
 |--------------|---------|-------------|
-| {IUserService} | {e.g., User business logic interface} | [Source](../../{serviceInterfaceSourcePath}) |
-| {UserService} | {e.g., User business logic implementation} | [Source](../../{serviceSourcePath}) |
+| {IUserService} | {e.g., User business logic interface} | [Source](../../../../../../{serviceInterfaceSourcePath}) |
+| {UserService} | {e.g., User business logic implementation} | [Source](../../../../../../{serviceSourcePath}) |
 
 ### 4.2 Data Access Layer
 
 | Repository | Entity | Purpose | Source Path |
 |------------|--------|---------|-------------|
-| {IUserRepository} | {User} | {e.g., User repository interface} | [Source](../../{repositoryInterfaceSourcePath}) |
-| {UserRepository} | {User} | {e.g., User repository implementation} | [Source](../../{repositorySourcePath}) |
+| {IUserRepository} | {User} | {e.g., User repository interface} | [Source](../../../../../../{repositoryInterfaceSourcePath}) |
+| {UserRepository} | {User} | {e.g., User repository implementation} | [Source](../../../../../../{repositorySourcePath}) |
 
 ### 4.3 DTOs and Entities
 
 | Class Name | Type | Purpose | Source Path |
 |------------|------|---------|-------------|
-| {CreateUserRequest} | Request DTO | {e.g., Create user request} | [Source](../../{dtoSourcePath}) |
-| {UserResponse} | Response DTO | {e.g., User detail response} | [Source](../../{dtoSourcePath}) |
-| {User} | EF Core Entity | {e.g., User database entity} | [Source](../../{entitySourcePath}) |
+| {CreateUserRequest} | Request DTO | {e.g., Create user request} | [Source](../../../../../../{dtoSourcePath}) |
+| {UserResponse} | Response DTO | {e.g., User detail response} | [Source](../../../../../../{dtoSourcePath}) |
+| {User} | EF Core Entity | {e.g., User database entity} | [Source](../../../../../../{entitySourcePath}) |
 
 ### 4.4 API Consumers
 
@@ -286,8 +286,8 @@ public class {UserResponse}
 
 | Page Name | Function Description | Source Path | Document Path |
 |-----------|---------------------|-------------|---------------|
-| {PageName} | {e.g., User management list page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
-| {PageName} | {e.g., User form page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
+| {PageName} | {e.g., User management list page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
+| {PageName} | {e.g., User form page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
 
 ---
 
@@ -341,7 +341,7 @@ graph LR
 ```
 
 **Diagram Source**
-- [{Service}.cs](../../{serviceSourcePath})
+- [{Service}.cs](../../../../../../{serviceSourcePath})
 
 ### 6.3 External Dependencies
 
@@ -460,6 +460,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{Controller}.cs](../../{controllerSourcePath})
-- [{Service}.cs](../../{serviceSourcePath})
-- [{Entity}.cs](../../{entitySourcePath})
+- [{Controller}.cs](../../../../../../{controllerSourcePath})
+- [{Service}.cs](../../../../../../{serviceSourcePath})
+- [{Entity}.cs](../../../../../../{entitySourcePath})

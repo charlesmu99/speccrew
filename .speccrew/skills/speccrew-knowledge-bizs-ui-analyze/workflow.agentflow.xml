@@ -376,7 +376,15 @@
   <block type="checkpoint" id="CP7" name="marker-written" desc="Marker file written">
     <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
   </block>
-
+  
+  <!-- ==================== MANDATORY GRAPH WRITE RULE ==================== -->
+  <block type="rule" id="R-GRAPH" level="mandatory" desc="Graph data write is MANDATORY">
+    <field name="text">MANDATORY: You MUST execute ALL graph write blocks (B32a through B32h) before proceeding to O1.</field>
+    <field name="text">Graph data (nodes + edges) MUST be appended to knowledges/bizs/graph/nodes.json and edges.json.</field>
+    <field name="text">DO NOT skip graph write. DO NOT jump directly to O1 output block.</field>
+    <field name="text">If graph directory does not exist, create it first.</field>
+  </block>
+  
   <!-- Step 7b: Construct and Append Graph Data -->
   <!-- Construct Graph Nodes from UI Analysis -->
   <block type="task" id="B32a" action="analyze" desc="Construct page node">
@@ -556,6 +564,7 @@ console.log('Edges appended:', newEdges.length);
     <field name="message" value="Successfully analyzed ${fileName} feature from ${sourcePath}"/>
     <field name="platformType" from="${platform_type}"/>
     <field name="module" from="${module}"/>
+    <field name="graph_status" value="nodes and edges written to knowledges/bizs/graph/"/>
   </block>
 
   <!-- ==================== ERROR HANDLING ==================== -->

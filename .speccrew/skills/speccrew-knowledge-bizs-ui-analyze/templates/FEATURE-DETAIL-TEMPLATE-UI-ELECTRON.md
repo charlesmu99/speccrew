@@ -72,22 +72,22 @@ source-path: {sourcePath}
 
 | Area | Element | Type | Description | Interaction | Source Link |
 |------|---------|------|-------------|-------------|-------------|
-| Title Bar | Window Controls | Button | {Minimize/Maximize/Close} | Click | [Source](../../{sourcePath}) |
-| Menu | App Menu | Menu | {Application menu} | Click | [Source](../../{sourcePath}) |
-| Toolbar | Action Buttons | Button | {Primary actions} | Click | [Source](../../{sourcePath}) |
-| Sidebar | Navigation | Nav | {Section navigation} | Click | [Source](../../{sourcePath}) |
-| Content | Cards/Tables | Component | {Display content} | Click/Right-click | [Source](../../{sourcePath}) |
-| Status Bar | Status Info | Status | {App status} | - | [Source](../../{sourcePath}) |
+| Title Bar | Window Controls | Button | {Minimize/Maximize/Close} | Click | [Source](../../../../../../{sourcePath}) |
+| Menu | App Menu | Menu | {Application menu} | Click | [Source](../../../../../../{sourcePath}) |
+| Toolbar | Action Buttons | Button | {Primary actions} | Click | [Source](../../../../../../{sourcePath}) |
+| Sidebar | Navigation | Nav | {Section navigation} | Click | [Source](../../../../../../{sourcePath}) |
+| Content | Cards/Tables | Component | {Display content} | Click/Right-click | [Source](../../../../../../{sourcePath}) |
+| Status Bar | Status Info | Status | {App status} | - | [Source](../../../../../../{sourcePath}) |
 
 **Electron-Specific Interactions:**
 
 | Interaction | Action | Description | Source |
 |-------------|--------|-------------|--------|
-| Click | Select/Activate | Mouse click | [Source](../../{sourcePath}) |
-| RightClick | Context Menu | Show native/context menu | [Source](../../{sourcePath}) |
-| Drag | File Drop | Drag files into window | [Source](../../{sourcePath}) |
-| Keyboard | Shortcut | Cmd/Ctrl+ shortcuts | [Source](../../{sourcePath}) |
-| IPC | Main ↔ Renderer | Communication between processes | [Source](../../{sourcePath}) |
+| Click | Select/Activate | Mouse click | [Source](../../../../../../{sourcePath}) |
+| RightClick | Context Menu | Show native/context menu | [Source](../../../../../../{sourcePath}) |
+| Drag | File Drop | Drag files into window | [Source](../../../../../../{sourcePath}) |
+| Keyboard | Shortcut | Cmd/Ctrl+ shortcuts | [Source](../../../../../../{sourcePath}) |
+| IPC | Main ↔ Renderer | Communication between processes | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -121,12 +121,12 @@ graph TB
 
 | Step | Business Operation | Process | Source |
 |------|-------------------|---------|--------|
-| 1 | Main process starts | Main | [Source](../../{mainSourcePath}) |
-| 2 | Create browser window | Main | [Source](../../{mainSourcePath}) |
-| 3 | Renderer process loads | Renderer | [Source](../../{sourcePath}) |
-| 4 | Initialize frontend framework | Renderer | [Source](../../{sourcePath}) |
-| 5 | Check for updates | Main → Renderer | [Source](../../{sourcePath}) |
-| 6 | Load user data via IPC | Renderer → Main | [Source](../../{sourcePath}) |
+| 1 | Main process starts | Main | [Source](../../../../../../{mainSourcePath}) |
+| 2 | Create browser window | Main | [Source](../../../../../../{mainSourcePath}) |
+| 3 | Renderer process loads | Renderer | [Source](../../../../../../{sourcePath}) |
+| 4 | Initialize frontend framework | Renderer | [Source](../../../../../../{sourcePath}) |
+| 5 | Check for updates | Main → Renderer | [Source](../../../../../../{sourcePath}) |
+| 6 | Load user data via IPC | Renderer → Main | [Source](../../../../../../{sourcePath}) |
 
 ### 3.2 User Interaction Flows
 
@@ -152,12 +152,12 @@ graph TB
 
 | Step | Business Operation | Process | Source |
 |------|-------------------|---------|--------|
-| 1 | Validate form data | Renderer | [Source](../../{sourcePath}) |
-| 2 | Send IPC message | Renderer | [Source](../../{sourcePath}) |
-| 3 | Handle IPC call | Main | [Source](../../{mainSourcePath}) |
-| 4 | Show native dialog | Main | [Source](../../{mainSourcePath}) |
-| 5 | Write file | Main | [Source](../../{mainSourcePath}) |
-| 6 | Return result | Main → Renderer | [Source](../../{sourcePath}) |
+| 1 | Validate form data | Renderer | [Source](../../../../../../{sourcePath}) |
+| 2 | Send IPC message | Renderer | [Source](../../../../../../{sourcePath}) |
+| 3 | Handle IPC call | Main | [Source](../../../../../../{mainSourcePath}) |
+| 4 | Show native dialog | Main | [Source](../../../../../../{mainSourcePath}) |
+| 5 | Write file | Main | [Source](../../../../../../{mainSourcePath}) |
+| 6 | Return result | Main → Renderer | [Source](../../../../../../{sourcePath}) |
 
 #### 3.2.2 {Event Name: e.g., File Drop}
 
@@ -200,9 +200,9 @@ graph TB
 
 | Direction | Method | Use Case | Source |
 |-----------|--------|----------|--------|
-| Renderer → Main | ipcRenderer.send | Fire-and-forget | [Source](../../{sourcePath}) |
-| Renderer → Main | ipcRenderer.invoke | Request/Response | [Source](../../{sourcePath}) |
-| Main → Renderer | webContents.send | Push notification | [Source](../../{mainSourcePath}) |
+| Renderer → Main | ipcRenderer.send | Fire-and-forget | [Source](../../../../../../{sourcePath}) |
+| Renderer → Main | ipcRenderer.invoke | Request/Response | [Source](../../../../../../{sourcePath}) |
+| Main → Renderer | webContents.send | Push notification | [Source](../../../../../../{mainSourcePath}) |
 
 ---
 
@@ -212,17 +212,17 @@ graph TB
 
 | Field Name | Type | Description | Framework | Source |
 |------------|------|-------------|-----------|--------|
-| {Field 1} | string/number/boolean | {Description} | React/Vue/Angular | [Source](../../{sourcePath}) |
-| {files} | Array | {Dropped files} | React/Vue/Angular | [Source](../../{sourcePath}) |
-| {isProcessing} | boolean | {Processing state} | React/Vue/Angular | [Source](../../{sourcePath}) |
-| {settings} | Object | {App settings} | React/Vue/Angular | [Source](../../{sourcePath}) |
+| {Field 1} | string/number/boolean | {Description} | React/Vue/Angular | [Source](../../../../../../{sourcePath}) |
+| {files} | Array | {Dropped files} | React/Vue/Angular | [Source](../../../../../../{sourcePath}) |
+| {isProcessing} | boolean | {Processing state} | React/Vue/Angular | [Source](../../../../../../{sourcePath}) |
+| {settings} | Object | {App settings} | React/Vue/Angular | [Source](../../../../../../{sourcePath}) |
 
 ### 4.2 Form Fields (if applicable)
 
 | Field Name | Type | Validation | Component | Source |
 |------------|------|------------|-----------|--------|
-| {Field 1} | string | {Required} | Input | [Source](../../{sourcePath}) |
-| {Field 2} | string | {File path} | Input + File picker | [Source](../../{sourcePath}) |
+| {Field 1} | string | {Required} | Input | [Source](../../../../../../{sourcePath}) |
+| {Field 2} | string | {File path} | Input + File picker | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -232,36 +232,36 @@ graph TB
 
 | API | Module | Purpose | Source | Document Path |
 |-----|--------|---------|--------|---------------|
-| {Handler Name} | ipcMain | {IPC handler description} | [Source](../../{mainSourcePath}) | [Main Doc](../../main/{handler-name}.md) |
+| {Handler Name} | ipcMain | {IPC handler description} | [Source](../../../../../../{mainSourcePath}) | [Main Doc](../../../../../../main/{handler-name}.md) |
 
 ### 5.2 Electron APIs
 
 | API | Process | Purpose | Usage | Source |
 |-----|---------|---------|-------|--------|
-| dialog | Main | Native dialogs | Open/Save dialogs | [Source](../../{mainSourcePath}) |
-| shell | Both | Open external | Open file manager/browser | [Source](../../{sourcePath}) |
-| clipboard | Renderer | Clipboard ops | Copy/paste | [Source](../../{sourcePath}) |
-| notification | Renderer | Native notifications | Show notification | [Source](../../{sourcePath}) |
+| dialog | Main | Native dialogs | Open/Save dialogs | [Source](../../../../../../{mainSourcePath}) |
+| shell | Both | Open external | Open file manager/browser | [Source](../../../../../../{sourcePath}) |
+| clipboard | Renderer | Clipboard ops | Copy/paste | [Source](../../../../../../{sourcePath}) |
+| notification | Renderer | Native notifications | Show notification | [Source](../../../../../../{sourcePath}) |
 
 ### 5.3 Node.js Modules
 
 | Module | Purpose | Usage | Source |
 |--------|---------|-------|--------|
-| fs | File system | Read/write files | [Source](../../{mainSourcePath}) |
-| path | Path operations | Handle file paths | [Source](../../{mainSourcePath}) |
-| os | System info | Get platform info | [Source](../../{mainSourcePath}) |
+| fs | File system | Read/write files | [Source](../../../../../../{mainSourcePath}) |
+| path | Path operations | Handle file paths | [Source](../../../../../../{mainSourcePath}) |
+| os | System info | Get platform info | [Source](../../../../../../{mainSourcePath}) |
 
 ### 5.4 Other Windows
 
 | Window Name | Relation Type | Description | Source | Document Path |
 |-------------|---------------|-------------|--------|---------------|
-| {Window Name} | Modal/Child | {Relation description} | [Source](../../{windowSourcePath}) | [Window Doc](../{window-path}.md) |
+| {Window Name} | Modal/Child | {Relation description} | [Source](../../../../../../{windowSourcePath}) | [Window Doc](../{window-path}.md) |
 
 ### 5.5 Referenced By
 
 | Window Name | Function Description | Source Path | Document Path |
 |-------------|---------------------|-------------|---------------|
-| {Referencing Window} | {e.g., "Open from main menu"} | {source-path} | [Window Doc](../{window-path}.md) |
+| {Referencing Window} | {e.g., "Open from main menu"} | {source-path} | [Window Doc](../../../../../../{window-path}.md) |
 
 ---
 
@@ -271,20 +271,20 @@ graph TB
 
 | Operation | Permission | No Permission Handling | Source |
 |-----------|------------|----------------------|--------|
-| File system access | {User consent} | Show permission dialog | [Source](../../{sourcePath}) |
-| External links | {N/A} | Open in system browser | [Source](../../{sourcePath}) |
+| File system access | {User consent} | Show permission dialog | [Source](../../../../../../{sourcePath}) |
+| External links | {N/A} | Open in system browser | [Source](../../../../../../{sourcePath}) |
 
 ### 6.2 Electron-Specific Rules
 
-1. **Security**: {e.g., Enable contextIsolation, use IPC not remote} | [Source](../../{sourcePath})
-2. **Auto-update**: {e.g., Check updates on startup} | [Source](../../{sourcePath})
-3. **Window State**: {e.g., Restore window position/size} | [Source](../../{sourcePath})
+1. **Security**: {e.g., Enable contextIsolation, use IPC not remote} | [Source](../../../../../../{sourcePath})
+2. **Auto-update**: {e.g., Check updates on startup} | [Source](../../../../../../{sourcePath})
+3. **Window State**: {e.g., Restore window position/size} | [Source](../../../../../../{sourcePath})
 
 ### 6.3 Validation Rules
 
 | Scenario | Rule | Error Handling | Source |
 |----------|------|----------------|--------|
-| File type | {Allowed extensions} | Show error dialog | [Source](../../{sourcePath}) |
+| File type | {Allowed extensions} | Show error dialog | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -322,6 +322,6 @@ graph TB
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{Component}.jsx/.vue](../../{sourcePath})
-- [main.js/main.ts](../../{mainSourcePath})
-- [preload.js](../../{preloadSourcePath})
+- [{Component}.jsx/.vue](../../../../../../{sourcePath})
+- [main.js/main.ts](../../../../../../{mainSourcePath})
+- [preload.js](../../../../../../{preloadSourcePath})

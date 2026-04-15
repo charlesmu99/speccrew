@@ -48,15 +48,15 @@ source-path: {sourcePath}
 
 | Area | Element | Type | Description | Interaction | Source Link |
 |------|---------|------|-------------|-------------|-------------|
-| Filter Area | Keyword | Input | {Fuzzy search product name/code} | Enter to trigger query | [Source](../../{sourcePath}) |
-| Filter Area | Status Dropdown | Dropdown | {Filter product status} | Change triggers query | [Source](../../{sourcePath}) |
-| Filter Area | Query Button | Button | {Execute query} | Click to refresh list | [Source](../../{sourcePath}) |
-| List Area | Edit Link | Link | {Open edit page} | Click to navigate | [Source](../../{sourcePath}) |
-| List Area | Delete Link | Link | {Delete record} | Click to confirm deletion | [Source](../../{sourcePath}) |
+| Filter Area | Keyword | Input | {Fuzzy search product name/code} | Enter to trigger query | [Source](../../../../../../{sourcePath}) |
+| Filter Area | Status Dropdown | Dropdown | {Filter product status} | Change triggers query | [Source](../../../../../../{sourcePath}) |
+| Filter Area | Query Button | Button | {Execute query} | Click to refresh list | [Source](../../../../../../{sourcePath}) |
+| List Area | Edit Link | Link | {Open edit page} | Click to navigate | [Source](../../../../../../{sourcePath}) |
+| List Area | Delete Link | Link | {Delete record} | Click to confirm deletion | [Source](../../../../../../{sourcePath}) |
 
 **External References:**
 - Edit page: Navigate to [Edit Page](./edit.md) (external page, not drawn here)
-- Delete confirmation: Uses [DeleteConfirm Component](../../components/DeleteConfirm.md) (shared component)
+- Delete confirmation: Uses [DeleteConfirm Component](../../../../../../components/DeleteConfirm.md) (shared component)
 
 <!-- AI-NOTE: DO NOT draw prototypes for external components/modals defined in other files -->
 <!-- AI-NOTE: Only document embedded modals that are defined within the same source file -->
@@ -91,16 +91,16 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Initialize page state | Page mount | [Source](../../{sourcePath}) |
-| 2 | Parse URL parameters | Route change | [Source](../../{sourcePath}) |
-| 3 | Load initial data | After params parsed | [Source](../../{sourcePath}) |
-| 4 | Render page | Data loaded | [Source](../../{sourcePath}) |
+| 1 | Initialize page state | Page mount | [Source](../../../../../../{sourcePath}) |
+| 2 | Parse URL parameters | Route change | [Source](../../../../../../{sourcePath}) |
+| 3 | Load initial data | After params parsed | [Source](../../../../../../{sourcePath}) |
+| 4 | Render page | Data loaded | [Source](../../../../../../{sourcePath}) |
 
 **Referenced Items:**
 | Name | Type | Main Function | Document Path |
 |------|------|---------------|---------------|
-| getList | API | Fetch data list | [API Doc](../../apis/getList.md) |
-| formatParams | Shared Method | Format query parameters | [Method Doc](../../utils/formatParams.md) |
+| getList | API | Fetch data list | [API Doc](../../../../../../apis/getList.md) |
+| formatParams | Shared Method | Format query parameters | [Method Doc](../../../../../../utils/formatParams.md) |
 
 ### 3.2 Component Event Flows
 
@@ -125,17 +125,17 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Validate input | onClick | [Source](../../{sourcePath}) |
-| 2 | Prepare query params | Validation passed | [Source](../../{sourcePath}) |
-| 3 | Call API | Params ready | [Source](../../{sourcePath}) |
-| 4 | Handle response | API returned | [Source](../../{sourcePath}) |
-| 5 | Update UI | Data processed | [Source](../../{sourcePath}) |
+| 1 | Validate input | onClick | [Source](../../../../../../{sourcePath}) |
+| 2 | Prepare query params | Validation passed | [Source](../../../../../../{sourcePath}) |
+| 3 | Call API | Params ready | [Source](../../../../../../{sourcePath}) |
+| 4 | Handle response | API returned | [Source](../../../../../../{sourcePath}) |
+| 5 | Update UI | Data processed | [Source](../../../../../../{sourcePath}) |
 
 **Referenced Items:**
 | Name | Type | Main Function | Document Path |
 |------|------|---------------|---------------|
-| queryData | API | Search with filters | [API Doc](../../apis/queryData.md) |
-| buildQuery | Shared Method | Build query object | [Method Doc](../../utils/buildQuery.md) |
+| queryData | API | Search with filters | [API Doc](../../../../../../apis/queryData.md) |
+| buildQuery | Shared Method | Build query object | [Method Doc](../../../../../../utils/buildQuery.md) |
 
 #### 3.2.2 {Event Name: e.g., Dropdown onChange}
 
@@ -151,9 +151,9 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Check selected value | onChange | [Source](../../{sourcePath}) |
-| 2 | Load/Clear sub-options | Based on value | [Source](../../{sourcePath}) |
-| 3 | Update UI | Options ready | [Source](../../{sourcePath}) |
+| 1 | Check selected value | onChange | [Source](../../../../../../{sourcePath}) |
+| 2 | Load/Clear sub-options | Based on value | [Source](../../../../../../{sourcePath}) |
+| 3 | Update UI | Options ready | [Source](../../../../../../{sourcePath}) |
 
 ### 3.3 Timer/WebSocket Flows (if applicable)
 
@@ -175,14 +175,14 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Check page state | Timer interval | [Source](../../{sourcePath}) |
-| 2 | Refresh data | Page is active | [Source](../../{sourcePath}) |
-| 3 | Update UI | Data received | [Source](../../{sourcePath}) |
+| 1 | Check page state | Timer interval | [Source](../../../../../../{sourcePath}) |
+| 2 | Refresh data | Page is active | [Source](../../../../../../{sourcePath}) |
+| 3 | Update UI | Data received | [Source](../../../../../../{sourcePath}) |
 
 **Referenced Items:**
 | Name | Type | Main Function | Document Path |
 |------|------|---------------|---------------|
-| getLatest | API | Get latest data | [API Doc](../../apis/getLatest.md) |
+| getLatest | API | Get latest data | [API Doc](../../../../../../apis/getLatest.md) |
 
 ### 3.4 Page Close/Cleanup Flow (if applicable)
 
@@ -200,9 +200,9 @@ graph TB
 
 | Step | Business Operation | Trigger | Source |
 |------|-------------------|---------|--------|
-| 1 | Clear timers | beforeUnmount | [Source](../../{sourcePath}) |
-| 2 | Save page state | Cleanup start | [Source](../../{sourcePath}) |
-| 3 | Cleanup resources | State saved | [Source](../../{sourcePath}) |
+| 1 | Clear timers | beforeUnmount | [Source](../../../../../../{sourcePath}) |
+| 2 | Save page state | Cleanup start | [Source](../../../../../../{sourcePath}) |
+| 3 | Cleanup resources | State saved | [Source](../../../../../../{sourcePath}) |
 
 ## 4. Data Field Definition
 
@@ -213,15 +213,15 @@ graph TB
 
 | Field Name | Field Type | Description | Source |
 |------------|------------|-------------|--------|
-| {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../{sourcePath}) |
-| {Field 2} | String | {Description} | [Source](../../{sourcePath}) |
+| {Field 1} | String/Number/Boolean/Array/Object | {Description} | [Source](../../../../../../{sourcePath}) |
+| {Field 2} | String | {Description} | [Source](../../../../../../{sourcePath}) |
 
 ### 4.2 Form Fields (if applicable)
 
 | Field Name | Field Type | Validation Rules | Default Value | Source |
 |------------|------------|------------------|---------------|--------|
-| {Form Field 1} | String | {Required, length 1-100} | - | [Source](../../{sourcePath}) |
-| {Form Field 2} | Number | {≥0} | 0 | [Source](../../{sourcePath}) |
+| {Form Field 1} | String | {Required, length 1-100} | - | [Source](../../../../../../{sourcePath}) |
+| {Form Field 2} | Number | {≥0} | 0 | [Source](../../../../../../{sourcePath}) |
 
 
 ## 5. References
@@ -234,19 +234,19 @@ graph TB
 
 | API Name | Type | Main Function | Source | Document Path |
 |----------|------|---------------|--------|---------------|
-| {API Name} | Query/Mutation | {Brief description} | [Source](../../{apiSourcePath}) | [API Doc](../../apis/{api-name}.md) |
+| {API Name} | Query/Mutation | {Brief description} | [Source](../../../../../../{apiSourcePath}) | [API Doc](../../../../../../apis/{api-name}.md) |
 
 ### 5.2 Frontend Shared Methods
 
 | Method Name | Type | Main Function | Source | Document Path |
 |-------------|------|---------------|--------|---------------|
-| {Method Name} | Utils/Helpers | {Brief description} | [Source](../../{methodSourcePath}) | [Method Doc](../../utils/{method-name}.md) |
+| {Method Name} | Utils/Helpers | {Brief description} | [Source](../../../../../../{methodSourcePath}) | [Method Doc](../../../../../../utils/{method-name}.md) |
 
 ### 5.3 Shared Components
 
 | Component Name | Type | Main Function | Source | Document Path |
 |----------------|------|---------------|--------|---------------|
-| {Component Name} | UI Component | {Brief description} | [Source](../../{componentSourcePath}) | [Component Doc](../../components/{component-name}.md) |
+| {Component Name} | UI Component | {Brief description} | [Source](../../../../../../{componentSourcePath}) | [Component Doc](../../../../../../components/{component-name}.md) |
 
 ### 5.4 Other Pages (This Page References)
 
@@ -256,7 +256,7 @@ graph TB
 
 | Page Name | Relation Type | Description | Source | Document Path |
 |-----------|---------------|-------------|--------|---------------|
-| {Page Name} | Navigate/Embed | {Relation description} | [Source](../../{pageSourcePath}) | [Page Doc](../{page-path}.md) |
+| {Page Name} | Navigate/Embed | {Relation description} | [Source](../../../../../../{pageSourcePath}) | [Page Doc](../{page-path}.md) |
 
 ### 5.5 Referenced By (Other Pages Reference This Page)
 
@@ -265,7 +265,7 @@ graph TB
 
 | Page Name | Function Description | Source Path | Document Path |
 |-----------|---------------------|-------------|---------------|
-| {Referencing Page Name} | {e.g., "Click order ID to navigate to this detail page"} | {source-path} | [Page Doc](../{page-path}.md) |
+| {Referencing Page Name} | {e.g., "Click order ID to navigate to this detail page"} | {source-path} | [Page Doc](../../../../../../{page-path}.md) |
 
 
 ## 6. Business Rule Constraints
@@ -276,20 +276,20 @@ graph TB
 
 | Operation | Permission Requirement | No Permission Handling | Source |
 |-----------|----------------------|----------------------|--------|
-| Add/Edit/Delete | Have {role name} role or {permission code} permission | Hide operation button, show "No permission" when clicked | [Source](../../{sourcePath}) |
-| View sensitive fields | Have {data permission} scope | Display sensitive fields as "***" | [Source](../../{sourcePath}) |
+| Add/Edit/Delete | Have {role name} role or {permission code} permission | Hide operation button, show "No permission" when clicked | [Source](../../../../../../{sourcePath}) |
+| View sensitive fields | Have {data permission} scope | Display sensitive fields as "***" | [Source](../../../../../../{sourcePath}) |
 
 ### 6.2 Business Logic Rules
 
-1. **{Rule 1}**: {e.g., Product code generation rule is "SP+YYMMDD+6 random digits"} | [Source](../../{sourcePath})
-2. **{Rule 2}**: {e.g., When stock is 0, product status automatically changes to "Off-shelf"} | [Source](../../{sourcePath})
+1. **{Rule 1}**: {e.g., Product code generation rule is "SP+YYMMDD+6 random digits"} | [Source](../../../../../../{sourcePath})
+2. **{Rule 2}**: {e.g., When stock is 0, product status automatically changes to "Off-shelf"} | [Source](../../../../../../{sourcePath})
 
 ### 6.3 Validation Rules
 
 | Validation Scenario | Validation Rule | Prompt Message | Validation Timing | Source |
 |--------------------|-----------------|----------------|-------------------|--------|
-| Form submission | Product name cannot be empty | Please enter product name | Frontend blur + Backend submit | [Source](../../{sourcePath}) |
-| Form submission | Product code format error (must start with SP) | Product code must start with SP, please check | Backend submit | [Source](../../{sourcePath}) |
+| Form submission | Product name cannot be empty | Please enter product name | Frontend blur + Backend submit | [Source](../../../../../../{sourcePath}) |
+| Form submission | Product code format error (must start with SP) | Product code must start with SP, please check | Backend submit | [Source](../../../../../../{sourcePath}) |
 
 
 ## 7. Notes and Additional Information
@@ -319,6 +319,6 @@ graph TB
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{FeatureFile}.vue](../../{sourcePath})
-- [{StoreFile}.ts](../../{store-path})
-- [{ComponentFile}.vue](../../{component-path})
+- [{FeatureFile}.vue](../../../../../../{sourcePath})
+- [{StoreFile}.ts](../../../../../../{store-path})
+- [{ComponentFile}.vue](../../../../../../{component-path})

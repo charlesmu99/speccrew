@@ -11,10 +11,10 @@
 
 | # | File | Source |
 |---|------|--------|
-| 1 | {Controller} | [View](../../{controllerSourcePath}) |
-| 2 | {Service} | [View](../../{serviceSourcePath}) |
-| 3 | {Entity} | [View](../../{entitySourcePath}) |
-| 4 | {DTO} | [View](../../{dtoSourcePath}) |
+| 1 | {Controller} | [View](../../../../../../{controllerSourcePath}) |
+| 2 | {Service} | [View](../../../../../../{serviceSourcePath}) |
+| 3 | {Entity} | [View](../../../../../../{entitySourcePath}) |
+| 4 | {DTO} | [View](../../../../../../{dtoSourcePath}) |
 
 ---
 
@@ -156,11 +156,11 @@ graph TB
 
 | # | Layer | Class | Method | Responsibility | Source |
 |---|-------|-------|--------|----------------|--------|
-| 1 | Controller | {UserController} | {createUser} | Receive request, validate params, call service | [Source](../../{controllerSourcePath}) |
-| 2 | Service | {UserService} | {createUser} | Business validation, data processing, call mapper | [Source](../../{serviceSourcePath}) |
-| 3 | Service | {UserService} | {validateUserName} | Check user name uniqueness | [Source](../../{serviceSourcePath}) |
-| 4 | Mapper | {UserMapper} | {insert} | Execute INSERT SQL | [Source](../../{mapperSourcePath}) |
-| 5 | Mapper XML | {UserMapper.xml} | {insert} | SQL: INSERT INTO user (...) VALUES (...) | [Source](../../{mapperXmlSourcePath}) |
+| 1 | Controller | {UserController} | {createUser} | Receive request, validate params, call service | [Source](../../../../../../{controllerSourcePath}) |
+| 2 | Service | {UserService} | {createUser} | Business validation, data processing, call mapper | [Source](../../../../../../{serviceSourcePath}) |
+| 3 | Service | {UserService} | {validateUserName} | Check user name uniqueness | [Source](../../../../../../{serviceSourcePath}) |
+| 4 | Mapper | {UserMapper} | {insert} | Execute INSERT SQL | [Source](../../../../../../{mapperSourcePath}) |
+| 5 | Mapper XML | {UserMapper.xml} | {insert} | SQL: INSERT INTO user (...) VALUES (...) | [Source](../../../../../../{mapperXmlSourcePath}) |
 
 **Database Operations:**
 
@@ -217,7 +217,7 @@ graph TB
 | {related_table} | {One-to-Many} | {this_table.related_id} | {Relationship description} |
 | {another_table} | {Many-to-One} | {this_table.parent_id} | {Relationship description} |
 
-**Source:** [Entity](../../{entitySourcePath}) | [Mapper XML](../../{mapperXmlSourcePath})
+**Source:** [Entity](../../../../../../{entitySourcePath}) | [Mapper XML](../../../../../../{mapperXmlSourcePath})
 
 ### 3.2 Entity-Database Mapping
 
@@ -266,23 +266,23 @@ graph TB
 
 | Service Name | Purpose | Source Path |
 |--------------|---------|-------------|
-| {ServiceName} | {e.g., User business logic} | [Source](../../{serviceSourcePath}) |
-| {ServiceName} | {e.g., Permission validation} | [Source](../../{serviceSourcePath}) |
+| {ServiceName} | {e.g., User business logic} | [Source](../../../../../../{serviceSourcePath}) |
+| {ServiceName} | {e.g., Permission validation} | [Source](../../../../../../{serviceSourcePath}) |
 
 ### 4.2 Data Access Layer
 
 | Mapper/Repository | Entity | Purpose | Source Path |
 |-------------------|--------|---------|-------------|
-| {MapperName} | {EntityName} | {e.g., User CRUD operations} | [Source](../../{mapperSourcePath}) |
-| {MapperName} | {EntityName} | {e.g., Role query} | [Source](../../{mapperSourcePath}) |
+| {MapperName} | {EntityName} | {e.g., User CRUD operations} | [Source](../../../../../../{mapperSourcePath}) |
+| {MapperName} | {EntityName} | {e.g., Role query} | [Source](../../../../../../{mapperSourcePath}) |
 
 ### 4.3 DTOs and Entities
 
 | Class Name | Type | Purpose | Source Path |
 |------------|------|---------|-------------|
-| {DTOClass} | Request DTO | {e.g., Create user request} | [Source](../../{dtoSourcePath}) |
-| {VOClass} | Response VO | {e.g., User detail response} | [Source](../../{voSourcePath}) |
-| {EntityClass} | Entity | {e.g., User database entity} | [Source](../../{entitySourcePath}) |
+| {DTOClass} | Request DTO | {e.g., Create user request} | [Source](../../../../../../{dtoSourcePath}) |
+| {VOClass} | Response VO | {e.g., User detail response} | [Source](../../../../../../{voSourcePath}) |
+| {EntityClass} | Entity | {e.g., User database entity} | [Source](../../../../../../{entitySourcePath}) |
 
 ### 4.4 API Consumers
 
@@ -290,8 +290,8 @@ graph TB
 
 | Page Name | Function Description | Source Path | Document Path |
 |-----------|---------------------|-------------|---------------|
-| {PageName} | {e.g., User management list page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
-| {PageName} | {e.g., User form page} | [Source](../../{pageSourcePath}) | [Doc](../../{pageDocumentPath}) |
+| {PageName} | {e.g., User management list page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
+| {PageName} | {e.g., User form page} | [Source](../../../../../../{pageSourcePath}) | [Doc](../../../../../../{pageDocumentPath}) |
 
 ---
 
@@ -346,7 +346,7 @@ graph LR
 ```
 
 **Diagram Source**
-- [{Service}.java](../../{serviceSourcePath})
+- [{Service}.java](../../../../../../{serviceSourcePath})
 
 ### 6.3 External Dependencies
 
@@ -476,6 +476,6 @@ feature:
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{Controller}.java](../../{controllerSourcePath})
-- [{Service}.java](../../{serviceSourcePath})
-- [{Entity}.java](../../{entitySourcePath})
+- [{Controller}.java](../../../../../../{controllerSourcePath})
+- [{Service}.java](../../../../../../{serviceSourcePath})
+- [{Entity}.java](../../../../../../{entitySourcePath})

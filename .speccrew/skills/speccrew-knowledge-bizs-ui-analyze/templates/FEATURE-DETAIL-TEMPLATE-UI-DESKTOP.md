@@ -78,21 +78,21 @@ source-path: {sourcePath}
 
 | Area | Element | Control | Description | Interaction | Source Link |
 |------|---------|---------|-------------|-------------|-------------|
-| Menu | File Menu | MenuStrip | {Application menu} | Click | [Source](../../{sourcePath}) |
-| Toolbar | New Button | ToolStripButton | {Create new} | Click | [Source](../../{sourcePath}) |
-| Tree | Navigation | TreeView | {Navigate sections} | NodeClick | [Source](../../{sourcePath}) |
-| Grid | Data Grid | DataGridView | {Display data} | CellClick/DoubleClick | [Source](../../{sourcePath}) |
-| Status | Status Label | StatusStrip | {Show status} | - | [Source](../../{sourcePath}) |
+| Menu | File Menu | MenuStrip | {Application menu} | Click | [Source](../../../../../../{sourcePath}) |
+| Toolbar | New Button | ToolStripButton | {Create new} | Click | [Source](../../../../../../{sourcePath}) |
+| Tree | Navigation | TreeView | {Navigate sections} | NodeClick | [Source](../../../../../../{sourcePath}) |
+| Grid | Data Grid | DataGridView | {Display data} | CellClick/DoubleClick | [Source](../../../../../../{sourcePath}) |
+| Status | Status Label | StatusStrip | {Show status} | - | [Source](../../../../../../{sourcePath}) |
 
 **Desktop-Specific Interactions:**
 
 | Interaction | Action | Description | Source |
 |-------------|--------|-------------|--------|
-| Click | Select/Activate | Mouse click | [Source](../../{sourcePath}) |
-| DoubleClick | Open/Edit | Double click row | [Source](../../{sourcePath}) |
-| RightClick | Context Menu | Show context menu | [Source](../../{sourcePath}) |
-| DragDrop | Reorder | Drag and drop items | [Source](../../{sourcePath}) |
-| Keyboard | Shortcut | Ctrl+S, Ctrl+N, etc. | [Source](../../{sourcePath}) |
+| Click | Select/Activate | Mouse click | [Source](../../../../../../{sourcePath}) |
+| DoubleClick | Open/Edit | Double click row | [Source](../../../../../../{sourcePath}) |
+| RightClick | Context Menu | Show context menu | [Source](../../../../../../{sourcePath}) |
+| DragDrop | Reorder | Drag and drop items | [Source](../../../../../../{sourcePath}) |
+| Keyboard | Shortcut | Ctrl+S, Ctrl+N, etc. | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -121,11 +121,11 @@ graph TB
 
 | Step | Business Operation | Event | Source |
 |------|-------------------|-------|--------|
-| 1 | Initialize UI components | Form_Load/OnInitialized | [Source](../../{sourcePath}) |
-| 2 | Load app configuration | After init | [Source](../../{sourcePath}) |
-| 3 | Check authentication | After config load | [Source](../../{sourcePath}) |
-| 4 | Load data from service | Auth passed | [Source](../../{sourcePath}) |
-| 5 | Bind data to controls | Data loaded | [Source](../../{sourcePath}) |
+| 1 | Initialize UI components | Form_Load/OnInitialized | [Source](../../../../../../{sourcePath}) |
+| 2 | Load app configuration | After init | [Source](../../../../../../{sourcePath}) |
+| 3 | Check authentication | After config load | [Source](../../../../../../{sourcePath}) |
+| 4 | Load data from service | Auth passed | [Source](../../../../../../{sourcePath}) |
+| 5 | Bind data to controls | Data loaded | [Source](../../../../../../{sourcePath}) |
 
 ### 3.2 User Interaction Flows
 
@@ -151,11 +151,11 @@ graph TB
 
 | Step | Business Operation | Event | Source |
 |------|-------------------|-------|--------|
-| 1 | Get selected row | DoubleClick | [Source](../../{sourcePath}) |
-| 2 | Validate selection | After get | [Source](../../{sourcePath}) |
-| 3 | Open edit dialog | Validation passed | [Source](../../{sourcePath}) |
-| 4 | Load detail data | Dialog opened | [Source](../../{sourcePath}) |
-| 5 | Handle save/cancel | Dialog closed | [Source](../../{sourcePath}) |
+| 1 | Get selected row | DoubleClick | [Source](../../../../../../{sourcePath}) |
+| 2 | Validate selection | After get | [Source](../../../../../../{sourcePath}) |
+| 3 | Open edit dialog | Validation passed | [Source](../../../../../../{sourcePath}) |
+| 4 | Load detail data | Dialog opened | [Source](../../../../../../{sourcePath}) |
+| 5 | Handle save/cancel | Dialog closed | [Source](../../../../../../{sourcePath}) |
 
 #### 3.2.2 {Event Name: e.g., Toolbar Button Click}
 
@@ -190,12 +190,12 @@ graph TB
 
 | Event | WPF | WinForms | Purpose | Source |
 |-------|-----|----------|---------|--------|
-| Initialized | ✅ | - | Component init | [Source](../../{sourcePath}) |
-| Loaded | ✅ | Load | Window loaded | [Source](../../{sourcePath}) |
-| Shown | - | Shown | Window visible | [Source](../../{sourcePath}) |
-| Activated | ✅ | Activated | Window focused | [Source](../../{sourcePath}) |
-| Closing | ✅ | FormClosing | About to close | [Source](../../{sourcePath}) |
-| Closed | ✅ | FormClosed | Window closed | [Source](../../{sourcePath}) |
+| Initialized | ✅ | - | Component init | [Source](../../../../../../{sourcePath}) |
+| Loaded | ✅ | Load | Window loaded | [Source](../../../../../../{sourcePath}) |
+| Shown | - | Shown | Window visible | [Source](../../../../../../{sourcePath}) |
+| Activated | ✅ | Activated | Window focused | [Source](../../../../../../{sourcePath}) |
+| Closing | ✅ | FormClosing | About to close | [Source](../../../../../../{sourcePath}) |
+| Closed | ✅ | FormClosed | Window closed | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -205,18 +205,18 @@ graph TB
 
 | Field Name | Type | Description | Binding | Source |
 |------------|------|-------------|---------|--------|
-| {Field 1} | string/int/bool | {Description} | {OneWay/TwoWay} | [Source](../../{sourcePath}) |
-| {SelectedItem} | Object | {Current selection} | {OneWayToSource} | [Source](../../{sourcePath}) |
-| {DataSource} | Collection | {List data} | {OneWay} | [Source](../../{sourcePath}) |
-| {IsBusy} | bool | {Loading state} | {OneWay} | [Source](../../{sourcePath}) |
+| {Field 1} | string/int/bool | {Description} | {OneWay/TwoWay} | [Source](../../../../../../{sourcePath}) |
+| {SelectedItem} | Object | {Current selection} | {OneWayToSource} | [Source](../../../../../../{sourcePath}) |
+| {DataSource} | Collection | {List data} | {OneWay} | [Source](../../../../../../{sourcePath}) |
+| {IsBusy} | bool | {Loading state} | {OneWay} | [Source](../../../../../../{sourcePath}) |
 
 ### 4.2 Form Fields (if applicable)
 
 | Field Name | Type | Validation | Control | Source |
 |------------|------|------------|---------|--------|
-| {Field 1} | string | {Required} | TextBox | [Source](../../{sourcePath}) |
-| {Field 2} | int | {Range} | NumericUpDown | [Source](../../{sourcePath}) |
-| {Field 3} | DateTime | {Not null} | DateTimePicker | [Source](../../{sourcePath}) |
+| {Field 1} | string | {Required} | TextBox | [Source](../../../../../../{sourcePath}) |
+| {Field 2} | int | {Range} | NumericUpDown | [Source](../../../../../../{sourcePath}) |
+| {Field 3} | DateTime | {Not null} | DateTimePicker | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -226,25 +226,25 @@ graph TB
 
 | Service | Type | Main Function | Source | Document Path |
 |---------|------|---------------|--------|---------------|
-| {Service Name} | Business | {Description} | [Source](../../{serviceSourcePath}) | [Service Doc](../../services/{service-name}.md) |
+| {Service Name} | Business | {Description} | [Source](../../../../../../{serviceSourcePath}) | [Service Doc](../../../../../../services/{service-name}.md) |
 
 ### 5.2 UI Components
 
 | Component | Framework | Type | Main Function | Source | Document Path |
 |-----------|-----------|------|---------------|--------|---------------|
-| {UserControl} | WPF/WinForms | Custom | {Reusable UI} | [Source](../../{componentSourcePath}) | [Component Doc](../../components/{component-name}.md) |
+| {UserControl} | WPF/WinForms | Custom | {Reusable UI} | [Source](../../../../../../{componentSourcePath}) | [Component Doc](../../../../../../components/{component-name}.md) |
 
 ### 5.3 Other Windows
 
 | Window Name | Relation Type | Description | Source | Document Path |
 |-------------|---------------|-------------|--------|---------------|
-| {Window Name} | Dialog/Child | {Relation description} | [Source](../../{windowSourcePath}) | [Window Doc](../{window-path}.md) |
+| {Window Name} | Dialog/Child | {Relation description} | [Source](../../../../../../{windowSourcePath}) | [Window Doc](../{window-path}.md) |
 
 ### 5.4 Referenced By
 
 | Window Name | Function Description | Source Path | Document Path |
 |-------------|---------------------|-------------|---------------|
-| {Referencing Window} | {e.g., "Open this window from main menu"} | {source-path} | [Window Doc](../{window-path}.md) |
+| {Referencing Window} | {e.g., "Open this window from main menu"} | {source-path} | [Window Doc](../../../../../../{window-path}.md) |
 
 ---
 
@@ -254,21 +254,21 @@ graph TB
 
 | Operation | Permission Requirement | No Permission Handling | Source |
 |-----------|----------------------|----------------------|--------|
-| View window | {Role required} | Hide menu item / Show message | [Source](../../{sourcePath}) |
-| Edit data | {Permission required} | Disable edit button | [Source](../../{sourcePath}) |
-| Delete record | {Admin role} | Disable delete button | [Source](../../{sourcePath}) |
+| View window | {Role required} | Hide menu item / Show message | [Source](../../../../../../{sourcePath}) |
+| Edit data | {Permission required} | Disable edit button | [Source](../../../../../../{sourcePath}) |
+| Delete record | {Admin role} | Disable delete button | [Source](../../../../../../{sourcePath}) |
 
 ### 6.2 Desktop-Specific Rules
 
-1. **Auto-save**: {e.g., Auto-save draft every 5 minutes} | [Source](../../{sourcePath})
-2. **Keyboard Shortcuts**: {e.g., Ctrl+S save, Ctrl+F find} | [Source](../../{sourcePath})
-3. **Window State**: {e.g., Remember window size and position} | [Source](../../{sourcePath})
+1. **Auto-save**: {e.g., Auto-save draft every 5 minutes} | [Source](../../../../../../{sourcePath})
+2. **Keyboard Shortcuts**: {e.g., Ctrl+S save, Ctrl+F find} | [Source](../../../../../../{sourcePath})
+3. **Window State**: {e.g., Remember window size and position} | [Source](../../../../../../{sourcePath})
 
 ### 6.3 Validation Rules
 
 | Scenario | Rule | Error Handling | Source |
 |----------|------|----------------|--------|
-| Form submit | {Validation rule} | Show error provider / MessageBox | [Source](../../{sourcePath}) |
+| Form submit | {Validation rule} | Show error provider / MessageBox | [Source](../../../../../../{sourcePath}) |
 
 ---
 
@@ -299,5 +299,5 @@ graph TB
 **Related Module Document:** [Module Overview Document](../{{module-name}}-overview.md)
 
 **Section Source**
-- [{Window}.xaml.cs/{Form}.cs](../../{sourcePath})
-- [{ViewModel}.cs](../../{viewModelPath})
+- [{Window}.xaml.cs/{Form}.cs](../../../../../../{sourcePath})
+- [{ViewModel}.cs](../../../../../../{viewModelPath})
