@@ -152,6 +152,19 @@ For each platform, generates:
         <field name="output" var="generated_json_path"/>
       </block>
 
+      <!-- Rule: Output JSON Format Validation -->
+      <block type="rule" id="R-FORMAT" scope="mandatory" desc="Output JSON format validation">
+        <field name="content">
+          The generated entry-dirs JSON file MUST strictly follow this structure:
+          - Root object MUST contain "modules" field (array type)
+          - Root object MUST NOT contain "businessModules", "subModules", or "components" fields
+          - Each module in "modules" array MUST have exactly two fields: "name" (string) and "entryDirs" (array of strings)
+          - For platforms with hierarchical directory structure (e.g. frontend views/system/user/), flatten into individual modules
+          - Module names should use hyphen-separated composite names for sub-modules (e.g. "system-user", "system-role")
+          - If the generated JSON does not match this format, you MUST regenerate it before proceeding
+        </field>
+      </block>
+
       <!-- Checkpoint: Persist Generated JSON -->
       <block type="checkpoint" id="CP1" name="entry-dirs-generated" desc="Verify entry-dirs JSON was generated">
         <field name="file" value="${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json"/>
@@ -226,6 +239,14 @@ For each platform, generates:
   ]
 }
 ```
+
+### Format Constraints
+
+- **MUST use `modules` array** — never use `businessModules`, `components`, or any alternative field name
+- **MUST flatten hierarchy** — if a platform has sub-modules (e.g. frontend `system/user`, `system/role`), each sub-module must be a separate top-level module entry in the `modules` array
+  - 例如：`system` 有 `user` 和 `role` 子目录 → 生成 `{ "name": "system-user", "entryDirs": ["src/views/system/user"] }` 和 `{ "name": "system-role", "entryDirs": ["src/views/system/role"] }`
+- **Forbidden fields**: `businessModules`, `subModules`, `components`, `hasSubModules` — 这些都不被下游脚本支持
+- **Each module's entryDirs** must point to directories containing actual entry files (e.g. .vue, .py, .java), not parent wrapper directories
 
 ### Field Definitions
 

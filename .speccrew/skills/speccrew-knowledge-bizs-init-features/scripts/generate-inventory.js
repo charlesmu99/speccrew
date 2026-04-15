@@ -647,8 +647,24 @@ function main() {
       console.error('Error: entryDirsFile missing required field "sourcePath"');
       process.exit(1);
     }
+    // Check for common format mistakes
+    if (entryDirsData.businessModules && Array.isArray(entryDirsData.businessModules)) {
+      console.error('Error: entryDirsFile uses unsupported "businessModules" format.');
+      console.error('Expected: { "modules": [ { "name": "...", "entryDirs": ["..."] } ] }');
+      console.error('Received: { "businessModules": [...] }');
+      console.error('');
+      console.error('Fix: The entry-dirs JSON must use a flat "modules" array.');
+      console.error('Each module should have "name" (string) and "entryDirs" (array of strings).');
+      console.error('Sub-modules must be flattened into top-level entries.');
+      console.error('Re-run the identify-entries skill to regenerate with correct format.');
+      process.exit(1);
+    }
+
     if (!entryDirsData.modules || !Array.isArray(entryDirsData.modules)) {
-      console.error('Error: entryDirsFile missing required field "modules" array');
+      console.error('Error: entryDirsFile missing required field "modules" array.');
+      console.error('Expected format: { "platformId": "...", "modules": [ { "name": "...", "entryDirs": ["..."] } ] }');
+      const foundKeys = Object.keys(entryDirsData).join(', ');
+      console.error(`Found top-level keys: ${foundKeys}`);
       process.exit(1);
     }
     
