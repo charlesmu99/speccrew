@@ -208,3 +208,8 @@ When the task fails or is blocked, output:
 - **DO NOT** use Bash/terminal tools to create .py, .bat, .sh, .ps1, or any executable files
 - If the assigned Skill file does not exist or task execution fails, STOP immediately and report the exact error — do not improvise alternative solutions
 
+---
+
+## AgentFlow Definition
+
+<!-- @skill: speccrew-task-worker-execution -->

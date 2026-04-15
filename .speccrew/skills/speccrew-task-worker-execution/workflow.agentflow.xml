@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="task-worker-execution" status="pending" version="1.0" desc="Task Worker 通用执行工作流">
+  <!--
+  == Block Types ==
+  input   : 工作流输入参数（required=必填, default=默认值）
+  output  : 工作流输出结果（from=数据来源变量）
+  task    : 执行动作（action: run-skill | run-script | read-file | log）
+  gateway : 条件分支/门禁（mode: exclusive | guard）
+  event   : 日志/确认/信号
+  rule    : 约束声明（level: forbidden | mandatory | note）
+  == Field ==
+  field   : 参数/变量/输出
+  -->
+
+  <!-- === Phase 1: 接收任务参数 === -->
+  <block type="input" id="I1" desc="接收任务参数">
+    <field name="skill_path" required="false" type="string" desc="完整技能路径（优先）"/>
+    <field name="skill_name" required="false" type="string" desc="技能名称标识符（向后兼容）"/>
+    <field name="context" required="true" type="object" desc="任务上下文参数"/>
+    <field name="workspace_root" required="true" type="string" desc="工作空间根目录"/>
+  </block>
+
+  <!-- === Phase 2: 技能发现 === -->
+  <block type="event" id="E1" action="log" desc="开始技能发现">📋 Phase 2: Skill Discovery</block>
+
+  <block type="gateway" id="G1" mode="exclusive" desc="判断技能路径来源">
+    <branch test="${skill_path} != null" name="使用显式路径">
+      <block type="event" id="E2" action="log" desc="使用提供的 skill_path">✅ 使用显式路径: ${skill_path}</block>
+      <field name="resolved_skill_path" value="${skill_path}"/>
+    </branch>
+    <branch test="${skill_name} != null" name="技能名称发现">
+      <block type="task" id="T1" action="read-file" desc="确定 IDE 技能根目录">
+        <field name="path">${workspace_root}/.qoder/skills/${skill_name}/SKILL.md</field>
+        <field name="output" var="skill_file_qoder"/>
+      </block>
+      <block type="gateway" id="G2" mode="exclusive" desc="检查技能文件存在性">
+        <branch test="${skill_file_qoder}.exists == true" name="qoder目录">
+          <field name="resolved_skill_path" value="${workspace_root}/.qoder/skills/${skill_name}/SKILL.md"/>
+        </branch>
+        <branch test="true" name="继续检查其他目录">
+          <block type="task" id="T2" action="read-file" desc="检查 cursor 目录">
+            <field name="path">${workspace_root}/.cursor/skills/${skill_name}/SKILL.md</field>
+            <field name="output" var="skill_file_cursor"/>
+          </block>
+          <block type="gateway" id="G3" mode="exclusive" desc="检查 cursor 目录">
+            <branch test="${skill_file_cursor}.exists == true" name="cursor目录">
+              <field name="resolved_skill_path" value="${workspace_root}/.cursor/skills/${skill_name}/SKILL.md"/>
+            </branch>
+            <branch test="true" name="继续检查 claude 目录">
+              <block type="task" id="T3" action="read-file" desc="检查 claude 目录">
+                <field name="path">${workspace_root}/.claude/skills/${skill_name}/SKILL.md</field>
+                <field name="output" var="skill_file_claude"/>
+              </block>
+              <block type="gateway" id="G4" mode="exclusive" desc="检查 claude 目录">
+                <branch test="${skill_file_claude}.exists == true" name="claude目录">
+                  <field name="resolved_skill_path" value="${workspace_root}/.claude/skills/${skill_name}/SKILL.md"/>
+                </branch>
+                <branch test="true" name="继续检查 speccrew 目录">
+                  <block type="task" id="T4" action="read-file" desc="检查 speccrew 目录">
+                    <field name="path">${workspace_root}/.speccrew/skills/${skill_name}/SKILL.md</field>
+                    <field name="output" var="skill_file_speccrew"/>
+                  </block>
+                  <block type="gateway" id="G5" mode="exclusive" desc="检查 speccrew 目录">
+                    <branch test="${skill_file_speccrew}.exists == true" name="speccrew目录">
+                      <field name="resolved_skill_path" value="${workspace_root}/.speccrew/skills/${skill_name}/SKILL.md"/>
+                    </branch>
+                    <branch test="true" name="技能未找到">
+                      <block type="event" id="E3" action="log" desc="技能未找到错误">❌ ERROR: Skill not found: ${skill_name}</block>
+                      <field name="skill_not_found" value="true"/>
+                    </branch>
+                  </block>
+                </branch>
+              </block>
+            </branch>
+          </block>
+        </branch>
+      </block>
+    </branch>
+    <branch default="true" name="无技能参数">
+      <block type="event" id="E4" action="log" desc="直接执行模式">ℹ️ 无技能参数，基于 context 直接执行</block>
+      <field name="direct_execution" value="true"/>
+    </branch>
+  </block>
+
+  <!-- === Phase 3: 执行任务 === -->
+  <block type="event" id="E5" action="log" desc="开始执行任务">📋 Phase 3: Execute Task</block>
+
+  <block type="rule" id="R1" level="mandatory" desc="技能执行强制约束">
+    如果技能指定通过 run_in_terminal 或 Bash 执行脚本 → 必须通过终端执行
+    如果技能指定 --outputDir 或其他路径参数 → 必须按原样传递
+    如果技能包含 MANDATORY/FORBIDDEN 约束 → 必须严格遵循
+    禁止即兴替代执行路径，如步骤失败则报告错误
+  </block>
+
+  <block type="gateway" id="G6" mode="exclusive" desc="选择执行模式">
+    <branch test="${skill_not_found} == true" name="技能未找到">
+      <block type="event" id="E6" action="log" desc="报告技能未找到错误">
+        ❌ Failed: Skill file not found
+        Attempted paths:
+        - .qoder/skills/${skill_name}/SKILL.md
+        - .cursor/skills/${skill_name}/SKILL.md
+        - .claude/skills/${skill_name}/SKILL.md
+        - .speccrew/skills/${skill_name}/SKILL.md
+      </block>
+      <field name="execution_status" value="failed"/>
+      <field name="error_category" value="DEPENDENCY_MISSING"/>
+    </branch>
+    <branch test="${direct_execution} == true" name="直接执行">
+      <block type="event" id="E7" action="log" desc="基于 context 直接执行">🔧 直接执行任务: ${context.task_description}</block>
+      <block type="task" id="T5" action="log" desc="解析 context 并执行">
+        根据 context 参数理解任务需求，直接执行并输出结果
+      </block>
+      <field name="execution_status" value="success"/>
+    </branch>
+    <branch test="${resolved_skill_path} != null" name="加载技能执行">
+      <block type="task" id="T6" action="read-file" desc="读取技能定义">
+        <field name="path">${resolved_skill_path}</field>
+        <field name="output" var="skill_definition"/>
+      </block>
+      <block type="event" id="E8" action="log" desc="加载技能">📄 Loaded skill: ${resolved_skill_path}</block>
+      
+      <!-- 加载 AgentFlow 规范 -->
+      <block type="task" id="T7" action="read-file" desc="读取 AgentFlow 规范">
+        <field name="path">${workspace_root}/speccrew-workspace/docs/rules/agentflow-spec.md</field>
+        <field name="output" var="agentflow_spec"/>
+      </block>
+      <block type="event" id="E9" action="log" desc="加载规范">📖 Loaded AgentFlow specification</block>
+      
+      <!-- 执行技能工作流 -->
+      <block type="task" id="T8" action="run-skill" desc="执行技能工作流">
+        <field name="skill">${resolved_skill_path}</field>
+        <field name="context">${context}</field>
+      </block>
+      <field name="execution_status" value="success"/>
+    </branch>
+  </block>
+
+  <!-- === Phase 4: 报告结果 === -->
+  <block type="event" id="E10" action="log" desc="开始报告结果">📋 Phase 4: Report Results</block>
+
+  <block type="gateway" id="G7" mode="exclusive" desc="选择报告格式">
+    <branch test="${execution_status} == success" name="成功报告">
+      <block type="output" id="O1" desc="成功完成报告">
+        <field name="status">SUCCESS</field>
+        <field name="task_id">${context.task_id}</field>
+        <field name="platform">${context.platform}</field>
+        <field name="module">${context.module}</field>
+        <field name="output_files">${generated_files}</field>
+        <field name="summary">${execution_summary}</field>
+      </block>
+    </branch>
+    <branch test="${execution_status} == failed" name="失败报告">
+      <block type="output" id="O2" desc="失败完成报告">
+        <field name="status">FAILED</field>
+        <field name="task_id">${context.task_id}</field>
+        <field name="platform">${context.platform}</field>
+        <field name="module">${context.module}</field>
+        <field name="error">${error_message}</field>
+        <field name="error_category">${error_category}</field>
+        <field name="partial_outputs">${partial_files}</field>
+        <field name="recovery_hint">${recovery_suggestion}</field>
+      </block>
+    </branch>
+  </block>
+
+  <!-- === Phase 5: 完成报告输出 === -->
+  <block type="event" id="E11" action="log" desc="输出结构化完成报告">
+## Task Completion Report
+- **Status**: ${status}
+- **Task ID**: ${task_id}
+- **Platform**: ${platform}
+- **Module**: ${module}
+- **Output Files**: ${output_files}
+- **Summary**: ${summary}
+  </block>
+
+</workflow>

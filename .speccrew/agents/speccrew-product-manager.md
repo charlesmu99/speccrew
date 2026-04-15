@@ -184,6 +184,12 @@ If WORKFLOW-PROGRESS.json does not exist (legacy iterations or new workspace):
 
 # Workflow
 
+## AgentFlow Definition
+
+<!-- @skill: speccrew-product-manager-orchestration -->
+
+---
+
 ## Phase 0.5: IDE Detection
 
 Detect current IDE environment and determine skill loading strategy:

@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="speccrew-test-manager-orchestration" version="1.0.0">
+  
+  <!-- ==================== INPUT PARAMETERS ==================== -->
+  <block type="input" id="input-params">
+    <param name="workspace_path" type="string" required="true" desc="speccrew-workspace 根目录绝对路径"/>
+    <param name="iteration_dir" type="string" required="true" desc="当前迭代目录路径"/>
+    <param name="update_progress_script" type="string" required="true" desc="update-progress.js 脚本路径"/>
+  </block>
+
+  <!-- ==================== PHASE 0: STAGE GATE & RESUME ==================== -->
+  <sequence id="phase-0-stage-gate">
+    
+    <!-- Step 0.1: Verify Upstream Completion -->
+    <block type="task" id="p0-1-verify-stage" action="run-script" desc="验证部署阶段已完成确认">
+      <field name="command">node ${update_progress_script} read --file ${workspace_path}/WORKFLOW-PROGRESS.json --overview</field>
+      <event type="on-failure" action="log">
+        <message>❌ Deployment stage has not been confirmed. Please complete and confirm deployment before starting system test.</message>
+      </event>
+    </block>
+
+    <block type="gateway" id="p0-1-gate" desc="检查部署阶段状态">
+      <condition expression="stages.05_deployment.status == 'confirmed'">
+        <when true="proceed" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ STAGE GATE FAILURE: Deployment stage not confirmed. Workflow aborted.</message>
+      </event>
+    </block>
+
+    <!-- Update Current Stage -->
+    <block type="task" id="p0-1-update-stage" action="run-script" desc="更新系统测试阶段状态为进行中">
+      <field name="command">node ${update_progress_script} update-workflow --file ${workspace_path}/WORKFLOW-PROGRESS.json --stage 06_system_test --status in_progress</field>
+    </block>
+
+    <!-- Step 0.2: Check Resume State -->
+    <block type="task" id="p0-2-read-checkpoints" action="run-script" desc="读取检查点状态以支持断点续传">
+      <field name="command">node ${update_progress_script} read --file ${iteration_dir}/06.system-test/.checkpoints.json --checkpoints</field>
+      <event type="on-failure" action="log">
+        <message>ℹ️ No checkpoint file found. Proceeding with full workflow.</message>
+      </event>
+    </block>
+
+    <!-- Step 0.3: Check Dispatch Resume -->
+    <block type="task" id="p0-3-read-dispatch-progress" action="run-script" desc="读取调度进度以支持多平台断点续传">
+      <field name="command">node ${update_progress_script} read --file ${iteration_dir}/06.system-test/DISPATCH-PROGRESS.json --summary</field>
+      <event type="on-failure" action="log">
+        <message>ℹ️ No dispatch progress file found. Proceeding with fresh dispatch.</message>
+      </event>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 0.5: IDE DIRECTORY DETECTION ==================== -->
+  <sequence id="phase-0.5-ide-detection">
+
+    <block type="task" id="p0.5-detect-ide" action="detect-ide-directory" desc="检测 IDE 目录">
+      <field name="priority-order">.qoder,.cursor,.claude,.speccrew</field>
+      <output name="ide_dir" as="ide_dir"/>
+      <output name="ide_skills_dir" as="ide_skills_dir"/>
+    </block>
+
+    <block type="gateway" id="p0.5-verify-skills-dir" desc="验证技能目录存在">
+      <condition expression="ide_skills_dir != null">
+        <when true="proceed" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ IDE Skills Directory Not Found. Checked: .qoder/skills, .cursor/skills, .claude/skills, .speccrew/skills</message>
+      </event>
+    </block>
+
+    <block type="task" id="p0.5-verify-test-skills" action="verify-skills" desc="验证测试技能可用性">
+      <field name="skills-dir">${ide_skills_dir}</field>
+      <field name="required-skills">speccrew-test-case-design,speccrew-test-code-gen,speccrew-test-runner,speccrew-test-reporter</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 1: PREPARATION ==================== -->
+  <sequence id="phase-1-preparation">
+
+    <!-- 1.1 Identify Iteration Path -->
+    <block type="task" id="p1-1-identify-iteration" action="read-file" desc="识别迭代目录结构">
+      <field name="path">${iteration_dir}</field>
+      <output name="iteration_name" as="iteration_name"/>
+    </block>
+
+    <!-- 1.2 Identify Input Documents -->
+    <block type="task" id="p1-2-locate-feature-specs" action="read-file" desc="定位功能规格文档">
+      <field name="path">${iteration_dir}/02.feature-design/</field>
+      <output name="feature_spec_paths" as="feature_spec_paths"/>
+      <output name="api_contract_paths" as="api_contract_paths"/>
+    </block>
+
+    <block type="task" id="p1-2-locate-system-design" action="read-file" desc="定位系统设计文档">
+      <field name="path">${iteration_dir}/03.system-design/</field>
+      <output name="design_overview_path" as="design_overview_path"/>
+      <output name="platform_design_paths" as="platform_design_paths"/>
+    </block>
+
+    <!-- 1.3 Check Existing Test Artifacts -->
+    <block type="task" id="p1-3-check-artifacts" action="read-file" desc="检查现有测试制品">
+      <field name="path">${iteration_dir}/06.system-test/</field>
+      <output name="existing_artifacts" as="existing_artifacts"/>
+    </block>
+
+    <!-- Determine Platform Count -->
+    <block type="task" id="p1-4-count-platforms" action="determine-platform-count" desc="确定平台数量">
+      <field name="design-overview">${design_overview_path}</field>
+      <output name="platform_count" as="platform_count"/>
+      <output name="platform_list" as="platform_list"/>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 2: KNOWLEDGE LOADING ==================== -->
+  <sequence id="phase-2-knowledge-loading">
+
+    <block type="task" id="p2-load-feature-specs" action="read-file" desc="加载功能规格文档">
+      <field name="paths">${feature_spec_paths}</field>
+    </block>
+
+    <block type="task" id="p2-load-api-contracts" action="read-file" desc="加载 API 契约文档">
+      <field name="paths">${api_contract_paths}</field>
+    </block>
+
+    <block type="task" id="p2-load-system-design" action="read-file" desc="加载系统设计文档">
+      <field name="path">${design_overview_path}</field>
+    </block>
+
+    <block type="task" id="p2-load-techs-knowledge" action="read-file" desc="加载测试技术知识">
+      <field name="paths">${techs_convention_paths}</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 3: TEST CASE DESIGN ==================== -->
+  <sequence id="phase-3-test-case-design">
+
+    <!-- Execution Mode Decision -->
+    <block type="gateway" id="p3-mode-decision" desc="执行模式决策">
+      <condition expression="platform_count == 1">
+        <when true="single-platform" false="multi-platform"/>
+      </condition>
+    </block>
+
+    <!-- Single Platform Execution -->
+    <block type="task" id="p3-single-platform" action="run-skill" desc="单平台测试用例设计">
+      <field name="skill">speccrew-test-case-design</field>
+      <param name="feature_spec_path">${feature_spec_paths[0]}</param>
+      <param name="api_contract_path">${api_contract_paths[0]}</param>
+      <param name="system_design_path">${platform_design_paths[0]}</param>
+      <param name="output_path">${iteration_dir}/06.system-test/cases/</param>
+    </block>
+
+    <!-- Multi-Platform Parallel Execution -->
+    <block type="loop" id="p3-multi-platform-loop" desc="多平台测试用例设计循环">
+      <field name="items">${platform_list}</field>
+      <field name="max-concurrent">6</field>
+      <block type="task" action="dispatch-to-worker" desc="调度 Worker 执行测试用例设计">
+        <field name="worker">speccrew-task-worker</field>
+        <field name="skill">speccrew-test-case-design</field>
+        <param name="feature_spec_path">${master_feature_spec_path}</param>
+        <param name="api_contract_path">${platform.api_contract_path}</param>
+        <param name="system_design_path">${platform.design_path}</param>
+        <param name="platform_id">${platform.id}</param>
+        <param name="output_path">${iteration_dir}/06.system-test/cases/${platform.id}/</param>
+        <param name="task_id">test-case-${platform.id}</param>
+      </block>
+    </block>
+
+    <!-- Update Dispatch Progress -->
+    <block type="task" id="p3-update-dispatch-progress" action="run-script" desc="更新调度进度">
+      <field name="command">node ${update_progress_script} update-task --file ${iteration_dir}/06.system-test/DISPATCH-PROGRESS.json --task-id test-case-${platform_id} --status completed --output "${output_path}"</field>
+    </block>
+
+    <!-- Checkpoint A: Test Case Review -->
+    <block type="checkpoint" id="p3-checkpoint-a" desc="测试用例审查检查点">
+      <field name="title">📋 CHECKPOINT A: Test Case Coverage Review</field>
+      <field name="content">
+Total test cases: ${total_test_cases}
+Platforms covered: ${platform_count}
+
+Coverage Statistics:
+├── Functional coverage: ${functional_coverage}%
+├── Exception handling: ${exception_coverage}%
+├── Business rules: ${business_coverage}%
+└── API contract: ${api_coverage}%
+
+Traceability Matrix: See test-case-to-requirement mapping
+      </field>
+    </block>
+
+    <block type="task" id="p3-confirm-checkpoint-a" action="confirm" desc="用户确认测试用例覆盖度">
+      <field name="prompt">测试用例设计完成，是否确认覆盖度满足要求？</field>
+      <field name="options">确认,Yes,Proceed|需要修改,Need changes</field>
+      <output name="checkpoint_a_response" as="checkpoint_a_response"/>
+    </block>
+
+    <block type="gateway" id="p3-checkpoint-a-gate" desc="Checkpoint A 确认门禁">
+      <condition expression="checkpoint_a_response == 'confirmed'">
+        <when true="proceed" false="revise"/>
+      </condition>
+    </block>
+
+    <block type="task" id="p3-write-checkpoint-a" action="run-script" desc="写入 Checkpoint A">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_dir}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_case_coverage --passed true --description "Test case coverage review (Checkpoint A)"</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 4: TEST CODE GENERATION ==================== -->
+  <sequence id="phase-4-test-code-gen">
+
+    <!-- Execution Mode Decision -->
+    <block type="gateway" id="p4-mode-decision" desc="执行模式决策">
+      <condition expression="platform_count == 1">
+        <when true="single-platform" false="multi-platform"/>
+      </condition>
+    </block>
+
+    <!-- Single Platform Execution -->
+    <block type="task" id="p4-single-platform" action="run-skill" desc="单平台测试代码生成">
+      <field name="skill">speccrew-test-code-gen</field>
+      <param name="test_cases_path">${test_cases_path}</param>
+      <param name="system_design_path">${platform_design_paths[0]}</param>
+      <param name="platform_id">${platform_list[0]}</param>
+      <param name="output_dir">${iteration_dir}/06.system-test/code/</param>
+    </block>
+
+    <!-- Multi-Platform Parallel Execution -->
+    <block type="loop" id="p4-multi-platform-loop" desc="多平台测试代码生成循环">
+      <field name="items">${platform_list}</field>
+      <field name="max-concurrent">6</field>
+      <block type="task" action="dispatch-to-worker" desc="调度 Worker 执行测试代码生成">
+        <field name="worker">speccrew-task-worker</field>
+        <field name="skill">speccrew-test-code-gen</field>
+        <param name="test_cases_path">${platform.test_cases_path}</param>
+        <param name="system_design_path">${platform.design_path}</param>
+        <param name="platform_id">${platform.id}</param>
+        <param name="output_dir">${iteration_dir}/06.system-test/code/${platform.id}/</param>
+        <param name="task_id">test-code-${platform.id}</param>
+      </block>
+    </block>
+
+    <!-- Review Verification (MANDATORY) -->
+    <block type="task" id="p4-review-code" action="dispatch-to-worker" desc="代码审查验证">
+      <field name="worker">speccrew-task-worker</field>
+      <field name="skill">speccrew-code-review</field>
+      <param name="test_cases_path">${test_cases_path}</param>
+      <param name="test_code_path">${test_code_path}</param>
+      <param name="platform_id">${platform_id}</param>
+      <param name="task_id">review-test-code-${platform_id}</param>
+    </block>
+
+    <!-- Checkpoint B: Code Review -->
+    <block type="checkpoint" id="p4-checkpoint-b" desc="测试代码审查检查点">
+      <field name="title">📋 CHECKPOINT B: Test Code Review</field>
+      <field name="content">
+Generated Test Files: ${test_file_count}
+
+File to Test Case Mapping:
+${file_mapping_summary}
+
+Test Code Statistics:
+├── Total test functions: ${test_function_count}
+├── Coverage estimation: ${coverage_estimation}%
+└── Framework compliance: ${framework_compliance}
+      </field>
+    </block>
+
+    <block type="task" id="p4-confirm-checkpoint-b" action="confirm" desc="用户确认测试代码质量">
+      <field name="prompt">测试代码生成完成，是否确认代码质量满足要求？</field>
+      <field name="options">确认,Yes,Proceed|需要修改,Need changes</field>
+      <output name="checkpoint_b_response" as="checkpoint_b_response"/>
+    </block>
+
+    <block type="gateway" id="p4-checkpoint-b-gate" desc="Checkpoint B 确认门禁">
+      <condition expression="checkpoint_b_response == 'confirmed'">
+        <when true="proceed" false="revise"/>
+      </condition>
+    </block>
+
+    <block type="task" id="p4-write-checkpoint-b" action="run-script" desc="写入 Checkpoint B">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_dir}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_code_review --passed true --description "Test code generation review (Checkpoint B)"</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 5: TEST EXECUTION & BUG REPORTING ==================== -->
+  <sequence id="phase-5-test-execution">
+
+    <!-- Stage 1: Test Runner -->
+    <block type="gateway" id="p5-runner-mode-decision" desc="执行模式决策">
+      <condition expression="platform_count == 1">
+        <when true="single-platform" false="multi-platform"/>
+      </condition>
+    </block>
+
+    <!-- Single Platform Test Runner -->
+    <block type="task" id="p5-single-platform-runner" action="run-skill" desc="单平台测试执行">
+      <field name="skill">speccrew-test-runner</field>
+      <param name="test_code_plan_path">${test_code_plan_path}</param>
+      <param name="test_cases_path">${test_cases_path}</param>
+      <param name="platform_id">${platform_list[0]}</param>
+      <param name="output_dir">${iteration_dir}/06.system-test/results/</param>
+    </block>
+
+    <!-- Multi-Platform Test Runner -->
+    <block type="loop" id="p5-multi-platform-runner-loop" desc="多平台测试执行循环">
+      <field name="items">${platform_list}</field>
+      <field name="max-concurrent">6</field>
+      <block type="task" action="dispatch-to-worker" desc="调度 Worker 执行测试">
+        <field name="worker">speccrew-task-worker</field>
+        <field name="skill">speccrew-test-runner</field>
+        <param name="test_code_plan_path">${platform.test_code_plan_path}</param>
+        <param name="test_cases_path">${platform.test_cases_path}</param>
+        <param name="platform_id">${platform.id}</param>
+        <param name="output_dir">${iteration_dir}/06.system-test/results/${platform.id}/</param>
+        <param name="task_id">test-run-${platform.id}</param>
+      </block>
+    </block>
+
+    <!-- Stage 2: Test Reporter -->
+    <block type="gateway" id="p5-reporter-mode-decision" desc="执行模式决策">
+      <condition expression="platform_count == 1">
+        <when true="single-platform" false="multi-platform"/>
+      </condition>
+    </block>
+
+    <!-- Single Platform Test Reporter -->
+    <block type="task" id="p5-single-platform-reporter" action="run-skill" desc="单平台测试报告">
+      <field name="skill">speccrew-test-reporter</field>
+      <param name="execution_results_path">${execution_results_path}</param>
+      <param name="test_cases_path">${test_cases_path}</param>
+      <param name="platform_id">${platform_list[0]}</param>
+      <param name="output_dir">${iteration_dir}/06.system-test/reports/</param>
+    </block>
+
+    <!-- Multi-Platform Test Reporter -->
+    <block type="loop" id="p5-multi-platform-reporter-loop" desc="多平台测试报告循环">
+      <field name="items">${platform_list}</field>
+      <field name="max-concurrent">6</field>
+      <block type="task" action="dispatch-to-worker" desc="调度 Worker 生成测试报告">
+        <field name="worker">speccrew-task-worker</field>
+        <field name="skill">speccrew-test-reporter</field>
+        <param name="execution_results_path">${platform.execution_results_path}</param>
+        <param name="test_cases_path">${platform.test_cases_path}</param>
+        <param name="platform_id">${platform.id}</param>
+        <param name="output_dir">${iteration_dir}/06.system-test/reports/</param>
+        <param name="task_id">test-report-${platform.id}</param>
+      </block>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 6: DELIVERY SUMMARY ==================== -->
+  <sequence id="phase-6-delivery-summary">
+
+    <block type="checkpoint" id="p6-delivery-report" desc="交付总结报告">
+      <field name="title">📋 Test Stage Delivery Report</field>
+      <field name="content">
+Results:
+├── Test Cases Designed: ${test_cases_designed}
+├── Test Code Generated: ${test_code_files} files
+├── Tests Executed: ${tests_passed}/${tests_total} passed
+├── Bug Reports: ${critical}/${high}/${medium}/${low}
+├── Coverage: ${coverage}%
+└── Overall Status: ${overall_status}
+
+Test Report: ${test_report_path}
+
+Next Phase Recommendation: ${recommendation}
+      </field>
+    </block>
+
+    <block type="task" id="p6-confirm" action="confirm" desc="用户确认交付">
+      <field name="prompt">测试阶段已完成，请审查测试报告。确认无误后将更新工作流状态。</field>
+      <field name="options">确认,OK|需要修改,Need changes|取消,Cancel</field>
+      <output name="user_response" as="user_response"/>
+    </block>
+
+    <block type="gateway" id="p6-response-gate" desc="处理用户响应">
+      <condition expression="user_response == 'confirmed'">
+        <when true="finalize" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ User requested changes. Please specify issues found.</message>
+      </event>
+    </block>
+
+    <!-- Finalize -->
+    <block type="task" id="p6-finalize-checkpoint" action="run-script" desc="写入最终检查点">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_dir}/06.system-test/.checkpoints.json --stage 06_system_test --checkpoint test_execution_report --passed true --description "Test execution final report"</field>
+    </block>
+
+    <block type="task" id="p6-finalize-progress" action="run-script" desc="更新工作流进度">
+      <field name="command">node ${update_progress_script} update-workflow --file ${workspace_path}/WORKFLOW-PROGRESS.json --stage 06_system_test --status confirmed --output "06.system-test/cases/,06.system-test/code/,06.system-test/reports/,06.system-test/bugs/"</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== OUTPUT ==================== -->
+  <block type="output" id="output-result">
+    <field name="status">success</field>
+    <field name="test_cases_designed">${test_cases_designed}</field>
+    <field name="test_code_generated">${test_code_files}</field>
+    <field name="tests_passed">${tests_passed}</field>
+    <field name="tests_failed">${tests_failed}</field>
+    <field name="bug_reports">${bug_report_paths}</field>
+    <field name="output_files">${output_files}</field>
+    <field name="summary">✅ Test Stage Complete. All testing phases verified: Test Case Design, Test Code Generation, Test Execution. Bug reports generated.</field>
+    <field name="next_steps">${recommendation}</field>
+  </block>
+
+  <!-- ==================== RULES ==================== -->
+  <block type="rule" id="rule-stage-gate">
+    <condition>Deployment stage must be confirmed before starting system test</condition>
+    <enforcement>abort-on-failure</enforcement>
+  </block>
+
+  <block type="rule" id="rule-dispatch-or-direct">
+    <condition>1 platform → invoke skill directly. 2+ platforms → MUST dispatch speccrew-task-worker</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+  <block type="rule" id="rule-checkpoint-mandatory">
+    <condition>Each phase MUST have checkpoint with user confirmation before proceeding</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+  <block type="rule" id="rule-script-enforcement">
+    <condition>All checkpoint and progress updates MUST use update-progress.js script</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+  <block type="rule" id="rule-no-direct-artifacts">
+    <condition>DO NOT create test artifacts directly when 2+ platforms - always use skills via workers</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+</workflow>

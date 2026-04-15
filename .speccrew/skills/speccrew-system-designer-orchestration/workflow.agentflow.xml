@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="system-designer-orchestration" status="pending">
+
+  <block type="input" id="I1" desc="System Designer orchestration input">
+    <field name="workspace_path" required="true" type="string" desc="speccrew-workspace root directory path"/>
+    <field name="iterations_dir" required="true" type="string" desc="iterations directory path"/>
+    <field name="update_progress_script" required="true" type="string" desc="Path to update-progress.js script"/>
+    <field name="current_iteration" required="false" type="string" desc="Current active iteration identifier"/>
+  </block>
+
+  <!-- ========== Phase 0: Stage Gate & Resume ========== -->
+  <sequence name="Phase 0: Stage Gate &amp; Resume">
+    
+    <!-- Step 0.1: Verify Upstream Completion -->
+    <block type="task" id="P0-B1" action="run-script" status="pending"
+           desc="Read WORKFLOW-PROGRESS.json overview">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --overview</field>
+      <field name="output" var="workflow_progress"/>
+    </block>
+
+    <block type="gateway" id="P0-G1" mode="exclusive" desc="Check Feature Design stage status">
+      <branch test="${workflow_progress.stages.02_feature_design.status} == 'confirmed'" name="Feature Design Confirmed">
+        <block type="task" id="P0-B2" action="run-script" status="pending"
+               desc="Update System Design stage status to in_progress">
+          <field name="command">node ${update_progress_script} update-workflow --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --stage 03_system_design --status in_progress</field>
+        </block>
+      </branch>
+      <branch default="true" name="Feature Design Not Confirmed">
+        <block type="event" id="P0-E1" action="log" desc="Report Feature Design not confirmed">
+          <field name="message">Feature Design stage has not been confirmed. Please complete Feature Design confirmation first.</field>
+        </block>
+        <block type="event" id="P0-E2" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 0.2: Check Resume State -->
+    <block type="task" id="P0-B3" action="run-script" status="pending"
+           desc="Read checkpoints for resume state">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --checkpoints</field>
+      <field name="output" var="checkpoints"/>
+    </block>
+
+    <!-- Step 0.3: Check Dispatch Resume -->
+    <block type="task" id="P0-B4" action="run-script" status="pending"
+           desc="Read dispatch progress summary">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --summary</field>
+      <field name="output" var="dispatch_progress"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 0.5: IDE Directory Detection ========== -->
+  <sequence name="Phase 0.5: IDE Directory Detection">
+    <block type="task" id="P05-B1" action="read-file" status="pending"
+           desc="Detect IDE directory and skills">
+      <field name="path">${workspace_path}/.qoder/skills</field>
+      <field name="output" var="ide_skills_dir"/>
+    </block>
+
+    <block type="rule" id="P05-R1" level="mandatory" desc="IDE skills directory verification">
+      <field name="text">Verify skills directory exists in priority order: .qoder/skills, .cursor/skills, .claude/skills, .speccrew/skills</field>
+      <field name="text">If NO IDE directory contains skills folder → STOP and report error</field>
+    </block>
+
+    <block type="gateway" id="P05-G1" mode="exclusive" desc="Verify platform design skills">
+      <branch test="${ide_skills_dir} exists" name="Skills Directory Found">
+        <block type="event" id="P05-E1" action="log" desc="Report available platform design skills">
+          <field name="template">skills-availability-check</field>
+          <field name="skills">speccrew-sd-framework-evaluate, speccrew-sd-frontend, speccrew-sd-backend, speccrew-sd-mobile, speccrew-sd-desktop</field>
+        </block>
+      </branch>
+      <branch default="true" name="Skills Directory Not Found">
+        <block type="event" id="P05-E2" action="log" desc="Report missing skills directory">
+          <field name="message">IDE Skills Directory Not Found. Ensure IDE configuration is correct or run: npx speccrew init</field>
+        </block>
+        <block type="event" id="P05-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 1: Preparation ========== -->
+  <sequence name="Phase 1: Preparation">
+    <block type="rule" id="P1-R1" level="forbidden" desc="Phase 1 Mandatory Constraints">
+      <field name="text">DO NOT use Glob to explore file system</field>
+      <field name="text">DO NOT parse filenames to discover Features</field>
+      <field name="text">ONLY read .prd-feature-list.json and WORKFLOW-PROGRESS.json</field>
+    </block>
+
+    <!-- Step 1.1: Load Feature Registry -->
+    <block type="task" id="P1-B1" action="read-file" status="pending"
+           desc="Load Feature Registry from .prd-feature-list.json">
+      <field name="path">${iterations_dir}/${current_iteration}/01.product-requirement/.prd-feature-list.json</field>
+      <field name="output" var="feature_registry"/>
+    </block>
+
+    <!-- Step 1.2: Verify File Existence -->
+    <block type="gateway" id="P1-G1" mode="exclusive" desc="Verify Feature Spec and API Contract files exist">
+      <branch test="${feature_registry.files} all_exist" name="All Files Exist">
+        <block type="event" id="P1-E1" action="log" desc="Report files verified"/>
+      </branch>
+      <branch default="true" name="Some Files Missing">
+        <block type="event" id="P1-E2" action="log" desc="Report missing files">
+          <field name="template">missing-files-report</field>
+        </block>
+        <block type="event" id="P1-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 1.4: Present Design Scope -->
+    <block type="event" id="P1-E4" action="log" desc="Display Design Scope Summary">
+      <field name="template">design-scope-summary</field>
+      <field name="data" value="${feature_registry}"/>
+    </block>
+
+    <!-- Step 1.5: Preparation Validation -->
+    <block type="checkpoint" id="P1-CP1" name="preparation_validated" desc="Preparation validation gate">
+      <field name="conditions">feature_registry_exists, files_verified, scope_presented</field>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 2: Resource Verification ========== -->
+  <sequence name="Phase 2: Resource Verification">
+    <block type="rule" id="P2-R1" level="forbidden" desc="Phase 2 Mandatory Constraints">
+      <field name="text">DO NOT read Feature Spec files — Skills will read them when dispatched</field>
+      <field name="text">DO NOT read API Contract files — Skills will read them when dispatched</field>
+      <field name="text">DO NOT read techs knowledge files — Skills will read them when dispatched</field>
+      <field name="text">ONLY verify that required resource files exist</field>
+    </block>
+
+    <!-- Step 2.1: Verify Techs Knowledge Base -->
+    <block type="task" id="P2-B1" action="read-file" status="pending"
+           desc="Check techs-manifest.json exists">
+      <field name="path">${workspace_path}/knowledges/techs/techs-manifest.json</field>
+      <field name="output" var="techs_manifest"/>
+    </block>
+
+    <block type="gateway" id="P2-G1" mode="exclusive" desc="Check techs knowledge base availability">
+      <branch test="${techs_manifest} exists" name="Techs Knowledge Exists">
+        <block type="event" id="P2-E1" action="log" desc="Extract platform list from manifest"/>
+      </branch>
+      <branch default="true" name="Techs Knowledge Not Found">
+        <block type="event" id="P2-E2" action="log" desc="Report techs knowledge missing">
+          <field name="message">TECHS KNOWLEDGE BASE NOT FOUND. Required file missing: knowledges/techs/techs-manifest.json. Please initialize the techs knowledge base first.</field>
+        </block>
+        <block type="event" id="P2-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 2.2: Prepare Dispatch Parameters -->
+    <block type="event" id="P2-E4" action="log" desc="Build dispatch parameter template">
+      <field name="template">build-dispatch-params</field>
+      <field name="output" var="dispatch_params"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 3: Framework Evaluation (HARD STOP) ========== -->
+  <sequence name="Phase 3: Framework Evaluation">
+    <block type="rule" id="P3-R1" level="mandatory" desc="Skill-Only Rule">
+      <field name="text">Framework evaluation MUST use speccrew-sd-framework-evaluate skill</field>
+      <field name="text">Agent MUST NOT perform capability gap analysis or framework recommendations itself</field>
+    </block>
+
+    <!-- Step 3.1: Invoke Framework Evaluation Skill -->
+    <block type="task" id="P3-B1" action="run-skill" status="pending"
+           desc="Invoke framework evaluation skill">
+      <field name="skill">speccrew-sd-framework-evaluate</field>
+      <field name="params">
+        feature_spec_paths: ${feature_registry.feature_spec_paths},
+        api_contract_paths: ${feature_registry.api_contract_paths},
+        techs_knowledge_paths: ${dispatch_params.techs_knowledge_paths},
+        iteration_path: ${iterations_dir}/${current_iteration},
+        output_path: ${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md
+      </field>
+      <field name="output" var="framework_result"/>
+    </block>
+
+    <!-- Step 3.2: Validate Skill Output -->
+    <block type="gateway" id="P3-G1" mode="exclusive" desc="Check framework evaluation result">
+      <branch test="${framework_result.status} == 'SUCCESS'" name="Framework Evaluation Success">
+        <block type="event" id="P3-E1" action="log" desc="Framework evaluation completed"/>
+      </branch>
+      <branch default="true" name="Framework Evaluation Failed">
+        <block type="event" id="P3-E2" action="log" desc="Report framework evaluation failure">
+          <field name="message">Framework evaluation skill failed: ${framework_result.error}</field>
+        </block>
+        <block type="event" id="P3-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 3.3: User Confirmation (HARD STOP) -->
+    <block type="event" id="P3-E4" action="confirm" desc="Request user confirmation for framework decisions">
+      <field name="prompt">🛑 FRAMEWORK EVALUATION — AWAITING CONFIRMATION. Do you approve these framework decisions? (确认/修改/取消)</field>
+      <field name="template">framework-evaluation-summary</field>
+      <field name="data" value="${framework_result}"/>
+    </block>
+
+    <block type="gateway" id="P3-G2" mode="exclusive" desc="Handle user confirmation response">
+      <branch test="${user_response} == '确认' or ${user_response} == 'OK'" name="User Confirmed">
+        <block type="event" id="P3-E5" action="log" desc="Proceed to Phase 4"/>
+      </branch>
+      <branch test="${user_response} == '取消'" name="User Cancelled">
+        <block type="event" id="P3-E6" action="abort" desc="Abort workflow"/>
+      </branch>
+      <branch default="true" name="User Requests Modification">
+        <block type="event" id="P3-E7" action="log" desc="Re-evaluate with adjusted scope"/>
+      </branch>
+    </block>
+
+    <block type="checkpoint" id="P3-CP1" name="framework_evaluation" desc="Framework evaluation confirmed">
+      <field name="passed" value="true"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 4: Generate DESIGN-OVERVIEW.md ========== -->
+  <sequence name="Phase 4: Generate DESIGN-OVERVIEW.md">
+    <block type="rule" id="P4-R1" level="mandatory" desc="Agent-Owned Rule">
+      <field name="text">DESIGN-OVERVIEW.md generation is Agent responsibility (not skill-dispatched)</field>
+    </block>
+
+    <block type="task" id="P4-B1" action="write-file" status="pending"
+           desc="Generate DESIGN-OVERVIEW.md">
+      <field name="path">${iterations_dir}/${current_iteration}/03.system-design/DESIGN-OVERVIEW.md</field>
+      <field name="template">design-overview-template</field>
+      <field name="data">
+        iteration: ${current_iteration},
+        platforms: ${techs_manifest.platforms},
+        features: ${feature_registry.features},
+        framework_decisions: ${framework_result.decisions}
+      </field>
+    </block>
+
+    <!-- Step 4.1: Validation -->
+    <block type="checkpoint" id="P4-CP1" name="design_overview" desc="DESIGN-OVERVIEW validation">
+      <field name="conditions">file_exists, has_design_scope_section, has_tech_decisions_section, has_platform_design_index, index_covers_all_feature_platform_combinations</field>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 5: Dispatch Per-Platform Skills ========== -->
+  <sequence name="Phase 5: Dispatch Per-Platform Skills">
+    <block type="rule" id="P5-R1" level="mandatory" desc="Worker Enforcement Rules">
+      <field name="text">This Agent is an orchestrator ONLY — MUST NOT write design documents directly</field>
+      <field name="text">When Features ≥ 2 OR Platforms ≥ 2: MUST dispatch speccrew-task-worker agents via Agent tool</field>
+      <field name="text">FORBIDDEN: Direct invocation of speccrew-sd-* skills in multi-feature/multi-platform scenarios</field>
+      <field name="text">FORBIDDEN: Creating *-design.md or INDEX.md files as fallback if workers fail</field>
+    </block>
+
+    <!-- Step 5.1: Determine Platform Types -->
+    <block type="event" id="P5-E1" action="log" desc="Map platform types to skills">
+      <field name="template">platform-skill-mapping</field>
+      <field name="output" var="platform_skill_map"/>
+    </block>
+
+    <!-- Step 5.2: Initialize DISPATCH-PROGRESS.json -->
+    <block type="task" id="P5-B1" action="run-script" status="pending"
+           desc="Initialize dispatch progress with task list">
+      <field name="command">node ${update_progress_script} init --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks-file ${iterations_dir}/${current_iteration}/03.system-design/.tasks-temp.json</field>
+    </block>
+
+    <!-- Step 5.3/5.4: Dispatch Decision -->
+    <block type="gateway" id="P5-G1" mode="exclusive" desc="Determine dispatch mode">
+      <branch test="${feature_count} == 1 AND ${platform_count} == 1" name="Single Feature Single Platform">
+        <!-- Direct skill invocation allowed -->
+        <block type="task" id="P5-B2" action="run-script" status="pending"
+               desc="Update task status to in_progress">
+          <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --task-id ${task_id} --status in_progress</field>
+        </block>
+        <block type="task" id="P5-B3" action="run-skill" status="pending"
+               desc="Invoke platform design skill directly">
+          <field name="skill">${platform_skill_map.skill}</field>
+          <field name="params">
+            task_id: ${task_id},
+            feature_id: ${feature_id},
+            feature_name: ${feature_name},
+            platform_id: ${platform_id},
+            feature_spec_path: ${feature_spec_path},
+            api_contract_path: ${api_contract_path},
+            techs_paths: ${techs_paths},
+            framework_decisions: ${framework_result.decisions}
+          </field>
+        </block>
+      </branch>
+      <branch default="true" name="Multi Feature/Platform - Worker Dispatch Required">
+        <!-- Parallel Worker Dispatch -->
+        <block type="rule" id="P5-R2" level="mandatory" desc="Parallel dispatch rule">
+          <field name="text">Dispatch ALL platform workers IN PARALLEL — DO NOT execute sequentially</field>
+          <field name="text">Each Worker runs independently — dispatch all at once, then monitor completion</field>
+        </block>
+        <block type="task" id="P5-B4" action="dispatch-to-worker" status="pending"
+               desc="Dispatch workers for Feature×Platform matrix">
+          <field name="worker">speccrew-task-worker</field>
+          <field name="max_concurrent">6</field>
+          <field name="tasks">${dispatch_tasks_matrix}</field>
+          <field name="note">Each worker receives: skill_path, task_id, feature_id, feature_name, platform_id, feature_spec_path, api_contract_path, techs_knowledge_paths, framework_decisions, output_base_path</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 5.5: Update DISPATCH-PROGRESS.json after completion -->
+    <block type="task" id="P5-B5" action="run-script" status="pending"
+           desc="Update task status based on completion">
+      <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --task-id ${task_id} --status ${completion_status} --output "${output_path}"</field>
+    </block>
+
+    <!-- Step 5.6: Error Handling -->
+    <block type="gateway" id="P5-G2" mode="exclusive" desc="Check batch failure rate">
+      <branch test="${failure_rate} > 0.5" name="Batch Failure Threshold Exceeded">
+        <block type="event" id="P5-E2" action="log" desc="Report batch failure">
+          <field name="message">❌ BATCH FAILURE THRESHOLD EXCEEDED. Failure Rate: ${failure_rate}% (exceeds 50% threshold)</field>
+        </block>
+        <block type="event" id="P5-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+      <branch default="true" name="Within Failure Threshold">
+        <block type="event" id="P5-E4" action="log" desc="Continue with remaining tasks"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 6: Joint Confirmation (HARD STOP) ========== -->
+  <sequence name="Phase 6: Joint Confirmation">
+    <!-- Step 6.1: Present summary by Feature ID -->
+    <block type="event" id="P6-E1" action="log" desc="Display design documents summary by Feature">
+      <field name="template">design-documents-summary</field>
+      <field name="data" value="${dispatch_progress}"/>
+    </block>
+
+    <!-- Step 6.1: User Confirmation (HARD STOP) -->
+    <block type="event" id="P6-E2" action="confirm" desc="Request joint confirmation">
+      <field name="prompt">🛑 JOINT CONFIRMATION — AWAITING USER REVIEW. Please review all design documents. (确认/修改/取消)</field>
+    </block>
+
+    <block type="gateway" id="P6-G1" mode="exclusive" desc="Handle joint confirmation response">
+      <branch test="${user_response} == '确认' or ${user_response} == 'OK'" name="User Confirmed">
+        <block type="event" id="P6-E3" action="log" desc="Proceed to finalize"/>
+      </branch>
+      <branch test="${user_response} == '取消'" name="User Cancelled">
+        <block type="event" id="P6-E4" action="abort" desc="Abort workflow"/>
+      </branch>
+      <branch default="true" name="User Requests Modification">
+        <block type="event" id="P6-E5" action="log" desc="Re-dispatch design workers for specified scope"/>
+      </branch>
+    </block>
+
+    <!-- Step 6.3: Update Checkpoints on Confirmation -->
+    <block type="task" id="P6-B1" action="run-script" status="pending"
+           desc="Write framework_evaluation checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint framework_evaluation --passed true</field>
+    </block>
+
+    <block type="task" id="P6-B2" action="run-script" status="pending"
+           desc="Write design_overview checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint design_overview --passed true</field>
+    </block>
+
+    <block type="task" id="P6-B3" action="run-script" status="pending"
+           desc="Write joint_confirmation checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint joint_confirmation --passed true</field>
+    </block>
+
+    <block type="task" id="P6-B4" action="run-script" status="pending"
+           desc="Update WORKFLOW-PROGRESS.json to confirmed">
+      <field name="command">node ${update_progress_script} update-workflow --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --stage 03_system_design --status confirmed --output "DESIGN-OVERVIEW.md, platform-indexes, module-designs"</field>
+    </block>
+
+    <block type="checkpoint" id="P6-CP1" name="joint_confirmation" desc="Joint confirmation completed">
+      <field name="passed" value="true"/>
+    </block>
+  </sequence>
+
+  <block type="output" id="O1" desc="System Designer execution result">
+    <field name="status" from="${execution.status}" type="string" desc="success / partial / failed"/>
+    <field name="output_files" from="${execution.output_files}" type="array" desc="Generated design documents"/>
+    <field name="summary" from="${execution.summary}" type="string" desc="Execution summary"/>
+    <field name="next_steps" from="${execution.next_steps}" type="array" desc="Suggested next actions"/>
+  </block>
+
+</workflow>

@@ -1112,3 +1112,9 @@ Delivery Report: {path}/delivery-report.md
 - Ignore cross-platform integration issues
 - Proceed to test phase with unresolved blockers
 - Write application code directly (System Developer is a **pure orchestrator** — it reads design documents, creates task lists, dispatches workers, tracks progress, and coordinates reviews. It NEVER writes application code directly.)
+
+---
+
+## AgentFlow Definition
+
+<!-- @skill: speccrew-system-developer-orchestration -->

@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="fd-orchestration-main" status="pending">
+
+  <!-- ========== Input Parameters ========== -->
+  <block type="input" id="I1" desc="FD Orchestration Input">
+    <field name="prd_path" required="true" type="string" desc="PRD document directory path"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+    <field name="workspace_root" required="true" type="string" desc="speccrew-workspace root directory path"/>
+    <field name="frontend_platforms" required="false" type="array" desc="Frontend platform list from techs-manifest"/>
+  </block>
+
+  <!-- ========== Phase 0: Workflow Progress Management ========== -->
+  <sequence name="Phase 0: Workflow Progress Management">
+    
+    <!-- Phase 0.1: Stage Gate — Verify Upstream Completion -->
+    <block type="task" id="P0-B1" action="run-script" status="pending" desc="Read WORKFLOW-PROGRESS.json overview">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/WORKFLOW-PROGRESS.json --overview</field>
+      <field name="output" var="workflow_progress"/>
+    </block>
+
+    <block type="gateway" id="P0-G1" mode="exclusive" desc="Verify PRD Stage Status">
+      <branch test="${workflow_progress.stages.01_prd.status} != 'confirmed'" name="PRD Not Confirmed">
+        <block type="event" id="P0-E1" action="log" desc="Report PRD not confirmed">
+          <field name="message">❌ PRD stage has not been confirmed. Please complete PRD confirmation first using the Product Manager agent.</field>
+        </block>
+        <block type="abort" id="P0-ABORT1" reason="Stage gate failed"/>
+      </branch>
+      <branch default="true" name="PRD Confirmed - Proceed"/>
+    </block>
+
+    <block type="task" id="P0-B2" action="run-script" status="pending" desc="Update stage status to in_progress">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status in_progress</field>
+    </block>
+
+    <!-- Phase 0.2: Check Resume State -->
+    <block type="gateway" id="P0-G2" mode="exclusive" desc="Check checkpoint file">
+      <branch test="exists(${iteration_path}/02.feature-design/.checkpoints.json)" name="Has Checkpoint">
+        <block type="task" id="P0-B3" action="run-script" status="pending" desc="Read checkpoints">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/02.feature-design/.checkpoints.json --checkpoints</field>
+          <field name="output" var="checkpoints"/>
+        </block>
+
+        <block type="gateway" id="P0-G3" mode="exclusive" desc="Evaluate checkpoint status">
+          <branch test="${checkpoints.api_contract_joint.passed} == true" name="All Complete">
+            <block type="event" id="P0-E2" action="confirm" desc="Ask user about redo">
+              <field name="prompt">Feature Design phase already completed. Do you want to redo?</field>
+            </block>
+          </branch>
+          <branch test="${checkpoints.feature_spec_review.passed} == true" name="Resume from Phase 4">
+            <block type="set-variable" id="P0-V1" name="resume_phase" value="4"/>
+          </branch>
+          <branch test="${checkpoints.function_decomposition.passed} == true" name="Resume from Phase 3b">
+            <block type="set-variable" id="P0-V2" name="resume_phase" value="3b"/>
+          </branch>
+          <branch default="true" name="Resume from Phase 1"/>
+        </block>
+
+        <block type="event" id="P0-E3" action="log" desc="Display resume summary">
+          <field name="template">resume-summary</field>
+          <field name="data" value="${checkpoints}"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Checkpoint - Fresh Start">
+        <block type="set-variable" id="P0-V3" name="resume_phase" value="1"/>
+      </branch>
+    </block>
+
+    <!-- Phase 0.3: Check Dispatch Resume -->
+    <block type="gateway" id="P0-G4" mode="exclusive" desc="Check dispatch progress">
+      <branch test="exists(${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json)" name="Has Dispatch Progress">
+        <block type="task" id="P0-B4" action="run-script" status="pending" desc="Read dispatch summary">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --summary</field>
+          <field name="output" var="dispatch_progress"/>
+        </block>
+        <block type="event" id="P0-E4" action="log" desc="Display dispatch status">
+          <field name="template">dispatch-status</field>
+          <field name="data" value="${dispatch_progress}"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Dispatch Progress"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 1: Preparation ========== -->
+  <sequence name="Phase 1: Preparation">
+    
+    <!-- Phase 1.1: Identify PRD Documents -->
+    <block type="task" id="P1-B1" action="glob-files" status="pending" desc="Find PRD documents">
+      <field name="path" value="${prd_path}"/>
+      <field name="pattern" value="*-prd.md"/>
+      <field name="output" var="prd_files"/>
+    </block>
+
+    <!-- Phase 1.2: Check Existing Feature Specs -->
+    <block type="task" id="P1-B2" action="glob-files" status="pending" desc="Check existing feature specs">
+      <field name="path" value="${iteration_path}/02.feature-design"/>
+      <field name="pattern" value="*-feature-spec.md"/>
+      <field name="output" var="existing_specs"/>
+    </block>
+
+    <block type="gateway" id="P1-G1" mode="exclusive" desc="Check for existing specs">
+      <branch test="${existing_specs.count} > 0" name="Has Existing Specs">
+        <block type="event" id="P1-E1" action="confirm" desc="Ask user about overwrite">
+          <field name="prompt">Existing feature specification documents found. Overwrite or create new version?</field>
+          <field name="options" value="overwrite,new_version"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Existing Specs - Proceed"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 2: Load Feature List ========== -->
+  <sequence name="Phase 2: Load Feature List">
+    
+    <block type="rule" id="P2-R1" level="mandatory" desc="Phase 2 Orchestrator Rules">
+      <field name="text">DO NOT read PRD files directly</field>
+      <field name="text">DO NOT parse Feature Breakdown tables yourself</field>
+      <field name="text">ONLY read .prd-feature-list.json generated by PM Agent</field>
+      <field name="text">ONLY present summary and collect user confirmation</field>
+    </block>
+
+    <!-- Step 1: Confirm PRD Path -->
+    <block type="task" id="P2-B1" action="read-json" status="pending" desc="Read feature list">
+      <field name="path" value="${prd_path}/.prd-feature-list.json"/>
+      <field name="output" var="feature_list"/>
+    </block>
+
+    <block type="gateway" id="P2-G1" mode="exclusive" desc="Check feature list file">
+      <branch test="${feature_list} == null" name="File Not Found">
+        <block type="event" id="P2-E1" action="log" desc="Report missing feature list">
+          <field name="message">❌ ERROR: Feature list file not found. This file should be generated by PM Agent during Sub-PRD dispatch.</field>
+        </block>
+        <block type="abort" id="P2-ABORT1" reason="Feature list file missing"/>
+      </branch>
+      <branch default="true" name="File Exists"/>
+    </block>
+
+    <!-- Step 2-3: Verify Structure & Extract Statistics -->
+    <block type="task" id="P2-B2" action="extract-statistics" status="pending" desc="Extract feature statistics">
+      <field name="feature_list" value="${feature_list}"/>
+      <field name="output" var="feature_stats"/>
+      <field name="output" var="total_features"/>
+      <field name="output" var="total_modules"/>
+    </block>
+
+    <block type="event" id="P2-E2" action="log" desc="Display feature list summary">
+      <field name="template">feature-list-summary</field>
+      <field name="data" value="${feature_stats}"/>
+    </block>
+
+    <!-- Step 4: Write Checkpoint -->
+    <block type="task" id="P2-B3" action="run-script" status="pending" desc="Write feature checkpoint">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js write-checkpoint --file ${iteration_path}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint function_decomposition --data '${feature_list_json}'</field>
+    </block>
+
+    <!-- Step 5: HARD STOP — User Confirmation -->
+    <block type="checkpoint" id="P2-CP1" name="feature_list_confirmation" desc="Feature List confirmation gate">
+      <field name="required" value="true"/>
+    </block>
+
+    <block type="event" id="P2-E3" action="confirm" desc="Present feature list for confirmation">
+      <field name="prompt">⚠️ HARD STOP — Please review the Feature List before proceeding to Feature Design. Confirm the granularity, IDs, Types, and dependencies are correct.</field>
+      <field name="template">feature-list-table</field>
+      <field name="data" value="${feature_list}"/>
+    </block>
+
+    <block type="task" id="P2-B4" action="run-script" status="pending" desc="Update checkpoint passed">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js write-checkpoint --file ${iteration_path}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint function_decomposition --passed true</field>
+    </block>
+
+    <!-- Determine dispatch mode -->
+    <block type="gateway" id="P2-G2" mode="exclusive" desc="Determine dispatch mode">
+      <branch test="${total_features} == 1" name="Single Feature">
+        <block type="set-variable" id="P2-V1" name="dispatch_mode" value="direct"/>
+      </branch>
+      <branch test="${total_features} >= 2" name="Multiple Features">
+        <block type="set-variable" id="P2-V2" name="dispatch_mode" value="worker"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 3: Feature Design — Two-Stage Pipeline ========== -->
+  <sequence name="Phase 3: Feature Design — Two-Stage Pipeline">
+    
+    <block type="rule" id="P3-R1" level="mandatory" desc="Phase 3 Mandatory Rules">
+      <field name="text">DO NOT ask user which strategy to use - strategy determined by Phase 2 extraction</field>
+      <field name="text">DO NOT invoke skills directly when 2+ Features - MUST dispatch speccrew-task-worker</field>
+      <field name="text">Dispatch granularity is PER FEATURE, not per module</field>
+      <field name="text">DO NOT generate Feature Spec documents yourself - role is to DISPATCH workers</field>
+      <field name="text">Phase 3a → 3b → 3c is STRICTLY SERIAL</field>
+      <field name="text">Feature name is LOCKED after Phase 2 confirmation</field>
+    </block>
+
+    <!-- ========== Phase 3a: Analyze — Function Decomposition ========== -->
+    <block type="event" id="P3-E1" action="log" desc="Start Phase 3a">
+      <field name="message">📊 Phase 3a: Analyze — Function Decomposition</field>
+    </block>
+
+    <block type="gateway" id="P3-G1" mode="exclusive" desc="Dispatch mode for Phase 3a">
+      
+      <!-- Single Feature: Direct Invocation -->
+      <branch test="${dispatch_mode} == 'direct'" name="Direct Invocation">
+        <block type="task" id="P3-B1" action="run-skill" status="pending" desc="Invoke feature analyze skill">
+          <field name="skill">speccrew-fd-feature-analyze</field>
+          <field name="context">
+            prd_path: ${prd_files[0]}
+            feature_id: ${feature_list.modules[0].features[0].feature_id}
+            feature_name: ${feature_list.modules[0].features[0].feature_name}
+            feature_type: ${feature_list.modules[0].features[0].feature_type}
+            iteration_id: ${iteration_path}
+            frontend_platforms: ${frontend_platforms}
+          </field>
+          <field name="output" var="analyze_result"/>
+        </block>
+      </branch>
+
+      <!-- Multiple Features: Worker Dispatch -->
+      <branch test="${dispatch_mode} == 'worker'" name="Worker Dispatch">
+        
+        <block type="rule" id="P3-R2" level="mandatory" desc="Worker dispatch rules">
+          <field name="text">MUST dispatch Workers for ALL tasks with status pending</field>
+          <field name="text">DO NOT skip any pending task</field>
+          <field name="text">DO NOT stop mid-way to ask user for options</field>
+        </block>
+
+        <!-- Initialize DISPATCH-PROGRESS.json -->
+        <block type="task" id="P3-B2" action="run-script" status="pending" desc="Initialize dispatch progress">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+        </block>
+
+        <!-- Dispatch Workers in batches of 6 -->
+        <block type="loop" id="P3-L1" mode="batch" batch_size="6" desc="Dispatch analyze workers">
+          <field name="items" value="${all_features}"/>
+          
+          <block type="task" id="P3-B3" action="dispatch-to-worker" status="pending" desc="Dispatch analyze worker">
+            <field name="agent">speccrew-task-worker</field>
+            <field name="skill">speccrew-fd-feature-analyze</field>
+            <field name="context">
+              prd_path: ${item.prd_path}
+              feature_id: ${item.feature_id}
+              feature_name: ${item.feature_name}
+              feature_type: ${item.feature_type}
+              iteration_id: ${iteration_path}
+              frontend_platforms: ${frontend_platforms}
+              skip_checkpoint: true
+            </field>
+          </block>
+
+          <block type="task" id="P3-B4" action="run-script" status="pending" desc="Update worker progress">
+            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
+          </block>
+        </block>
+
+        <!-- All completed: Present summary -->
+        <block type="event" id="P3-E2" action="log" desc="Display analyze summary">
+          <field name="template">analyze-summary</field>
+          <field name="data" value="${analyze_results}"/>
+        </block>
+
+        <block type="event" id="P3-E3" action="confirm" desc="HARD STOP for analyze confirmation">
+          <field name="prompt">📊 Phase 3a (Analyze) complete. Does this function breakdown align with your understanding?</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- ========== Phase 3b: Design & Generate — Feature Spec Production ========== -->
+    <block type="event" id="P3-E4" action="log" desc="Start Phase 3b">
+      <field name="message">📊 Phase 3b: Design & Generate — Feature Spec Production</field>
+    </block>
+
+    <block type="gateway" id="P3-G2" mode="exclusive" desc="Dispatch mode for Phase 3b">
+      
+      <!-- Single Feature: Direct Invocation -->
+      <branch test="${dispatch_mode} == 'direct'" name="Direct Invocation">
+        <block type="task" id="P3-B5" action="run-skill" status="pending" desc="Invoke feature design skill">
+          <field name="skill">speccrew-fd-feature-design</field>
+          <field name="context">
+            feature_analysis_path: ${analyze_result.output_path}
+            prd_path: ${prd_files[0]}
+            feature_id: ${feature_list.modules[0].features[0].feature_id}
+            feature_name: ${feature_list.modules[0].features[0].feature_name}
+            feature_type: ${feature_list.modules[0].features[0].feature_type}
+            frontend_platforms: ${frontend_platforms}
+            output_path: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
+          </field>
+          <field name="output" var="design_result"/>
+        </block>
+      </branch>
+
+      <!-- Multiple Features: Worker Dispatch -->
+      <branch test="${dispatch_mode} == 'worker'" name="Worker Dispatch">
+        
+        <!-- Initialize DISPATCH-PROGRESS.json for Design stage -->
+        <block type="task" id="P3-B6" action="run-script" status="pending" desc="Initialize design dispatch progress">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+        </block>
+
+        <!-- Dispatch Workers in batches of 6 -->
+        <block type="loop" id="P3-L2" mode="batch" batch_size="6" desc="Dispatch design workers">
+          <field name="items" value="${all_features}"/>
+          
+          <block type="task" id="P3-B7" action="dispatch-to-worker" status="pending" desc="Dispatch design worker">
+            <field name="agent">speccrew-task-worker</field>
+            <field name="skill">speccrew-fd-feature-design</field>
+            <field name="context">
+              feature_analysis_path: ${item.analysis_path}
+              prd_path: ${item.prd_path}
+              feature_id: ${item.feature_id}
+              feature_name: ${item.feature_name}
+              feature_type: ${item.feature_type}
+              frontend_platforms: ${frontend_platforms}
+              output_path: ${iteration_path}/02.feature-design/${item.feature_id}-${item.feature_name}-feature-spec.md
+              skip_checkpoint: true
+            </field>
+          </block>
+
+          <block type="task" id="P3-B8" action="run-script" status="pending" desc="Update worker progress">
+            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
+          </block>
+        </block>
+      </branch>
+    </block>
+
+    <!-- ========== Phase 3c: Confirm — Batch Spec Review (Multi-Feature Only) ========== -->
+    <block type="gateway" id="P3-G3" mode="exclusive" desc="Check if Phase 3c needed">
+      <branch test="${dispatch_mode} == 'worker'" name="Multi-Feature Confirmation">
+        
+        <block type="rule" id="P3-R3" level="mandatory" desc="Phase 3c Orchestrator Rules">
+          <field name="text">DO NOT read feature-spec.md files for summary aggregation</field>
+          <field name="text">DO NOT count functions/components/APIs by parsing Spec documents</field>
+          <field name="text">ONLY read DISPATCH-PROGRESS.json for summary data</field>
+        </block>
+
+        <block type="task" id="P3-B9" action="run-script" status="pending" desc="Read progress summary">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --overview</field>
+          <field name="output" var="design_progress"/>
+        </block>
+
+        <block type="event" id="P3-E5" action="confirm" desc="HARD STOP for batch spec review">
+          <field name="prompt">📋 Batch Feature Spec Summary. Please review all Feature Specs before proceeding to API Contract generation.</field>
+          <field name="template">batch-spec-summary</field>
+          <field name="data" value="${design_progress}"/>
+        </block>
+
+        <block type="task" id="P3-B10" action="run-script" status="pending" desc="Update checkpoint">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js write-checkpoint --file ${iteration_path}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint feature_spec_review --passed true</field>
+        </block>
+      </branch>
+      <branch default="true" name="Single Feature - Skip Phase 3c"/>
+    </block>
+
+    <!-- Phase 3 Error Handling -->
+    <block type="gateway" id="P3-G4" mode="exclusive" desc="Check for errors">
+      <branch test="${batch_failed_count} > ${batch_total} / 2" name="Majority Failed">
+        <block type="event" id="P3-E6" action="log" desc="Report batch failure">
+          <field name="message">⚠️ More than 50% workers failed. Stopping workflow.</field>
+        </block>
+        <block type="abort" id="P3-ABORT1" reason="Batch failure threshold exceeded"/>
+      </branch>
+      <branch test="${batch_failed_count} > 0" name="Some Failed">
+        <block type="event" id="P3-E7" action="confirm" desc="Ask for retry strategy">
+          <field name="prompt">Some features failed. Retry failed features?</field>
+        </block>
+      </branch>
+      <branch default="true" name="All Success"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 4: API Contract Generation ========== -->
+  <sequence name="Phase 4: API Contract Generation">
+    
+    <block type="event" id="P4-E1" action="log" desc="Start Phase 4">
+      <field name="message">📊 Phase 4: API Contract Generation</field>
+    </block>
+
+    <!-- Phase 4.1: Dispatch Mode Decision -->
+    <block type="gateway" id="P4-G1" mode="exclusive" desc="Dispatch mode for API Contract">
+      
+      <!-- Single Feature: Direct Invocation -->
+      <branch test="${dispatch_mode} == 'direct'" name="Direct Invocation">
+        <block type="task" id="P4-B1" action="run-skill" status="pending" desc="Invoke API contract skill">
+          <field name="skill">speccrew-fd-api-contract</field>
+          <field name="context">
+            feature_spec_path: ${design_result.output_path}
+            feature_id: ${feature_list.modules[0].features[0].feature_id}
+            feature_name: ${feature_list.modules[0].features[0].feature_name}
+            feature_type: ${feature_list.modules[0].features[0].feature_type}
+            output_path: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md
+          </field>
+          <field name="output" var="api_contract_result"/>
+        </block>
+      </branch>
+
+      <!-- Multiple Features: Worker Dispatch -->
+      <branch test="${dispatch_mode} == 'worker'" name="Worker Dispatch">
+        
+        <block type="rule" id="P4-R1" level="mandatory" desc="Phase 4 Worker Rules">
+          <field name="text">MUST dispatch Workers via speccrew-task-worker</field>
+          <field name="text">DO NOT invoke speccrew-fd-api-contract directly</field>
+        </block>
+
+        <!-- Initialize DISPATCH-PROGRESS.json for API Contract stage -->
+        <block type="task" id="P4-B2" action="run-script" status="pending" desc="Initialize API contract dispatch">
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+        </block>
+
+        <!-- Dispatch Workers in batches of 6 -->
+        <block type="loop" id="P4-L1" mode="batch" batch_size="6" desc="Dispatch API contract workers">
+          <field name="items" value="${all_features}"/>
+          
+          <block type="task" id="P4-B3" action="dispatch-to-worker" status="pending" desc="Dispatch API contract worker">
+            <field name="agent">speccrew-task-worker</field>
+            <field name="skill">speccrew-fd-api-contract</field>
+            <field name="context">
+              feature_spec_path: ${item.spec_path}
+              feature_id: ${item.feature_id}
+              feature_name: ${item.feature_name}
+              feature_type: ${item.feature_type}
+              output_path: ${iteration_path}/02.feature-design/${item.feature_id}-${item.feature_name}-api-contract.md
+            </field>
+          </block>
+
+          <block type="task" id="P4-B4" action="run-script" status="pending" desc="Update worker progress">
+            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
+          </block>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Phase 4.4: Joint Confirmation -->
+    <block type="checkpoint" id="P4-CP1" name="api_contract_joint" desc="Joint confirmation gate">
+      <field name="required" value="true"/>
+    </block>
+
+    <block type="event" id="P4-E2" action="confirm" desc="Present for joint confirmation">
+      <field name="prompt">📋 Feature Design Complete. Please review all Feature Spec and API Contract documents before confirmation.</field>
+      <field name="template">joint-confirmation</field>
+      <field name="data" value="${all_outputs}"/>
+    </block>
+
+    <block type="task" id="P4-B5" action="run-script" status="pending" desc="Update joint confirmation checkpoint">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js write-checkpoint --file ${iteration_path}/02.feature-design/.checkpoints.json --stage 02_feature_design --checkpoint api_contract_joint --passed true</field>
+    </block>
+
+    <!-- Phase 4.5: Finalize Stage -->
+    <block type="task" id="P4-B6" action="run-script" status="pending" desc="Update workflow progress">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 02_feature_design --status confirmed --output "${output_files}"</field>
+    </block>
+
+    <block type="event" id="P4-E3" action="log" desc="Output completion message">
+      <field name="message">✅ Feature Design phase completed and confirmed. Ready to start System Design phase.</field>
+    </block>
+  </sequence>
+
+  <!-- ========== Output ========== -->
+  <block type="output" id="O1" desc="FD Orchestration execution result">
+    <field name="status" from="${execution.status}" type="string" desc="success / partial / failed"/>
+    <field name="feature_specs" from="${feature_spec_files}" type="array" desc="Generated feature spec file list"/>
+    <field name="api_contracts" from="${api_contract_files}" type="array" desc="Generated API contract file list"/>
+    <field name="workflow_stage" from="02_feature_design" type="string" desc="Current workflow stage"/>
+    <field name="next_agent" value="speccrew-system-designer" type="string" desc="Suggested next agent"/>
+  </block>
+</workflow>

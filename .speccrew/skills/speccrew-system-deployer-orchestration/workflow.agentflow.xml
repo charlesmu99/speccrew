@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="speccrew-system-deployer-orchestration" version="1.0.0">
+  
+  <!-- ==================== INPUT PARAMETERS ==================== -->
+  <block type="input" id="input-params">
+    <param name="workspace_path" type="string" required="true" desc="speccrew-workspace 根目录绝对路径"/>
+    <param name="iteration_dir" type="string" required="true" desc="当前迭代目录路径"/>
+    <param name="update_progress_script" type="string" required="true" desc="update-progress.js 脚本路径"/>
+  </block>
+
+  <!-- ==================== PHASE 0: STAGE GATE & RESUME ==================== -->
+  <sequence id="phase-0-stage-gate">
+    
+    <!-- Phase 0.1: Verify Upstream Completion -->
+    <block type="task" id="p0-1-verify-stage" action="run-script" desc="验证开发阶段已完成确认">
+      <field name="command">node ${update_progress_script} read --file ${workspace_path}/WORKFLOW-PROGRESS.json --overview</field>
+      <event type="on-failure" action="log">
+        <message>❌ Development stage has not been confirmed. Please complete and confirm development before starting deployment.</message>
+      </event>
+    </block>
+
+    <block type="gateway" id="p0-1-gate" desc="检查开发阶段状态">
+      <condition expression="stages.04_development.status == 'confirmed'">
+        <when true="proceed" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ STAGE GATE FAILURE: Development stage not confirmed. Workflow aborted.</message>
+      </event>
+    </block>
+
+    <!-- Phase 0.1: Update Deployment Stage Status -->
+    <block type="task" id="p0-1-update-stage" action="run-script" desc="更新部署阶段状态为进行中">
+      <field name="command">node ${update_progress_script} update-workflow --file ${workspace_path}/WORKFLOW-PROGRESS.json --stage 05_deployment --status in_progress</field>
+    </block>
+
+    <!-- Phase 0.2: Check Resume State -->
+    <block type="task" id="p0-2-read-checkpoints" action="run-script" desc="读取检查点状态以支持断点续传">
+      <field name="command">node ${update_progress_script} read --file ${iteration_dir}/05.deployment/.checkpoints.json --checkpoints</field>
+      <event type="on-failure" action="log">
+        <message>ℹ️ No checkpoint file found. Proceeding with full workflow.</message>
+      </event>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 0.5: IDE DIRECTORY DETECTION ==================== -->
+  <sequence id="phase-0.5-ide-detection">
+
+    <block type="task" id="p0.5-detect-ide" action="detect-ide-directory" desc="检测 IDE 目录">
+      <field name="priority-order">.qoder,.cursor,.claude,.speccrew</field>
+      <output name="ide_dir" as="ide_dir"/>
+      <output name="ide_skills_dir" as="ide_skills_dir"/>
+    </block>
+
+    <block type="gateway" id="p0.5-verify-skills-dir" desc="验证技能目录存在">
+      <condition expression="ide_skills_dir != null">
+        <when true="proceed" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ IDE Skills Directory Not Found. Checked: .qoder/skills, .cursor/skills, .claude/skills, .speccrew/skills</message>
+      </event>
+    </block>
+
+    <block type="task" id="p0.5-verify-deploy-skills" action="verify-skills" desc="验证部署技能可用性">
+      <field name="skills-dir">${ide_skills_dir}</field>
+      <field name="required-skills">speccrew-deploy-build,speccrew-deploy-migrate,speccrew-deploy-startup,speccrew-deploy-smoke-test</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 1: PREPARATION ==================== -->
+  <sequence id="phase-1-preparation">
+
+    <!-- 1.1 Read Dev Task Records -->
+    <block type="task" id="p1-1-read-dev-records" action="read-file" desc="读取开发任务记录">
+      <field name="path">${iteration_dir}/04.development/</field>
+      <output name="migration_scripts" as="migration_scripts"/>
+      <output name="api_endpoints" as="api_endpoints"/>
+    </block>
+
+    <!-- 1.2 Load Techs Knowledge -->
+    <block type="task" id="p1-2-check-techs-knowledge" action="run-script" desc="检查技术知识库可用性">
+      <field name="command">node ${update_progress_script} read --file ${workspace_path}/knowledges/techs/techs-manifest.json --overview</field>
+      <event type="on-failure" action="log">
+        <message>❌ TECHS KNOWLEDGE BASE NOT FOUND. Required file missing: knowledges/techs/techs-manifest.json</message>
+      </event>
+    </block>
+
+    <block type="task" id="p1-2-load-techs" action="read-file" desc="加载部署相关技术知识">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/conventions-data.md</field>
+      <output name="build_cmd" as="build_cmd"/>
+      <output name="migration_cmd" as="migration_cmd"/>
+      <output name="validation_cmd" as="validation_cmd"/>
+      <output name="start_cmd" as="start_cmd"/>
+      <output name="health_url" as="health_url"/>
+      <output name="health_timeout" as="health_timeout"/>
+    </block>
+
+    <!-- 1.3 Determine Project Root -->
+    <block type="task" id="p1-3-determine-project-root" action="determine-project-root" desc="确定项目根目录">
+      <field name="workspace-path">${workspace_path}</field>
+      <output name="project_root" as="project_root"/>
+    </block>
+
+    <!-- 1.4 Determine Verification Mode -->
+    <block type="task" id="p1-4-determine-verification" action="determine-verification-mode" desc="确定验证模式">
+      <field name="techs-path">${workspace_path}/knowledges/techs/${platform_id}</field>
+      <output name="verification_mode" as="verification_mode"/>
+      <output name="process_name" as="process_name"/>
+      <output name="log_file" as="log_file"/>
+      <output name="success_pattern" as="success_pattern"/>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 2: SKILL DISPATCH (LINEAR SEQUENCE) ==================== -->
+  <sequence id="phase-2-skill-dispatch">
+
+    <!-- Step 1: Build -->
+    <block type="task" id="p2-step1-build" action="run-skill" desc="执行构建技能">
+      <field name="skill">speccrew-deploy-build</field>
+      <param name="platform_id">${platform_id}</param>
+      <param name="build_cmd">${build_cmd}</param>
+      <param name="iteration_path">${iteration_dir}</param>
+      <param name="project_root">${project_root}</param>
+      <event type="on-success" action="run-script">
+        <command>node ${update_progress_script} write-checkpoint --file ${iteration_dir}/05.deployment/.checkpoints.json --stage 05_deployment --checkpoint build_complete --passed true --description "Build completed successfully"</command>
+      </event>
+      <event type="on-failure" action="log">
+        <message>❌ Build failed. See error details above. Workflow stopped.</message>
+      </event>
+    </block>
+
+    <block type="gateway" id="p2-step1-gate" desc="构建结果检查">
+      <condition expression="build_result == 'success'">
+        <when true="proceed" false="abort"/>
+      </condition>
+    </block>
+
+    <!-- Step 2: Migrate (Conditional) -->
+    <block type="gateway" id="p2-step2-migrate-check" desc="检查是否有迁移脚本">
+      <condition expression="migration_scripts.length > 0">
+        <when true="execute-migrate" false="skip-migrate"/>
+      </condition>
+    </block>
+
+    <block type="task" id="p2-step2-migrate" action="run-skill" desc="执行数据库迁移技能">
+      <field name="skill">speccrew-deploy-migrate</field>
+      <param name="platform_id">${platform_id}</param>
+      <param name="migration_cmd">${migration_cmd}</param>
+      <param name="validation_cmd">${validation_cmd}</param>
+      <param name="migration_scripts">${migration_scripts}</param>
+      <param name="iteration_path">${iteration_dir}</param>
+      <param name="project_root">${project_root}</param>
+      <event type="on-success" action="run-script">
+        <command>node ${update_progress_script} write-checkpoint --file ${iteration_dir}/05.deployment/.checkpoints.json --stage 05_deployment --checkpoint migration_complete --passed true --description "Database migration completed"</command>
+      </event>
+      <event type="on-failure" action="log">
+        <message>❌ Database migration failed. See error details above. Workflow stopped.</message>
+      </event>
+    </block>
+
+    <block type="task" id="p2-step2-skip-migrate" action="log" desc="跳过数据库迁移">
+      <field name="message">⏭️ No migration scripts found, skipping database migration.</field>
+    </block>
+
+    <!-- Step 3: Startup -->
+    <block type="task" id="p2-step3-startup" action="run-skill" desc="执行应用启动技能">
+      <field name="skill">speccrew-deploy-startup</field>
+      <param name="platform_id">${platform_id}</param>
+      <param name="start_cmd">${start_cmd}</param>
+      <param name="health_url">${health_url}</param>
+      <param name="health_timeout">${health_timeout}</param>
+      <param name="iteration_path">${iteration_dir}</param>
+      <param name="project_root">${project_root}</param>
+      <param name="verification_mode">${verification_mode}</param>
+      <param name="process_name">${process_name}</param>
+      <param name="log_file">${log_file}</param>
+      <param name="success_pattern">${success_pattern}</param>
+      <event type="on-success" action="run-script">
+        <command>node ${update_progress_script} write-checkpoint --file ${iteration_dir}/05.deployment/.checkpoints.json --stage 05_deployment --checkpoint startup_complete --passed true --description "Application started successfully"</command>
+      </event>
+      <event type="on-failure" action="log">
+        <message>❌ Application startup failed. See error details above. Workflow stopped.</message>
+      </event>
+    </block>
+
+    <block type="gateway" id="p2-step3-gate" desc="启动结果检查">
+      <condition expression="startup_result == 'success'">
+        <when true="proceed" false="abort"/>
+      </condition>
+    </block>
+
+    <!-- Step 4: Smoke Test -->
+    <block type="task" id="p2-step4-smoke-test" action="run-skill" desc="执行冒烟测试技能">
+      <field name="skill">speccrew-deploy-smoke-test</field>
+      <param name="platform_id">${platform_id}</param>
+      <param name="base_url">${health_url}</param>
+      <param name="api_contract_paths">${api_contract_paths}</param>
+      <param name="iteration_path">${iteration_dir}</param>
+      <param name="project_root">${project_root}</param>
+      <param name="test_mode">${verification_mode}</param>
+      <param name="process_name">${process_name}</param>
+      <param name="log_file">${log_file}</param>
+      <event type="on-success" action="run-script">
+        <command>node ${update_progress_script} write-checkpoint --file ${iteration_dir}/05.deployment/.checkpoints.json --stage 05_deployment --checkpoint smoke_test_complete --passed true --description "Smoke test passed"</command>
+      </event>
+      <event type="on-failure" action="log">
+        <message>❌ Smoke test failed. See error details above. Workflow stopped.</message>
+      </event>
+    </block>
+
+    <block type="gateway" id="p2-step4-gate" desc="冒烟测试结果检查">
+      <condition expression="smoke_test_result == 'success'">
+        <when true="proceed" false="abort"/>
+      </condition>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== PHASE 3: DEPLOYMENT SUMMARY (HARD STOP) ==================== -->
+  <sequence id="phase-3-summary">
+
+    <block type="checkpoint" id="p3-deployment-summary" desc="部署总结 - 用户确认点">
+      <field name="title">🛑 DEPLOYMENT SUMMARY — AWAITING CONFIRMATION</field>
+      <field name="content">
+Platform: ${platform_id}
+Iteration: ${iteration_dir}
+
+Build:
+├── Status: ✅ SUCCESS
+├── Command: ${build_cmd}
+└── Duration: ${build_duration}
+
+Database Migration:
+├── Status: ${migration_status}
+└── Scripts Executed: ${migration_count}
+
+Application:
+├── Status: ✅ RUNNING
+├── URL: ${health_url}
+└── Health: OK
+
+Smoke Test:
+├── Status: ✅ PASSED
+└── Endpoints Tested: ${smoke_test_count}
+
+➡️ Ready for testing phase. Confirm to proceed?
+      </field>
+    </block>
+
+    <block type="task" id="p3-confirm" action="confirm" desc="等待用户确认部署结果">
+      <field name="prompt">确认部署完成并进入测试阶段？</field>
+      <field name="options">确认,Yes,Proceed|Rejected,No,Issues found|Request details</field>
+      <output name="user_response" as="user_response"/>
+    </block>
+
+    <block type="gateway" id="p3-response-gate" desc="处理用户响应">
+      <condition expression="user_response == 'confirmed'">
+        <when true="finalize" false="abort"/>
+      </condition>
+      <event type="on-false" action="log">
+        <message>❌ User rejected deployment summary. Please specify issues found.</message>
+      </event>
+    </block>
+
+    <!-- Finalize -->
+    <block type="task" id="p3-finalize-checkpoint" action="run-script" desc="写入最终检查点">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_dir}/05.deployment/.checkpoints.json --stage 05_deployment --checkpoint deployment_complete --passed true --description "Deployment verified: all steps passed"</field>
+    </block>
+
+    <block type="task" id="p3-finalize-progress" action="run-script" desc="更新工作流进度">
+      <field name="command">node ${update_progress_script} update-workflow --file ${workspace_path}/WORKFLOW-PROGRESS.json --stage 05_deployment --status confirmed --output "05.deployment/deployment-report.md"</field>
+    </block>
+
+  </sequence>
+
+  <!-- ==================== OUTPUT ==================== -->
+  <block type="output" id="output-result">
+    <field name="status">success</field>
+    <field name="deployed">true</field>
+    <field name="checkpoints">${checkpoints}</field>
+    <field name="output_files">${output_files}</field>
+    <field name="summary">✅ Deployment Stage Complete. All deployment steps verified: Build SUCCESS, Migration SUCCESS/SKIPPED, Startup SUCCESS, Smoke Test PASSED. The system is now ready for the testing phase.</field>
+    <field name="next_steps">Proceed with System Test Agent (speccrew-test-manager)</field>
+  </block>
+
+  <!-- ==================== RULES ==================== -->
+  <block type="rule" id="rule-stage-gate">
+    <condition>Development stage must be confirmed before starting deployment</condition>
+    <enforcement>abort-on-failure</enforcement>
+  </block>
+
+  <block type="rule" id="rule-skill-sequence">
+    <condition>Skills MUST be executed in order: build → migrate → startup → smoke-test</condition>
+    <enforcement>fail-fast</enforcement>
+  </block>
+
+  <block type="rule" id="rule-no-direct-commands">
+    <condition>DO NOT execute build/migration/startup commands directly - always use skills</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+  <block type="rule" id="rule-script-enforcement">
+    <condition>All checkpoint and progress updates MUST use update-progress.js script</condition>
+    <enforcement>strict</enforcement>
+  </block>
+
+</workflow>

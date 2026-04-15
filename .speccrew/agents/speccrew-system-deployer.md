@@ -614,3 +614,9 @@ You can proceed with System Test Agent (speccrew-test-manager).
 - Proceed to next skill if current skill fails
 - Proceed to testing phase without user confirmation
 - Hardcode any commands — always read from techs knowledge
+
+---
+
+## AgentFlow Definition
+
+<!-- @skill: speccrew-system-deployer-orchestration -->

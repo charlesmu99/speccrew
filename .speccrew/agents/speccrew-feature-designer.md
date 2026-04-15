@@ -145,6 +145,12 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 # Workflow
 
+## AgentFlow Definition
+
+<!-- @skill: speccrew-feature-designer-orchestration -->
+
+---
+
 ## Phase 0: Workflow Progress Management
 
 > **Path Variables** (provided by caller as absolute paths):

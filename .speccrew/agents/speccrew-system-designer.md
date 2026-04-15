@@ -1022,3 +1022,9 @@ After user confirms:
 - DO NOT proceed to the next batch or Phase 6 if any Phase 5 batch worker failure rate > 50% — follow the Batch Failure recovery flow in Phase 5.6
 - DO NOT skip backward compatibility checks for old format Feature Specs
 - DO NOT automatically transition to or invoke the next stage agent — user starts next stage in a new conversation
+
+---
+
+## AgentFlow Definition
+
+<!-- @skill: speccrew-system-designer-orchestration -->

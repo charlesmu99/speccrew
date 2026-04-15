@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="system-developer-orchestration" status="pending">
+
+  <block type="input" id="I1" desc="System Developer orchestration input">
+    <field name="workspace_path" required="true" type="string" desc="speccrew-workspace root directory path"/>
+    <field name="iterations_dir" required="true" type="string" desc="iterations directory path"/>
+    <field name="update_progress_script" required="true" type="string" desc="Path to update-progress.js script"/>
+    <field name="current_iteration" required="false" type="string" desc="Current active iteration identifier"/>
+  </block>
+
+  <!-- ========== Phase 0: Stage Gate & Resume ========== -->
+  <sequence name="Phase 0: Stage Gate &amp; Resume">
+    
+    <!-- Step 0.1: Verify Upstream Completion -->
+    <block type="task" id="P0-B1" action="run-script" status="pending"
+           desc="Read WORKFLOW-PROGRESS.json overview">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --overview</field>
+      <field name="output" var="workflow_progress"/>
+    </block>
+
+    <block type="gateway" id="P0-G1" mode="exclusive" desc="Check System Design stage status">
+      <branch test="${workflow_progress.stages.03_system_design.status} == 'confirmed'" name="System Design Confirmed">
+        <block type="task" id="P0-B2" action="run-script" status="pending"
+               desc="Update Development stage status to in_progress">
+          <field name="command">node ${update_progress_script} update-workflow --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --stage 04_development --status in_progress</field>
+        </block>
+      </branch>
+      <branch default="true" name="System Design Not Confirmed">
+        <block type="event" id="P0-E1" action="log" desc="Report System Design not confirmed">
+          <field name="message">System Design stage has not been confirmed. Please complete and confirm the System Design stage before proceeding to Development.</field>
+        </block>
+        <block type="event" id="P0-E2" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 0.2: Check Resume State -->
+    <block type="task" id="P0-B3" action="run-script" status="pending"
+           desc="Read checkpoints for resume state">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/04.development/.checkpoints.json --checkpoints</field>
+      <field name="output" var="checkpoints"/>
+    </block>
+
+    <!-- Step 0.3: Check Dispatch Resume -->
+    <block type="task" id="P0-B4" action="run-script" status="pending"
+           desc="Read dispatch progress summary">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --summary</field>
+      <field name="output" var="dispatch_progress"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Phase 0.5: IDE Directory Detection ========== -->
+  <sequence name="Phase 0.5: IDE Directory Detection">
+    <block type="task" id="P05-B1" action="read-file" status="pending"
+           desc="Detect IDE directory and skills">
+      <field name="path">${workspace_path}/.qoder/skills</field>
+      <field name="output" var="ide_skills_dir"/>
+    </block>
+
+    <block type="rule" id="P05-R1" level="mandatory" desc="IDE skills directory verification">
+      <field name="text">Verify skills directory exists in priority order: .qoder/skills, .cursor/skills, .claude/skills, .speccrew/skills</field>
+      <field name="text">If NO IDE directory contains skills folder → STOP and report error</field>
+    </block>
+
+    <block type="gateway" id="P05-G1" mode="exclusive" desc="Verify dev skills availability">
+      <branch test="${ide_skills_dir} exists" name="Skills Directory Found">
+        <block type="event" id="P05-E1" action="log" desc="Report available dev skills">
+          <field name="template">dev-skills-availability-check</field>
+          <field name="skills">speccrew-dev-backend, speccrew-dev-frontend, speccrew-dev-mobile, speccrew-dev-desktop-electron, speccrew-dev-desktop-tauri, speccrew-dev-review-*</field>
+        </block>
+      </branch>
+      <branch default="true" name="Skills Directory Not Found">
+        <block type="event" id="P05-E2" action="log" desc="Report missing skills directory">
+          <field name="message">IDE Skills Directory Not Found. Ensure IDE configuration is correct or run: npx speccrew init</field>
+        </block>
+        <block type="event" id="P05-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 1: Read System Design ========== -->
+  <sequence name="Step 1: Read System Design">
+    <!-- Step 1.1: Locate System Design Documents -->
+    <block type="task" id="P1-B1" action="read-file" status="pending"
+           desc="Read DESIGN-OVERVIEW.md">
+      <field name="path">${iterations_dir}/${current_iteration}/03.system-design/DESIGN-OVERVIEW.md</field>
+      <field name="output" var="design_overview"/>
+    </block>
+
+    <!-- Step 1.2: Read Per-Platform Module Index -->
+    <block type="event" id="P1-E1" action="log" desc="Read per-platform INDEX.md files">
+      <field name="template">read-platform-indexes</field>
+      <field name="output" var="platform_indexes"/>
+    </block>
+
+    <!-- Step 1.3: Build Module List -->
+    <block type="event" id="P1-E2" action="log" desc="Build module task list from design docs">
+      <field name="template">build-module-list</field>
+      <field name="output" var="module_list"/>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 2: Load Techs Knowledge ========== -->
+  <sequence name="Step 2: Load Techs Knowledge">
+    <block type="task" id="P2-B1" action="read-file" status="pending"
+           desc="Check techs-manifest.json exists">
+      <field name="path">${workspace_path}/knowledges/techs/techs-manifest.json</field>
+      <field name="output" var="techs_manifest"/>
+    </block>
+
+    <block type="gateway" id="P2-G1" mode="exclusive" desc="Check techs knowledge base availability">
+      <branch test="${techs_manifest} exists" name="Techs Knowledge Exists">
+        <block type="event" id="P2-E1" action="log" desc="Load platform-specific tech stacks"/>
+      </branch>
+      <branch default="true" name="Techs Knowledge Not Found">
+        <block type="event" id="P2-E2" action="log" desc="Report techs knowledge missing">
+          <field name="message">TECHS KNOWLEDGE BASE NOT FOUND. Required file missing: knowledges/techs/techs-manifest.json. Please initialize the techs knowledge base first.</field>
+        </block>
+        <block type="event" id="P2-E3" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 2.1: Common Knowledge -->
+    <block type="event" id="P2-E4" action="log" desc="Load architecture.md and tech-stack.md for each platform">
+      <field name="template">load-common-techs-knowledge</field>
+    </block>
+
+    <!-- Step 2.2: Platform-Specific Knowledge -->
+    <block type="event" id="P2-E5" action="log" desc="Load platform-specific conventions">
+      <field name="template">load-platform-specific-knowledge</field>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 3: Environment Pre-check ========== -->
+  <sequence name="Step 3: Environment Pre-check">
+    <!-- Step 3.1: Check Runtime Versions -->
+    <block type="task" id="P3-B1" action="run-script" status="pending"
+           desc="Verify runtime versions">
+      <field name="command">node --version; java -version; flutter --version 2>&1 || echo "Some runtimes may not be installed"</field>
+      <field name="output" var="runtime_versions"/>
+    </block>
+
+    <!-- Step 3.2: Check Dependencies -->
+    <block type="event" id="P3-E1" action="log" desc="Verify dependencies are installed">
+      <field name="template">check-dependencies</field>
+    </block>
+
+    <!-- Step 3.3: Check Services Availability -->
+    <block type="event" id="P3-E2" action="log" desc="Verify required services are accessible">
+      <field name="template">check-services</field>
+    </block>
+
+    <block type="gateway" id="P3-G1" mode="exclusive" desc="Check pre-check result">
+      <branch test="${precheck_passed} == true" name="Pre-check Passed">
+        <block type="task" id="P3-B2" action="run-script" status="pending"
+               desc="Write environment_precheck checkpoint">
+          <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/04.development/.checkpoints.json --stage 04_development --checkpoint environment_precheck --passed true --description "Runtime environment verification"</field>
+        </block>
+      </branch>
+      <branch default="true" name="Pre-check Failed">
+        <block type="event" id="P3-E3" action="log" desc="Report pre-check failure">
+          <field name="message">Environment pre-check failed. Please resolve the issues before proceeding.</field>
+        </block>
+        <block type="event" id="P3-E4" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 4: Dispatch Per-Module Dev Skills ========== -->
+  <sequence name="Step 4: Dispatch Per-Module Dev Skills">
+    <block type="rule" id="P4-R1" level="forbidden" desc="Worker-Only Rules">
+      <field name="text">ALL dev tasks MUST be dispatched to speccrew-task-worker. Agent NEVER writes application code.</field>
+      <field name="text">DO NOT create source code files (*.java, *.ts, *.vue, *.py, *.dart, *.rs, etc.)</field>
+      <field name="text">DO NOT invoke dev skills directly (only via speccrew-task-worker)</field>
+      <field name="text">DO NOT skip review phase even if dev worker reports success</field>
+      <field name="text">DO NOT write code as fallback if worker fails</field>
+    </block>
+
+    <block type="rule" id="P4-R2" level="mandatory" desc="Stage 4 Directory Constraint">
+      <field name="text">All development outputs MUST go under iterations/{iter}/04.development/</field>
+      <field name="text">Task records: 04.development/{platform_id}/{module}-task.md</field>
+      <field name="text">Review reports: 04.development/{platform_id}/{module}-review-report.md</field>
+      <field name="text">FORBIDDEN directory names: 04.dev-report/, 04.dev-reports/, 04.implementation/</field>
+    </block>
+
+    <!-- Step 4.0: Initialize DISPATCH-PROGRESS.json -->
+    <block type="task" id="P4-B1" action="run-script" status="pending"
+           desc="Initialize dispatch progress with task list">
+      <field name="command">node ${update_progress_script} init --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --stage 04_development --tasks-file ${iterations_dir}/${current_iteration}/04.development/.tasks-temp.json</field>
+    </block>
+
+    <!-- Step 4.1: Determine Skill for Each Platform -->
+    <block type="event" id="P4-E1" action="log" desc="Map platform types to dev skills">
+      <field name="template">platform-dev-skill-mapping</field>
+      <field name="output" var="platform_skill_map"/>
+    </block>
+
+    <!-- Step 4.2: Build Module Task List -->
+    <block type="event" id="P4-E2" action="log" desc="Build task list from module designs">
+      <field name="template">build-dev-task-list</field>
+      <field name="output" var="task_list"/>
+    </block>
+
+    <!-- Step 4.2a: Task List Review Checkpoint -->
+    <block type="event" id="P4-E3" action="confirm" desc="Present task list for user confirmation">
+      <field name="prompt">📋 Development Task List. Total tasks: ${task_count}. Proceed with dispatch? (确认/取消)</field>
+      <field name="template">task-list-summary</field>
+    </block>
+
+    <block type="gateway" id="P4-G1" mode="exclusive" desc="Handle task list confirmation">
+      <branch test="${user_response} == '确认' or ${user_response} == 'OK'" name="User Confirmed">
+        <block type="task" id="P4-B2" action="run-script" status="pending"
+               desc="Write task_list_review checkpoint">
+          <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/04.development/.checkpoints.json --stage 04_development --checkpoint task_list_review --passed true --description "Development task list confirmed by user"</field>
+        </block>
+      </branch>
+      <branch default="true" name="User Cancelled">
+        <block type="event" id="P4-E4" action="abort" desc="Stop workflow"/>
+      </branch>
+    </block>
+
+    <!-- Step 4.3: Dispatch Workers with Concurrency Limit -->
+    <block type="rule" id="P4-R3" level="mandatory" desc="Parallel dispatch rule">
+      <field name="text">Max concurrent workers: 6</field>
+      <field name="text">Dispatch ALL workers IN PARALLEL — DO NOT execute sequentially</field>
+    </block>
+
+    <block type="task" id="P4-B3" action="run-script" status="pending"
+           desc="Update task status to in_progress">
+      <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --task-id ${task_id} --status in_progress</field>
+    </block>
+
+    <block type="task" id="P4-B4" action="dispatch-to-worker" status="pending"
+           desc="Dispatch dev workers for modules">
+      <field name="worker">speccrew-task-worker</field>
+      <field name="max_concurrent">6</field>
+      <field name="tasks">${task_list}</field>
+      <field name="note">Each worker receives: skill_path, task_id, platform_id, feature_id, iteration_path, design_doc_path, api_contract_path, techs_knowledge_paths</field>
+    </block>
+
+    <!-- Step 4.4: Review Verification (MANDATORY) -->
+    <block type="rule" id="P4-R4" level="mandatory" desc="Review Rules">
+      <field name="text">After EVERY dev worker batch completes, MUST dispatch review workers BEFORE next batch or re-dispatch</field>
+      <field name="text">Both successful and failed dev workers require review for diagnosis</field>
+      <field name="text">Task cannot proceed to 'completed' status without passing review</field>
+    </block>
+
+    <block type="task" id="P4-B5" action="run-script" status="pending"
+           desc="Update task status to in_review after dev worker completes">
+      <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --task-id ${task_id} --status in_review --output "${output_files}"</field>
+    </block>
+
+    <block type="task" id="P4-B6" action="dispatch-to-worker" status="pending"
+           desc="Dispatch review workers">
+      <field name="worker">speccrew-task-worker</field>
+      <field name="skill">speccrew-dev-review-${platform_type}</field>
+      <field name="context">design_doc_path, implementation_report_path, source_root, platform_id, api_contract_path, task_id</field>
+    </block>
+
+    <!-- Review Result Handling -->
+    <block type="gateway" id="P4-G2" mode="exclusive" desc="Handle review verdict">
+      <branch test="${review.verdict} == 'PASS'" name="Review Passed">
+        <block type="task" id="P4-B7" action="run-script" status="pending"
+               desc="Update task status to completed">
+          <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --task-id ${task_id} --status completed --output "${review_report_path}"</field>
+        </block>
+      </branch>
+      <branch test="${review.verdict} == 'PARTIAL'" name="Review Partial">
+        <block type="task" id="P4-B8" action="run-script" status="pending"
+               desc="Update task status to partial">
+          <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --task-id ${task_id} --status partial --output "${review_report_path}" --metadata "${review.redispatch_guidance}"</field>
+        </block>
+      </branch>
+      <branch default="true" name="Review Failed">
+        <block type="task" id="P4-B9" action="run-script" status="pending"
+               desc="Update task status to failed">
+          <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --task-id ${task_id} --status failed --error "${review.summary}" --error-category VALIDATION_ERROR</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4.5: Re-dispatch Partial/Failed Tasks -->
+    <block type="rule" id="P4-R5" level="mandatory" desc="Re-dispatch Rules">
+      <field name="text">Maximum re-dispatch attempts: 2 (total 3 attempts including initial)</field>
+      <field name="text">After 3 attempts, mark as 'failed' with accumulated error info</field>
+    </block>
+
+    <block type="gateway" id="P4-G3" mode="exclusive" desc="Check batch failure rate">
+      <branch test="${failure_rate} > 0.5" name="Batch Failure Threshold Exceeded">
+        <block type="event" id="P4-E5" action="log" desc="Report batch failure">
+          <field name="message">❌ BATCH FAILURE THRESHOLD EXCEEDED. Failure Rate: ${failure_rate}% (exceeds 50% threshold)</field>
+        </block>
+        <block type="event" id="P4-E6" action="abort" desc="Stop workflow"/>
+      </branch>
+      <branch default="true" name="Within Failure Threshold">
+        <block type="event" id="P4-E7" action="log" desc="Continue with remaining/retry tasks"/>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 5: Integration Check ========== -->
+  <sequence name="Step 5: Integration Check">
+    <!-- Step 5.1: API Contract Alignment -->
+    <block type="event" id="P5-E1" action="log" desc="Verify cross-platform API consistency">
+      <field name="template">api-contract-alignment-check</field>
+      <field name="checklist">exact_path_match, request_format, response_format, error_codes, auth_headers</field>
+    </block>
+
+    <!-- Step 5.1a: API Contract Alignment Checklist -->
+    <block type="checkpoint" id="P5-CP1" name="api_alignment" desc="API Contract alignment verification">
+      <field name="conditions">api_calls_match_backend_endpoints, request_response_dtos_consistent, error_handling_aligned</field>
+    </block>
+
+    <!-- Step 5.1b: Data Model Consistency -->
+    <block type="event" id="P5-E2" action="log" desc="Verify shared data structures consistency">
+      <field name="template">data-model-consistency-check</field>
+      <field name="checklist">field_definitions, field_types, enum_values, required_fields</field>
+    </block>
+
+    <!-- Step 5.1c: Cross-Feature Dependencies -->
+    <block type="event" id="P5-E3" action="log" desc="Verify cross-feature dependencies">
+      <field name="template">cross-feature-dependencies-check</field>
+      <field name="checklist">dependency_markers, fallback_strategies</field>
+    </block>
+
+    <!-- Step 5.4: Cross-Platform Issues -->
+    <block type="gateway" id="P5-G1" mode="exclusive" desc="Check for integration issues">
+      <branch test="${integration_issues} empty" name="No Integration Issues">
+        <block type="event" id="P5-E4" action="log" desc="Integration check passed"/>
+      </branch>
+      <branch default="true" name="Integration Issues Found">
+        <block type="event" id="P5-E5" action="log" desc="Report integration issues">
+          <field name="template">integration-issues-report</field>
+        </block>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 6: Delivery Report ========== -->
+  <sequence name="Step 6: Delivery Report">
+    <!-- Step 6.1: Read Final Dispatch Progress -->
+    <block type="task" id="P6-B1" action="run-script" status="pending"
+           desc="Read DISPATCH-PROGRESS.json summary">
+      <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --summary</field>
+      <field name="output" var="final_progress"/>
+    </block>
+
+    <!-- Step 6.2: Per-Platform Summary -->
+    <block type="event" id="P6-E1" action="log" desc="Display per-platform summary">
+      <field name="template">per-platform-summary</field>
+      <field name="data" value="${final_progress}"/>
+    </block>
+
+    <!-- Step 6.3: Failed Tasks Report -->
+    <block type="gateway" id="P6-G1" mode="exclusive" desc="Check for failed tasks">
+      <branch test="${failed_count} > 0" name="Has Failed Tasks">
+        <block type="event" id="P6-E2" action="log" desc="Display failed tasks report">
+          <field name="template">failed-tasks-report</field>
+        </block>
+      </branch>
+      <branch default="true" name="No Failed Tasks"/>
+    </block>
+
+    <!-- Step 6.4: Overall Statistics -->
+    <block type="event" id="P6-E3" action="log" desc="Display development stage summary">
+      <field name="template">development-stage-summary</field>
+      <field name="data">
+        total_modules: ${total_count},
+        completed: ${completed_count},
+        failed: ${failed_count},
+        skipped: ${skipped_count},
+        cross_platform_integration: ${integration_status},
+        overall_status: ${overall_status}
+      </field>
+    </block>
+
+    <!-- Step 6.5: Tech Debt Items -->
+    <block type="event" id="P6-E4" action="log" desc="List tech debt items">
+      <field name="template">tech-debt-list</field>
+      <field name="path">${iterations_dir}/${current_iteration}/tech-debt/</field>
+    </block>
+
+    <!-- Step 6.6.5: User Confirmation (HARD STOP) -->
+    <block type="event" id="P6-E5" action="confirm" desc="Request delivery report confirmation">
+      <field name="prompt">🛑 AWAITING USER CONFIRMATION. 开发阶段已完成，请审查交付报告。确认无误后将更新工作流状态。 (确认/需要修改/取消)</field>
+    </block>
+
+    <block type="gateway" id="P6-G2" mode="exclusive" desc="Handle delivery confirmation response">
+      <branch test="${user_response} == '确认' or ${user_response} == 'OK'" name="User Confirmed">
+        <block type="event" id="P6-E6" action="log" desc="Proceed to finalize"/>
+      </branch>
+      <branch test="${user_response} == '取消'" name="User Cancelled">
+        <block type="event" id="P6-E7" action="abort" desc="Keep current status"/>
+      </branch>
+      <branch default="true" name="User Requests Modification">
+        <block type="event" id="P6-E8" action="log" desc="Address issues before finalizing"/>
+      </branch>
+    </block>
+
+    <!-- Step 6.7: User Confirmation and Checkpoint Update -->
+    <block type="task" id="P6-B2" action="run-script" status="pending"
+           desc="Write delivery_report checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/04.development/.checkpoints.json --stage 04_development --checkpoint delivery_report --passed true --description "Final delivery report"</field>
+    </block>
+
+    <block type="task" id="P6-B3" action="run-script" status="pending"
+           desc="Update WORKFLOW-PROGRESS.json to confirmed">
+      <field name="command">node ${update_progress_script} update-workflow --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --stage 04_development --status confirmed --output "04.development/{platform_id}/{module}/"</field>
+    </block>
+
+    <block type="checkpoint" id="P6-CP1" name="delivery_report" desc="Delivery report confirmed">
+      <field name="passed" value="true"/>
+    </block>
+  </sequence>
+
+  <block type="output" id="O1" desc="System Developer execution result">
+    <field name="status" from="${execution.status}" type="string" desc="success / partial / failed"/>
+    <field name="output_files" from="${execution.output_files}" type="array" desc="Generated source files and task records"/>
+    <field name="summary" from="${execution.summary}" type="string" desc="Execution summary"/>
+    <field name="next_steps" from="${execution.next_steps}" type="array" desc="Suggested next actions"/>
+  </block>
+
+</workflow>

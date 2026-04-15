@@ -917,3 +917,9 @@ node {update_progress_script} update-workflow --file {workspace_path}/WORKFLOW-P
 - Assume business rules; unclear requirements must be traced to Feature Spec or PRD
 - Modify development phase source code
 - Proceed to delivery phase with unresolved critical or high-severity bugs
+
+---
+
+## AgentFlow Definition
+
+<!-- @skill: speccrew-test-manager-orchestration -->
