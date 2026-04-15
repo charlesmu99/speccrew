@@ -72,7 +72,7 @@ Analyze one specific UI feature from source code, extract business functionality
 }
 ```
 
-> **Note**: Graph data construction (nodes, edges, marker files) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. This Skill only generates feature documentation.
+> **Note**: Graph data (.graph.json) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. This Skill generates feature documentation AND writes `.done.json` completion marker.
 
 ## Workflow
 
@@ -404,6 +404,49 @@ Analyze one specific UI feature from source code, extract business functionality
     </block>
   </sequence>
 
+  <!-- ==================== STEP 7: WRITE COMPLETION MARKERS ==================== -->
+  <!-- Calculate Subpath from Source Path -->
+  <block type="task" id="B29" action="calculate-subpath" desc="Calculate subpath">
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="output" var="subpath" from="calculation.subpath"/>
+  </block>
+  
+  <!-- Generate Marker File Name -->
+  <block type="task" id="B30" action="generate-marker-name" desc="Generate marker name">
+    <field name="module" value="${module}"/>
+    <field name="subpath" value="${subpath}"/>
+    <field name="fileName" value="${fileName}"/>
+    <field name="output" var="markerName" from="generation.name"/>
+  </block>
+  
+  <!-- Pre-write Verification -->
+  <block type="checkpoint" id="CP6" name="pre-write-check" desc="Pre-write verification">
+    <field name="verify" value="${fileName} does-not-contain '.' AND ${sourceFile} matches 'features-*.json'"/>
+  </block>
+  
+  <!-- Write .done.json File -->
+  <block type="task" id="B31" action="create-file" desc="Write done marker file">
+    <field name="target" value="${completed_dir}/${markerName}.done.json"/>
+    <field name="content" value="{
+  &quot;fileName&quot;: &quot;${fileName}&quot;,
+  &quot;sourcePath&quot;: &quot;${sourcePath}&quot;,
+  &quot;sourceFile&quot;: &quot;${sourceFile}&quot;,
+  &quot;module&quot;: &quot;${module}&quot;,
+  &quot;documentPath&quot;: &quot;${documentPath}&quot;,
+  &quot;status&quot;: &quot;${status}&quot;,
+  &quot;analysisNotes&quot;: &quot;${message}&quot;
+}"/>
+  </block>
+  
+  <!-- Verify Marker File Written -->
+  <block type="checkpoint" id="CP7" name="marker-written" desc="Marker file written">
+    <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
+  </block>
+  
+  <block type="event" id="E10" action="log" level="info" desc="Log marker status">
+    <field name="message" value="Step 7 Status: COMPLETED - Done marker file written to ${completed_dir}/${markerName}.done.json"/>
+  </block>
+
   <!-- ==================== FINAL OUTPUT ==================== -->
   <block type="output" id="O1" desc="UI feature analysis output results">
     <field name="status" value="success"/>
@@ -473,8 +516,9 @@ When the task is complete, report the following:
 
 **Files Generated:**
 - `{{documentPath}}` - Feature documentation
+- `completed_dir/markerName.done.json` - Completion marker
 
-**Note:** Graph data construction (nodes, edges, marker files) is handled by `speccrew-knowledge-bizs-ui-graph` Skill.
+**Note:** Graph data (.graph.json) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. The `.done.json` completion marker is written by this Skill in Step 7.
 
 ## Checklist
 
@@ -487,3 +531,4 @@ When the task is complete, report the following:
 - [ ] All sections filled using search_replace
 - [ ] All content in target language (`{{language}}`)
 - [ ] Results reported in JSON format
+- [ ] Done marker file written to completed_dir

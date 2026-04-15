@@ -132,7 +132,7 @@ Stage 4: System Summary
     <field name="max_concurrent_workers" required="false" type="number" default="5" desc="Maximum parallel Worker count"/>
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
     <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/"/>
-    <field name="ide_skills_dir" required="true" type="string" desc="Absolute path to IDE skills directory (e.g., .qoder/skills, .cursor/skills)"/>
+    <field name="speccrew_skills_dir" required="true" type="string" desc="Absolute path to .speccrew/skills/ directory containing skill scripts"/>
     <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs/ directory"/>
     <field name="graph_root" required="false" type="string" desc="Graph data output root path (absolute path preferred)" default="${workspace_path}/knowledges/bizs/graph"/>
     <field name="completed_dir" required="true" type="string" desc="Marker file output directory for Worker results (absolute path required)"/>
@@ -263,6 +263,10 @@ Continue with knowledge base generation?
       <field name="verify" value="${platforms.length} > 0"/>
     </block>
 
+    <block type="task" id="S0-B5" action="run-script" status="pending" desc="Update Stage 0 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage0 --status completed --output "Detected ${platforms.length} platforms"</field>
+    </block>
+
     <block type="event" id="S0-E4" action="log" level="info" desc="Report detected platform list">
     <field name="message">Detected ${platforms.length} platforms: ${platforms.names}</field>
     </block>
@@ -301,6 +305,10 @@ Continue with knowledge base generation?
       <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
       <field name="verify" value="true"/>
     </block>
+
+    <block type="task" id="S1a-B2" action="run-script" status="pending" desc="Update Stage 1a progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1a --status completed --output "Entry directories recognized for all platforms"</field>
+    </block>
   </sequence>
 
   <!-- ============================================================
@@ -316,7 +324,7 @@ Continue with knowledge base generation?
     <block type="loop" id="S1b-L1" over="${platforms}" as="platform" desc="Generate Feature inventory for each platform">
       <!-- Step 1: Read platform mapping config -->
       <block type="task" id="S1b-B1" action="run-script" status="pending" desc="Read platform mapping config">
-        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
+        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
         <field name="arg">--entryDirsFile</field>
         <field name="arg">${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json</field>
         <field name="output" var="features_${platform.platformId}"/>
@@ -331,6 +339,10 @@ Continue with knowledge base generation?
     <block type="checkpoint" id="S1b-CP1" name="features_generated" desc="Feature inventory generation complete">
       <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
       <field name="verify" value="${all_features.length} > 0"/>
+    </block>
+
+    <block type="task" id="S1b-B2" action="run-script" status="pending" desc="Update Stage 1b progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1b --status completed --output "${feature_count} features across ${platform_count} platforms"</field>
     </block>
 
     <block type="event" id="S1b-E1" action="log" level="info" desc="Report Feature inventory statistics">
@@ -352,7 +364,7 @@ Continue with knowledge base generation?
       <branch test="${sync_mode} == 'incremental'" name="Incremental mode">
         <!-- Step 1: Execute Feature merge -->
         <block type="task" id="S1c-B1" action="run-script" status="pending" desc="Merge new and existing Feature inventories">
-          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js"</field>
+          <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js"</field>
           <field name="arg">--syncStatePath</field>
           <field name="arg">${sync_state_bizs_dir}</field>
           <field name="arg">--completedDir</field>
@@ -373,7 +385,7 @@ Continue with knowledge base generation?
 
         <!-- Step 3: Mark stale Features -->
         <block type="task" id="S1c-B2" action="run-script" status="pending" desc="Clean up documents and markers for deleted Features">
-          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/mark-stale.js"</field>
+          <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/mark-stale.js"</field>
           <field name="arg">--syncStatePath</field>
           <field name="arg">${sync_state_bizs_dir}</field>
           <field name="arg">--completedDir</field>
@@ -391,13 +403,21 @@ Continue with knowledge base generation?
       <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
       <field name="passed" value="true"/>
     </block>
+
+    <block type="task" id="S1c-B3" action="run-script" status="pending" desc="Update Stage 1c progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1c --status completed</field>
+    </block>
   </sequence>
 
   <!-- ============================================================
        Stage 2: Feature Analysis (Batch Processing)
        ============================================================ -->
   <sequence id="S2" name="Stage 2: Feature Analysis" status="pending" desc="Batch process Feature analysis, dispatch Workers to execute">
-    
+
+    <block type="task" id="S2-B-Start" action="run-script" status="pending" desc="Update Stage 2 progress to in_progress">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage2 --status in_progress</field>
+    </block>
+
     <block type="rule" id="S2-R1" level="mandatory" desc="Stage 2 mandatory rules">
       <field name="text">MUST use batch-orchestrator for batch management — DO NOT manually track batches</field>
       <field name="text">MUST dispatch Workers for feature analysis — DO NOT analyze features yourself</field>
@@ -426,7 +446,7 @@ Continue with knowledge base generation?
       
       <!-- Step 1: Get next batch -->
       <block type="task" id="S2-B1" action="run-script" status="pending" desc="Get next batch of pending Features">
-        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch</field>
+        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch</field>
         <field name="arg">--syncStatePath</field>
         <field name="arg">${sync_state_bizs_dir}</field>
         <field name="arg">--batchSize</field>
@@ -598,7 +618,7 @@ Requirements:
 
           <!-- Step 3: Process batch results -->
           <block type="task" id="S2-B3" action="run-script" status="pending" desc="Collect and process batch Worker results">
-            <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results</field>
+            <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results</field>
             <field name="arg">--syncStatePath</field>
             <field name="arg">${sync_state_bizs_dir}</field>
             <field name="arg">--graphRoot</field>
@@ -618,6 +638,10 @@ Requirements:
     <block type="checkpoint" id="S2-CP1" name="feature_analysis_complete" desc="All Feature analysis complete">
       <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
       <field name="verify" value="${pending_features.length} == 0"/>
+    </block>
+
+    <block type="task" id="S2-B-End" action="run-script" status="pending" desc="Update Stage 2 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage2 --status completed --output "${analyzed_count} features analyzed"</field>
     </block>
 
     <block type="event" id="S2-E-Final" action="log" level="info" desc="Stage 2 complete">
@@ -684,6 +708,10 @@ Requirements:
       <field name="passed" value="true"/>
     </block>
 
+    <block type="task" id="S3-B5" action="run-script" status="pending" desc="Update Stage 3 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage3 --status completed --output "${module_count} modules summarized"</field>
+    </block>
+
     <block type="event" id="S3-E1" action="log" level="info" desc="Stage 3 complete">
     <field name="message">Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized.</field>
     </block>
@@ -739,6 +767,10 @@ Requirements:
     <block type="event" id="S35-E2" action="log" level="info" desc="Stage 3.5 complete">
     <field name="message">Stage 3.5 Milestone: UI style patterns extracted. ${pattern_count} patterns extracted from ${frontend_platform_count} platforms.</field>
     </block>
+
+    <block type="task" id="S35-B2" action="run-script" status="pending" desc="Update Stage 3.5 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage3.5 --status completed --output "${pattern_count} patterns extracted"</field>
+    </block>
   </sequence>
 
   <!-- ============================================================
@@ -786,6 +818,10 @@ Requirements:
       <field name="passed" value="true"/>
     </block>
 
+    <block type="task" id="S4-B3" action="run-script" status="pending" desc="Update Stage 4 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage4 --status completed --output "System overview generated"</field>
+    </block>
+
     <block type="event" id="S4-E1" action="log" level="info" desc="Stage 4 complete">
     <field name="message">Stage 4 Milestone: System overview generated. All stages complete. Pipeline finished successfully.</field>
     </block>
@@ -803,7 +839,7 @@ Requirements:
       <field name="message">Worker ${error.worker} failed: ${error.message}</field>
       </block>
       <block type="task" id="EH1-B1" action="run-script" desc="Update failed status">
-        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
+        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
         <field name="arg">--featureId</field>
         <field name="arg">${error.feature_id}</field>
         <field name="arg">--status</field>
