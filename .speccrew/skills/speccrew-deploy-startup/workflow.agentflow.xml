@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="deploy-startup" status="pending" version="1.0" desc="Start application and perform health check verification">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier"/>
+    <field name="start_cmd" required="true" type="string" desc="Application start command from conventions-data (e.g., java -jar target/app.jar)"/>
+    <field name="health_url" required="false" type="string" desc="Health check URL. Required for http mode."/>
+    <field name="health_timeout" required="false" type="string" default="60" desc="Health check timeout in seconds, default 60"/>
+    <field name="project_root" required="true" type="string" desc="Absolute path to the project root directory"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+    <field name="verification_mode" required="false" type="string" default="http" desc="Verification method: http (default), process, log"/>
+    <field name="process_name" required="false" type="string" desc="Process name or pattern to check for process mode"/>
+    <field name="log_file" required="false" type="string" desc="Path to application log file for log mode"/>
+    <field name="success_pattern" required="false" type="string" desc="Regex pattern in log indicating successful startup for log mode"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Startup execution constraints">
+    <field name="text">Application must start in background and continue running</field>
+    <field name="text">Always record and report the process PID</field>
+    <field name="text">Poll health endpoint every 5 seconds until success or timeout</field>
+    <field name="text">Timeout is configurable via health_timeout parameter</field>
+    <field name="text">Verify application process is still running after health check</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Application Startup" status="pending" desc="Start application, verify health, report status">
+
+    <!-- Step 1: Start Application -->
+    <block type="task" id="B1" action="run-script" desc="Execute start command in background">
+      <field name="command">${start_cmd}</field>
+      <field name="working_directory">${project_root}</field>
+      <field name="background">true</field>
+      <field name="note">On Unix: nohup {start_cmd} > app.log 2>&1 &amp;</field>
+      <field name="output" var="start_result"/>
+    </block>
+
+    <block type="task" id="B2" action="analyze" desc="Record PID for cleanup">
+      <field name="rules">Extract PID from start_result and store for later reference</field>
+      <field name="output" var="pid"/>
+    </block>
+
+    <block type="event" id="E1" action="log" level="info" desc="Log application started">
+      <field name="message">Application started with PID ${pid}</field>
+    </block>
+
+    <block type="event" id="E2" action="log" level="info" desc="Wait for initialization">
+      <field name="message">Waiting for application to initialize...</field>
+      <field name="wait_seconds">5</field>
+    </block>
+
+    <!-- Step 2: Verification (Based on Mode) -->
+    <block type="gateway" id="G0" mode="exclusive" desc="Select verification mode">
+
+      <!-- HTTP Mode (default) -->
+      <branch test="${verification_mode} == 'http' OR ${verification_mode} == null" name="HTTP Verification">
+        
+        <block type="task" id="B3" action="analyze" desc="Calculate max attempts">
+          <field name="rules">
+            - timeout_seconds = parseInt(health_timeout) || 60
+            - max_attempts = timeout_seconds / 5
+          </field>
+          <field name="output" var="http_verification_config"/>
+        </block>
+
+        <block type="loop" id="L1" over="${range(1, ${http_verification_config.max_attempts})}" as="attempt" desc="Poll health URL">
+          <block type="task" action="run-script" desc="Check health endpoint">
+            <field name="command">curl -s -o /dev/null -w "%{http_code}" ${health_url}</field>
+            <field name="output" var="http_status"/>
+          </block>
+          
+          <block type="gateway" mode="guard" desc="Check HTTP status">
+            <branch test="${http_status} == 200">
+              <block type="event" action="log" level="info" desc="Health check passed">
+                <field name="message">Health check passed with HTTP 200</field>
+                <field name="output" var="health_status" value="UP"/>
+              </block>
+            </branch>
+          </block>
+          
+          <block type="event" action="log" level="debug" desc="Wait before retry">
+            <field name="message">Attempt ${attempt}: HTTP ${http_status}, waiting 5 seconds...</field>
+            <field name="wait_seconds">5</field>
+          </block>
+        </block>
+
+        <block type="gateway" id="G1" mode="guard" desc="Check health check timeout"
+               test="${health_status} == 'UP'"
+               fail-action="stop">
+          <field name="message">Health check timed out after ${health_timeout}s</field>
+        </block>
+
+      </branch>
+
+      <!-- Process Mode -->
+      <branch test="${verification_mode} == 'process'" name="Process Verification">
+        
+        <block type="task" id="B4" action="analyze" desc="Calculate max attempts for process mode">
+          <field name="rules">
+            - timeout_seconds = parseInt(health_timeout) || 30
+            - max_attempts = timeout_seconds / 3
+          </field>
+          <field name="output" var="process_verification_config"/>
+        </block>
+
+        <block type="loop" id="L2" over="${range(1, ${process_verification_config.max_attempts})}" as="attempt" desc="Check process existence">
+          <block type="task" action="run-script" desc="Check process running">
+            <field name="command">
+              Windows: tasklist /FI "IMAGENAME eq ${process_name}" | findstr /I "${process_name}"
+              Unix/Mac: pgrep -f "${process_name}"
+            </field>
+            <field name="output" var="process_found"/>
+          </block>
+          
+          <block type="gateway" mode="guard" desc="Check process found">
+            <branch test="${process_found} == true">
+              <block type="event" action="log" level="info" desc="Process verification passed">
+                <field name="message">Process ${process_name} is running</field>
+                <field name="output" var="health_status" value="UP"/>
+              </block>
+            </branch>
+          </block>
+          
+          <block type="event" action="log" level="debug" desc="Wait before retry">
+            <field name="message">Attempt ${attempt}: Process not found, waiting 3 seconds...</field>
+            <field name="wait_seconds">3</field>
+          </block>
+        </block>
+
+        <block type="gateway" id="G2" mode="guard" desc="Check process verification timeout"
+               test="${health_status} == 'UP'"
+               fail-action="stop">
+          <field name="message">Process verification timed out after ${health_timeout}s - process ${process_name} not found</field>
+        </block>
+
+      </branch>
+
+      <!-- Log Mode -->
+      <branch test="${verification_mode} == 'log'" name="Log Verification">
+        
+        <block type="task" id="B5" action="analyze" desc="Calculate max attempts for log mode">
+          <field name="rules">
+            - timeout_seconds = parseInt(health_timeout) || 60
+            - max_attempts = timeout_seconds / 3
+          </field>
+          <field name="output" var="log_verification_config"/>
+        </block>
+
+        <block type="loop" id="L3" over="${range(1, ${log_verification_config.max_attempts})}" as="attempt" desc="Monitor log for success pattern">
+          <block type="task" action="run-script" desc="Check log for success pattern">
+            <field name="command">
+              Windows: Select-String -Path "${log_file}" -Pattern "${success_pattern}"
+              Unix/Mac: grep -m 1 "${success_pattern}" "${log_file}"
+            </field>
+            <field name="output" var="pattern_found"/>
+          </block>
+          
+          <block type="gateway" mode="guard" desc="Check pattern found">
+            <branch test="${pattern_found} == true">
+              <block type="event" action="log" level="info" desc="Log verification passed">
+                <field name="message">Success pattern '${success_pattern}' found in log</field>
+                <field name="output" var="health_status" value="UP"/>
+              </block>
+            </branch>
+          </block>
+          
+          <block type="event" action="log" level="debug" desc="Wait before retry">
+            <field name="message">Attempt ${attempt}: Pattern not found, waiting 3 seconds...</field>
+            <field name="wait_seconds">3</field>
+          </block>
+        </block>
+
+        <block type="gateway" id="G3" mode="guard" desc="Check log verification timeout"
+               test="${health_status} == 'UP'"
+               fail-action="stop">
+          <field name="message">Log verification timed out after ${health_timeout}s - pattern '${success_pattern}' not found in ${log_file}</field>
+        </block>
+
+      </branch>
+
+    </block>
+
+    <!-- Step 3: Report Startup Status -->
+    <block type="task" id="B6" action="analyze" desc="Derive service URL from health URL">
+      <field name="rules">Remove /actuator/health from health_url if present to get service URL</field>
+      <field name="output" var="service_url"/>
+    </block>
+
+    <block type="task" id="B7" action="run-script" desc="Verify process still running">
+      <field name="command">Check if process with PID ${pid} still exists</field>
+      <field name="output" var="process_running"/>
+    </block>
+
+    <block type="gateway" id="G4" mode="guard" desc="Verify process still running"
+           test="${process_running} == true"
+           fail-action="stop">
+      <field name="message">Process with PID ${pid} is no longer running. Error Category: RUNTIME_ERROR</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Startup status"/>
+    <field name="platform_id" from="${platform_id}" type="string" desc="Platform identifier"/>
+    <field name="project_root" from="${project_root}" type="string" desc="Project root path"/>
+    <field name="service_url" from="${service_url}" type="string" desc="Service URL"/>
+    <field name="health_url" from="${health_url}" type="string" desc="Health check URL"/>
+    <field name="health_status" from="${health_status}" type="string" desc="Health status UP/DOWN"/>
+    <field name="pid" from="${pid}" type="number" desc="Process ID for cleanup"/>
+    <field name="start_command" from="${start_cmd}" type="string" desc="Start command executed"/>
+  </block>
+
+</workflow>

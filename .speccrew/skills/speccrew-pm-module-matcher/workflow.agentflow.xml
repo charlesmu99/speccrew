@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="module-matcher-main" status="pending" version="1.0" desc="Match user requirement text against business knowledge base features">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="requirement_text" required="true" type="string" desc="User requirement text to match"/>
+    <field name="features_files" required="true" type="array" desc="Array of paths to features-*.json files"/>
+    <field name="language" required="true" type="string" desc="Target language for output"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">This skill is READ-ONLY - do not modify any files</field>
+    <field name="text">Handle Chinese+English mixed text matching</field>
+    <field name="text">Skip unreadable files - continue processing others</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Module Matching" status="pending" desc="Match requirement to knowledge base modules">
+
+    <!-- Step 1: Parse requirement text -->
+    <block type="task" id="B1" action="analyze" desc="Parse requirement and extract keywords">
+      <field name="input" value="${requirement_text}"/>
+      <field name="operations">
+        - Tokenize: Split text into words/phrases
+        - Extract entities: Identify nouns, technical terms, business concepts
+        - Normalize: Convert to lowercase, handle Chinese/English mixed text
+        - Build keyword list: Create array of searchable terms
+      </field>
+      <field name="chinese_handling">
+        - Use character-level matching for Chinese terms
+        - Consider common abbreviations (e.g., "用户" matches "user")
+        - Support both simplified and traditional characters
+      </field>
+      <field name="output" var="keywords"/>
+    </block>
+
+    <!-- Step 2: Read features files and build index -->
+    <block type="loop" id="L1" over="${features_files}" as="features_file" desc="Process each features file">
+      <block type="error-handler" id="EH1" desc="Handle file read errors gracefully">
+        <try>
+          <block type="task" id="B2" action="read-file" desc="Read features file">
+            <field name="path" value="${features_file}"/>
+            <field name="output" var="file_content"/>
+          </block>
+          <block type="task" id="B3" action="analyze" desc="Extract platform and module info">
+            <field name="input" value="${file_content}"/>
+            <field name="extract">
+              - platformId
+              - platformType
+              - modules (grouped by module name)
+              - features (with fileName, sourcePath)
+            </field>
+            <field name="output" var="platform_data"/>
+          </block>
+        </try>
+        <catch>
+          <block type="event" id="E1" action="log" level="warn" desc="Log file skip">
+            <field name="message">Skipping unreadable file: ${features_file}</field>
+          </block>
+        </catch>
+      </block>
+    </block>
+
+    <!-- Step 3: Perform semantic matching -->
+    <block type="task" id="B4" action="analyze" desc="Match keywords against module-feature index">
+      <field name="input">
+        keywords: ${keywords}
+        platform_data: ${platform_data}
+      </field>
+      <field name="matching_algorithm">
+        FOR each platform IN platforms:
+          FOR each module IN platform.modules:
+            score = 0
+            matching_features = []
+            
+            FOR each keyword IN keywords:
+              IF keyword matches module.name THEN
+                score += 3  // high confidence boost
+              END IF
+              
+              FOR each feature IN module.features:
+                IF keyword matches feature.fileName THEN
+                  score += 1
+                  matching_features.add(feature)
+                END IF
+              END FOR
+            END FOR
+            
+            IF score > 0 THEN
+              confidence = calculate_confidence(score, keyword_count)
+              matched_modules.add(module with confidence)
+            END IF
+          END FOR
+        END FOR
+      </field>
+      <field name="confidence_levels">
+        - high: Direct keyword match with module name or feature fileName
+        - medium: Partial match or synonym match
+        - low: Related concept match only
+      </field>
+      <field name="output" var="matched_modules"/>
+    </block>
+
+    <!-- Step 4: Sort and generate recommendation -->
+    <block type="task" id="B5" action="analyze" desc="Sort results and generate recommendation">
+      <field name="input" value="${matched_modules}"/>
+      <field name="operations">
+        - Sort matched modules by confidence (high → medium → low)
+        - Generate recommendation text based on top matches
+        - Collect unmatched keywords for user awareness
+      </field>
+      <field name="recommendation_template">
+        - High confidence: "Module '{name}' is highly relevant for this requirement"
+        - Medium confidence: "Module '{name}' may be relevant"
+        - Low confidence: "Module '{name}' has partial relevance"
+      </field>
+      <field name="output" var="final_result"/>
+    </block>
+
+    <!-- Checkpoint: Verify matching complete -->
+    <block type="checkpoint" id="CP1" name="matching-complete" desc="Verify matching completed">
+      <field name="verify" value="${final_result.matched_modules} != null"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="matched_modules" from="${final_result.matched_modules}" type="array" desc="List of matched modules with confidence"/>
+    <field name="unmatched_keywords" from="${final_result.unmatched_keywords}" type="array" desc="Keywords that didn't match any module"/>
+    <field name="recommendation" from="${final_result.recommendation}" type="string" desc="Suggested modules based on requirement analysis"/>
+    <field name="total_platforms_scanned" from="${final_result.total_platforms_scanned}" type="number" desc="Number of platforms scanned"/>
+    <field name="total_modules_scanned" from="${final_result.total_modules_scanned}" type="number" desc="Number of modules scanned"/>
+    <field name="message" value="Matching completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

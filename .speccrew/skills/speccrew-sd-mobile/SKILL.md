@@ -10,7 +10,13 @@ tools: Read, Write, Glob, Grep
 - Feature Spec has been confirmed, user requests mobile system design
 - User asks "Create mobile design for this platform" or "Generate mobile module design"
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

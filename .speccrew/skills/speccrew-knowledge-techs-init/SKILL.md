@@ -1,10 +1,10 @@
 ---
 name: speccrew-knowledge-techs-init
-description: Stage 1 of technology knowledge initialization - Scan source code to detect technology platforms and generate techs-manifest.json. Identifies web, mobile, backend, and desktop platforms by analyzing configuration files and project structure. Used by Worker Agent to kick off the techs pipeline.
+description: Stage 1 of technology knowledge initialization - Scan source code to detect technology platforms and generate techs-manifest.json using XML workflow blocks. Identifies web, mobile, backend, and desktop platforms by analyzing configuration files and project structure. Used by Worker Agent to kick off the techs pipeline.
 tools: Read, Write, Glob, Grep, SearchCodebase, Skill
 ---
 
-# Stage 1: Detect Technology Platforms
+# Stage 1: Detect Technology Platforms (XML Workflow)
 
 Scan project source code to identify all technology platforms, extract configuration metadata, and generate techs-manifest.json for downstream document generation.
 
@@ -39,26 +39,17 @@ Worker Agent (speccrew-task-worker)
 
 - `{{output_path}}/techs-manifest.json` - Technology platform manifest for pipeline orchestration
 
-## Workflow
+## AgentFlow Definition
 
-```mermaid
-flowchart TD
-    Start([Start]) --> Step1[Step 1: Scan for Platform Indicators]
-    Step1 --> Step2[Step 2: Extract Platform Metadata]
-    Step2 --> Step3[Step 3: Generate techs-manifest.json]
-    Step3 --> Step4[Step 4: Report Results]
-    Step4 --> End([End])
-```
+<!-- @agentflow: workflow.agentflow.xml -->
 
-### Step 1: Scan for Platform Indicators
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-1. **Read Configuration**:
-   - Read `speccrew-workspace/docs/configs/platform-mapping.json` - Get standardized platform identifiers and mapping rules
+---
 
-2. **Analyze project structure to detect technology platforms**:
-   - Check for platform-specific files and configurations (see [Platform Detection Reference](#platform-detection-reference))
+## Platform Detection Reference
 
-#### Web Platform Detection
+### Web Platform Detection
 
 **Indicators:**
 
@@ -78,7 +69,7 @@ flowchart TD
 - tailwind.config.* / postcss.config.*
 - .eslintrc.* / .prettierrc.*
 
-#### Mobile Platform Detection
+### Mobile Platform Detection
 
 **Indicators:**
 
@@ -97,7 +88,7 @@ flowchart TD
 - iOS: Package.swift, Podfile, Info.plist
 - Android: build.gradle, AndroidManifest.xml
 
-#### Backend Platform Detection
+### Backend Platform Detection
 
 **Indicators:**
 
@@ -120,7 +111,7 @@ flowchart TD
 - Go: go.mod, go.sum
 - Rust: Cargo.toml
 
-#### Desktop Platform Detection
+### Desktop Platform Detection
 
 **Indicators:**
 
@@ -138,9 +129,9 @@ flowchart TD
 - WPF/WinForms: .csproj, App.xaml
 - Qt: .pro, CMakeLists.txt
 
-### Step 2: Extract Platform Metadata
+---
 
-For each detected platform, extract:
+## Metadata Extraction Fields
 
 | Field | Source | Example |
 |-------|--------|---------|
@@ -152,93 +143,9 @@ For each detected platform, extract:
 | config_files | List of config file paths | ["package.json", "tsconfig.json"] |
 | convention_files | Lint/format config files | [".eslintrc.js", ".prettierrc"] |
 
-### Step 3: Generate techs-manifest.json
+---
 
-1. **Get Timestamp**:
-   - **CRITICAL**: Run `node scripts/get-timestamp.js` to get current timestamp (no format parameter needed, uses default)
-   - Store the output as `generated_at` value
-
-2. **Create JSON file** with detected platforms:
-
-```json
-{
-  "generated_at": "{{timestamp_from_get_timestamp}}",
-  "source_path": "/project",
-  "language": "zh",
-  "platforms": [
-    {
-      "platform_id": "web-react",
-      "platform_type": "web",
-      "framework": "react",
-      "language": "typescript",
-      "source_path": "src/web",
-      "config_files": [
-        "src/web/package.json",
-        "src/web/tsconfig.json",
-        "src/web/vite.config.ts"
-      ],
-      "convention_files": [
-        "src/web/.eslintrc.js",
-        "src/web/.prettierrc"
-      ]
-    },
-    {
-      "platform_id": "backend-nestjs",
-      "platform_type": "backend",
-      "framework": "nestjs",
-      "language": "typescript",
-      "source_path": "src/server",
-      "config_files": [
-        "src/server/package.json",
-        "src/server/nest-cli.json",
-        "src/server/tsconfig.json"
-      ],
-      "convention_files": [
-        "src/server/.eslintrc.js"
-      ]
-    }
-  ]
-}
-```
-
-### Step 4: Report Results
-
-```
-Stage 1 completed: Technology Platform Detection
-- Platforms Detected: {{platform_count}}
-  - web-react: React 18.2.0, TypeScript 5.3.0
-  - backend-nestjs: NestJS 10.0.0, TypeScript 5.3.0
-- Configuration Files Found: {{config_file_count}}
-- Output: {{output_path}}/techs-manifest.json
-- Next: Dispatch parallel tasks for Stage 2 (Tech Document Generation)
-```
-
-## Reference Guides
-
-### Platform Detection Reference
-
-#### Multiple Platforms in Same Project
-
-If a project contains multiple platforms (e.g., web + backend + mobile):
-- Detect each platform separately
-- Assign unique platform_id for each
-- Include all platforms in manifest
-
-#### Monorepo Structure
-
-For monorepos with multiple packages:
-- Detect platforms in each package directory
-- Use relative paths for source_path
-- Example: `packages/web-app` → web-react platform
-
-#### Framework Version Detection
-
-Extract version information when available:
-- From package.json dependencies
-- From pom.xml version tags
-- Include in report but not in manifest (manifest focuses on structure)
-
-#### Platform Mapping to bizs-init
+## Platform Mapping Consistency
 
 Ensure consistency with modules.json by using standardized platform identifiers from `platform-mapping.json`:
 
@@ -248,6 +155,7 @@ Ensure consistency with modules.json by using standardized platform identifiers 
 - `framework` maps to `platform_subtype` in modules.json
 
 **Example Mapping:**
+
 | platform_id | platform_type | framework | platform_subtype (for bizs-init) |
 |-------------|---------------|-----------|----------------------------------|
 | web-vue | web | vue | vue |
@@ -267,3 +175,14 @@ Ensure consistency with modules.json by using standardized platform identifiers 
 - [ ] Output path verified
 - [ ] Results reported with platform summary
 
+---
+
+## CONTINUOUS EXECUTION RULES
+
+This skill follows the continuous execution pattern defined in `GLOBAL-R1`:
+
+1. **Sequential Execution**: All workflow steps must execute in the defined order without interruption.
+2. **No User Prompts**: Worker must not pause for user confirmation between steps.
+3. **Complete All Steps**: Worker must complete all steps before reporting results.
+4. **Error Handling**: If any step fails, continue with remaining steps if possible, then report all errors together.
+5. **Technology Stack Constraint**: Per `GLOBAL-R-TECHSTACK`, detected platforms must align with standardized platform identifiers from platform-mapping.json.

@@ -55,88 +55,11 @@ Dispatch Agent (speccrew-knowledge-dispatch)
 }
 ```
 
-## Workflow
+## AgentFlow Definition
 
-```mermaid
-graph TB
-    Start([Start]) --> CheckAction{Action Type}
-    CheckAction -->|batch-write| WriteTmp[Write graphData to temp file]
-    WriteTmp --> AddNodes[Run script: add-nodes]
-    AddNodes --> AddEdges[Run script: add-edges]
-    AddEdges --> UpdateIndex[Run script: rebuild-index]
-    UpdateIndex --> UpdateMeta[Run script: update-meta]
-    UpdateMeta --> Report[Report Results]
-    CheckAction -->|init-module| InitModule[Run script: init-module]
-    InitModule --> Report
-    CheckAction -->|update-node| UpdateNode[Run script: update-node]
-    UpdateNode --> Report
-    CheckAction -->|remove-node| RemoveNode[Run script: remove-node]
-    RemoveNode --> Report
-    Report --> End([End])
-```
+<!-- @agentflow: workflow.agentflow.xml -->
 
----
-
-## Actions
-
-### Action: batch-write
-
-**Primary use case.** Write all nodes and edges from a skill's `graphData` output to the graph.
-
-**Steps:**
-
-1. **Write graphData to temp file:**
-   - Create temp file at `{{graphRoot}}/temp/` with the `graphData` JSON content
-   - Temp file name: `batch-{module}-{timestamp}.json`
-
-2. **Add nodes:**
-   ```
-   node "{skill_path}/scripts/graph-write.js" --action "add-nodes" --platformId "{{platformId}}" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
-   ```
-
-3. **Add edges:**
-   ```
-   node "{skill_path}/scripts/graph-write.js" --action "add-edges" --platformId "{{platformId}}" --module "{{module}}" --file "{{tempFilePath}}" --graphRoot "{{graphRoot}}"
-   ```
-
-4. **Update index and metadata** (automatic, handled by script)
-
-5. **Clean up temp file**
-
-**Deduplication Rule:**
-- Nodes with the same `id` are **replaced** (last write wins)
-- Edges with the same `source` + `target` + `type` combination are **replaced**
-
-### Action: init-module
-
-Initialize empty graph structure for a module. Used before Stage 2 analysis begins.
-
-```
-node "{skill_path}/scripts/graph-write.js" --action "init-module" --platformId "{{platformId}}" --module "{{module}}" --graphRoot "{{graphRoot}}"
-```
-
-**Creates:**
-- `{{graphRoot}}/nodes/{{platformId}}/{{module}}.json` — empty nodes array
-- `{{graphRoot}}/edges/{{platformId}}/{{module}}.json` — empty edges array
-- Updates `{{graphRoot}}/graph-meta.json` — adds `{{platformId}}/{{module}}` to modules list
-- Creates `{{graphRoot}}/edges/{{platformId}}/cross-module.json` if not exists
-- Creates `{{graphRoot}}/indices/index.json` if not exists
-
-### Action: update-node
-
-Update an existing node's data fields.
-
-```
-node "{skill_path}/scripts/graph-write.js" --action "update-node" --platformId "{{platformId}}" --id "{{nodeId}}" --data '{{nodeDataJson}}' --graphRoot "{{graphRoot}}"
-```
-
-### Action: remove-node
-
-Remove a node and all its connected edges.
-
-```
-node "{skill_path}/scripts/graph-write.js" --action "remove-node" --platformId "{{platformId}}" --id "{{nodeId}}" --graphRoot "{{graphRoot}}"
-```
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 ---
 

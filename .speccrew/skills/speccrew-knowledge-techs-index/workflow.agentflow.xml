@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="techs-index-main" status="pending" version="1.0" desc="Root technology index generation from platform manifests">
+
+  <!-- ============================================================
+       Global Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="mandatory" desc="Continuous Execution constraint">
+    <field name="text">Execute all steps in sequence without interruption. Worker must complete all steps before reporting results.</field>
+  </block>
+
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="mandatory" desc="Technology Stack constraint">
+    <field name="text">All generated index documents must accurately reflect detected platform technology stacks.</field>
+  </block>
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="techs-index input parameters">
+    <field name="manifest_path" required="true" type="string" desc="Path to techs-manifest.json"/>
+    <field name="techs_base_path" required="false" type="string" default="speccrew-workspace/knowledges/techs/" desc="Base path for techs documentation"/>
+    <field name="output_path" required="false" type="string" default="speccrew-workspace/knowledges/techs/" desc="Output path for root INDEX.md"/>
+    <field name="language" required="true" type="string" desc="Target language (e.g., zh, en)"/>
+  </block>
+
+  <!-- ============================================================
+       Step 0: Read Root Index Template
+       ============================================================ -->
+  <sequence id="S0" name="Template Loading" status="pending" desc="Read root index template to understand required structure">
+
+    <block type="task" id="S0-B1" action="read-file" status="pending" desc="Read root index template">
+      <field name="file_path">${skill_dir}/../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md</field>
+      <field name="output" var="index_template"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 1: Read Manifest
+       ============================================================ -->
+  <sequence id="S1" name="Manifest Reading" status="pending" desc="Read techs-manifest.json to get platform list">
+
+    <block type="task" id="S1-B1" action="read-file" status="pending" desc="Read techs-manifest.json">
+      <field name="file_path">${manifest_path}</field>
+      <field name="output" var="techs_manifest"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 2: Verify Platform Documents
+       ============================================================ -->
+  <sequence id="S2" name="Document Verification" status="pending" desc="Scan each platform directory for document availability">
+
+    <block type="loop" id="S2-L1" over="${techs_manifest.platforms}" as="platform" desc="Scan each platform directory for document availability">
+      <!-- Step 2a: List .md files in platform directory -->
+      <block type="task" id="S2-B1" action="list-dir" status="pending" desc="List all .md files in platform directory">
+        <field name="path">${techs_base_path}/${platform.platform_id}/</field>
+        <field name="filter" value="*.md"/>
+        <field name="output" var="platform_md_files"/>
+      </block>
+
+      <!-- Step 2b: Verify required documents -->
+      <block type="task" id="S2-B2" action="verify" status="pending" desc="Check required documents exist">
+        <field name="required_docs" value="INDEX.md,tech-stack.md,architecture.md,conventions-design.md,conventions-dev.md,conventions-unit-test.md,conventions-system-test.md,conventions-build.md"/>
+        <field name="optional_docs" value="conventions-data.md"/>
+        <field name="on_missing_required" value="mark-incomplete"/>
+        <field name="output" var="platform_doc_status"/>
+      </block>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 3: Extract Platform Summaries
+       ============================================================ -->
+  <sequence id="S3" name="Summary Extraction" status="pending" desc="Read each platform INDEX.md for summary extraction">
+
+    <block type="loop" id="S3-L1" over="${techs_manifest.platforms}" as="platform" desc="Read each platform INDEX.md for summary extraction">
+      <block type="gateway" id="S3-G1" mode="guard" test="${platform.documents.INDEX.md} exists" fail-action="skip" desc="Only process platforms with INDEX.md">
+        <field name="message">Skipping platform without INDEX.md: ${platform.platform_id}</field>
+
+        <block type="task" id="S3-B1" action="read-file" status="pending" desc="Read platform INDEX.md">
+          <field name="file_path">${techs_base_path}/${platform.platform_id}/INDEX.md</field>
+          <field name="output" var="platform_index_content"/>
+        </block>
+
+        <block type="task" id="S3-B2" action="analyze" status="pending" desc="Extract platform name, framework, language, key technologies">
+          <field name="extract_fields" value="platform_name,framework,language,key_technologies"/>
+          <field name="output" var="platform_summary"/>
+        </block>
+      </block>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 4: Get Timestamp
+       ============================================================ -->
+  <block type="task" id="S4-B1" action="run-script" status="pending" desc="Get current timestamp for generated_at field">
+    <field name="command">node scripts/get-timestamp.js</field>
+    <field name="output" var="timestamp"/>
+  </block>
+
+  <!-- ============================================================
+       Step 5: Generate Root INDEX.md
+       ============================================================ -->
+  <sequence id="S5" name="Index Generation" status="pending" desc="Generate root INDEX.md using template fill workflow">
+
+    <block type="task" id="S5-B1" action="generate" status="pending" desc="Generate root INDEX.md from template">
+      <field name="template_path">${skill_dir}/../speccrew-knowledge-techs-index/templates/INDEX-TEMPLATE.md</field>
+      <field name="output_path">${output_path}/INDEX.md</field>
+      <field name="sections">
+        <field name="header" value="${generated_at},${source_path},${platform_count}"/>
+        <field name="platform-overview" value="dynamic_links_from_verification"/>
+        <field name="quick-reference" value="organized_links"/>
+        <field name="agent-mapping" value="platform_agent_documents"/>
+        <field name="document-guide" value="document_descriptions"/>
+        <field name="usage-guide" value="agent_usage_instructions"/>
+      </field>
+      <field name="output" var="generated_index"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 6: Write Output
+       ============================================================ -->
+  <block type="task" id="S6-B1" action="write-file" status="pending" desc="Write generated INDEX.md to output path">
+    <field name="file_path">${output_path}/INDEX.md</field>
+    <field name="content" from="${generated_index}"/>
+  </block>
+
+  <!-- ============================================================
+       Step 7: Report Results
+       ============================================================ -->
+  <block type="event" id="S7-E1" action="log" level="info" desc="Report generation results">
+    <field name="message">Stage 3 completed: Root Technology Index Generated
+- Platforms Indexed: ${platform_count}
+  - web-react: ✓
+  - backend-nestjs: ✓
+- Root Index: ${output_path}/INDEX.md
+- Agent Mappings: Documented for all platforms</field>
+  </block>
+
+  <!-- ============================================================
+       Output Definition
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${generation_status}"/>
+    <field name="platforms_indexed" from="${indexed_platforms_list}"/>
+    <field name="output_file" from="${index_file_path}"/>
+  </block>
+
+</workflow>

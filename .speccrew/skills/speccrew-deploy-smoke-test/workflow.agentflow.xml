@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="deploy-smoke-test" status="pending" version="1.0" desc="Perform lightweight smoke testing against running application">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier"/>
+    <field name="base_url" required="false" type="string" desc="Application base URL (e.g., http://localhost:8080). Required for http mode."/>
+    <field name="api_contract_paths" required="false" type="string" desc="Comma-separated paths to API Contract documents. Required for http mode."/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+    <field name="test_mode" required="false" type="string" default="http" desc="Test method: http (default), process, log"/>
+    <field name="expected_exit_code" required="false" type="string" default="0" desc="Expected process exit code for process mode"/>
+    <field name="log_file" required="false" type="string" desc="Log file path for log mode verification"/>
+    <field name="expected_log_patterns" required="false" type="string" desc="Comma-separated regex patterns expected in log for log mode"/>
+    <field name="process_name" required="false" type="string" desc="Process name or pattern to check for process mode"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Smoke test constraints">
+    <field name="text">Smoke test is NOT integration testing — only verify HTTP status codes</field>
+    <field name="text">Pass rate threshold — If pass rate less than 80% then FAILED</field>
+    <field name="text">Critical GET endpoints — If any critical GET endpoint returns 404 then FAILED</field>
+    <field name="text">No business logic testing — Smoke test does not validate request/response bodies</field>
+  </block>
+
+  <!-- ============================================================
+       Test Mode Selection Gateway
+       ============================================================ -->
+  <block type="gateway" id="G0" mode="exclusive" desc="Select test mode execution path">
+    
+    <!-- HTTP Mode (default) -->
+    <branch test="${test_mode} == 'http' OR ${test_mode} == null" name="HTTP Mode">
+      
+      <!-- Step 1: Parse API Contracts -->
+      <block type="task" id="B1" action="analyze" desc="Parse API Contract paths">
+        <field name="input">${api_contract_paths}</field>
+        <field name="split_by">,</field>
+        <field name="output" var="contract_path_list"/>
+      </block>
+
+      <block type="loop" id="L1" over="${contract_path_list}" as="contract_path" desc="Read each API Contract document">
+        <block type="task" action="read-file" desc="Read API Contract">
+          <field name="path">${contract_path}</field>
+          <field name="output" var="contract_content"/>
+        </block>
+      </block>
+
+      <block type="task" id="B2" action="analyze" desc="Extract endpoint list from contracts">
+        <field name="rules">
+          - Parse endpoints from contract:
+            - Method: GET, POST, PUT, DELETE, etc.
+            - Path: endpoint path (e.g., /api/users)
+            - Expected status code: from contract definition
+          - Filter for core endpoints only
+          - For GET endpoints: test directly with full validation
+          - For POST/PUT/DELETE: only verify endpoint exists (expect 400/401/405 is acceptable, NOT 404)
+        </field>
+        <field name="output" var="endpoint_list"/>
+      </block>
+
+      <!-- Step 2: Execute Smoke Tests -->
+      <block type="loop" id="L2" over="${endpoint_list}" as="endpoint" desc="Test each endpoint">
+        <block type="task" action="run-script" desc="Execute curl for endpoint">
+          <field name="command">curl -s -o /dev/null -w "%{http_code}" -X ${endpoint.method} ${base_url}${endpoint.path}</field>
+          <field name="output" var="endpoint.http_status"/>
+        </block>
+      </block>
+
+      <!-- Step 3: Evaluate Results -->
+      <block type="task" id="B3" action="analyze" desc="Apply pass criteria">
+        <field name="rules">
+          - GET endpoints: Pass if HTTP 200 or 301/302 (redirect)
+          - POST/PUT/DELETE endpoints: Pass if NOT 404 (any other status acceptable)
+          - Health endpoint: Pass if HTTP 200
+          - Calculate pass_rate = (passed_count / total_count) * 100
+        </field>
+        <field name="output" var="evaluation_result"/>
+      </block>
+
+      <block type="gateway" id="G1" mode="guard" desc="Check pass rate threshold"
+             test="${evaluation_result.pass_rate} >= 80"
+             fail-action="stop">
+        <field name="message">Smoke test failed with pass rate ${evaluation_result.pass_rate}% (threshold: 80%)</field>
+      </block>
+
+    </branch>
+
+    <!-- Process Mode -->
+    <branch test="${test_mode} == 'process'" name="Process Mode">
+      
+      <block type="task" id="B4" action="run-script" desc="Check process is running">
+        <field name="command">
+          Windows: tasklist /FI "IMAGENAME eq ${process_name}" | findstr /I "${process_name}"
+          Unix/Mac: pgrep -f "${process_name}"
+        </field>
+        <field name="output" var="process_check_result"/>
+      </block>
+
+      <block type="task" id="B5" action="analyze" desc="Verify process stability">
+        <field name="rules">
+          - Record process start time
+          - Wait 10 seconds
+          - Check if process is still running (not crashed)
+          - If process has exited: get exit code and compare with expected_exit_code (default: 0)
+        </field>
+        <field name="output" var="process_stability_result"/>
+      </block>
+
+      <block type="gateway" id="G2" mode="guard" desc="Verify process running"
+             test="${process_stability_result.status} == 'RUNNING' OR ${process_stability_result.exit_code} == ${expected_exit_code}"
+             fail-action="stop">
+        <field name="message">Process verification failed. Process not running or exit code mismatch.</field>
+      </block>
+
+    </branch>
+
+    <!-- Log Mode -->
+    <branch test="${test_mode} == 'log'" name="Log Mode">
+      
+      <block type="task" id="B6" action="read-file" desc="Read log file content">
+        <field name="path">${log_file}</field>
+        <field name="on_fail">STOP - log file not found</field>
+        <field name="output" var="log_content"/>
+      </block>
+
+      <block type="task" id="B7" action="analyze" desc="Parse expected patterns">
+        <field name="input">${expected_log_patterns}</field>
+        <field name="split_by">,</field>
+        <field name="output" var="pattern_list"/>
+      </block>
+
+      <block type="loop" id="L3" over="${pattern_list}" as="pattern" desc="Check each pattern in log">
+        <block type="task" action="run-script" desc="Check pattern in log">
+          <field name="command">
+            Windows: Select-String -Path "${log_file}" -Pattern "${pattern}"
+            Unix/Mac: grep -E "${pattern}" "${log_file}"
+          </field>
+          <field name="output" var="pattern.found"/>
+        </block>
+      </block>
+
+      <block type="task" id="B8" action="analyze" desc="Evaluate log patterns">
+        <field name="rules">
+          - Pass criteria: ALL expected patterns found in log
+          - Fail: Any pattern missing → report which patterns were not found
+        </field>
+        <field name="output" var="log_verification_result"/>
+      </block>
+
+      <block type="gateway" id="G3" mode="guard" desc="Verify all patterns found"
+             test="${log_verification_result.all_patterns_found} == true"
+             fail-action="stop">
+        <field name="message">Log verification failed. Missing patterns: ${log_verification_result.missing_patterns}</field>
+      </block>
+
+    </branch>
+
+  </block>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Test status"/>
+    <field name="platform_id" from="${platform_id}" type="string" desc="Platform identifier"/>
+    <field name="base_url" from="${base_url}" type="string" desc="Base URL tested"/>
+    <field name="test_mode" from="${test_mode}" type="string" desc="Test mode used"/>
+    <field name="endpoints_tested" from="${endpoint_list.length}" type="number" desc="Number of endpoints tested"/>
+    <field name="pass_rate" from="${evaluation_result.pass_rate}" type="number" desc="Pass rate percentage"/>
+    <field name="passed_count" from="${evaluation_result.passed_count}" type="number" desc="Number of passed tests"/>
+    <field name="failed_count" from="${evaluation_result.failed_count}" type="number" desc="Number of failed tests"/>
+    <field name="test_results" from="${evaluation_result.results}" type="array" desc="Detailed test results"/>
+  </block>
+
+</workflow>

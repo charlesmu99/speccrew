@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="requirement-simple-main" status="pending" version="1.0" desc="Simple requirement analysis for lightweight changes">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="iteration_path" required="true" type="string" desc="Path to iteration directory"/>
+    <field name="clarification_file" required="false" type="string" desc="Path to clarification summary (default: {iteration_path}/01.product-requirement/.clarification-summary.md)"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name for PRD file naming"/>
+    <field name="language" required="true" type="string" desc="Language code for generated content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">Verify .clarification-summary.md exists before proceeding</field>
+    <field name="text">Keep PRD concise - 1-3 page PRDs</field>
+    <field name="text">Use business language throughout</field>
+    <field name="text">Extract key decisions from clarification summary into PRD</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Content boundary constraints">
+    <field name="text">DO NOT include: API endpoint definitions, HTTP methods, request/response JSON</field>
+    <field name="text">DO NOT include: Design class diagrams, component diagrams, deployment diagrams</field>
+    <field name="text">DO NOT include: Database table structures, ER diagrams, SQL queries</field>
+    <field name="text">DO NOT include: Code snippets, pseudocode, implementation logic</field>
+    <field name="text">DO NOT include: Technical terminology (UUID, JWT, REST, Microservice, JSON)</field>
+    <field name="text">Required: Use business language only</field>
+  </block>
+
+  <block type="rule" id="R3" level="forbidden" desc="Workflow constraints">
+    <field name="text">Proceed without .clarification-summary.md</field>
+    <field name="text">Generate Master-Sub PRD structure</field>
+    <field name="text">Dispatch worker agents</field>
+    <field name="text">Wait for user confirmation (handled by PM Agent)</field>
+    <field name="text">Auto-transition to Feature Design stage</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Simple PRD Generation" status="pending" desc="Generate concise PRD for simple requirements">
+
+    <!-- Step 1: Read Clarification Summary -->
+    <block type="task" id="B1" action="read-file" desc="Read clarification summary">
+      <field name="path" value="${clarification_file}"/>
+      <field name="output" var="clarification_content"/>
+    </block>
+
+    <!-- Gateway: Validate prerequisite -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify clarification file exists"
+           test="${clarification_content} != null"
+           fail-action="stop">
+      <field name="message">ERROR: .clarification-summary.md not found. Run speccrew-pm-requirement-clarify first.</field>
+    </block>
+
+    <!-- Verify complexity -->
+    <block type="gateway" id="G2" mode="guard" desc="Verify simple complexity"
+           test="${clarification_content.complexity} == 'simple'"
+           fail-action="stop">
+      <field name="message">Complexity is not 'simple'. Redirect to speccrew-pm-requirement-analysis for complex requirements.</field>
+    </block>
+
+    <!-- Step 2: Read PRD Template -->
+    <block type="task" id="B2" action="run-script" desc="Search for PRD template">
+      <field name="command">Get-ChildItem -Path "." -Recurse -Filter "PRD-TEMPLATE.md" | Where-Object { $_.FullName -like "*speccrew-pm-requirement-analysis*" } | Select-Object -First 1 -ExpandProperty FullName</field>
+      <field name="output" var="template_path"/>
+    </block>
+
+    <block type="task" id="B3" action="read-file" desc="Read PRD template">
+      <field name="path" value="${template_path}"/>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Step 3: Generate Single PRD -->
+    <block type="task" id="B4" action="generate" desc="Generate single PRD">
+      <field name="template" value="${template_content}"/>
+      <field name="output_path" value="${iteration_path}/01.product-requirement/${feature_name}-prd.md"/>
+      <field name="fill_sections">
+        - Section 1: Background & Goals (2-3 sentences)
+        - Section 1.2: Domain Boundary (in-scope/out-of-scope)
+        - Section 1.3/1.4: Glossary (only if new terms)
+        - Section 2: User Stories (1-3 stories)
+        - Section 3: Functional Requirements (brief description)
+        - Section 3.3: Feature List (simple table, 1-5 rows)
+        - Section 3.4: Feature Breakdown (1-5 features, all P0)
+        - Section 4: Non-Functional Requirements (if relevant)
+        - Section 5: Acceptance Criteria (3-5 criteria)
+        - Section 6: Boundary (clear in/out scope)
+        - Section 7: Assumptions (if any)
+      </field>
+      <field name="use_business_language_only">true</field>
+      <field name="data">
+        clarification: ${clarification_content}
+      </field>
+      <field name="output" var="prd_path"/>
+    </block>
+
+    <!-- Checkpoint: PRD generated -->
+    <block type="checkpoint" id="CP1" name="prd-generated" desc="Verify PRD created">
+      <field name="file" value="${prd_path}"/>
+      <field name="verify" value="file_exists(${prd_path})"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="prd_path" from="${prd_path}" type="string" desc="Path to generated PRD"/>
+    <field name="feature_name" from="${feature_name}" type="string" desc="Feature name"/>
+    <field name="scope" from="${clarification_content.scope}" type="string" desc="Brief scope from clarification"/>
+    <field name="complexity" value="simple" type="string" desc="Complexity level"/>
+    <field name="message" value="Simple PRD generation completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

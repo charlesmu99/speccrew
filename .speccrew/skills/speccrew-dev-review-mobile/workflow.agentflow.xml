@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="dev-review-mobile" status="pending" version="1.0" desc="Mobile Code Review - Reviews mobile app implementation against design documents">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="design_doc_path" required="true" type="string" desc="Path to mobile module design document"/>
+    <field name="implementation_report_path" required="true" type="string" desc="Path to mobile development report"/>
+    <field name="source_root" required="true" type="string" desc="Root directory of mobile source code"/>
+    <field name="platform_id" required="true" type="string" desc="Mobile platform (mobile-uniapp, mobile-flutter, mobile-react-native)"/>
+    <field name="task_id" required="true" type="string" desc="Task identifier from dispatch context"/>
+    <field name="api_contract_path" required="false" type="string" desc="Path to API contract file"/>
+    <field name="previous_review_path" required="false" type="string" desc="Path to previous review report"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Review operation constraints">
+    <field name="text">NEVER modify source code files - read-only operation</field>
+    <field name="text">Do NOT attempt to fix issues - only document them</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Output requirements">
+    <field name="text">PARTIAL/FAIL results MUST include specific Re-dispatch Guidance</field>
+    <field name="text">Skip items already marked as passed in previous review</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Mobile Code Review" status="pending" desc="Execute mobile code review workflow">
+
+    <!-- Step 1: Load Documents -->
+    <block type="task" id="B1" action="validate" desc="Validate Inputs">
+      <field name="checks">Verify all required parameters provided</field>
+      <field name="on_fail">Report error and stop</field>
+      <field name="output" var="validation_result"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read Design Document">
+      <field name="path" value="${design_doc_path}"/>
+      <field name="output" var="design_doc"/>
+    </block>
+
+    <block type="task" id="B3" action="analyze" desc="Extract from Design Document">
+      <field name="input" value="${design_doc}"/>
+      <field name="extraction">
+        - Module Overview
+        - Page/Component Structure
+        - Native Features
+        - Offline Support requirements
+      </field>
+      <field name="output" var="design_specs"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read Implementation Report">
+      <field name="path" value="${implementation_report_path}"/>
+      <field name="output" var="impl_report"/>
+    </block>
+
+    <block type="task" id="B5" action="analyze" desc="Extract from Implementation Report">
+      <field name="input" value="${impl_report}"/>
+      <field name="extraction">Completed Files, Implementation Status, Known Issues</field>
+      <field name="output" var="impl_status"/>
+    </block>
+
+    <!-- Conditional: Read API Contract -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if API contract provided">
+      <branch test="${api_contract_path} != null" name="Has API Contract">
+        <block type="task" id="B6" action="read-file" desc="Read API Contract">
+          <field name="path" value="${api_contract_path}"/>
+          <field name="output" var="api_contract"/>
+        </block>
+      </branch>
+      <branch default="true" name="No API Contract">
+        <block type="event" id="E1" action="log" level="info" desc="Skip API validation">
+          <field name="message">API contract not provided - skipping API validation</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 2: File Completeness Check -->
+    <block type="task" id="B7" action="analyze" desc="Build Expected File List">
+      <field name="categories">
+        - Pages: pages/**/* or screens/**/* (e.g., pages/user/index.vue)
+        - Components: components/**/* (e.g., components/UserCard.vue)
+        - Store: store/**/* (e.g., store/user.js)
+        - API: api/**/* or services/**/* (e.g., api/user.js)
+        - Utils: utils/**/* (e.g., utils/permission.js)
+        - Native Modules: native/**/* or plugins/**/* (e.g., native/bridge.js)
+      </field>
+      <field name="output" var="expected_files"/>
+    </block>
+
+    <block type="task" id="B8" action="analyze" desc="Scan Actual Files">
+      <field name="source_root" value="${source_root}"/>
+      <field name="action">Use Glob to scan for implemented files</field>
+      <field name="output" var="actual_files"/>
+    </block>
+
+    <block type="task" id="B9" action="analyze" desc="Calculate Completeness">
+      <field name="formula">Generate completeness matrix and percentage</field>
+      <field name="output" var="completeness_result"/>
+    </block>
+
+    <!-- Step 3: Mobile-Specific Compliance Check -->
+    <block type="task" id="B10" action="analyze" desc="Mobile Component Check">
+      <field name="checks">
+        - Platform Components: Uses correct platform-specific components - Severity: ERROR
+        - Component Reuse: Components appropriately reusable - Severity: WARN
+        - Native Component Usage: Proper use of native UI components - Severity: WARN
+      </field>
+      <field name="output" var="component_check"/>
+    </block>
+
+    <block type="task" id="B11" action="analyze" desc="Platform Adaptation Validation">
+      <field name="checks">
+        - iOS/Android Differences: Platform-specific differences handled - Severity: ERROR
+        - Screen Adaptation: Different screen sizes handled - Severity: ERROR
+        - Safe Area: Safe area insets respected - Severity: ERROR
+        - Platform APIs: Platform-specific APIs correctly used - Severity: WARN
+      </field>
+      <field name="output" var="platform_check"/>
+    </block>
+
+    <block type="task" id="B12" action="analyze" desc="Permission Handling Check">
+      <field name="checks">
+        - Runtime Permissions: Runtime permission requests implemented - Severity: ERROR
+        - Permission Rationale: User-friendly permission explanations - Severity: WARN
+        - Denial Handling: Graceful handling of permission denial - Severity: ERROR
+      </field>
+      <field name="output" var="permission_check"/>
+    </block>
+
+    <block type="task" id="B13" action="analyze" desc="Offline Support Validation">
+      <field name="checks">
+        - Local Storage: Data caching implemented where required - Severity: ERROR
+        - Sync Mechanism: Offline data sync strategy implemented - Severity: ERROR
+        - Network State: Network connectivity handling - Severity: ERROR
+        - Queue Management: Pending request queue management - Severity: WARN
+      </field>
+      <field name="output" var="offline_check"/>
+    </block>
+
+    <block type="task" id="B14" action="analyze" desc="Performance Check">
+      <field name="checks">
+        - List Rendering: Virtual scrolling for long lists - Severity: ERROR
+        - Image Optimization: Image lazy loading and caching - Severity: WARN
+        - Memory Management: Proper cleanup of listeners/timers - Severity: ERROR
+        - Bundle Size: Code splitting where appropriate - Severity: WARN
+      </field>
+      <field name="output" var="performance_check"/>
+    </block>
+
+    <!-- Step 4: Generate Review Report -->
+    <block type="task" id="B15" action="analyze" desc="Determine Result">
+      <field name="criteria">
+        - PASS: 100% files created, 0 ERROR-level issues
+        - PARTIAL: 70-99% files created, or non-critical ERROR issues
+        - FAIL: &lt;70% files created, or critical blockers present
+      </field>
+      <field name="output" var="review_result"/>
+    </block>
+
+    <block type="task" id="B16" action="read-file" desc="Read Review Report Template">
+      <field name="path">templates/REVIEW-REPORT-TEMPLATE.md</field>
+      <field name="output" var="report_template"/>
+    </block>
+
+    <block type="task" id="B17" action="generate" desc="Write Review Report">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[module]-review-report.md</field>
+      <field name="template" value="${report_template}"/>
+      <field name="content">
+        - Completeness: ${completeness_result}
+        - Component Check: ${component_check}
+        - Platform Adaptation: ${platform_check}
+        - Permission Handling: ${permission_check}
+        - Offline Support: ${offline_check}
+        - Performance Check: ${performance_check}
+        - Final Result: ${review_result}
+      </field>
+      <field name="output" var="review_report_path"/>
+    </block>
+
+    <!-- Step 5: Task Completion Report -->
+    <block type="task" id="B18" action="report" desc="Generate Task Completion Report">
+      <field name="template">
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: review-{original_task_id}
+- **Platform**: {platform_id}
+- **Module**: {module_name}
+- **Output Files**: {review_report_path}
+- **Summary**: Review {result}: {completed}/{total} files, {error_count} errors
+      </field>
+      <field name="output" var="completion_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="review_report_path" value="${review_report_path}" type="string" desc="Path to review report"/>
+    <field name="review_result" value="${review_result}" type="string" desc="PASS/PARTIAL/FAIL verdict"/>
+    <field name="completeness_pct" type="number" desc="File completeness percentage"/>
+    <field name="error_count" type="number" desc="Number of ERROR-level issues"/>
+    <field name="completion_report" value="${completion_report}" type="string" desc="Task completion report"/>
+  </block>
+
+</workflow>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="dev-desktop-tauri" status="pending" version="1.0" desc="Tauri Desktop Development - Implements desktop application features using Tauri framework">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="design_doc_path" required="true" type="string" desc="Path to single module design document"/>
+    <field name="platform_id" required="true" type="string" desc="Desktop platform identifier (desktop-tauri)"/>
+    <field name="task_id" required="true" type="string" desc="Task identifier from dispatch context"/>
+    <field name="source_root" required="true" type="string" desc="Root directory of Tauri source code"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Task Record document constraints">
+    <field name="text">NEVER use create_file or full-content overwrite for Task Record after Step 3.1a</field>
+    <field name="text">All subsequent updates MUST use targeted search_replace on specific sections</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before fill sections</field>
+    <field name="text">Source code is NOT template-filled - write directly based on design blueprints</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Security and error handling">
+    <field name="text">Minimize dangerous API allowlist scope</field>
+    <field name="text">All commands must return Result&lt;T, E&gt;</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Tauri Desktop Development" status="pending" desc="Execute Tauri development workflow">
+
+    <!-- Step 1: Read Design Documents -->
+    <block type="task" id="B1" action="read-file" desc="Read Module Design Document">
+      <field name="path" value="${design_doc_path}"/>
+      <field name="output" var="module_design"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read API Contract">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md</field>
+      <field name="output" var="api_contract"/>
+    </block>
+
+    <block type="task" id="B3" action="read-file" desc="Read Techs Knowledge - tech-stack">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/tech-stack.md</field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read Techs Knowledge - architecture">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/architecture.md</field>
+      <field name="output" var="architecture"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read Techs Knowledge - conventions-design">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/conventions-design.md</field>
+      <field name="output" var="conventions_design"/>
+    </block>
+
+    <block type="task" id="B6" action="read-file" desc="Read Techs Knowledge - conventions-dev">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/conventions-dev.md</field>
+      <field name="output" var="conventions_dev"/>
+    </block>
+
+    <!-- Step 2: Analyze Existing Code Structure -->
+    <block type="task" id="B7" action="analyze" desc="Analyze existing Tauri codebase structure">
+      <field name="patterns">
+        - Rust commands: src-tauri/src/**/*.rs
+        - Frontend integration: src/**/*.{tsx,vue}
+        - Tauri commands: src-tauri/src/commands/**/*.rs
+        - Window management: src-tauri/src/window/**/*.rs
+        - State management: src/stores/**/*
+        - API layer: src/apis/**/*
+        - Configuration: package.json, tauri.conf.json
+        - Cargo.toml: src-tauri/Cargo.toml
+      </field>
+      <field name="output" var="codebase_structure"/>
+    </block>
+
+    <!-- Step 3: Extract Task List and Create Task Record -->
+    <block type="task" id="B8" action="read-file" desc="Read Task Record Template">
+      <field name="path">templates/TASK-RECORD-TEMPLATE.md</field>
+      <field name="output" var="task_template"/>
+    </block>
+
+    <block type="task" id="B9" action="create-file" desc="Copy template to Task Record path">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/04.development/${platform_id}/[feature-name]-task.md</field>
+      <field name="content">${task_template} with top-level placeholders replaced</field>
+      <field name="output" var="task_record_path"/>
+    </block>
+
+    <block type="task" id="B10" action="edit-file" desc="Fill Task Record sections using search_replace">
+      <field name="path" value="${task_record_path}"/>
+      <field name="action">Fill each section with task checklist and design metadata</field>
+      <field name="output" var="task_record_filled"/>
+    </block>
+
+    <!-- Extract Tauri-specific task types -->
+    <block type="task" id="B11" action="analyze" desc="Extract Tauri-specific task list">
+      <field name="input" value="${module_design}"/>
+      <field name="extraction_rules">
+        - Tauri Command: Rust backend command (#[tauri::command] functions)
+        - Frontend Component: UI components (React/Vue components, pages)
+        - Command Handler: Frontend-to-Rust communication (invoke() calls)
+        - Window Management: Window creation and lifecycle
+        - Native Integration: File system, notifications
+        - Menu/Shortcut: Application menus and accelerators
+        - Auto-Update: Update mechanism
+        - Security Hardening: CSP, permissions in tauri.conf.json
+      </field>
+      <field name="output" var="task_list"/>
+    </block>
+
+    <!-- Checkpoint: Task list extracted -->
+    <block type="checkpoint" id="CP1" name="task-list-extracted" desc="Verify task list extracted">
+      <field name="verify" value="${task_list.length} > 0"/>
+    </block>
+
+    <!-- Step 4: Implement Tasks -->
+    <block type="loop" id="L1" over="${task_list}" as="task" desc="Execute tasks in dependency order">
+      <block type="task" id="B12" action="edit-file" desc="Mark task as In Progress">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to In Progress</field>
+      </block>
+
+      <block type="task" id="B13" action="generate" desc="Implement task following Tauri patterns">
+        <field name="task" value="${task}"/>
+        <field name="design" value="${module_design}"/>
+        <field name="conventions" value="${conventions_dev}"/>
+        <field name="codebase" value="${codebase_structure}"/>
+        <field name="output" var="implementation_result"/>
+      </block>
+
+      <!-- Step 5: Local Checks (embedded in loop) -->
+      <block type="task" id="B14" action="run-script" desc="Rust checks">
+        <field name="command">cd src-tauri; cargo check; cargo clippy; cargo test</field>
+        <field name="output" var="rust_result"/>
+      </block>
+
+      <block type="task" id="B15" action="run-script" desc="Frontend build verification">
+        <field name="command">npm run build OR npm run tauri build --debug</field>
+        <field name="output" var="build_result"/>
+      </block>
+
+      <block type="task" id="B16" action="run-script" desc="Lint check">
+        <field name="command">npm run lint OR npx eslint [modified-files]</field>
+        <field name="output" var="lint_result"/>
+      </block>
+
+      <block type="task" id="B17" action="run-script" desc="Type check">
+        <field name="command">npx tsc --noEmit</field>
+        <field name="output" var="type_result"/>
+      </block>
+
+      <block type="task" id="B18" action="analyze" desc="Quick verify">
+        <field name="checks">
+          - Application window launches without crash
+          - No console errors in DevTools
+          - Tauri commands respond correctly
+          - Native integrations work as expected
+        </field>
+        <field name="output" var="verify_result"/>
+      </block>
+
+      <block type="gateway" id="G1" mode="guard" desc="Verify all checks passed"
+             test="${rust_result.status} == 'passed' AND ${build_result.status} == 'passed' AND ${lint_result.status} == 'passed'"
+             fail-action="stop">
+        <field name="message">Local checks failed for task ${task.id}</field>
+      </block>
+
+      <block type="task" id="B19" action="edit-file" desc="Update status to Completed">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to Completed</field>
+      </block>
+    </block>
+
+    <!-- Step 6: Record Deviations -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if deviations exist">
+      <branch test="${deviations.length} > 0" name="Has Deviations">
+        <block type="task" id="B20" action="edit-file" desc="Record deviations in task file">
+          <field name="path" value="${task_record_path}"/>
+          <field name="action">Add Deviation Log section with TR-XXX prefix</field>
+        </block>
+      </branch>
+      <branch default="true" name="No Deviations">
+        <block type="event" id="E1" action="log" level="info" desc="No deviations">
+          <field name="message">No deviations from design</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 7: Record Technical Debt -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Check if technical debt exists">
+      <branch test="${tech_debt.length} > 0" name="Has Tech Debt">
+        <block type="task" id="B21" action="create-file" desc="Write technical debt document">
+          <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/tech-debt/[feature-name]-tech-debt.md</field>
+          <field name="content">${tech_debt} with categories: Security, Performance, Refactoring, Dependencies</field>
+          <field name="output" var="tech_debt_path"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Tech Debt">
+        <block type="event" id="E2" action="log" level="info" desc="No tech debt">
+          <field name="message">No technical debt identified</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 8: Complete Notification -->
+    <block type="task" id="B22" action="report" desc="Generate completion summary">
+      <field name="template">
+Tauri Development Complete: {feature-name}
+Platform: {platform_id}
+Framework: Tauri
+
+Tasks Completed: {count}
+├── Tauri Commands: {count}
+├── Frontend Integration: {count}
+├── Native Integration: {count}
+└── Security/Other: {count}
+
+Deviations Recorded: {count}
+Technical Debt Items: {count}
+
+Task Record: speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[feature-name]-task.md
+      </field>
+      <field name="output" var="completion_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="task_record_path" value="${task_record_path}" type="string" desc="Path to task record document"/>
+    <field name="task_count" from="${task_list.length}" type="number" desc="Number of tasks completed"/>
+    <field name="deviation_count" type="number" desc="Number of deviations recorded"/>
+    <field name="tech_debt_count" type="number" desc="Number of tech debt items"/>
+    <field name="completion_report" value="${completion_report}" type="string" desc="Completion notification text"/>
+  </block>
+
+</workflow>

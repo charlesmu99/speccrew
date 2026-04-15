@@ -10,7 +10,13 @@ tools: Read, Write, Glob, Grep
 - User requests framework evaluation for current iteration
 - Need to assess technology stack gaps before system design
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

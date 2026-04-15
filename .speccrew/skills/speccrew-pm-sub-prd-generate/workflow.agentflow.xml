@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="sub-prd-generate-main" status="pending" version="1.0" desc="Generate a single Sub-PRD document for one module">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="module_id" required="true" type="string" desc="Module ID for feature registry (e.g., M1, M2)"/>
+    <field name="module_name" required="true" type="string" desc="Human-readable module name (e.g., Customer Management)"/>
+    <field name="module_key" required="true" type="string" desc="Module identifier for file naming (e.g., customer)"/>
+    <field name="module_scope" required="true" type="string" desc="What this module covers"/>
+    <field name="module_entities" required="true" type="array" desc="Core business entities in this module"/>
+    <field name="module_user_stories" required="true" type="array" desc="User stories specific to this module"/>
+    <field name="module_requirements" required="true" type="array" desc="Functional requirements for this module (P0/P1/P2)"/>
+    <field name="module_features" required="true" type="array" desc="Feature Breakdown entries for this module"/>
+    <field name="module_dependencies" required="false" type="array" desc="Dependencies on other modules"/>
+    <field name="master_prd_path" required="true" type="string" desc="Path to the Master PRD (for cross-referencing)"/>
+    <field name="feature_name" required="true" type="string" desc="System-level feature name (for file naming prefix)"/>
+    <field name="template_path" required="true" type="string" desc="Path to PRD-TEMPLATE.md"/>
+    <field name="output_path" required="true" type="string" desc="Full path for the Sub-PRD output file"/>
+    <field name="language" required="true" type="string" desc="Language code for generated content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Content boundary constraints">
+    <field name="text">NO API endpoint definitions, HTTP methods, request/response JSON</field>
+    <field name="text">NO Database table structures, ER diagrams, SQL queries</field>
+    <field name="text">NO Design class diagrams, component diagrams, deployment diagrams</field>
+    <field name="text">NO Code snippets, pseudocode, implementation logic</field>
+    <field name="text">NO Technical terminology (UUID, JWT, REST, Microservice, JSON)</field>
+    <field name="text">Required: Use BUSINESS LANGUAGE ONLY</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Document generation constraints">
+    <field name="text">FORBIDDEN: Full-file rewrite - NEVER replace entire document content</field>
+    <field name="text">MANDATORY: Template-first workflow - Copy template before filling sections</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Sub-PRD Generation" status="pending" desc="Generate Sub-PRD for a single module">
+
+    <!-- Step 1: Load Context -->
+    <block type="task" id="B1" action="read-file" desc="Read Master PRD">
+      <field name="path" value="${master_prd_path}"/>
+      <field name="output" var="master_prd_content"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read PRD template">
+      <field name="path" value="${template_path}"/>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Step 2: Create Sub-PRD File -->
+    <block type="task" id="B3" action="write-file" desc="Copy template to output path">
+      <field name="path" value="${output_path}"/>
+      <field name="content" value="${template_content}"/>
+      <field name="replace_title" from="# PRD - [Feature Name]" to="# Sub-PRD - ${module_name}"/>
+      <field name="output" var="sub_prd_created"/>
+    </block>
+
+    <!-- Step 3: Phase A - Skeleton Construction -->
+    <block type="task" id="B4" action="analyze" desc="Phase A: Build skeleton for all features">
+      <field name="input" value="${module_features}"/>
+      <field name="for_each_feature">
+        - Create #### Feature N: {feature_name}
+        - Add 6 sub-section headers:
+          * Requirement Description: [TO BE FILLED]
+          * Interaction Flow: [TO BE FILLED]
+          * Boundary Conditions: [TO BE FILLED]
+          * Exception Scenarios: [TO BE FILLED]
+          * Operation Flow Diagram: [TO BE FILLED]
+          * Operation Steps Detail: [TO BE FILLED]
+      </field>
+      <field name="output" var="skeleton_built"/>
+    </block>
+
+    <!-- Gateway: Verify skeleton complete -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify all features have skeleton"
+           test="${skeleton_built.complete} == true"
+           fail-action="stop">
+      <field name="message">Skeleton construction incomplete. All features must have all 6 sub-sections.</field>
+    </block>
+
+    <!-- Step 4: Phase B - Content Filling -->
+    <block type="loop" id="L1" over="${module_features}" as="feature" desc="Fill content for each feature">
+      <block type="task" id="B5" action="search_replace" desc="Fill Requirement Description">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Requirement Description section for ${feature.name}</field>
+        <field name="with">Business requirements in business language</field>
+      </block>
+
+      <block type="task" id="B6" action="search_replace" desc="Fill Interaction Flow">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Interaction Flow section for ${feature.name}</field>
+        <field name="with">User interaction steps (numbered list)</field>
+      </block>
+
+      <block type="task" id="B7" action="search_replace" desc="Fill Boundary Conditions">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Boundary Conditions section for ${feature.name}</field>
+        <field name="with">Table: Condition Type | Scenario | Handling Rule</field>
+      </block>
+
+      <block type="task" id="B8" action="search_replace" desc="Fill Exception Scenarios">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Exception Scenarios section for ${feature.name}</field>
+        <field name="with">Bullet list of exception handling</field>
+      </block>
+
+      <block type="task" id="B9" action="search_replace" desc="Fill Operation Flow Diagram">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Operation Flow Diagram section for ${feature.name}</field>
+        <field name="with">Mermaid graph LR diagram showing operation flow</field>
+      </block>
+
+      <block type="task" id="B10" action="search_replace" desc="Fill Operation Steps Detail">
+        <field name="path" value="${output_path}"/>
+        <field name="replace">[TO BE FILLED] in Operation Steps Detail section for ${feature.name}</field>
+        <field name="with">Table: Step | Action | Expected Outcome | Exception Handling</field>
+      </block>
+    </block>
+
+    <!-- Step 5: Fill remaining sections -->
+    <block type="task" id="B11" action="search_replace" desc="Fill Section 1: Background & Goals">
+      <field name="path" value="${output_path}"/>
+      <field name="sections">
+        - 1.1 Background: Why this module exists
+        - 1.2 Goals: Module-specific business objectives
+      </field>
+    </block>
+
+    <block type="task" id="B12" action="search_replace" desc="Fill Section 2: User Stories">
+      <field name="path" value="${output_path}"/>
+      <field name="sections">
+        - 2.1 Target Users
+        - 2.2 User Scenarios in As a/I want/So that format
+      </field>
+    </block>
+
+    <block type="task" id="B13" action="search_replace" desc="Fill Section 3: Functional Requirements">
+      <field name="path" value="${output_path}"/>
+      <field name="sections">
+        - 3.1 Use Case Diagram (Mermaid flowchart TB)
+        - 3.2 Business Process Flow
+        - 3.3 Feature List with P0/P1/P2
+        - 3.4 Feature Breakdown (REQUIRED)
+        - 3.5 Feature Details (all 6 sub-sections per feature)
+      </field>
+    </block>
+
+    <block type="task" id="B14" action="search_replace" desc="Fill remaining sections">
+      <field name="path" value="${output_path}"/>
+      <field name="sections">
+        - Section 4: Non-functional Requirements
+        - Section 5: Acceptance Criteria
+        - Section 6: Boundary Description
+        - Section 7: Assumptions & Dependencies
+      </field>
+    </block>
+
+    <!-- Step 6: Verify Output -->
+    <block type="task" id="B15" action="read-file" desc="Verify generated Sub-PRD">
+      <field name="path" value="${output_path}"/>
+      <field name="output" var="sub_prd_content"/>
+    </block>
+
+    <block type="gateway" id="G2" mode="guard" desc="Verify Sub-PRD is valid"
+           test="${sub_prd_content.length} > 3000 AND ${sub_prd_content} contains 'Feature Breakdown'"
+           fail-action="stop">
+      <field name="message">Sub-PRD verification failed: File too small or missing Feature Breakdown</field>
+    </block>
+
+    <!-- Step 7: Write Module Features to Feature List -->
+    <block type="task" id="B16" action="analyze" desc="Build feature list entry">
+      <field name="feature_list_path" value="dirname(${output_path})/.prd-feature-list.json"/>
+      <field name="build_entry">
+        module_id: ${module_id}
+        module_name: ${module_name}
+        module_key: ${module_key}
+        source_prd: ${feature_name}-sub-${module_key}.md
+        feature_count: ${module_features.length}
+        features: ${module_features}
+      </field>
+      <field name="output" var="feature_list_entry"/>
+    </block>
+
+    <block type="task" id="B17" action="write-file" desc="Update feature list file">
+      <field name="path" value="${feature_list_path}"/>
+      <field name="merge">true</field>
+      <field name="entry" value="${feature_list_entry}"/>
+      <field name="output" var="feature_list_updated"/>
+    </block>
+
+    <!-- Checkpoint: Sub-PRD complete -->
+    <block type="checkpoint" id="CP1" name="sub-prd-complete" desc="Verify Sub-PRD generation completed">
+      <field name="file" value="${output_path}"/>
+      <field name="verify" value="file_exists(${output_path})"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="sub_prd_path" from="${output_path}" type="string" desc="Path to generated Sub-PRD"/>
+    <field name="module_id" from="${module_id}" type="string" desc="Module ID"/>
+    <field name="module_name" from="${module_name}" type="string" desc="Module name"/>
+    <field name="feature_count" from="${module_features.length}" type="number" desc="Number of features"/>
+    <field name="feature_list_updated" from="${feature_list_updated}" type="boolean" desc="Whether feature list was updated"/>
+    <field name="message" value="Sub-PRD generation completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

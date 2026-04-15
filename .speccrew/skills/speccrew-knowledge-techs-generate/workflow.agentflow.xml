@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="techs-generate-main" status="pending" version="1.0" desc="Platform technology documentation generation">
+
+  <!-- ============================================================
+       Global Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="mandatory" desc="Continuous Execution constraint">
+    <field name="text">Execute all steps in sequence without interruption. Worker must complete all steps before reporting results.</field>
+  </block>
+
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="mandatory" desc="Technology Stack constraint">
+    <field name="text">All generated documents must align with the detected technology stack of the platform.</field>
+  </block>
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="techs-generate input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier (e.g., web-react, backend-nestjs)"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type (web, mobile, backend, desktop)"/>
+    <field name="framework" required="true" type="string" desc="Primary framework (react, nestjs, flutter, etc.)"/>
+    <field name="source_path" required="true" type="string" desc="Platform source directory"/>
+    <field name="config_files" required="true" type="array" desc="List of configuration file paths"/>
+    <field name="convention_files" required="false" type="array" desc="List of convention file paths"/>
+    <field name="output_path" required="true" type="string" desc="Output directory for generated documents"/>
+    <field name="language" required="true" type="string" desc="Target language (e.g., zh, en)"/>
+    <field name="completed_dir" required="false" type="string" desc="Directory for analysis coverage report output"/>
+  </block>
+
+  <!-- ============================================================
+       Step 0: Read Document Templates
+       ============================================================ -->
+  <sequence id="S0" name="Template Loading" status="pending" desc="Read document templates from templates directory">
+
+    <block type="task" id="S0-B1" action="read-file" status="pending" desc="Read document templates from templates directory">
+      <field name="file_path">${skill_dir}/../speccrew-knowledge-techs-generate/templates/</field>
+      <field name="output" var="document_templates"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 1: Read Configuration Files
+       ============================================================ -->
+  <sequence id="S1" name="Config Reading" status="pending" desc="Read primary configuration and convention files">
+
+    <block type="task" id="S1-B1" action="read-files" status="pending" desc="Read primary configuration and convention files">
+      <field name="files" value="${config_files},${convention_files}"/>
+      <field name="output" var="config_contents"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 2: Extract Technology Stack
+       ============================================================ -->
+  <sequence id="S2" name="Tech Stack Extraction" status="pending" desc="Parse configuration files to extract technology stack">
+
+    <block type="task" id="S2-B1" action="analyze" status="pending" desc="Parse configuration files to extract technology stack">
+      <field name="extract_items">
+        <field name="core_framework" source="package.json|pom.xml|requirements.txt|pubspec.yaml|go.mod"/>
+        <field name="dependencies" source="dependencies section"/>
+        <field name="build_tools" source="devDependencies, scripts"/>
+      </field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 3: Analyze Conventions
+       ============================================================ -->
+  <sequence id="S3" name="Convention Analysis" status="pending" desc="Extract conventions from config files and analyze project structure">
+
+    <block type="task" id="S3-B1" action="read-file" status="pending" desc="Read mermaid-rule.md for diagram generation">
+      <field name="file_path">${workspace_path}/docs/rules/mermaid-rule.md</field>
+      <field name="output" var="mermaid_rule"/>
+    </block>
+
+    <block type="task" id="S3-B2" action="analyze" status="pending" desc="Extract conventions from ESLint/Prettier configs and analyze directory structure">
+      <field name="extract_from" value="ESLint/Prettier configs"/>
+      <field name="analyze_dir" value="${source_path}"/>
+      <field name="analyze_for" value="directory-conventions"/>
+      <field name="output" var="conventions"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 4: UI Style Analysis (Frontend Platforms Only)
+       ============================================================ -->
+  <block type="gateway" id="S4-G1" mode="exclusive" desc="Check if platform is frontend">
+    <branch test="${platform_type} IN [web, mobile, desktop]" name="Frontend platform">
+      <block type="task" id="S4-B1" action="run-skill" status="pending" desc="Invoke UI style analysis skill">
+        <field name="skill">speccrew-knowledge-techs-ui-analyze</field>
+        <field name="args">source_path=${source_path};platform_id=${platform_id};platform_type=${platform_type};framework=${framework};output_path=${output_path}/ui-style/;language=${language}</field>
+        <field name="output" var="ui_style_result"/>
+      </block>
+    </branch>
+    <branch default="true" name="Backend platform">
+      <block type="event" id="S4-E1" action="log" level="info" desc="UI style analysis skipped">
+        <field name="message">UI style analysis skipped for backend platform</field>
+      </block>
+    </branch>
+  </block>
+
+  <!-- ============================================================
+       Step 5: Generate Documents
+       ============================================================ -->
+  <sequence id="S5" name="Document Generation" status="pending" desc="Generate all required documents using template fill workflow">
+
+    <block type="task" id="S5-B1" action="generate" status="pending" desc="Generate all required documents using template fill workflow">
+      <field name="template_path">${skill_dir}/../speccrew-knowledge-techs-generate/templates/</field>
+      <field name="output_path">${output_path}</field>
+      <field name="documents">
+        <field name="INDEX.md" template="INDEX-TEMPLATE.md"/>
+        <field name="tech-stack.md" template="TECH-STACK-TEMPLATE.md"/>
+        <field name="architecture.md" template="ARCHITECTURE-TEMPLATE.md"/>
+        <field name="conventions-design.md" template="CONVENTIONS-DESIGN-TEMPLATE.md"/>
+        <field name="conventions-dev.md" template="CONVENTIONS-DEV-TEMPLATE.md"/>
+        <field name="conventions-unit-test.md" template="CONVENTIONS-UNIT-TEST-TEMPLATE.md"/>
+        <field name="conventions-system-test.md" template="CONVENTIONS-SYSTEM-TEST-TEMPLATE.md"/>
+        <field name="conventions-build.md" template="CONVENTIONS-BUILD-TEMPLATE.md"/>
+      </field>
+      <field name="output" var="generated_docs"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Step 5b: Generate conventions-data.md for Backend
+       ============================================================ -->
+  <block type="gateway" id="S5b-G1" mode="exclusive" desc="Check if data layer document needed">
+    <branch test="${platform_type} == backend OR ${data_layer_detected} == true" name="Data layer required">
+      <block type="task" id="S5b-B1" action="generate" status="pending" desc="Generate data layer conventions">
+        <field name="template" value="CONVENTIONS-DATA-TEMPLATE.md"/>
+        <field name="output_path">${output_path}/conventions-data.md</field>
+        <field name="output" var="data_conventions"/>
+      </block>
+    </branch>
+    <branch default="true" name="No data layer">
+      <block type="event" id="S5b-E1" action="log" level="info" desc="Data conventions skipped">
+        <field name="message">conventions-data.md skipped - not required for this platform</field>
+      </block>
+    </branch>
+  </block>
+
+  <!-- ============================================================
+       Step 6: Write Output Files
+       ============================================================ -->
+  <block type="task" id="S6-B1" action="write-files" status="pending" desc="Write all generated documents to output directory">
+    <field name="output_path">${output_path}</field>
+    <field name="files" from="${generated_docs}"/>
+  </block>
+
+  <!-- ============================================================
+       Step 7: Generate Analysis Coverage Report
+       ============================================================ -->
+  <block type="task" id="S7-B1" action="generate" status="pending" desc="Generate analysis coverage JSON report">
+    <field name="output_path">${completed_dir}/${platform_id}.analysis.json</field>
+    <field name="format" value="json"/>
+    <field name="include">
+      <field name="topics_analysis"/>
+      <field name="config_files_analyzed"/>
+      <field name="source_dirs_scanned"/>
+      <field name="documents_generated"/>
+    </field>
+    <field name="output" var="coverage_report"/>
+  </block>
+
+  <!-- ============================================================
+       Step 8: Report Results
+       ============================================================ -->
+  <block type="event" id="S8-E1" action="log" level="info" desc="Report generation results">
+    <field name="message">Platform Technology Documents Generated: ${platform_id}
+- INDEX.md: ✓
+- tech-stack.md: ✓
+- architecture.md: ✓
+- conventions-design.md: ✓
+- conventions-dev.md: ✓
+- conventions-unit-test.md: ✓
+- conventions-system-test.md: ✓
+- conventions-build.md: ✓
+- conventions-data.md: ✓ (or skipped)
+- ui-style-guide.md: ✓ (frontend only)
+- Output Directory: ${output_path}</field>
+  </block>
+
+  <!-- ============================================================
+       Output Definition
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${generation_status}"/>
+    <field name="documents_generated" from="${generated_files_list}"/>
+    <field name="coverage_report" from="${analysis_coverage}"/>
+  </block>
+
+</workflow>

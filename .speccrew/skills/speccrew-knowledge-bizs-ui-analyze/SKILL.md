@@ -1,10 +1,10 @@
 ---
 name: speccrew-knowledge-bizs-ui-analyze
-description: Analyze a single UI feature from source code to extract business functionality and generate feature documentation. Used by Worker Agent in parallel execution during knowledge base initialization Stage 2. Each worker analyzes one feature (e.g., one Vue/React page component).
+description: Analyze a single UI feature from source code to extract business functionality and generate feature documentation using XML Block workflow. Used by Worker Agent in parallel execution during knowledge base initialization Stage 2. Each worker analyzes one feature (e.g., one Vue/React page component).
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# UI Feature Analysis - Single Feature
+# UI Feature Analysis - Single Feature (XML Block Workflow)
 
 > **CRITICAL CONSTRAINT**: DO NOT create temporary scripts, batch files, or workaround code files (`.py`, `.bat`, `.sh`, `.ps1`, etc.) under any circumstances. If execution encounters errors, STOP and report the exact error. Fixes must be applied to the Skill definition or source scripts — not patched at runtime.
 
@@ -72,324 +72,447 @@ Analyze one specific UI feature from source code, extract business functionality
 }
 ```
 
-> **Note**: Graph data construction (nodes, edges, marker files) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. This Skill only generates feature documentation.
-
-## Workflow
-
-> **⚠️ CRITICAL CONSTRAINTS (apply to ALL steps):**
-> 1. **FORBIDDEN: `create_file` for documents** — Documents MUST be created by copying template (Step 5a) then filling with `search_replace` (Step 5b)
-> 2. **FORBIDDEN: File deletion** — If a file is malformed, fix it with `search_replace`
-> 3. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
-> 4. **MANDATORY: Template-first workflow** — Step 5a MUST execute before Step 5b
-
-```mermaid
-graph TB
-    Start([Start]) --> Step1[Step 1 Read Analysis Template]
-    Step1 --> Step2[Step 2 Read Feature File and Analyze UI Structure]
-    Step2 --> Step3[Step 3 Extract Business Features]
-    Step3 --> Step4[Step 4 Find Referencing Pages]
-    Step4 --> Step5a[Step 5a Copy Template to Document Path]
-    Step5a --> Step5b[Step 5b Fill Each Section Using search_replace]
-    Step5b --> Step6[Step 6 Report Results]
-    Step6 --> End([End])
-```
-
----
-
-### Step 1: Read Analysis Template (Required before workflow starts)
-
-**Step 1 Status: 🔄 IN PROGRESS**
-
-1. **Check Analysis Status:**
-   ```
-   IF {{analyzed}} == true THEN
-       Output "Step 1 Status: ⏭️ SKIPPED (already analyzed)"
-       Skip to Step 6 with status="skipped"
-   ELSE
-       Proceed to next step
-   END IF
-   ```
-
-2. **Read the appropriate template based on platform type:**
-   
-   **Template Selection:**
-
-   | Platform Type | Template File | Description |
-   |--------------|---------------|-------------|
-   | Web (Vue/React/Angular) | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` | Default/Generic web template |
-   | Mobile Native (iOS/Android) | `templates/FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md` | Swift/Kotlin/React Native/Flutter |
-   | Mini Program | `templates/FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md` | WeChat/Alipay/ByteDance |
-   | Desktop (WinForms/WPF) | `templates/FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md` | C# .NET Desktop |
-   | Desktop (Electron) | `templates/FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md` | HTML/JS Desktop |
-   | Unknown/Other | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` | Default to generic web template |
-   
-   Select template based on `{{platform_type}}` and `{{platform_subtype}}` parameters.
-   
-3. **Understand template structure:**
-   - Read the template content
-   - Understand the required information dimensions and sections
-   - Note the analysis requirements for each section
-   - Output: "Step 1 Status: ✅ COMPLETED - Read template for {{platform_type}}/{{platform_subtype}}"
-
-   > ⚠️ CRITICAL: The template defines the EXACT output structure. You MUST:
-   > - Generate ALL sections listed in the template, in the SAME order
-   > - Fill ALL tables defined in the template (use "N/A" for unavailable data, never skip a table)
-   > - Follow the EXACT heading hierarchy and numbering from the template
-   > - Do NOT invent your own section structure or reorganize sections
-
-### Step 2: Read Feature File and Analyze UI Structure
-
-**Step 2 Status: 🔄 IN PROGRESS**
-
-**Prerequisites:**
-- Template has been read and understood
-- Feature file is a page/component file (e.g., `frontend-web/src/views/system/user/index.vue`)
-
-**Actions:**
-1. **Locate and Read the feature file:**
-   - Use `{{sourcePath}}` as the relative file path from project root
-   - Read the feature file content
-
-2. **Analyze page/screen/window structure, components, props, state management** guided by the template requirements
-
-   > ⚠️ When analyzing, systematically gather information for EVERY section in the template:
-   > - For each template section, identify what source code information is needed
-   > - If source code doesn't provide enough info for a section, note it for "N/A" filling later
-   > - Do NOT skip gathering info just because it seems minor
-
-3. **Deep Analysis Requirements:**
-   - Analyze complete component interfaces: props, events, slots
-   - Trace API call chains and data flow paths
-   - Analyze routing configuration and state management integration
-   - Document component dependencies and injection patterns
-
-**Analysis Scope:**
-
-| Template Section | Information to Extract | Source |
-|------------------|------------------------|--------|
-| 1. Content Overview | Feature name, document path, source path, description | `{{fileName}}`, `{{documentPath}}`, `{{sourcePath}}` |
-| 2. Interface Prototype | Main page and embedded modals ASCII wireframes, element descriptions | Component template, JSX/Vue template |
-| 3. Business Flow | Page initialization, component events (onClick/onChange/etc), timer/websocket, page close flows | Event handlers, lifecycle hooks, timers |
-| 4. Data Field Definition | Page state fields, form fields with validation | State definitions, form schemas, v-model bindings |
-| 5. References | APIs, shared methods, shared components, other pages | API calls, imports, navigation |
-| 6. Business Rules | Permission rules, business logic rules, validation rules | Code logic, comments |
-| 7. Notes and Additional Info | Compatibility, pending confirmations, extension notes | Full source analysis |
-
-**Enhanced Analysis Requirements:**
-
-#### A. API Call Sequence Analysis (MUST include in Section 3 Business Flow)
-
-For EVERY business flow that involves multiple API calls, analyze:
-- Whether API calls are executed **serially** or **in parallel** (Promise.all vs sequential await)
-- The timing logic inside `try/catch/finally` blocks
-- Whether **race conditions** exist between multiple API calls
-- If one API fails, whether subsequent APIs will still execute
-
-Add a **Sequence Analysis** note block after each multi-API flow.
-
-#### B. Boundary Scenario Flows (MUST include in Section 3 Business Flow)
-
-Document key boundary scenarios:
-- **Empty data / empty list**: What is displayed when API returns empty results?
-- **Error / exception branches**: What happens on API failure, network timeout?
-- **State reset / cleanup**: When and how is form/state reset?
-- **Concurrent operation scenarios**: What happens on rapid consecutive clicks?
-
-#### C. Data Binding Relationship (MUST include in Section 4 Data Field Definition)
-
-**Data Binding Mapping Table** — trace full binding chain for each reactive field.
-**Reactive Dependency Chain** — document all `watch` and `computed` dependencies.
-
-#### D. Performance and Scalability Analysis (MUST include in Section 7 Notes)
-
-- **Full-load performance risks**: Dropdowns/selectors that load ALL records without pagination
-- **Large-data UI performance risks**: UI component behavior under large datasets
-- **Scalability limitations**: Hardcoded assumptions that limit extensibility
-- **Pending confirmations**: Design questions and improvement suggestions
-
-**Output:** "Step 2 Status: ✅ COMPLETED - Read {{sourcePath}} ({{lineCount}} lines), Analyzed {{componentCount}} components, {{eventCount}} events"
-
-### Step 3: Extract Business Features
-
-**Step 3 Status: 🔄 IN PROGRESS**
-
-Each user interaction or page initialization in the feature file = one business feature.
-
-**CRITICAL - Analysis Scope Limitation:**
-
-- **ONLY analyze the single feature file specified by `{{sourcePath}}`**
-- **DO NOT analyze or generate documentation for other files in the same directory**
-- **DO NOT generate separate documents for embedded components/modals**
-
-**Extraction Guidelines:**
-
-- Draw ASCII wireframes for **main page only** and **embedded modals/dialogs that are defined within the same file**
-- For **external pages/components** (imported from other files): 
-  - Only add reference links in Section 5.4 (Other Pages) or 5.3 (Shared Components)
-  - DO NOT draw wireframes for them
-  - DO NOT analyze their internal implementation
-- Document ALL business flows: page init, component events, timers, websocket, page close
-- **Read Configuration**: Read `speccrew-workspace/docs/rules/mermaid-rule.md` for Mermaid diagram guidelines
-- **Generate Mermaid flowcharts** following the configuration:
-  - Use `graph TB` or `graph LR` syntax (not `flowchart`)
-  - No parentheses `()` in node text
-  - No HTML tags like `<br/>`
-  - No `style` definitions
-  - No nested `subgraph`
-- Use `{{language}}` for all extracted content naming
-
-**Output:** "Step 3 Status: ✅ COMPLETED - Extracted {{wireframeCount}} wireframes, {{flowCount}} business flows"
-
-### Step 4: Find Referencing Pages
-
-**Step 4 Status: 🔄 IN PROGRESS**
-
-Search other page files in the codebase to find which pages reference/navigate to this page.
-
-**Search Methods:**
-- Search for router navigation calls containing this page's route path
-- Search for imports of this page component
-- Search for links/buttons that navigate to this page
-
-**For Each Referencing Page, Record:**
-| Field | Description |
-|-------|-------------|
-| Page Name | Name of the page that references this page |
-| Function Description | How/why it references this page |
-| Source Path | Relative path to the referencing page source file |
-| Document Path | Path to the referencing page's generated document |
-
-**Output:** "Step 4 Status: ✅ COMPLETED - Found {{referenceCount}} referencing pages"
-
-### Step 5a: Copy Template to Document Path
-
-**Step 5a Status: 🔄 IN PROGRESS**
-
-**Objective:** Copy the appropriate template file to the target document path, replacing top-level placeholders.
-
-**Actions:**
-
-1. **Select Template Based on Platform Type:**
-
-   | Platform Type | Template File |
-   |--------------|---------------|
-   | `web` | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` |
-   | `mobile` | `templates/FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md` |
-   | `miniapp` | `templates/FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md` |
-   | `desktop` | `templates/FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md` |
-   | `electron` | `templates/FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md` |
-   | Unknown/Other | `templates/FEATURE-DETAIL-TEMPLATE-UI.md` |
-
-2. **Read the Selected Template File:**
-   - Read the template file content from the skill's templates directory
-
-3. **Replace Top-Level Placeholders:**
-   
-   | Placeholder | Replacement | Example |
-   |-------------|-------------|---------|
-   | `{Feature Name}` | Human-readable feature name | `"用户管理列表"` |
-   | `{documentPath}` | `{{documentPath}}` input variable | `"speccrew-workspace/knowledges/bizs/web-vue/..."` |
-   | `{sourcePath}` | `{{sourcePath}}` input variable | `"frontend-web/src/views/system/user/index.vue"` |
-   | `{Date}` | Current date | `"2026-04-04"` |
-   | `{FeatureFile}.vue` | `{{fileName}}` with appropriate extension | `"index.vue"` |
-
-4. **Write the Document Using create_file:**
-   Use `create_file` to write the placeholder-replaced template content to `{{documentPath}}`.
-
-**Pre-write Checklist:**
-- [ ] Template file selected based on `{{platform_type}}`
-- [ ] Template content read successfully
-- [ ] All top-level placeholders replaced
-- [ ] Document path is valid
-
-**Output:** "Step 5a Status: ✅ COMPLETED - Template copied to {{documentPath}}"
-
----
-
-### Step 5b: Fill Each Section Using search_replace
-
-**Step 5b Status: 🔄 IN PROGRESS**
-
-**Objective:** Fill each section of the copied template document using `search_replace`, preserving section structure.
-
-**CRITICAL Rules:**
-- ⚠️ **NEVER use `create_file` to rewrite the entire document**
-- ⚠️ **ALWAYS use `search_replace` to update specific sections**
-- ⚠️ **Section titles and numbering MUST be preserved**
-- ⚠️ **If a section has no corresponding information, replace placeholder content with "N/A"**
-
-**Section Filling Order:**
-
-#### 1. Section 1 - Content Overview
-Replace the placeholder description with actual feature description.
-
-#### 2. Section 2 - Interface Prototype
-Replace the example ASCII wireframe with actual wireframe drawn in Step 3.
-
-#### 3. Section 3 - Business Flow
-Replace example Mermaid diagrams with actual flow diagrams from Step 3. Add **Sequence Analysis** and **Boundary Scenarios** tables.
-
-#### 4. Section 4 - Data Field Definition
-Replace example field rows with actual field definitions. Add **Data Binding Mapping** and **Reactive Dependency Chain**.
-
-#### 5. Section 5 - References
-Fill all reference tables (APIs, Shared Methods, Shared Components, Other Pages, Referenced By).
-
-#### 6. Section 6 - Business Rule Constraints
-Fill permission rules, business logic rules, and validation rules.
-
-#### 7. Section 7 - Notes and Additional Information
-Fill notes and add **Performance and Scalability Analysis** subsection.
-
-**Section Filling Checklist:**
-- [ ] Section 1: Content Overview — description filled
-- [ ] Section 2: Interface Prototype — ASCII wireframes replaced
-- [ ] Section 2: Interface Element Description table filled
-- [ ] Section 3: All flows — diagrams and descriptions filled
-- [ ] Section 3: API call sequence analysis added
-- [ ] Section 3: Boundary scenarios documented
-- [ ] Section 4: Page State Fields and Form Fields tables filled
-- [ ] Section 4: Data binding mapping and reactive dependency chain added
-- [ ] Section 5: All reference tables filled
-- [ ] Section 6: All business rules tables filled
-- [ ] Section 7: Notes and performance analysis filled
-
-**Output:** "Step 5b Status: ✅ COMPLETED - All sections filled using search_replace"
-
----
-
-**CRITICAL - Link Format Rules:**
-
-❌ **NEVER use `file://` protocol in links** — This breaks Markdown preview
-✅ **ALWAYS use relative paths** — Markdown links work correctly
-
-**Dynamic Path Calculation:**
-1. Count the number of directory separators in `{{documentPath}}` from project root
-2. For each level, add one `../`
-3. Construct the final link: `[Source]({pathPrefix}{sourcePath})`
-
-### Step 6: Report Results
-
-**Step 6 Status: 🔄 IN PROGRESS**
-
-Return analysis result summary:
-
-```json
-{
-  "status": "{{status}}",
-  "feature": {
-    "fileName": "{{fileName}}",
-    "sourcePath": "{{sourcePath}}"
-  },
-  "platformType": "{{platform_type}}",
-  "module": "{{module}}",
-  "featureName": "{{feature_name}}",
-  "generatedFile": "{{generated_file}}",
-  "message": "{{message}}"
-}
-```
-
----
+> **Note**: Graph data (.graph.json) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. This Skill generates feature documentation AND writes `.done.json` completion marker.
+
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+  <!-- ==================== INPUT PARAMETERS ==================== -->
+  <block type="input" id="I1" desc="UI feature analysis input parameters">
+    <field name="feature" required="true" type="object" desc="Complete feature object from features.json"/>
+    <field name="fileName" required="true" type="string" desc="Feature file name"/>
+    <field name="sourcePath" required="true" type="string" desc="Relative path to source file"/>
+    <field name="documentPath" required="true" type="string" desc="Target path for generated document"/>
+    <field name="module" required="true" type="string" desc="Business module name"/>
+    <field name="analyzed" required="true" type="boolean" desc="Analysis status flag"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type: web, mobile, etc."/>
+    <field name="platform_subtype" required="true" type="string" desc="Platform subtype: vue, react, etc."/>
+    <field name="tech_stack" required="true" type="array" desc="Platform tech stack"/>
+    <field name="language" required="true" type="string" desc="Target language for generated content"/>
+    <field name="completed_dir" required="true" type="string" desc="Marker file output directory"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Sync state directory path"/>
+    <field name="sourceFile" required="true" type="string" desc="Source features JSON filename"/>
+  </block>
+
+  <!-- ==================== CONSTRAINT RULES ==================== -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">NEVER use create_file to rewrite entire document. Documents MUST be created by copying template then filling with search_replace.</field>
+  </block>
+  <block type="rule" id="R2" level="forbidden" desc="File deletion constraint">
+    <field name="text">NEVER delete generated files. If a file is malformed, fix it with search_replace.</field>
+  </block>
+  <block type="rule" id="R3" level="forbidden" desc="Full rewrite constraint">
+    <field name="text">NEVER rewrite entire document. Always use targeted search_replace on specific sections.</field>
+  </block>
+  <block type="rule" id="R4" level="mandatory" desc="Template-first workflow">
+    <field name="text">Template copying (Step 5a) MUST execute before section filling (Step 5b).</field>
+  </block>
+  <block type="rule" id="R5" level="mandatory" desc="All sections filled">
+    <field name="text">ALL sections in the template must be filled. Use "N/A" for unavailable data, never skip a section.</field>
+  </block>
+  <block type="rule" id="R6" level="mandatory" desc="Language compliance">
+    <field name="text">ALL content MUST be generated in the language specified by {{language}} parameter.</field>
+  </block>
+
+  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
+    <field name="text">DO NOT suggest "Due to context window limits, let me pause" — complete current task, use checkpoint for resumption</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL items in sequence</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
+
+  <!-- ==================== STEP 0: CHECK ANALYSIS STATUS ==================== -->
+  <sequence id="S0" name="Step 0: Check Analysis Status" status="pending" desc="Check if feature has already been analyzed">
+    <block type="gateway" id="G0" mode="exclusive" desc="Check analyzed status">
+      <branch test="${analyzed} == true" name="Already analyzed">
+        <block type="event" id="E0a" action="log" level="info" desc="Skip already analyzed feature">
+          <field name="message">Step 0 Status: SKIPPED (already analyzed)</field>
+        </block>
+        <block type="output" id="O0a" desc="Skip output">
+          <field name="status" value="skipped"/>
+          <field name="message" value="Feature already analyzed, skipping"/>
+        </block>
+        <block type="checkpoint" id="CP0" name="skip-complete" desc="Skip checkpoint">
+          <field name="verify" value="true"/>
+        </block>
+      </branch>
+      <branch test="${analyzed} == false" name="Proceed with analysis">
+        <block type="event" id="E0b" action="log" level="info" desc="Proceed with analysis">
+          <field name="message">Step 0 Status: PROCEEDING (analysis required)</field>
+        </block>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 1: READ ANALYSIS TEMPLATE ==================== -->
+  <sequence id="S1" name="Step 1: Read Template" status="pending" desc="Read the appropriate template based on platform type">
+    <!-- Template Selection Logic -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Select template based on platform type">
+      <branch test="${platform_type} == 'mobile'" name="Mobile template">
+        <field name="templateFile" value="./templates/FEATURE-DETAIL-TEMPLATE-UI-MOBILE.md"/>
+      </branch>
+      <branch test="${platform_type} == 'miniapp'" name="Miniapp template">
+        <field name="templateFile" value="./templates/FEATURE-DETAIL-TEMPLATE-UI-MINIAPP.md"/>
+      </branch>
+      <branch test="${platform_type} == 'desktop' AND ${platform_subtype} == 'electron'" name="Electron template">
+        <field name="templateFile" value="./templates/FEATURE-DETAIL-TEMPLATE-UI-ELECTRON.md"/>
+      </branch>
+      <branch test="${platform_type} == 'desktop'" name="Desktop template">
+        <field name="templateFile" value="./templates/FEATURE-DETAIL-TEMPLATE-UI-DESKTOP.md"/>
+      </branch>
+      <branch default="true" name="Default Web template">
+        <field name="templateFile" value="./templates/FEATURE-DETAIL-TEMPLATE-UI.md"/>
+      </branch>
+    </block>
+
+    <!-- Read Template Content -->
+    <block type="task" id="B1" action="read-file" desc="Read template content">
+      <field name="path" value="${templateFile}"/>
+      <field name="output" var="templateContent"/>
+    </block>
+
+    <!-- Validate Template Structure -->
+    <block type="checkpoint" id="CP1" name="template-loaded" desc="Template loaded checkpoint">
+      <field name="verify" value="${templateContent} != null AND ${templateContent} != ''"/>
+    </block>
+    <block type="event" id="E1" action="log" level="info" desc="Log template read">
+      <field name="message">Step 1 Status: COMPLETED - Read template for ${platform_type}/${platform_subtype}</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 2: READ FEATURE FILE AND ANALYZE UI STRUCTURE ==================== -->
+  <sequence id="S2" name="Step 2: Read Source" status="pending" desc="Read feature file and analyze UI structure">
+    <!-- Read Source File -->
+    <block type="task" id="B2" action="read-file" desc="Read source file">
+      <field name="path" value="${sourcePath}"/>
+      <field name="output" var="sourceContent"/>
+    </block>
+
+    <!-- Analyze UI Structure -->
+    <block type="task" id="B2b" action="analyze" desc="Analyze UI structure">
+      <field name="content" value="${sourceContent}"/>
+      <field name="tech_stack" value="${tech_stack}"/>
+      <field name="output" var="analysisResult"/>
+      <field name="componentCount" from="${analysisResult.components.length}"/>
+      <field name="eventCount" from="${analysisResult.events.length}"/>
+      <field name="apiCalls" from="${analysisResult.apis}"/>
+      <field name="stateFields" from="${analysisResult.state}"/>
+      <field name="formFields" from="${analysisResult.forms}"/>
+    </block>
+
+    <block type="checkpoint" id="CP2" name="source-analyzed" desc="Source analyzed checkpoint">
+      <field name="verify" value="${sourceContent} != null"/>
+    </block>
+    <block type="event" id="E2" action="log" level="info" desc="Log source analysis">
+      <field name="message">Step 2 Status: COMPLETED - Read ${sourcePath}, Analyzed ${componentCount} components, ${eventCount} events</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 3: EXTRACT BUSINESS FEATURES ==================== -->
+  <sequence id="S3" name="Step 3: Extract Features" status="pending" desc="Extract business features and flows">
+    <!-- Read Mermaid Rules -->
+    <block type="task" id="B3a" action="read-file" desc="Read Mermaid rules">
+      <field name="path" value="speccrew-workspace/docs/rules/mermaid-rule.md"/>
+      <field name="output" var="mermaidRules"/>
+    </block>
+
+    <!-- Extract Wireframes -->
+    <block type="task" id="B3b" action="analyze" desc="Extract wireframes">
+      <field name="content" value="${sourceContent}"/>
+      <field name="platform" value="${platform_type}"/>
+      <field name="output" var="wireframes"/>
+    </block>
+
+    <!-- Extract Business Flows -->
+    <block type="task" id="B3c" action="analyze" desc="Extract business flows">
+      <field name="content" value="${sourceContent}"/>
+      <field name="events" value="${eventCount}"/>
+      <field name="output" var="flows"/>
+      <field name="sequenceAnalysis" from="${flows.sequences}"/>
+      <field name="boundaryScenarios" from="${flows.boundaries}"/>
+    </block>
+
+    <!-- Extract Data Bindings -->
+    <block type="task" id="B3d" action="analyze" desc="Extract data bindings">
+      <field name="stateFields" value="${stateFields}"/>
+      <field name="formFields" value="${formFields}"/>
+      <field name="output" var="dataBindingMap"/>
+      <field name="reactiveDependencies" from="${dataBindingMap.dependencies}"/>
+    </block>
+
+    <block type="checkpoint" id="CP3" name="features-extracted" desc="Features extracted checkpoint">
+      <field name="verify" value="${flows.length} > 0 OR ${wireframes.length} > 0"/>
+    </block>
+    <block type="event" id="E3" action="log" level="info" desc="Log feature extraction">
+      <field name="message">Step 3 Status: COMPLETED - Extracted ${wireframes.length} wireframes, ${flows.length} business flows</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 4: FIND REFERENCING PAGES ==================== -->
+  <sequence id="S4" name="Step 4: Find References" status="pending" desc="Find referencing pages">
+    <!-- Search for Router Navigation -->
+    <block type="task" id="B4a" action="run-script" desc="Search router references">
+      <field name="command">grep -r "${fileName}" --include="*.{vue,tsx,jsx}" "${sourcePath}/.."</field>
+      <field name="output" var="routerMatches"/>
+    </block>
+
+    <!-- Search for Component Imports -->
+    <block type="task" id="B4b" action="run-script" desc="Search import references">
+      <field name="command">grep -r "import.*${fileName}" --include="*.{vue,tsx,jsx,ts,js}" "${sourcePath}/.."</field>
+      <field name="output" var="importMatches"/>
+    </block>
+
+    <!-- Compile Referencing Pages -->
+    <block type="task" id="B4c" action="analyze" desc="Compile references">
+      <field name="routerMatches" value="${routerMatches}"/>
+      <field name="importMatches" value="${importMatches}"/>
+      <field name="output" var="referencingPages"/>
+    </block>
+
+    <block type="event" id="E4" action="log" level="info" desc="Log reference search">
+      <field name="message">Step 4 Status: COMPLETED - Found ${referencingPages.length} referencing pages</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 5A: COPY TEMPLATE TO DOCUMENT PATH ==================== -->
+  <sequence id="S5a" name="Step 5a: Copy Template" status="pending" desc="Copy template to document path">
+    <!-- Document Output Path Rule -->
+    <block type="rule" id="R-DOCPATH" level="mandatory" desc="Document output path MUST use documentPath parameter">
+      <field name="text">
+        The output document file MUST be created at the EXACT path specified by ${documentPath} input parameter.
+        DO NOT use the template file name (e.g., FEATURE-DETAIL-TEMPLATE-*.md) as the output file name.
+        The documentPath already contains the correct target path including file name (e.g., speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md).
+        Before creating the file, ensure the parent directory exists (create if necessary).
+      </field>
+    </block>
+
+    <!-- Ensure Document Output Directory Exists -->
+    <block type="task" id="B5a0" action="run-script" desc="Ensure document output directory exists">
+      <field name="command">node -e "require('fs').mkdirSync(require('path').dirname('${documentPath}'), {recursive: true})"</field>
+    </block>
+
+    <!-- Prepare Placeholder Replacements -->
+    <block type="task" id="B5a1" action="analyze" desc="Prepare replacements">
+      <field name="language" value="${language}"/>
+      <field name="fileName" value="${fileName}"/>
+      <field name="output" var="replacements"/>
+    </block>
+
+    <!-- Replace Top-Level Placeholders and Write Document Skeleton -->
+    <block type="task" id="B5a2" action="write-file" desc="Write document skeleton">
+      <field name="path" value="${documentPath}"/>
+      <field name="content" value="${templateContent}"/>
+      <field name="note">Replace placeholders {Feature Name}, {documentPath}, {sourcePath}, {Date}, {FeatureFile}.vue with actual values</field>
+    </block>
+
+    <block type="checkpoint" id="CP5a" name="template-copied" desc="Template copied checkpoint">
+      <field name="verify" value="file.exists(${documentPath})"/>
+    </block>
+    <block type="event" id="E5a" action="log" level="info" desc="Log template copy">
+      <field name="message">Step 5a Status: COMPLETED - Template copied to ${documentPath}</field>
+    </block>
+  </sequence>
+  
+  <!-- ==================== STEP 5-MID: DYNAMIC SECTION GENERATION ==================== -->
+  <!-- Rule: Dynamic section generation before filling fixed sections -->
+  <block type="rule" id="R-DYNAMIC-SECTIONS" level="mandatory" desc="Dynamic section generation rule">
+    <field name="text">BEFORE filling template sections, you MUST first count identified UI components and dynamically create the corresponding number of sections in the document.</field>
+    <field name="text">Step 1: Copy template skeleton to target path</field>
+    <field name="text">Step 2: For each identified UI component/area, insert a new numbered sub-section (e.g., 2.1, 2.2, 2.3...) into the document</field>
+    <field name="text">Step 3: Fill each sub-section with the specific component details (wireframe, interactions, events)</field>
+    <field name="text">NEVER rely on fixed template sections alone — the number of sections MUST match the number of identified UI components</field>
+  </block>
+  
+  <!-- Loop: Dynamically generate a section for each UI component -->
+  <block type="loop" id="L-COMPONENT-SECTIONS" over="${analysisResult.components}" as="component" desc="Dynamically generate a section for each UI component">
+    <block type="task" id="B-COMP-SECTION" action="generate" desc="Insert component sub-section into document">
+      <field name="target" value="${documentPath}"/>
+      <field name="content">For component ${component.name} (type: ${component.type}): insert a ## 2.X sub-section containing Component Wireframe, Props/Events table, Interaction Flow, and State Management</field>
+      <field name="output" var="section_${component.index}"/>
+    </block>
+  </block>
+  
+  <!-- Checkpoint: Verify section count matches component count -->
+  <block type="checkpoint" id="CP-SECTIONS-COUNT" desc="Verify section count matches component count">
+    <field name="verify">Number of generated 2.X sections == ${analysisResult.components.length}</field>
+  </block>
+  
+  <!-- ==================== STEP 5B: FILL EACH SECTION USING SEARCH_REPLACE ==================== -->
+  <sequence id="S5b" name="Step 5b: Fill Sections" status="pending" desc="Fill document sections">
+    <!-- Section 1: Content Overview -->
+    <block type="task" id="B5b1" action="run-skill" desc="Fill Section 1">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 1. Content Overview.*?(?=## 2.|$)"/>
+      <field name="replace" value="## 1. Content Overview\n\n${section1Content}"/>
+    </block>
+
+    <!-- Section 2: Interface Prototype -->
+    <block type="task" id="B5b2" action="run-skill" desc="Fill Section 2">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 2. Interface Prototype.*?(?=## 3.|$)"/>
+      <field name="replace" value="## 2. Interface Prototype\n\n${wireframes}\n\n### Interface Element Description\n\n${elementDescriptions}"/>
+    </block>
+
+    <!-- Section 3: Business Flow -->
+    <block type="task" id="B5b3" action="run-skill" desc="Fill Section 3">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 3. Business Flow.*?(?=## 4.|$)"/>
+      <field name="replace" value="## 3. Business Flow\n\n${businessFlows}\n\n### API Call Sequence Analysis\n\n${sequenceAnalysis}\n\n### Boundary Scenarios\n\n${boundaryScenarios}"/>
+    </block>
+
+    <!-- Section 4: Data Field Definition -->
+    <block type="task" id="B5b4" action="run-skill" desc="Fill Section 4">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 4. Data Field Definition.*?(?=## 5.|$)"/>
+      <field name="replace" value="## 4. Data Field Definition\n\n### Page State Fields\n\n${stateFieldsTable}\n\n### Form Fields\n\n${formFieldsTable}\n\n### Data Binding Mapping\n\n${dataBindingMap}\n\n### Reactive Dependency Chain\n\n${reactiveDependencies}"/>
+    </block>
+
+    <!-- Section 5: References -->
+    <block type="task" id="B5b5" action="run-skill" desc="Fill Section 5">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 5. References.*?(?=## 6.|$)"/>
+      <field name="replace" value="## 5. References\n\n### APIs\n\n${apiReferences}\n\n### Shared Methods\n\n${sharedMethods}\n\n### Shared Components\n\n${sharedComponents}\n\n### Other Pages\n\n${otherPages}\n\n### Referenced By\n\n${referencedBy}"/>
+    </block>
+
+    <!-- Section 6: Business Rule Constraints -->
+    <block type="task" id="B5b6" action="run-skill" desc="Fill Section 6">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 6. Business Rule Constraints.*?(?=## 7.|$)"/>
+      <field name="replace" value="## 6. Business Rule Constraints\n\n### Permission Rules\n\n${permissionRules}\n\n### Business Logic Rules\n\n${businessRules}\n\n### Validation Rules\n\n${validationRules}"/>
+    </block>
+
+    <!-- Section 7: Notes and Additional Information -->
+    <block type="task" id="B5b7" action="run-skill" desc="Fill Section 7">
+      <field name="skill">search_replace</field>
+      <field name="file_path" value="${documentPath}"/>
+      <field name="search" value="## 7. Notes and Additional Information.*?(?=$)"/>
+      <field name="replace" value="## 7. Notes and Additional Information\n\n${notes}\n\n### Performance and Scalability Analysis\n\n${performanceAnalysis}"/>
+    </block>
+
+    <block type="checkpoint" id="CP5b" name="all-sections-filled" desc="All sections filled checkpoint">
+      <field name="verify" value="all.sections.filled"/>
+    </block>
+    <block type="event" id="E5b" action="log" level="info" desc="Log section filling">
+      <field name="message">Step 5b Status: COMPLETED - All sections filled using search_replace</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 6: REPORT RESULTS ==================== -->
+  <sequence id="S6" name="Step 6: Report Results" status="pending" desc="Report analysis results">
+    <block type="event" id="E6" action="log" level="info" desc="Log final status">
+      <field name="message">Step 6 Status: COMPLETED - Analysis success: Successfully analyzed ${fileName} feature from ${sourcePath}</field>
+    </block>
+  </sequence>
+
+  <!-- ==================== STEP 7: WRITE COMPLETION MARKERS ==================== -->
+  <!-- Calculate Subpath from Source Path -->
+  <block type="task" id="B29" action="calculate-subpath" desc="Calculate subpath">
+    <field name="sourcePath" value="${sourcePath}"/>
+    <field name="output" var="subpath" from="calculation.subpath"/>
+  </block>
+  
+  <!-- Generate Marker File Name -->
+  <block type="task" id="B30" action="generate-marker-name" desc="Generate marker name">
+    <field name="module" value="${module}"/>
+    <field name="subpath" value="${subpath}"/>
+    <field name="fileName" value="${fileName}"/>
+    <field name="output" var="markerName" from="generation.name"/>
+  </block>
+  
+  <!-- Pre-write Verification -->
+  <block type="checkpoint" id="CP6" name="pre-write-check" desc="Pre-write verification">
+    <field name="verify" value="${fileName} does-not-contain '.' AND ${sourceFile} matches 'features-*.json'"/>
+  </block>
+  
+  <!-- Write .done.json File -->
+  <block type="task" id="B31" action="create-file" desc="Write done marker file">
+    <field name="target" value="${completed_dir}/${markerName}.done.json"/>
+    <field name="content" value="{
+  &quot;fileName&quot;: &quot;${fileName}&quot;,
+  &quot;sourcePath&quot;: &quot;${sourcePath}&quot;,
+  &quot;sourceFile&quot;: &quot;${sourceFile}&quot;,
+  &quot;module&quot;: &quot;${module}&quot;,
+  &quot;documentPath&quot;: &quot;${documentPath}&quot;,
+  &quot;status&quot;: &quot;${status}&quot;,
+  &quot;analysisNotes&quot;: &quot;${message}&quot;
+}"/>
+  </block>
+  
+  <!-- Verify Marker File Written -->
+  <block type="checkpoint" id="CP7" name="marker-written" desc="Marker file written">
+    <field name="verify" value="file.exists(${completed_dir}/${markerName}.done.json)"/>
+  </block>
+  
+  <block type="event" id="E10" action="log" level="info" desc="Log marker status">
+    <field name="message" value="Step 7 Status: COMPLETED - Done marker file written to ${completed_dir}/${markerName}.done.json"/>
+  </block>
+
+  <!-- ==================== FINAL OUTPUT ==================== -->
+  <block type="output" id="O1" desc="UI feature analysis output results">
+    <field name="status" value="success"/>
+    <field name="feature_name" from="${fileName}"/>
+    <field name="generated_file" from="${documentPath}"/>
+    <field name="message" value="Successfully analyzed ${fileName} feature from ${sourcePath}"/>
+    <field name="platformType" from="${platform_type}"/>
+    <field name="module" from="${module}"/>
+  </block>
+
+  <!-- ==================== ERROR HANDLING ==================== -->
+  <block type="error-handler" id="EH1" desc="Handle workflow errors">
+    <try>
+      <!-- Main workflow defined in sequences above -->
+    </try>
+    <catch error-type="file-not-found">
+      <block type="event" id="EH1-E1" action="log" level="error" desc="File not found error">
+        <field name="message">Source file not found: ${sourcePath}</field>
+      </block>
+      <field name="status" value="failed"/>
+      <field name="message" value="Source file not found: ${sourcePath}"/>
+    </catch>
+    <catch error-type="template-error">
+      <block type="event" id="EH1-E2" action="log" level="error" desc="Template error">
+        <field name="message">Template processing error</field>
+      </block>
+      <field name="status" value="failed"/>
+      <field name="message" value="Failed to process template"/>
+    </catch>
+    <catch error-type="validation-error">
+      <block type="event" id="EH1-E3" action="log" level="error" desc="Validation error">
+        <field name="message">Validation failed: ${error.message}</field>
+      </block>
+      <field name="status" value="partial"/>
+      <field name="message" value="Analysis completed with validation errors"/>
+    </catch>
+    <finally>
+      <block type="event" id="EH1-E4" action="log" level="info" desc="Workflow completed">
+        <field name="message">Workflow execution completed</field>
+      </block>
+    </finally>
+  </block>
+
+</workflow>
+
+## Constraints
+
+1. **DO NOT analyze files outside the specified `{{sourcePath}}`**
+2. **DO NOT generate separate documents for embedded components**
+3. **All content MUST be in the language specified by `{{language}}`**
+4. **Use `search_replace` for section filling, NEVER rewrite entire document**
+5. **Mermaid diagrams MUST follow the rules in `mermaid-rule.md`**
+6. **All links MUST use relative paths, NEVER `file://` protocol**
 
 ## Task Completion Report
 
@@ -405,14 +528,19 @@ When the task is complete, report the following:
 
 **Files Generated:**
 - `{{documentPath}}` - Feature documentation
+- `completed_dir/markerName.done.json` - Completion marker
 
-**Note:** Graph data construction (nodes, edges, marker files) is handled by `speccrew-knowledge-bizs-ui-graph` Skill.
+**Note:** Graph data (.graph.json) is handled by `speccrew-knowledge-bizs-ui-graph` Skill. The `.done.json` completion marker is written by this Skill in Step 7.
 
-## Constraints
+## Checklist
 
-1. **DO NOT analyze files outside the specified `{{sourcePath}}`**
-2. **DO NOT generate separate documents for embedded components**
-3. **All content MUST be in the language specified by `{{language}}`**
-4. **Use `search_replace` for section filling, NEVER rewrite entire document**
-5. **Mermaid diagrams MUST follow the rules in `mermaid-rule.md`**
-6. **All links MUST use relative paths, NEVER `file://` protocol**
+- [ ] Template file selected based on `{{platform_type}}`
+- [ ] Template content read successfully
+- [ ] Source file read and analyzed
+- [ ] Business features extracted with wireframes
+- [ ] Referencing pages found
+- [ ] Template copied to document path
+- [ ] All sections filled using search_replace
+- [ ] All content in target language (`{{language}}`)
+- [ ] Results reported in JSON format
+- [ ] Done marker file written to completed_dir

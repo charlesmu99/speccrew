@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="sd-frontend-main" status="pending" version="1.0" desc="Frontend System Design workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_id" required="false" type="string" desc="Feature identifier, e.g., F-CRM-01"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name, e.g., customer-list"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform, e.g., frontend-vue, frontend-react"/>
+    <field name="iteration_path" required="true" type="string" desc="Absolute path to iteration directory"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+    <field name="task_id" required="false" type="string" desc="Task ID from dispatch context"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document creation constraints">
+    <field name="text">NEVER use create_file to write design documents or INDEX directly</field>
+    <field name="text">MUST create by copying template then filling with search_replace</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Full-file rewrite prohibition">
+    <field name="text">NEVER replace entire document content in single operation</field>
+    <field name="text">ALWAYS use targeted search_replace on specific sections</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before fill sections</field>
+    <field name="text">Skipping copy and writing content directly is FORBIDDEN</field>
+  </block>
+
+  <block type="rule" id="R4" level="mandatory" desc="Actual framework syntax">
+    <field name="text">All pseudo-code MUST use actual framework/library syntax from techs knowledge</field>
+    <field name="text">NOT generic pseudo-code</field>
+  </block>
+
+  <block type="rule" id="R5" level="forbidden" desc="TODO/FIXME placeholders">
+    <field name="text">Design documents MUST contain complete implementation logic</field>
+    <field name="text">Do NOT use TODO, FIXME, HACK, or any placeholder comments</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Frontend System Design" status="pending" desc="Generate frontend detailed design documents">
+
+    <!-- Step 1: Read Inputs -->
+    <block type="task" id="B1" action="read-file" desc="Read Feature Spec document">
+      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-feature-spec.md</field>
+      <field name="output" var="feature_spec"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read API Contract">
+      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="output" var="api_contract"/>
+    </block>
+
+    <!-- Read Techs Knowledge -->
+    <block type="task" id="B3" action="read-file" desc="Read tech-stack.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/tech-stack.md</field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read architecture.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/architecture.md</field>
+      <field name="output" var="architecture"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read conventions-design.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/conventions-design.md</field>
+      <field name="output" var="conventions_design"/>
+    </block>
+
+    <block type="task" id="B6" action="read-file" desc="Read conventions-dev.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/conventions-dev.md</field>
+      <field name="output" var="conventions_dev"/>
+    </block>
+
+    <!-- Optional: Read UI style guide -->
+    <block type="task" id="B7" action="read-file" desc="Read UI style guide">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/ui-style/ui-style-guide.md</field>
+      <field name="optional" value="true"/>
+      <field name="output" var="ui_style_guide"/>
+    </block>
+
+    <!-- Step 2: Analyze Existing Code Structure -->
+    <block type="task" id="B8" action="analyze" desc="Analyze frontend codebase structure">
+      <field name="analysis_targets">
+        - Component directory: src/components/**/*.{vue,tsx}
+        - Shared/base components: src/components/base/**/*
+        - State management: src/stores/**/*.ts or src/store/**/*.ts
+        - Router configuration: src/router/**/*.ts
+        - API layer: src/apis/**/*.ts or src/api/**/*.ts
+        - Naming conventions from existing code
+      </field>
+      <field name="output" var="codebase_analysis"/>
+    </block>
+
+    <!-- Step 3: Extract Functions from Feature Spec -->
+    <block type="task" id="B9" action="analyze" desc="Extract frontend functions">
+      <field name="input" value="${feature_spec}">${api_contract}</field>
+      <field name="extraction_rules">
+        - Parse Feature Spec Section 2.N pattern
+        - Extract frontend prototype (ASCII wireframe)
+        - Extract interaction flow
+        - Extract backend API calls from API Contract
+        - Extract data requirements
+        - Mark components as [EXISTING], [MODIFIED], or [NEW]
+      </field>
+      <field name="output" var="extracted_functions"/>
+    </block>
+
+    <!-- Checkpoint A: Present function extraction summary -->
+    <block type="event" id="E1" action="confirm" title="Function Extraction Confirmation" type="yesno" desc="Present function extraction summary">
+      <field name="preview">Frontend Functions Extracted for: ${feature_name}
+Platform: ${platform_id}
+
+Function Extraction Summary:
+${extracted_functions.summary}
+
+Component Markers:
+- [NEW]: ${extracted_functions.new_count} components
+- [MODIFIED]: ${extracted_functions.modified_count} components
+- [EXISTING]: ${extracted_functions.existing_count} components
+
+Confirm function extraction before proceeding?</field>
+    </block>
+
+    <!-- Step 4: Generate Module Design Documents -->
+    <block type="task" id="B10" action="read-file" desc="Read design template">
+      <field name="path">speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md</field>
+      <field name="output" var="design_template"/>
+    </block>
+
+    <!-- Loop: Generate design for each function -->
+    <block type="loop" id="L1" over="${extracted_functions.functions}" as="function" desc="Generate module design documents">
+      <block type="gateway" id="G1" mode="exclusive" desc="Determine output path">
+        <branch test="${feature_id} != null" name="With feature_id">
+          <block type="task" id="B11" action="generate" desc="Copy template and create document">
+            <field name="template" value="${design_template}"/>
+            <field name="placeholders">
+              - {Module Name} → ${function.module_name}
+              - {Feature Name} → ${feature_name}
+              - {Platform ID} → ${platform_id}
+            </field>
+            <field name="output_path">${iteration_path}/03.system-design/${platform_id}/${feature_id}-${feature_name}-design.md</field>
+            <field name="output" var="module_doc_created"/>
+          </block>
+        </branch>
+        <branch default="true" name="Without feature_id">
+          <block type="task" id="B12" action="generate" desc="Copy template and create document">
+            <field name="template" value="${design_template}"/>
+            <field name="placeholders">
+              - {Module Name} → ${function.module_name}
+              - {Feature Name} → ${feature_name}
+              - {Platform ID} → ${platform_id}
+            </field>
+            <field name="output_path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+            <field name="output" var="module_doc_created"/>
+          </block>
+        </branch>
+      </block>
+
+      <block type="task" id="B13" action="edit-file" desc="Fill Component Tree section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${feature_spec}${conventions_design}</field>
+        <field name="section">Component Tree</field>
+      </block>
+
+      <block type="task" id="B14" action="edit-file" desc="Fill Props/Emits section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_dev}</field>
+        <field name="section">Props/Emits</field>
+      </block>
+
+      <block type="task" id="B15" action="edit-file" desc="Fill State Management section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${architecture}${conventions_design}</field>
+        <field name="section">State Management</field>
+      </block>
+
+      <block type="task" id="B16" action="edit-file" desc="Fill API Layer section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${api_contract}${conventions_dev}</field>
+        <field name="section">API Layer</field>
+      </block>
+
+      <block type="task" id="B17" action="edit-file" desc="Fill Routing section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_design}</field>
+        <field name="section">Routing</field>
+      </block>
+
+      <block type="task" id="B18" action="edit-file" desc="Fill Pseudo-code section">
+        <field name="path">${module_doc_created.path}</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_dev}${function}</field>
+        <field name="section">Pseudo-code</field>
+      </block>
+    </block>
+
+    <!-- Step 5: Generate Platform INDEX.md -->
+    <block type="task" id="B19" action="read-file" desc="Read index template">
+      <field name="path">speccrew-sd-frontend/templates/INDEX-TEMPLATE.md</field>
+      <field name="output" var="index_template"/>
+    </block>
+
+    <block type="task" id="B20" action="generate" desc="Create INDEX.md from template">
+      <field name="template" value="${index_template}"/>
+      <field name="placeholders">
+        - {Platform Name} → ${platform_id}
+        - {Feature Name} → ${feature_name}
+      </field>
+      <field name="output_path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+    </block>
+
+    <block type="task" id="B21" action="edit-file" desc="Fill Tech Stack Summary">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${tech_stack}</field>
+      <field name="section">Tech Stack Summary</field>
+    </block>
+
+    <block type="task" id="B22" action="edit-file" desc="Fill Shared Design Decisions">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${architecture}${conventions_design}</field>
+      <field name="section">Shared Design Decisions</field>
+    </block>
+
+    <block type="task" id="B23" action="edit-file" desc="Fill Global State Strategy">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${architecture}</field>
+      <field name="section">Global State Strategy</field>
+    </block>
+
+    <block type="task" id="B24" action="edit-file" desc="Fill Base Components">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${conventions_design}</field>
+      <field name="section">Base Components</field>
+    </block>
+
+    <block type="task" id="B25" action="edit-file" desc="Fill Module List">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${extracted_functions}</field>
+      <field name="section">Module List</field>
+    </block>
+
+    <!-- Step 6: Present Summary -->
+    <block type="event" id="E2" action="log" level="info" desc="Present design summary">
+      <field name="message">Frontend System Design Summary for: ${feature_name}
+Platform: ${platform_id}
+
+Module Design Documents: ${extracted_functions.design_count}
+${extracted_functions.file_list}
+
+Key Design Decisions:
+- State Management: ${architecture.state_management}
+- Component Strategy: ${conventions_design.component_strategy}
+- API Layer: ${conventions_dev.api_pattern}
+
+Please confirm:
+1. Are the component architectures appropriate?
+2. Is the state management strategy correct?
+3. Do the pseudo-code patterns match project conventions?
+4. Are all API calls from API Contract covered?</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Task completion status"/>
+    <field name="task_id" from="${task_id}" type="string" desc="Task ID"/>
+    <field name="platform" value="${platform_id}" type="string" desc="Target platform"/>
+    <field name="feature_id" from="${feature_id}" type="string" desc="Feature ID"/>
+    <field name="feature" value="${feature_name}" type="string" desc="Feature name"/>
+    <field name="output_files" type="array" desc="List of generated files">
+      <field name="file">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="files" from="${extracted_functions.output_files}"/>
+    </field>
+    <field name="summary" value="Frontend system design completed for ${feature_name} on ${platform_id}" type="string" desc="Completion summary"/>
+  </block>
+
+</workflow>

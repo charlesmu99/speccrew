@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="requirement-clarify-main" status="pending" version="1.0" desc="Requirement clarification with dual-mode support">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="requirement_file" required="true" type="string" desc="Path to requirement document"/>
+    <field name="iteration_path" required="true" type="string" desc="Path to iteration directory"/>
+    <field name="complexity_hint" required="false" type="string" desc="simple or complex. Auto-detect if not provided"/>
+    <field name="language" required="true" type="string" desc="Language code for output content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">Always perform at least 1 clarification round</field>
+    <field name="text">Use file-based for complex mode or 4+ questions</field>
+    <field name="text">MUST pass all 4 Sufficiency Checks</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Forbidden actions">
+    <field name="text">Skip clarification based on urgency</field>
+    <field name="text">Use chat for complex requirements</field>
+    <field name="text">Manually write JSON files - MUST use update-progress.js</field>
+    <field name="text">Auto-proceed to Phase 4 without PM Agent's user confirmation gate</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Requirement Clarification" status="pending" desc="Clarify requirements with user">
+
+    <!-- Step 1: Load Requirement Document -->
+    <block type="task" id="B1" action="read-file" desc="Read requirement document">
+      <field name="path" value="${requirement_file}"/>
+      <field name="output" var="requirement_content"/>
+    </block>
+
+    <!-- Step 2: Load System Knowledge (IF EXISTS) -->
+    <block type="task" id="B2" action="read-file" desc="Read system overview if exists">
+      <field name="path" value="${workspace_path}/knowledges/bizs/system-overview.md"/>
+      <field name="on_error">continue</field>
+      <field name="output" var="system_overview"/>
+    </block>
+
+    <!-- Step 3: Determine Complexity Mode -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Determine complexity mode">
+      <branch test="${complexity_hint} == 'simple'" name="Simple Mode">
+        <block type="task" id="B3" action="analyze" desc="Set simple mode">
+          <field name="set_var" name="complexity" value="simple"/>
+        </block>
+      </branch>
+      <branch test="${complexity_hint} == 'complex'" name="Complex Mode">
+        <block type="task" id="B4" action="analyze" desc="Set complex mode">
+          <field name="set_var" name="complexity" value="complex"/>
+        </block>
+      </branch>
+      <branch name="Auto-detect" default="true">
+        <block type="task" id="B5" action="analyze" desc="Auto-detect complexity">
+          <field name="input" value="${requirement_content}"/>
+          <field name="criteria">
+            - Simple: modules = 1, features = 1-5, integration = 0-1
+            - Complex: modules >= 2 OR features >= 6 OR new_domain
+          </field>
+          <field name="output" var="complexity"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Execute Clarification -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Execute clarification based on mode">
+      <branch test="${complexity} == 'simple'" name="Simple Mode Clarification">
+        <block type="task" id="B6" action="analyze" desc="Simple mode: 1-3 key questions">
+          <field name="topics">
+            - What to change
+            - What the change is
+            - Business reason
+            - Acceptance criteria
+          </field>
+          <field name="output" var="clarification_qa"/>
+        </block>
+      </branch>
+      <branch test="${complexity} == 'complex'" name="Complex Mode Clarification">
+        <!-- Clarification Loop -->
+        <block type="loop" id="L1" condition="sufficiency_checks_passed == false" desc="Clarification rounds until sufficiency">
+          <block type="task" id="B7" action="generate" desc="Create clarification questions file">
+            <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-questions-round-{round}.md"/>
+            <field name="sections">
+              - Business Background & Goals
+              - Target Users & Scenarios
+              - System Scope & Boundaries
+            </field>
+            <field name="output" var="questions_file"/>
+          </block>
+
+          <block type="event" id="E1" action="confirm" title="Clarification Round {round}" type="wait" desc="Wait for user to answer questions">
+            <field name="message">Round {round} questions written. Please fill answers and notify me.</field>
+          </block>
+
+          <block type="task" id="B8" action="read-file" desc="Read answered questions">
+            <field name="path" value="${questions_file}"/>
+            <field name="output" var="answered_questions"/>
+          </block>
+
+          <!-- Sufficiency Check -->
+          <block type="task" id="B9" action="analyze" desc="Perform sufficiency check">
+            <field name="checks">
+              1. Scope boundaries are clear - Explicit in/out scope defined
+              2. Key business rules are documented - At least 1 rule identified
+              3. Priority/phasing decisions are made - Phase 1 scope is clear
+              4. Integration boundaries are identified - Integration points listed or "none" confirmed
+            </field>
+            <field name="output" var="sufficiency_result"/>
+          </block>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 5: Generate .clarification-summary.md -->
+    <block type="task" id="B10" action="generate" desc="Generate clarification summary">
+      <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
+      <field name="sections">
+        - Complexity level and rationale
+        - Key decisions table
+        - Clarification Q&A (all rounds)
+        - Sufficiency checks results
+        - Notes
+      </field>
+      <field name="output" var="summary_path"/>
+    </block>
+
+    <!-- Step 6: Initialize .checkpoints.json -->
+    <block type="task" id="B11" action="run-script" desc="Initialize checkpoints via script">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoint requirement_clarification --passed true</field>
+      <field name="output" var="checkpoint_result"/>
+    </block>
+
+    <!-- Checkpoint: Clarification complete -->
+    <block type="checkpoint" id="CP1" name="clarification-complete" desc="Verify clarification completed">
+      <field name="file" value="${summary_path}"/>
+      <field name="verify" value="file_exists(${summary_path})"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="clarification_file" from="${summary_path}" type="string" desc="Path to clarification summary"/>
+    <field name="checkpoint_file" value="${iteration_path}/01.product-requirement/.checkpoints.json" type="string" desc="Path to checkpoints file"/>
+    <field name="complexity" from="${complexity}" type="string" desc="Complexity level: simple or complex"/>
+    <field name="sufficiency_checks" value="4/4 passed" type="string" desc="Sufficiency check results"/>
+    <field name="message" value="Requirement clarification completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

@@ -10,7 +10,13 @@ tools: Read, Write, Glob, Grep
 - Feature Spec has been confirmed, user requests frontend system design
 - User asks "Create frontend design for this platform" or "Generate frontend module design"
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

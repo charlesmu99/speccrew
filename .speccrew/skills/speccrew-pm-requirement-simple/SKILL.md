@@ -52,84 +52,11 @@ This skill applies ISA-95 Stages 1-3 in lightweight mode:
 
 ---
 
-## Workflow
+## AgentFlow Definition
 
-### Step 1: Read Clarification Summary
+<!-- @agentflow: workflow.agentflow.xml -->
 
-**Actions:**
-1. Read `.clarification-summary.md` from `{iteration_path}/01.product-requirement/`
-2. Extract: complexity level, key decisions, clarification Q&A, sufficiency checks
-
-**Verify complexity:**
-- IF complexity = "complex" → STOP and redirect to `speccrew-pm-requirement-analysis`
-- IF complexity = "simple" → proceed
-
-> **ISA-95 Stage 1 Thinking** — Scope boundary already confirmed in clarification. Extract module boundary and impacted roles from summary.
-
-### Step 2: Read PRD Template
-
-**Locate and read the PRD template:**
-
-1. **Search** for the template using glob pattern:
-   ```
-   **/speccrew-pm-requirement-analysis/templates/PRD-TEMPLATE.md
-   ```
-   > Note: Simple requirement skill shares the PRD template with the complex requirement skill.
-
-2. **Read** the found template file.
-
-> ⚠️ **DO NOT search in bizs/, knowledges/, or project source directories.**
-> The template is ALWAYS located in the skill's own `templates/` subfolder.
-> If glob returns no results, check if speccrew was properly initialized (`speccrew init`).
-
-### Step 3: Generate Single PRD
-
-Create PRD at: `speccrew-workspace/iterations/{iteration}/01.product-requirement/{feature-name}-prd.md`
-
-> **ISA-95 Stage 2 Thinking** — List only directly affected functions. No full WBS needed.
-
-**Section filling guidance:**
-
-| PRD Section | Simple Requirement Approach |
-|---|---|
-| 1. Background & Goals | 2-3 sentences. What's changing and why. |
-| 1.2 Domain Boundary | In-scope: the specific change. Out-of-scope: everything else. |
-| 1.3/1.4 Glossary | Only if new business terms introduced. Skip if unnecessary. |
-| 2. User Stories | 1-3 user stories maximum. |
-| 3. Functional Requirements | Brief description of the change. |
-| 3.3 Feature List | Simple table, 1-5 rows. |
-| 3.4 Feature Breakdown | 1-5 features. All P0. |
-| 4. Non-Functional Requirements | Only if relevant. Skip if not applicable. |
-| 5. Acceptance Criteria | 3-5 concrete, testable criteria. |
-| 6. Boundary | Clear in/out scope. |
-| 7. Assumptions | Only if there are assumptions to document. |
-
-> ⚠️ **Content Boundary Reminder for each section:**
-> - Background & Goals → Business reason only, NO technical architecture
-> - User Stories → "As a [role] I want [business action]" — NOT implementation method
-> - Functional Requirements → WHAT changes, not HOW to implement
-> - Feature List/Breakdown → Feature description is business outcome, NOT technical solution
-> - Acceptance Criteria → Business acceptance (e.g., "User can see result"), NOT technical tests (e.g., "API returns 200")
-
-> **ISA-95 Stage 3 Thinking** — All identified features are Must-have (P0). No MoSCoW filtering needed.
-
-### Step 4: Return to PM Agent
-
-**Output:**
-```
-📄 PRD Generated: {feature-name}-prd.md
-
-Summary:
-- Scope: {brief scope from clarification summary}
-- Features: {count} features
-- Modules affected: {module names}
-- Complexity: simple
-
-Returning to PM Agent for review and confirmation.
-```
-
-> **DO NOT wait for user confirmation in this skill.**
-> Verification and confirmation are handled by PM Agent Phase 5.
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 ---
 

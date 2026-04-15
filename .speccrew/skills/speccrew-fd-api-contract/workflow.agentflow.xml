@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="api-contract-main" status="pending" version="1.0" desc="API Contract Generation workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_id" required="false" type="string" desc="Feature identifier, e.g., F-CRM-01"/>
+    <field name="feature_name" required="false" type="string" desc="Feature name, e.g., customer-list"/>
+    <field name="iteration_path" required="true" type="string" desc="Absolute path to iteration directory"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document creation constraints">
+    <field name="text">NEVER use create_file to write the API contract document directly</field>
+    <field name="text">MUST create by copying template then filling with search_replace</field>
+    <field name="text">create_file produces truncated output on large files</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Full-file rewrite prohibition">
+    <field name="text">NEVER replace entire document content in single operation</field>
+    <field name="text">ALWAYS use targeted search_replace on specific sections</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Template-first workflow">
+    <field name="text">Step 4a (copy template) MUST execute before Step 4b (fill sections)</field>
+    <field name="text">Skipping template copy is FORBIDDEN</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="API Contract Generation" status="pending" desc="Generate API contract from feature spec">
+
+    <!-- Step 1: Read Feature Spec -->
+    <block type="task" id="B1" action="read-file" desc="Read Feature Spec document">
+      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-feature-spec.md</field>
+      <field name="output" var="feature_spec"/>
+    </block>
+
+    <!-- Gateway: Validate Feature Spec exists -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify Feature Spec exists"
+           test="${feature_spec} != null" fail-action="stop">
+      <field name="message">Feature Spec document not found. Check path: ${iteration_path}/02.feature-design/</field>
+    </block>
+
+    <!-- Step 2: Read API Contract Template -->
+    <block type="task" id="B2" action="read-file" desc="Read API Contract template">
+      <field name="path">speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md</field>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Gateway: Validate template exists -->
+    <block type="gateway" id="G2" mode="guard" desc="Verify template exists"
+           test="${template_content} != null" fail-action="stop">
+      <field name="message">API Contract template not found at speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md</field>
+    </block>
+
+    <!-- Step 3: Extract and Organize API List -->
+    <block type="task" id="B3" action="analyze" desc="Extract API list from Feature Spec">
+      <field name="input" value="${feature_spec}"/>
+      <field name="extraction_rules">
+        - Extract all API endpoints from Section 2 (Function Details)
+        - Identify HTTP method (GET/POST/PUT/DELETE)
+        - Extract URL pattern following RESTful conventions
+        - Identify caller (Frontend/Backend/External)
+        - Build API list table
+      </field>
+      <field name="output" var="api_list"/>
+    </block>
+
+    <!-- Step 4a: Copy Template to Document Path -->
+    <block type="task" id="B4" action="generate" desc="Copy template and create document skeleton">
+      <field name="template" value="${template_content}"/>
+      <field name="placeholders">
+        - [Feature Name] → ${feature_name}
+        - {Feature ID} → ${feature_id}
+        - {Date} → current date
+      </field>
+      <field name="output_path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="output" var="document_created"/>
+    </block>
+
+    <!-- Checkpoint: Verify document created -->
+    <block type="checkpoint" id="CP1" name="document-created" desc="Verify API contract document created">
+      <field name="file" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md"/>
+      <field name="verify" value="file_exists(${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md)"/>
+    </block>
+
+    <!-- Step 4b: Fill API List Overview Section -->
+    <block type="task" id="B5" action="edit-file" desc="Fill API List Overview section">
+      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="operation">search_replace</field>
+      <field name="search">## API List Overview
+
+[TO BE FILLED]</field>
+      <field name="replace">## API List Overview
+
+| API Name | Method | URL | Description | Caller |
+|----------|--------|-----|-------------|--------|
+${api_list.table}</field>
+      <field name="output" var="section_1_filled"/>
+    </block>
+
+    <!-- Step 5: Define Contract for Each API -->
+    <block type="loop" id="L1" over="${api_list.apis}" as="api" desc="Define contract for each API">
+      <block type="task" id="B6" action="analyze" desc="Define API contract details">
+        <field name="input" value="${api}">${feature_spec}</field>
+        <field name="definition_rules">
+          - Request method, URL, authentication required
+          - Request parameters (type, required, example values)
+          - Response structure (type and description for each field)
+          - Success response example (JSON)
+          - Error code list
+        </field>
+        <field name="output" var="api_contract_details"/>
+      </block>
+
+      <block type="task" id="B7" action="edit-file" desc="Fill API contract section">
+        <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
+        <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+        <field name="operation">search_replace</field>
+        <field name="search">### ${api.name}
+
+[TO BE FILLED]</field>
+        <field name="replace">### ${api.name}
+
+${api_contract_details.content}</field>
+      </block>
+    </block>
+
+    <!-- Step 6: Fill Error Code Summary -->
+    <block type="task" id="B8" action="edit-file" desc="Fill Error Code Summary section">
+      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="operation">search_replace</field>
+      <field name="search">## Error Code Summary
+
+[TO BE FILLED]</field>
+      <field name="replace">## Error Code Summary
+
+| Error Code | Description | HTTP Status |
+|------------|-------------|-------------|
+${api_list.error_codes}</field>
+    </block>
+
+    <!-- Step 7: Joint Confirmation -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Select confirmation mode">
+      <branch test="${feature_id} != null" name="Feature-granular confirmation">
+        <block type="event" id="E1" action="confirm" title="Feature Design Confirmation" type="yesno" desc="Request user confirmation for feature">
+          <field name="preview">Feature design phase deliverables ready:
+
+Feature ID: ${feature_id}
+Feature Name: ${feature_name}
+
+Documents:
+- Feature Spec: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
+- API Contract: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md
+
+Please confirm:
+1. Is the technical solution feasible?
+2. Does the API definition meet frontend requirements?
+3. Is the data model reasonable?
+
+After confirmation, API Contract becomes the sole baseline for frontend-backend collaboration.</field>
+        </block>
+      </branch>
+      <branch default="true" name="Module-level confirmation">
+        <block type="event" id="E2" action="confirm" title="Feature Design Confirmation" type="yesno" desc="Request user confirmation">
+          <field name="preview">Feature design phase deliverables ready:
+- Feature Spec: ${iteration_path}/02.feature-design/${feature_name}-feature-spec.md
+- API Contract: ${iteration_path}/02.feature-design/${feature_name}-api-contract.md
+
+Please confirm:
+1. Is the overall technical solution feasible?
+2. Does the API definition meet frontend requirements?
+3. Is the data model reasonable?
+
+After confirmation, API Contract becomes the sole baseline for frontend-backend collaboration.</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 8a: Update Checkpoints File -->
+    <block type="task" id="B9" action="run-script" desc="Update checkpoints via script">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/02.feature-design/.checkpoints.json" --stage 02_feature_design --checkpoint api_contract_joint --passed true</field>
+      <field name="output" var="checkpoint_result"/>
+    </block>
+
+    <!-- Step 8b: Update Workflow Progress -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Update progress based on mode">
+      <branch test="${feature_id} != null" name="Feature mode">
+        <block type="task" id="B10" action="run-script" desc="Update workflow progress for feature">
+          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${iteration_path}/WORKFLOW-PROGRESS.json" --task-id "${feature_id}" --status confirmed --outputs '["02.feature-design/${feature_id}-${feature_name}-feature-spec.md","02.feature-design/${feature_id}-${feature_name}-api-contract.md"]'</field>
+        </block>
+      </branch>
+      <branch default="true" name="Module mode">
+        <block type="task" id="B11" action="run-script" desc="Update workflow progress for module">
+          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-stage --file "${iteration_path}/WORKFLOW-PROGRESS.json" --stage 02_feature_design --status confirmed --outputs '["02.feature-design/${feature_name}-feature-spec.md","02.feature-design/${feature_name}-api-contract.md"]'</field>
+        </block>
+      </branch>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="api_contract_path" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md" type="string" desc="Path to generated API contract"/>
+    <field name="feature_spec_path" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md" type="string" desc="Path to Feature Spec"/>
+    <field name="api_count" from="${api_list.count}" type="number" desc="Number of APIs documented"/>
+    <field name="confirmation_status" value="confirmed" type="string" desc="User confirmation status"/>
+  </block>
+
+</workflow>

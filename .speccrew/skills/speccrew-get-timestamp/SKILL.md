@@ -32,47 +32,11 @@ Any Agent or script requiring timestamp generation
 | `HHmm` | Time only (24h) | `1326` |
 | `ISO` | ISO 8601 format | `2026-03-17T13:26:45+08:00` |
 
-## Usage
+## AgentFlow Definition
 
-### Method 1: Direct Script Execution (Node.js - Cross Platform)
+<!-- @agentflow: workflow.agentflow.xml -->
 
-```bash
-# Node.js (cross-platform, recommended)
-node scripts/get-timestamp.js "YYYY-MM-DD-HHmmss"
-```
-
-### Method 2: Default Format (YYYY-MM-DD-HHmmss)
-
-```bash
-# Without format parameter, returns YYYY-MM-DD-HHmmss
-node scripts/get-timestamp.js
-```
-
-## Integration Examples
-
-### For Report Filenames
-
-```bash
-TIMESTAMP=$(node scripts/get-timestamp.js "YYYY-MM-DD-HHmmss")
-FILENAME="diagnosis-report-${TIMESTAMP}.md"
-# Result: diagnosis-report-2026-03-17-132645.md
-```
-
-### For Archive Naming
-
-```bash
-TIMESTAMP=$(node scripts/get-timestamp.js "YYYY-MM-DD")
-ARCHIVE_NAME="tech-debt-archived-${TIMESTAMP}.md"
-# Result: tech-debt-archived-2026-03-17.md
-```
-
-### For Template Variables
-
-When filling `{{generated_at}}` in templates:
-```bash
-generated_at=$(node scripts/get-timestamp.js "ISO")
-# Result: 2026-03-17T13:26:45+08:00
-```
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 ## Script Location
 

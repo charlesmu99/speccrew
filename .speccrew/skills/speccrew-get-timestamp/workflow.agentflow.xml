@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="get-timestamp" status="pending" version="1.0" desc="Get current timestamp in specified format">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="format" required="false" type="string" default="YYYY-MM-DD-HHmmss" desc="Timestamp format: YYYY-MM-DD-HHmmss, YYYY-MM-DD, HHmm, ISO"/>
+    <field name="skill_path" required="true" type="string" desc="Path to this skill directory"/>
+  </block>
+
+  <!-- ============================================================
+       Supported Formats
+       ============================================================ -->
+  <block type="rule" id="R1" level="note" desc="Supported formats">
+    <field name="text">YYYY-MM-DD-HHmmss: Full datetime for filenames (e.g., 2026-03-17-132645)</field>
+    <field name="text">YYYY-MM-DD: Date only (e.g., 2026-03-17)</field>
+    <field name="text">HHmm: Time only 24h format (e.g., 1326)</field>
+    <field name="text">ISO: ISO 8601 format (e.g., 2026-03-17T13:26:45+08:00)</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing
+       ============================================================ -->
+  <sequence id="S1" name="Get Timestamp" status="pending" desc="Execute script to get formatted timestamp">
+
+    <block type="task" id="B1" action="run-script" desc="Execute get-timestamp.js script">
+      <field name="command">node "${skill_path}/scripts/get-timestamp.js" "${format}"</field>
+      <field name="note">If format parameter is empty, defaults to YYYY-MM-DD-HHmmss</field>
+      <field name="output" var="timestamp"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="timestamp" from="${timestamp}" type="string" desc="Formatted timestamp string"/>
+    <field name="format" from="${format}" type="string" desc="Format used"/>
+  </block>
+
+</workflow>

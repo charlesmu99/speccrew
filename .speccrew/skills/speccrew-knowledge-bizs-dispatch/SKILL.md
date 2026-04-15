@@ -1,35 +1,92 @@
 ---
 name: speccrew-knowledge-bizs-dispatch
-description: Dispatch bizs knowledge base generation tasks with 5-stage pipeline. Handles feature inventory, feature analysis with skill routing, graph data writing, module summarization, UI style pattern extraction, and system summary.
+description: Dispatch bizs knowledge base generation tasks with 5-stage pipeline (XML Block version). Handles feature inventory, feature analysis with skill routing, graph data writing, module summarization, UI style pattern extraction, and system summary.
 tools: Read, Write, Task, Bash
 ---
 
-# Bizs Knowledge Dispatch
+> **⚠️ MANDATORY EXECUTION PROTOCOL — READ BEFORE EXECUTING ANY BLOCK**
+>
+> **Step 1**: Load XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md` — this defines all block types and action-to-tool mappings
+>
+> **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**. For EVERY block, you MUST follow this 3-step cycle:
+>
+> ```
+> 📋 Block [ID] (action=[action]) — [desc]
+> 🔧 Tool: [which IDE tool to call]
+> ✅ Result: [output or status]
+> ```
+>
+> Action-to-tool mapping:
+> - `action="run-script"` → Execute via **Terminal tool** (pass the `<field name="command">` value EXACTLY)
+> - `action="run-skill"` → Invoke via **Skill tool** (pass the `<field name="skill">` value EXACTLY)
+> - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker` (Worker loads and executes the skill, NOT you)
+> - `action="confirm"` (event) → Present to user and wait for response
+>
+> **Step 3**: Execute ALL stages sequentially without pausing (only stop at explicit `<event action="confirm">` blocks)
+>
+> **FORBIDDEN**:
+> - Do NOT skip the block announcement format above — every block must be announced before execution
+> - Do NOT run terminal commands as substitute for Skill tool calls
+> - Do NOT do Worker's job yourself — when `action="dispatch-to-worker"`, create a Task and let Worker handle it
+> - Do NOT skip blocks or improvise your own commands
+> - Do NOT read a skill's SKILL.md file yourself — use the Skill tool which resolves paths automatically
 
-Orchestrate **bizs knowledge base generation** with a 5-stage pipeline: Feature Inventory → Feature Analysis + Graph Write → Module Summarize → UI Style Pattern Extract → System Summary.
+# Bizs Knowledge Dispatch (XML Block Version)
+
+Orchestrate **bizs knowledge base generation** with a 5-stage pipeline using **XML Block system**: Feature Inventory → Feature Analysis + Graph Write → Module Summarize → UI Style Pattern Extract → System Summary.
+
+## Invocation Method
+
+**CRITICAL**: This skill is an **orchestration playbook** — it MUST be loaded directly by Team Leader via Skill tool (NOT via Worker Agent).
+
+```
+Correct: Leader uses Skill tool to load this playbook directly
+Incorrect: Dispatch this skill to speccrew-task-worker
+```
+
+**Why?** This skill defines the orchestration workflow and prepares task plans for downstream workers. The Team Leader reads this playbook and dispatches individual worker tasks via Task tool → speccrew-task-worker for each stage.
+
+**Correct Invocation Pattern**:
+```xml
+<block type="task" action="run-skill" desc="Leader directly invokes bizs-dispatch as orchestration playbook">
+  <field name="skill">speccrew-knowledge-bizs-dispatch</field>
+  <field name="note">Leader directly calls this dispatch skill as an orchestration playbook. The dispatch skill defines the workflow; Leader dispatches downstream workers via Task tool → speccrew-task-worker for each stage.</field>
+</block>
+```
+
+**Worker Dispatch Rule**:
+- Dispatch skills (bizs-dispatch, techs-dispatch): Leader calls directly via Skill tool
+- Downstream worker skills (identify-entries, init-features, ui-analyze, module-summarize, etc.): Leader dispatches via Task tool → speccrew-task-worker
+
+**FORBIDDEN**: Worker Agents MUST NOT execute this dispatch skill. If a Worker Agent loads this skill, it must report error and abort.
 
 ## Quick Reference — Execution Flow
 
 ```
 Stage 0: Platform Detection
-  └─ Read techs-manifest → Identify platforms
+  └─ Detect platforms → Confirm platform list
         ↓
 Stage 1: Feature Inventory Init
-  └─ 1a: bizs-init-features per platform
-  └─ 1b: Merge features
-  └─ 1c: Validate inventory
+  └─ 1a: Entry directory recognition (identify-entries)
+  └─ 1b: Feature inventory generation (init-features)
+  └─ 1c: Feature merge (incremental mode)
         ↓
-Stage 2: Feature Analysis (Task Preparation)
-  └─ Prepare api-analyze + ui-analyze task specifications per platform
-  └─ After analyze completes → prepare corresponding graph worker task specification
-  └─ Monitor completion markers
+Stage 2: Feature Analysis (Batch Loop)
+  └─ Step 0: Ensure completed_dir exists
+  └─ Step 1: Get next batch of pending features
+  └─ Step 2: Dispatch Worker for analysis (UI/API routing)
+  └─ Step 2.5: Dispatch Graph Worker
+  └─ Step 3: Process batch results → Update status
+  └─ Loop until all features complete
         ↓
-Stage 3: Module Summarize (Task Preparation)
-  └─ 3.0: Prepare module-summarize task specifications per module
-  └─ 3.5: Prepare UI style extraction task specifications
+Stage 3: Module Summarize
+  └─ Generate module overview for each module
         ↓
-Stage 4: System Summary (Task Preparation)
-  └─ Prepare system-summarize task specification
+Stage 3.5: UI Style Pattern Extract
+  └─ Extract UI style patterns for frontend platforms
+        ↓
+Stage 4: System Summary
+  └─ Generate system-level business knowledge summary
 ```
 
 ## Language Adaptation
@@ -50,304 +107,827 @@ Stage 4: System Summary (Task Preparation)
 - "Generate knowledge base from src/views directory"
 - "Analyze this subdirectory for knowledge base"
 
-## Input
+---
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `source_path` | Source code path (can be a subdirectory; auto-detects platform root by traversing upward) | project root |
-| `language` | User's language code (e.g., "zh", "en") | **REQUIRED** |
-| `sync_mode` | `"full"` or `"incremental"` | `"full"` |
-| `base_commit` | (incremental only) Git base commit hash | — |
-| `head_commit` | (incremental only) Git HEAD commit hash | `HEAD` |
-| `changed_files` | (incremental only) Pre-computed changed file list | — |
-| `max_concurrent_workers` | Maximum parallel Worker Agents | `5` |
-| `workspace_path` | **(required)** Absolute path to speccrew-workspace directory | — |
-| `sync_state_bizs_dir` | **(required)** Absolute path to `knowledges/base/sync-state/knowledge-bizs/` | — |
-| `ide_skills_dir` | **(required)** Absolute path to IDE skills directory (e.g., `.qoder/skills`, `.cursor/skills`) | — |
-| `configs_dir` | **(required)** Absolute path to `docs/configs/` directory | — |
-| `graph_root` | Graph data output root path (absolute path preferred) | `{workspace_path}/knowledges/bizs/graph` |
-| `completed_dir` | Marker file output directory for Worker results (absolute path required) | `{sync_state_bizs_dir}/completed` |
+## AgentFlow Definition
 
-> **MANDATORY**: All path parameters MUST be absolute paths provided by the caller. DO NOT use ListDir to search for script locations. DO NOT construct paths by guessing or relative path resolution.
+<!-- @agentflow: workflow.agentflow.xml -->
 
-> **Note**: Ensure `graph_root` directory exists before first execution. If it does not exist, create it: `mkdir -p "{graph_root}"` (or equivalent on Windows: `New-Item -ItemType Directory -Path "{graph_root}" -Force`).
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+>
+> After reading the specification, parse the XML workflow and **strictly execute each `<block>` in document order**. Every `<block type="task">` is a literal tool-call instruction — use the `action` attribute to determine which IDE tool to invoke, and pass the `<field name="command">` or `<field name="skill">` value **exactly as written**. Do NOT interpret the workflow as a goal description or improvise your own approach.
 
-## Output
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="bizs knowledge base generation input parameters">
+    <field name="source_path" required="true" type="string" desc="Source code root directory path (can be a subdirectory; auto-detects platform root by traversing upward)"/>
+    <field name="language" required="true" type="string" desc="User's language code (e.g., zh, en)"/>
+    <field name="sync_mode" required="false" type="string" default="full" desc="full=complete | incremental=incremental"/>
+    <field name="base_commit" required="false" type="string" desc="(incremental only) Git base commit hash"/>
+    <field name="head_commit" required="false" type="string" default="HEAD" desc="(incremental only) Git HEAD commit hash"/>
+    <field name="changed_files" required="false" type="array" desc="(incremental only) Pre-computed changed file list"/>
+    <field name="max_concurrent_workers" required="false" type="number" default="5" desc="Maximum parallel Worker count"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/"/>
+    <field name="ide_skills_dir" required="true" type="string" desc="Absolute path to IDE-specific skills directory (e.g., .qoder/skills/, .cursor/skills/, .claude/skills/) where skill scripts are deployed"/>
+    <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs/ directory"/>
+    <field name="graph_root" required="false" type="string" desc="Graph data output root path (absolute path preferred)" default="${workspace_path}/knowledges/bizs/graph"/>
+    <field name="completed_dir" required="true" type="string" desc="Marker file output directory for Worker results (absolute path required)"/>
+  </block>
 
-- Entry directories: `{sync_state_bizs_dir}/entry-dirs-{platform}.json`
-- Feature inventory: `{sync_state_bizs_dir}/features-{platform}.json`
-- Feature docs: `{workspace_path}/knowledges/bizs/{platform}/{module}/features/*.md`
-- Module overviews: `{workspace_path}/knowledges/bizs/{platform}/{module}/*-overview.md`
-- UI style patterns: `{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/` (page-types/, components/, layouts/)
-- System overview: `{workspace_path}/knowledges/bizs/system-overview.md`
-- Graph data: `{workspace_path}/knowledges/bizs/graph/`
+  <!-- ============================================================
+       Global Invocation Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R-INVOCATION" level="forbidden" desc="Invocation constraints — NEVER violate">
+    <field name="text">This skill is an ORCHESTRATION PLAYBOOK — it MUST be loaded directly by Team Leader via Skill tool</field>
+    <field name="text">Worker Agents MUST NOT execute this dispatch skill — if loaded by a Worker, report error and abort</field>
+    <field name="text">Downstream worker skills (identify-entries, init-features, ui-analyze, module-summarize, etc.) MUST be dispatched via Task tool → speccrew-task-worker</field>
+  </block>
 
-## Workflow Overview
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" between stages</field>
+    <field name="text">DO NOT offer options like "Full execution / Sample execution / Pause" — always execute ALL stages to completion</field>
+    <field name="text">DO NOT suggest "Let me split this into batches" or "Let's do this in parts" — process ALL features sequentially</field>
+    <field name="text">DO NOT pause to list what you plan to do next — just do it</field>
+    <field name="text">DO NOT ask for confirmation before generating output files</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">ONLY pause at explicit &lt;event action="confirm"&gt; blocks defined in the workflow</field>
+    <field name="text">DO NOT offer "continue/pause/partial" options — EVER</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL phases in sequence</field>
+    <field name="text">When many features need analysis, dispatch ALL of them — do NOT skip or defer any</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
 
-**Execution Pseudocode:**
+  <!-- ============================================================
+       Global Technology Stack Constraints
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R-TECHSTACK" level="forbidden" desc="Technology stack constraints — NEVER violate">
+    <field name="text">FORBIDDEN: Python, Ruby, Perl, compiled binaries, or any runtime requiring separate installation</field>
+    <field name="text">PERMITTED scripting: PowerShell (Windows) and Bash (Linux/Mac) ONLY</field>
+    <field name="text">PERMITTED Node.js: ONLY for existing project scripts (e.g., node scripts/update-progress.js)</field>
+    <field name="text">For JSON validation use: node -e "JSON.parse(require('fs').readFileSync('file.json','utf8'))"</field>
+    <field name="text">For JSON creation use: node -e with inline script, or PowerShell ConvertTo-Json</field>
+    <field name="text">DO NOT create temporary .py, .rb, .pl, .bat files — use inline commands via run_in_terminal</field>
+  </block>
 
-```
-INPUT: source_path, language, sync_mode, max_concurrent_workers
+  <!-- ============================================================
+       Stage 0: Platform Detection
+       ============================================================ -->
+  <sequence id="S0" name="Stage 0: Platform Detection" status="pending" desc="Automatically discover ALL platforms in the project">
+    
+    <block type="rule" id="S0-R1" level="mandatory" desc="Stage 0 mandatory rules">
+      <field name="text">MUST scan project directory to discover ALL platforms — NEVER hardcode a fixed number of platforms</field>
+      <field name="text">Missing a platform means incomplete knowledge base generation</field>
+    </block>
 
-STAGE 0: Platform Detection
-  FOR each detected platform:
-    Identify platform_type, platform_subtype, tech_stack
-  Present platform list for user confirmation
+    <!-- Step 1: Scan backend modules -->
+    <block type="task" id="S0-B1" action="run-script" status="pending" desc="Scan backend module directories">
+      <field name="command">Get-ChildItem -Path "${source_path}" -Filter "yudao-module-*" -Directory</field>
+      <field name="alt_command">Get-ChildItem -Path "${source_path}" -Directory | Where-Object { $_.Name -match "^(module-|service-|api-)" }</field>
+      <field name="output" var="backend_modules"/>
+    </block>
 
-STAGE 1: Feature Inventory
-  Stage 1a: Entry Directory Recognition → Generate entry-dirs-{platform}.json
-  Stage 1b: Feature Inventory → Generate features-{platform}.json
-  Stage 1c (incremental only): Merge features with existing state
+    <!-- Step 2: Scan frontend projects -->
+    <block type="task" id="S0-B2" action="run-script" status="pending" desc="Scan frontend/UI project directories">
+      <field name="command">Get-ChildItem -Path "${source_path}" -Directory | Where-Object { $_.Name -match "ui|frontend|web|app" }</field>
+      <field name="output" var="frontend_dirs"/>
+    </block>
 
-STAGE 2: Feature Analysis (REPEAT until all features processed)
-  Step 0: Ensure completed_dir exists
-  Step 1: Get next batch of pending features
-  Step 2: Prepare analysis task specifications (API or UI analysis)
-  Step 3: Process batch results, update features.json, write graph
+    <!-- Step 3: Validate each platform -->
+    <block type="loop" id="S0-L1" over="${backend_modules}" as="module" desc="Validate backend modules">
+      <block type="gateway" id="S0-G1" mode="guard" test="${module.hasSourceCode} == true" fail-action="skip" desc="Verify module has actual source code">
+        <field name="message">Skipping empty directory: ${module.name}</field>
+      </block>
+      <block type="event" id="S0-E1" action="log" level="info" desc="Log backend module">
+        <field name="message">Discovered backend module: ${module.name} → Platform type: backend-${module.business_name}</field>
+      </block>
+    </block>
 
-STAGE 3: Module Summarize (task preparation per module)
-  FOR each module:
-    Prepare module-summarize task specification
+    <block type="loop" id="S0-L2" over="${frontend_dirs}" as="frontend" desc="Validate frontend projects">
+      <block type="task" id="S0-B3" action="run-script" status="pending" desc="Check frontend project structure">
+        <field name="command">Test-Path "${frontend.path}/package.json"</field>
+        <field name="output" var="has_package_json"/>
+      </block>
+      <block type="gateway" id="S0-G2" mode="guard" test="${has_package_json} == true" fail-action="skip" desc="Verify frontend project validity">
+        <field name="message">Skipping non-frontend directory: ${frontend.name}</field>
+      </block>
+      <block type="event" id="S0-E2" action="log" level="info" desc="Log frontend platform">
+        <field name="message">Discovered frontend platform: ${frontend.name} → Tech stack: Vue/React/UniApp</field>
+      </block>
+    </block>
 
-STAGE 3.5: UI Style Pattern Extract (task preparation per frontend platform)
-  FOR each frontend platform:
-    Prepare ui-style-extract task specification
+    <!-- Step 4: Generate platform list JSON -->
+    <block type="task" id="S0-B4" action="run-script" status="pending" desc="Generate platforms.json from discovered modules and frontends">
+      <field name="command">node -e "const fs=require('fs'); const data=JSON.parse(process.argv[1]); fs.mkdirSync(process.argv[2], {recursive:true}); fs.writeFileSync(process.argv[2]+'/platforms.json', JSON.stringify(data,null,2)); console.log('platforms.json written')"</field>
+      <field name="note">The LLM constructs the platforms array from S0-L1 and S0-L2 discovery results, then writes it via this inline script. No external platform-detector.js is needed.</field>
+      <field name="arg">${platforms_json_string}</field>
+      <field name="arg">${sync_state_bizs_dir}</field>
+      <field name="output" var="platforms" from="${sync_state_bizs_dir}/platforms.json"/>
+    </block>
 
-STAGE 4: System Summary (task preparation)
-  Prepare system-summarize task specification
+    <!-- Step 5: Gate - Confirm platforms detected -->
+    <block type="gateway" id="S0-G3" mode="guard" test="${platforms.length} > 0" fail-action="stop" desc="Confirm at least one platform detected">
+      <field name="message">No platforms detected, please check source_path and platform-mapping.json</field>
+    </block>
 
-OUTPUT: system-overview.md, graph data, module overviews
-```
+    <!-- Step 6: User confirmation -->
+    <block type="event" id="S0-E3" action="confirm" title="Confirm Platform List" type="yesno" desc="Wait for user to confirm detected platform list">
+      <field name="preview">
+Detected ${platforms.length} platforms:
+(For each platform in ${platforms}, display: ${platform.platformId}: ${sourcePath} (${platformType}/${platformSubtype}))
 
-**Stage Sequence:**
+Continue with knowledge base generation?
+      </field>
+      <on-confirm>
+        <block type="event" action="log" level="info" desc="User confirmed">
+                  <field name="message">User confirmed platform list, continuing</field>
+                </block>
+      </on-confirm>
+      <on-cancel>
+        <block type="event" action="log" level="warn" desc="User cancelled">
+                  <field name="message">User cancelled, terminating workflow</field>
+                </block>
+        <field name="workflow.status" value="cancelled"/>
+      </on-cancel>
+    </block>
 
-```mermaid
-flowchart TB
-    S0[Stage 0: Platform Detection] --> S1a[Stage 1a: Entry Directory Recognition]
-    S1a --> S1b[Stage 1b: Feature Inventory]
-    S1b --> S1c[Stage 1c: Feature Merge]
-    S1c --> S2[Stage 2: Feature Analysis + Graph Write]
-    S2 --> S3[Stage 3: Module Summarize]
-    S3 --> S3_5[Stage 3.5: UI Style Pattern Extract]
-    S3_5 --> S4[Stage 4: System Summary]
-```
+    <!-- Checkpoint: Platform detection complete -->
+    <block type="checkpoint" id="S0-CP1" name="platforms_detected" desc="Platform detection complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="verify" value="${platforms.length} > 0"/>
+    </block>
+
+    <block type="task" id="S0-B5" action="run-script" status="pending" desc="Update Stage 0 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage0 --status completed --output "Detected ${platforms.length} platforms"</field>
+    </block>
+
+    <block type="event" id="S0-E4" action="log" level="info" desc="Report detected platform list">
+    <field name="message">Detected ${platforms.length} platforms: ${platforms.names}</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 1a: Entry Directory Recognition
+       ============================================================ -->
+  <sequence id="S1a" name="Stage 1a: Entry Directory Recognition" status="pending" desc="Identify entry directories for each platform and classify into business modules">
+    
+    <block type="rule" id="S1a-R1" level="mandatory" desc="Stage 1a mandatory rules">
+      <field name="text">ALL platform entry directory recognition tasks MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S1a-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
+    </block>
+
+    <block type="loop" id="S1a-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch entry directory recognition for each platform IN PARALLEL">
+      <!-- Step 1: Read source directory tree -->
+      <block type="task" id="S1a-B1" action="dispatch-to-worker" status="pending" desc="Dispatch entry identification to Worker">
+        <field name="worker">speccrew-knowledge-bizs-identify-entries</field>
+        <field name="source_path" value="${platform.sourcePath}"/>
+        <field name="platform_id" value="${platform.platformId}"/>
+        <field name="platform_type" value="${platform.platformType}"/>
+        <field name="platform_subtype" value="${platform.platformSubtype}"/>
+        <field name="tech_identifier" value="${platform.techIdentifier}"/>
+        <field name="configs_dir" value="${configs_dir}"/>
+        <field name="output_path" value="${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json"/>
+        <field name="output" var="entries_${platform.platformId}"/>
+      </block>
+
+      <!-- Step 2: Validate entry directories -->
+      <block type="gateway" id="S1a-G1" mode="guard" test="${entries_${platform.platformId}.modules.length} > 0" fail-action="stop" desc="Validate entry directory recognition result">
+        <field name="message">Platform ${platform.platformId} did not identify any entry directories</field>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="S1a-CP1" name="entry_dirs_recognized" desc="Entry directory recognition complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="verify" value="true"/>
+    </block>
+
+    <block type="task" id="S1a-B2" action="run-script" status="pending" desc="Update Stage 1a progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1a --status completed --output "Entry directories recognized for all platforms"</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 1b: Generate Feature Inventory
+       ============================================================ -->
+  <sequence id="S1b" name="Stage 1b: Generate Feature Inventory" status="pending" desc="Generate Feature inventory for each platform">
+    
+    <block type="rule" id="S1b-R1" level="mandatory" desc="Stage 1b mandatory rules">
+      <field name="text">ALL platform feature inventory generation tasks MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S1b-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
+      <field name="text">Worker Agents do not have run_in_terminal capability, which is required for script execution</field>
+    </block>
+
+    <block type="loop" id="S1b-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Generate Feature inventory for each platform IN PARALLEL">
+      <!-- Step 1: Dispatch Worker to generate feature inventory -->
+      <block type="task" id="S1b-B1" action="dispatch-to-worker" status="pending" desc="Dispatch Worker to generate feature inventory">
+        <field name="worker">speccrew-knowledge-bizs-init-features</field>
+        <field name="instructions">
+Generate feature inventory for the specified platform by analyzing entry directories.
+
+Requirements:
+- Read entry-dirs JSON file to get module entry directories
+- Scan source files in each entry directory
+- Generate features JSON with feature metadata
+- Output to features-{platformId}.json in sync_state_bizs_dir
+        </field>
+        <field name="context">{
+  "platformId": "${platform.platformId}",
+  "platformName": "${platform.platformName}",
+  "platformType": "${platform.platformType}",
+  "platformSubtype": "${platform.platformSubtype}",
+  "sourcePath": "${platform.sourcePath}",
+  "techIdentifier": "${platform.techIdentifier}",
+  "entryDirsFile": "${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json",
+  "outputDir": "${sync_state_bizs_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "language": "${language}"
+}</field>
+        <field name="output" var="features_${platform.platformId}"/>
+      </block>
+
+      <!-- Step 2: Validate Feature inventory -->
+      <block type="gateway" id="S1b-G1" mode="guard" test="${features_${platform.platformId}.features.length} > 0" fail-action="stop" desc="Validate Feature inventory is not empty">
+        <field name="message">Platform ${platform.platformId} did not generate any Features</field>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="S1b-CP1" name="features_generated" desc="Feature inventory generation complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="verify" value="${all_features.length} > 0"/>
+    </block>
+
+    <block type="task" id="S1b-B2" action="run-script" status="pending" desc="Update Stage 1b progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1b --status completed --output "${feature_count} features across ${platform_count} platforms"</field>
+    </block>
+
+    <block type="event" id="S1b-E1" action="log" level="info" desc="Report Feature inventory statistics">
+    <field name="message">Feature inventory initialized. ${feature_count} features across ${platform_count} platforms.</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 1c: Feature Merge (Incremental Mode)
+       ============================================================ -->
+  <sequence id="S1c" name="Stage 1c: Feature Merge" status="pending" desc="Merge new and existing Feature inventories in incremental mode">
+    
+    <block type="rule" id="S1c-R1" level="mandatory" desc="Stage 1c mandatory rules">
+      <field name="text">This stage is executed DIRECTLY by the dispatch agent (Leader) via run_in_terminal, NOT delegated to a Worker Agent</field>
+    </block>
+
+    <!-- Conditional: Incremental mode -->
+    <block type="gateway" id="S1c-G1" mode="exclusive" desc="Determine execution mode">
+      <branch test="${sync_mode} == 'incremental'" name="Incremental mode">
+        <!-- Step 1: Execute Feature merge -->
+        <block type="task" id="S1c-B1" action="run-script" status="pending" desc="Merge new and existing Feature inventories">
+          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js"</field>
+          <field name="arg">--syncStatePath</field>
+          <field name="arg">${sync_state_bizs_dir}</field>
+          <field name="arg">--completedDir</field>
+          <field name="arg">${completed_dir}</field>
+          <field name="arg">--projectRoot</field>
+          <field name="arg">${source_path}</field>
+          <field name="output" var="merge_result"/>
+        </block>
+
+        <!-- Step 2: Report merge result -->
+        <block type="event" id="S1c-E1" action="log" level="info" desc="Report merge result">
+        <field name="message">Feature merge complete:
+- Added: ${merge_result.added}
+- Removed: ${merge_result.removed}
+- Changed: ${merge_result.changed} (reset for re-analysis)
+- Unchanged: ${merge_result.unchanged} (analysis state preserved)</field>
+        </block>
+
+        <!-- Step 3: Mark stale Features -->
+        <block type="task" id="S1c-B2" action="run-script" status="pending" desc="Clean up documents and markers for deleted Features">
+          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/mark-stale.js"</field>
+          <field name="arg">--syncStatePath</field>
+          <field name="arg">${sync_state_bizs_dir}</field>
+          <field name="arg">--completedDir</field>
+          <field name="arg">${completed_dir}</field>
+        </block>
+      </branch>
+      <branch default="true" name="Full mode">
+        <block type="event" id="S1c-E2" action="log" level="info" desc="Full mode skip merge">
+        <field name="message">Full mode, skipping Feature merge step</field>
+        </block>
+      </branch>
+    </block>
+
+    <block type="checkpoint" id="S1c-CP1" name="feature_merge_complete" desc="Feature merge complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="passed" value="true"/>
+    </block>
+
+    <block type="task" id="S1c-B3" action="run-script" status="pending" desc="Update Stage 1c progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage1c --status completed</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 2: Feature Analysis (Batch Processing)
+       ============================================================ -->
+  <sequence id="S2" name="Stage 2: Feature Analysis" status="pending" desc="Batch process Feature analysis, dispatch Workers to execute">
+
+    <block type="task" id="S2-B-Start" action="run-script" status="pending" desc="Update Stage 2 progress to in_progress">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage2 --status in_progress</field>
+    </block>
+
+    <block type="rule" id="S2-R1" level="mandatory" desc="Stage 2 mandatory rules">
+      <field name="text">MUST use batch-orchestrator for batch management — DO NOT manually track batches</field>
+      <field name="text">MUST dispatch Workers for feature analysis — DO NOT analyze features yourself</field>
+      <field name="text">ALL workers for the same stage MUST be dispatched in PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S2-L2 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
+      <field name="text">Monitor completion via marker files, NOT by polling worker status</field>
+    </block>
+
+    <block type="rule" id="S2-R2" level="forbidden" desc="Stage 2 forbidden actions">
+      <field name="text">DO NOT skip pending features — every feature must be analyzed</field>
+      <field name="text">DO NOT generate feature analysis content yourself — always dispatch to Worker</field>
+      <field name="text">DO NOT proceed to next Stage until ALL workers in current Stage have completed or failed</field>
+    </block>
+
+    <!-- Step 0: Ensure completed_dir exists (MANDATORY) -->
+    <block type="task" id="S2-B0" action="run-script" status="pending" desc="Ensure completed_dir directory exists">
+      <field name="command">node -e "require('fs').mkdirSync('${completed_dir}', {recursive: true}); console.log('completed dir ready')"</field>
+    </block>
+
+    <block type="rule" id="S2-R3" level="mandatory" desc="completed_dir path rules">
+      <field name="text">completed_dir MUST be an ABSOLUTE path (e.g., d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed)</field>
+      <field name="text">Relative paths will cause Worker marker file writes to fail silently</field>
+    </block>
+
+    <!-- Batch Loop: Step 1→2→2.5→3 loop until all features processed -->
+    <block type="loop" id="S2-L-Main" over="${batches}" as="batch_iteration" desc="Batch loop to process Features">
+      
+      <!-- Step 1: Get next batch -->
+      <block type="task" id="S2-B1" action="run-script" status="pending" desc="Get next batch of pending Features">
+        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch</field>
+        <field name="arg">--syncStatePath</field>
+        <field name="arg">${sync_state_bizs_dir}</field>
+        <field name="arg">--batchSize</field>
+        <field name="arg">${max_concurrent_workers}</field>
+        <field name="output" var="batch_response"/>
+      </block>
+
+      <!-- Determine if complete -->
+      <block type="gateway" id="S2-G0" mode="exclusive" desc="Determine batch response">
+        <branch test="${batch_response.action} == 'done'" name="All Features processed">
+          <block type="event" id="S2-E-Done" action="log" level="info" desc="All Features processed">
+          <field name="message">All Features analyzed, exiting Stage 2 loop</field>
+          </block>
+          <field name="stage2_complete" value="true"/>
+        </branch>
+        <branch test="${batch_response.action} == 'process'" name="Process current batch">
+          
+          <!-- Step 2: Prepare analysis task specifications -->
+          <block type="event" id="S2-E-Batch" action="log" level="info" desc="Report current batch">
+          <field name="message">Processing batch: ${batch_response.batch.length} Features</field>
+          </block>
+
+          <!-- Step 2: Dispatch Worker for each Feature -->
+          <!-- PARALLEL EXECUTION MANDATORY: All Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
+          <block type="loop" id="S2-L2" over="${batch_response.batch}" as="feature" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch analysis Worker for each Feature">
+            
+            <!-- Route to different Skill based on platformType -->
+            <block type="gateway" id="S2-G1" mode="exclusive" desc="Route analysis Skill based on platform type">
+              <branch test="${feature.platformType} == 'web' or ${feature.platformType} == 'mobile' or ${feature.platformType} == 'desktop'" name="UI platform">
+                <block type="task" id="S2-B2a" action="dispatch-to-worker" status="pending" desc="Dispatch UI Feature analysis Worker">
+                  <field name="worker">speccrew-knowledge-bizs-ui-analyze</field>
+                  <field name="instructions">
+Analyze the following source code file and generate detailed feature documentation.
+
+CRITICAL - Template Fill-in Workflow (MANDATORY):
+1. First, copy the analysis template to documentPath (template structure = document skeleton)
+2. Then fill each Section using search_replace to replace placeholders with actual data
+3. NEVER use create_file to rewrite the entire document — this destroys template structure
+4. NEVER delete or skip any template Section — if no data available, fill with "N/A"
+5. NEVER create custom Section structures — use ONLY the template's predefined Sections
+
+Requirements:
+- Read source code file, understand related functionality interfaces
+- Generate detailed documentation to documentPath
+- Create two marker files to completed_dir
+- Use speccrew-knowledge-bizs-ui-analyze skill to complete this task
+                  </field>
+                  <field name="context">{
+  "fileName": "${feature.fileName}",
+  "sourcePath": "${feature.sourcePath}",
+  "module": "${feature.module}",
+  "documentPath": "${feature.documentPath}",
+  "platformType": "${feature.platformType}",
+  "platformSubtype": "${feature.platformSubtype}",
+  "language": "${language}",
+  "completed_dir": "${completed_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "sourceFile": "${feature.sourceFile}"
+}</field>
+                  <field name="output" var="analyze_result_${feature.id}"/>
+                </block>
+              </branch>
+              <branch default="true" name="Backend platform">
+                <block type="task" id="S2-B2b" action="dispatch-to-worker" status="pending" desc="Dispatch API Feature analysis Worker">
+                  <field name="worker">speccrew-knowledge-bizs-api-analyze</field>
+                  <field name="instructions">
+Analyze the following source code file and generate detailed API feature documentation.
+
+CRITICAL - Template Fill-in Workflow (MANDATORY):
+1. First, copy the analysis template to documentPath
+2. Then fill each Section using search_replace
+3. NEVER use create_file to rewrite the entire document
+4. NEVER delete or skip any template Section
+
+Requirements:
+- Read API Controller source code
+- Extract API endpoints, request/response structures
+- Generate detailed documentation to documentPath
+- Create .done.json and .graph.json marker files
+                  </field>
+                  <field name="context">{
+  "fileName": "${feature.fileName}",
+  "sourcePath": "${feature.sourcePath}",
+  "module": "${feature.module}",
+  "documentPath": "${feature.documentPath}",
+  "platformType": "${feature.platformType}",
+  "platformSubtype": "${feature.platformSubtype}",
+  "language": "${language}",
+  "completed_dir": "${completed_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "sourceFile": "${feature.sourceFile}"
+}</field>
+                  <field name="output" var="analyze_result_${feature.id}"/>
+                </block>
+              </branch>
+            </block>
+          </block>
+
+          <!-- Step 2.5: Graph Worker Task Preparation -->
+          <block type="event" id="S2-E-Graph" action="log" level="info" desc="Prepare Graph Worker tasks">
+          <field name="message">Preparing Graph data generation for completed Features</field>
+          </block>
+
+          <!-- Step 2.5: Dispatch Graph Worker -->
+          <!-- PARALLEL EXECUTION MANDATORY: All Graph Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
+          <block type="loop" id="S2-L25" over="${batch_response.batch}" as="feature" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch Graph Worker for each Feature IN PARALLEL">
+            <block type="gateway" id="S2-G2" mode="exclusive" desc="Route Graph Worker based on analysis type">
+              <branch test="${feature.platformType} == 'backend'" name="API Graph">
+                <block type="task" id="S2-B25a" action="dispatch-to-worker" status="pending" desc="Dispatch API Graph Worker">
+                  <field name="worker">speccrew-knowledge-bizs-api-graph</field>
+                  <field name="instructions">
+Generate graph data nodes and edges from the analyzed API feature document.
+
+Requirements:
+- Read the API analysis document at api_analysis_path
+- Extract entities (APIs, services, tables, DTOs)
+- Generate graph nodes and edges
+- Write graph JSON to output_dir
+- Create .graph-done.json completion marker at output_dir
+                  </field>
+                  <field name="context">{
+  "api_analysis_path": "${feature.documentPath}",
+  "platform_id": "${feature.platformId}",
+  "output_dir": "${completed_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "module": "${feature.module}",
+  "fileName": "${feature.fileName}",
+  "sourcePath": "${feature.sourcePath}",
+  "sourceFile": "${feature.sourceFile}",
+  "language": "${language}",
+  "subpath": "${feature.subpath}"
+}</field>
+                  <field name="output" var="graph_result_${feature.id}"/>
+                </block>
+              </branch>
+              <branch default="true" name="UI Graph">
+                <block type="task" id="S2-B25b" action="dispatch-to-worker" status="pending" desc="Dispatch UI Graph Worker">
+                  <field name="worker">speccrew-knowledge-bizs-ui-graph</field>
+                  <field name="instructions">
+Generate graph data nodes and edges from the analyzed UI feature document.
+
+Requirements:
+- Read the UI analysis document at documentPath
+- Extract entities (pages, components, API calls, navigations)
+- Generate graph nodes and edges
+- Write graph JSON to completed_dir
+- Create .graph-done.json completion marker at completed_dir
+                  </field>
+                  <field name="context">{
+  "feature": "${feature}",
+  "fileName": "${feature.fileName}",
+  "sourcePath": "${feature.sourcePath}",
+  "documentPath": "${feature.documentPath}",
+  "module": "${feature.module}",
+  "platform_type": "${feature.platformType}",
+  "platform_subtype": "${feature.platformSubtype}",
+  "completed_dir": "${completed_dir}",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "sourceFile": "${feature.sourceFile}",
+  "language": "${language}"
+}</field>
+                  <field name="output" var="graph_result_${feature.id}"/>
+                </block>
+              </branch>
+            </block>
+          </block>
+
+          <!-- Step 3: Process batch results -->
+          <block type="task" id="S2-B3" action="run-script" status="pending" desc="Collect and process batch Worker results">
+            <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results</field>
+            <field name="arg">--syncStatePath</field>
+            <field name="arg">${sync_state_bizs_dir}</field>
+            <field name="arg">--graphRoot</field>
+            <field name="arg">${graph_root}</field>
+            <field name="arg">--completedDir</field>
+            <field name="arg">${completed_dir}</field>
+            <field name="output" var="batch_result"/>
+          </block>
+
+          <block type="event" id="S2-E-Result" action="log" level="info" desc="Report batch processing result">
+          <field name="message">Batch processing complete: ${batch_result.success} succeeded, ${batch_result.failed} failed</field>
+          </block>
+        </branch>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="S2-CP1" name="feature_analysis_complete" desc="All Feature analysis complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="verify" value="${pending_features.length} == 0"/>
+    </block>
+
+    <block type="task" id="S2-B-End" action="run-script" status="pending" desc="Update Stage 2 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage2 --status completed --output "${analyzed_count} features analyzed"</field>
+    </block>
+
+    <block type="event" id="S2-E-Final" action="log" level="info" desc="Stage 2 complete">
+    <field name="message">Stage 2 Milestone: Feature analysis complete. ${analyzed_count} features analyzed, ${failed_count} failed. ${graph_count} graph data files generated.</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 3: Module Summarize
+       ============================================================ -->
+  <sequence id="S3" name="Stage 3: Module Summarize" status="pending" desc="Generate module overview for each module">
+    
+    <block type="rule" id="S3-R1" level="mandatory" desc="Stage 3 mandatory rules">
+      <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
+      <field name="text">ALL module summary workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S3-L2 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
+      <field name="text">Workers MUST NOT create any temporary scripts or workaround files</field>
+    </block>
+
+    <!-- Step 1: Read all features JSON -->
+    <block type="task" id="S3-B1" action="run-script" status="pending" desc="Read all platform features JSON">
+      <field name="command">node -e "const fs=require('fs'); const files=fs.readdirSync('${sync_state_bizs_dir}').filter(f=>f.startsWith('features-')); console.log(JSON.stringify(files))"</field>
+      <field name="output" var="features_files"/>
+    </block>
+
+    <!-- Step 2: Prepare module summary tasks for each platform -->
+    <block type="loop" id="S3-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Prepare module summary tasks for each platform IN PARALLEL">
+      <!-- Step 2.1: Read platform features -->
+      <block type="task" id="S3-B2" action="run-script" status="pending" desc="Read platform features">
+        <field name="command">node -e "console.log(require('fs').readFileSync('${sync_state_bizs_dir}/features-${platform.platformId}.json', 'utf8'))"</field>
+        <field name="output" var="platform_features"/>
+      </block>
+
+      <!-- Step 2.2: Extract module list -->
+      <block type="task" id="S3-B3" action="run-script" status="pending" desc="Extract module list">
+        <field name="command">node -e "const f=JSON.parse(process.argv[2]); const modules=[...new Set(f.features.map(x=>x.module))]; console.log(JSON.stringify(modules))" "${platform_features}"</field>
+        <field name="output" var="platform_modules"/>
+      </block>
+
+      <!-- Step 2.3: Dispatch Worker for each module -->
+      <!-- PARALLEL EXECUTION MANDATORY: All Module Summary Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
+      <block type="loop" id="S3-L2" over="${platform_modules}" as="module_name" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch summary Worker for each module">
+        <block type="task" id="S3-B4" action="dispatch-to-worker" status="pending" desc="Dispatch module summary Worker">
+          <field name="worker">speccrew-knowledge-module-summarize</field>
+          <field name="instructions">
+Generate complete module overview documentation for the specified module.
+
+Requirements:
+- Read all Feature documents under the module
+- Aggregate and generate module-level overview
+- Output to {module_path}/{module_name}-overview.md
+          </field>
+          <field name="context">{
+  "module_name": "${module_name}",
+  "module_path": "${workspace_path}/knowledges/bizs/${platform.platformId}/${module_name}/",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "language": "${language}"
+}</field>
+          <field name="output" var="module_result_${platform.platformId}_${module_name}"/>
+        </block>
+      </block>
+    </block>
+
+    <block type="checkpoint" id="S3-CP1" name="module_summarize_complete" desc="Module summary generation complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="passed" value="true"/>
+    </block>
+
+    <block type="task" id="S3-B5" action="run-script" status="pending" desc="Update Stage 3 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage3 --status completed --output "${module_count} modules summarized"</field>
+    </block>
+
+    <block type="event" id="S3-E1" action="log" level="info" desc="Stage 3 complete">
+    <field name="message">Stage 3 Milestone: Module summaries complete. ${module_count} modules summarized.</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 3.5: UI Style Pattern Extract
+       ============================================================ -->
+  <sequence id="S3.5" name="Stage 3.5: UI Style Pattern Extract" status="pending" desc="Extract UI style patterns for frontend platforms">
+    
+    <block type="rule" id="S35-R1" level="mandatory" desc="Stage 3.5 mandatory rules">
+      <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
+      <field name="text">ALL UI style extraction workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S35-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
+      <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
+      <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
+      <field name="text">This stage writes to techs knowledge base, not bizs knowledge base</field>
+    </block>
+
+    <!-- Dispatch UI Style Extract Worker for each frontend platform -->
+    <!-- PARALLEL EXECUTION MANDATORY: All UI Style Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
+    <block type="loop" id="S35-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch UI style extraction Workers for frontend platforms IN PARALLEL">
+      <block type="gateway" id="S35-G1" mode="exclusive" desc="Execute for UI platforms only">
+        <branch test="${platform.platformType} in ['web', 'mobile', 'desktop']" name="UI platform">
+          <block type="task" id="S35-B1" action="dispatch-to-worker" status="pending" desc="Dispatch UI style extraction Worker">
+            <field name="worker">speccrew-knowledge-bizs-ui-style-extract</field>
+            <field name="instructions">
+Extract UI design patterns from frontend platform Feature documents.
+
+Requirements:
+- Analyze Feature documents for page types, component patterns, layout patterns
+- Generate pattern documents under page-types/, components/, layouts/ directories
+- Output to {workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/
+            </field>
+            <field name="context">{
+  "platform_id": "${platform.platformId}",
+  "platform_type": "${platform.platformType}",
+  "feature_docs_path": "${workspace_path}/knowledges/bizs/${platform.platformId}",
+  "features_manifest_path": "${sync_state_bizs_dir}/features-${platform.platformId}.json",
+  "module_overviews_path": "${workspace_path}/knowledges/bizs/${platform.platformId}/",
+  "output_path": "${workspace_path}/knowledges/techs/${platform.platformId}/ui-style-patterns/",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "language": "${language}"
+}</field>
+            <field name="output" var="ui_style_result_${platform.platformId}"/>
+          </block>
+        </branch>
+        <branch default="true" name="Non-UI platform">
+          <block type="event" id="S35-E1" action="log" level="info" desc="Backend platform skip style extraction">
+          <field name="message">Backend platform ${platform.platformId} skipping UI style extraction</field>
+          </block>
+        </branch>
+      </block>
+    </block>
+
+    <block type="event" id="S35-E2" action="log" level="info" desc="Stage 3.5 complete">
+    <field name="message">Stage 3.5 Milestone: UI style patterns extracted. ${pattern_count} patterns extracted from ${frontend_platform_count} platforms.</field>
+    </block>
+
+    <block type="task" id="S35-B2" action="run-script" status="pending" desc="Update Stage 3.5 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage3.5 --status completed --output "${pattern_count} patterns extracted"</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Stage 4: System Summarize
+       ============================================================ -->
+  <sequence id="S4" name="Stage 4: System Summarize" status="pending" desc="Generate system-level business knowledge summary">
+    
+    <block type="rule" id="S4-R1" level="mandatory" desc="Stage 4 prerequisites">
+      <field name="text">ALL platform modules must be summarized before system summarize</field>
+      <field name="text">MUST include cross-platform analysis if multiple platforms exist</field>
+      <field name="text">Worker dispatch is handled by the calling Agent (Team Leader)</field>
+    </block>
+
+    <!-- Step 1: Read all platform structures -->
+    <block type="task" id="S4-B1" action="run-script" status="pending" desc="Read all platform features JSON">
+      <field name="command">node -e "const fs=require('fs'); const files=fs.readdirSync('${sync_state_bizs_dir}').filter(f=>f.startsWith('features-')); const platforms=files.map(f=>JSON.parse(fs.readFileSync('${sync_state_bizs_dir}/'+f))); console.log(JSON.stringify(platforms))"</field>
+      <field name="output" var="all_platforms_data"/>
+    </block>
+
+    <!-- Step 2: Dispatch System Summarize Worker -->
+    <block type="task" id="S4-B2" action="dispatch-to-worker" status="pending" desc="Dispatch system summary Worker">
+      <field name="worker">speccrew-knowledge-system-summarize</field>
+      <field name="instructions">
+Generate complete system-level business knowledge summary.
+
+Requirements:
+- Aggregate business knowledge from all platforms and modules
+- Generate platform index and module hierarchy
+- Include cross-platform analysis (if multiple platforms exist)
+- Output to {workspace_path}/knowledges/bizs/system-overview.md
+      </field>
+      <field name="context">{
+  "modules_path": "${workspace_path}/knowledges/bizs/",
+  "output_path": "${workspace_path}/knowledges/bizs/",
+  "workspace_path": "${workspace_path}",
+  "sync_state_bizs_dir": "${sync_state_bizs_dir}",
+  "language": "${language}",
+  "platforms": "${all_platforms_data}"
+}</field>
+      <field name="output" var="system_summary"/>
+    </block>
+
+    <block type="checkpoint" id="S4-CP1" name="system_summarize_complete" desc="System summary generation complete">
+      <field name="file" value="${sync_state_bizs_dir}/.progress.json"/>
+      <field name="passed" value="true"/>
+    </block>
+
+    <block type="task" id="S4-B3" action="run-script" status="pending" desc="Update Stage 4 progress to completed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-workflow --file "${sync_state_bizs_dir}/WORKFLOW-PROGRESS.json" --stage Stage4 --status completed --output "System overview generated"</field>
+    </block>
+
+    <block type="event" id="S4-E1" action="log" level="info" desc="Stage 4 complete">
+    <field name="message">Stage 4 Milestone: System overview generated. All stages complete. Pipeline finished successfully.</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Error Handling
+       ============================================================ -->
+  <block type="error-handler" id="EH1" desc="Global error handling">
+    <try>
+      <!-- Main workflow defined in sequences above -->
+    </try>
+    <catch on="worker_failed">
+      <block type="event" id="EH1-E1" action="log" level="warn" desc="Worker failed, log error and continue">
+      <field name="message">Worker ${error.worker} failed: ${error.message}</field>
+      </block>
+      <block type="task" id="EH1-B1" action="run-script" desc="Update failed status">
+        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
+        <field name="arg">--featureId</field>
+        <field name="arg">${error.feature_id}</field>
+        <field name="arg">--status</field>
+        <field name="arg">failed</field>
+        <field name="arg">--error</field>
+        <field name="arg">${error.message}</field>
+      </block>
+    </catch>
+    <catch on="script_error">
+      <block type="event" id="EH1-E2" action="log" level="error" desc="Script execution failed">
+      <field name="message">Script ${error.script} execution failed: ${error.message}</field>
+      </block>
+    </catch>
+    <catch on="stage_abort">
+      <block type="event" id="EH1-E3" action="log" level="error" desc="Stage aborted">
+      <field name="message">Stage ${error.stage} execution aborted: ${error.message}</field>
+      </block>
+      <block type="event" id="EH1-E4" action="log" level="warn" desc="High failure rate">
+      <field name="message">Failure rate exceeds 50%, terminating entire pipeline</field>
+      </block>
+    </catch>
+  </block>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="bizs knowledge base generation results">
+    <field name="platforms_processed" from="${platforms}" type="array" desc="List of processed platforms"/>
+    <field name="features_total" from="${all_features.length}" type="number" desc="Total Feature count"/>
+    <field name="features_success" from="${success_count}" type="number" desc="Successfully analyzed Feature count"/>
+    <field name="features_failed" from="${failed_count}" type="number" desc="Failed Feature count"/>
+    <field name="modules_summarized" from="${module_count}" type="number" desc="Summarized module count"/>
+    <field name="ui_patterns_extracted" from="${pattern_count}" type="number" desc="Extracted UI style pattern count"/>
+    <field name="system_summary" from="${system_summary.path}" type="string" desc="System summary file path"/>
+    <field name="graph_root" from="${graph_root}" type="string" desc="Graph data output directory"/>
+  </block>
+</workflow>
 
 ---
 
-## Stage 0: Platform Detection
+## Appendix: Reference
 
-**Objective**: Automatically discover ALL platforms in the project. Do NOT hardcode platform lists.
+### Skill Routing Table (Stage 2)
 
-**Detection steps**:
-
-1. **Scan for backend modules**:
-   ```
-   # Look for all backend module directories
-   Get-ChildItem -Path "{project_root}" -Filter "yudao-module-*" -Directory
-   # Or for other project structures:
-   Get-ChildItem -Path "{project_root}" -Directory | Where-Object { $_.Name -match "^(module-|service-|api-)" }
-   ```
-   Each discovered module becomes a `backend-{module_name}` platform (e.g., `yudao-module-system` → `backend-system`).
-
-2. **Scan for frontend projects**:
-   ```
-   # Look for UI/frontend directories
-   Get-ChildItem -Path "{project_root}" -Directory | Where-Object { $_.Name -match "ui|frontend|web|app" }
-   # Then check each for actual source code (package.json, src/ directory)
-   ```
-   Classify by tech stack: Vue → `web-vue`, UniApp → `mobile-uniapp`, React → `web-react`, etc.
-
-3. **Validate each platform**:
-   - Has actual source code files (not empty placeholder directories)
-   - Has a recognizable project structure (package.json for frontend, pom.xml/build.gradle for backend)
-
-4. **Present platform list to user for confirmation** before proceeding to Stage 1a.
-
-**Output**: A confirmed list of platforms with:
-
-| Platform ID | Source Path | Platform Type | Tech Stack |
-|---|---|---|---|
-| `web-vue` | `yudao-ui/yudao-ui-admin-vue3` | web | vue, vite, element-plus |
-| `backend-system` | `yudao-module-system/src/main/java/.../system` | backend | spring-boot, mybatis-plus |
-| ... | ... | ... | ... |
-
-> **CRITICAL**: NEVER hardcode a fixed number of platforms. Always scan the project directory to discover ALL modules. Missing a platform means incomplete knowledge base generation.
-
-> ✅ **Stage 0 Milestone**: Platform detection complete. Platforms: {platform_list}. → Proceed to Stage 1.
-
----
-
-## Stage 1a: Entry Directory Recognition
-
-**Goal**: For each detected platform, analyze the source directory tree and identify all entry directories (API controllers for backend, views/pages for frontend), then classify them into business modules.
-
-> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)**, NOT delegated to a Worker Agent.
-
-**Prerequisite**: Stage 0 completed. Platform list confirmed with `platformId`, `sourcePath`, `platformType`, `platformSubtype`, and `techIdentifier` for each platform.
-
-**Execution**: Follow the `speccrew-knowledge-bizs-identify-entries` skill workflow:
-
-1. For each platform, read the source directory tree (3 levels deep)
-2. Identify entry directories based on platform type:
-   - **Backend (Spring/Java/Kotlin)**: Find directories containing `*Controller.java` or `*Controller.kt` files. Module name = business package name of the entry directory
-   - **Frontend (Vue/React)**: Find `views/` or `pages/` directories. First-level subdirectories = business modules
-   - **Mobile (UniApp)**: Find first-level subdirectories under `pages/` + top-level `pages-*` directories
-   - **Mobile (Mini Program)**: Find first-level subdirectories under `pages/`
-3. Apply exclusion rules from `tech-stack-mappings.json` (technical dirs, build dirs, test dirs, config dirs)
-4. Generate `entry-dirs-{platform_id}.json` files
-5. Validate: modules array non-empty, module names are business-meaningful
-
-> For detailed entry identification logic, exclusion rules, JSON format, and validation rules, refer to the `speccrew-knowledge-bizs-identify-entries` skill documentation.
-
-**Output**: `{sync_state_bizs_dir}/entry-dirs-{platform_id}.json`
-
-**JSON Format**:
-```json
-{
-  "platformId": "backend-ai",
-  "platformName": "AI Module Backend",
-  "platformType": "backend",
-  "platformSubtype": "ai",
-  "sourcePath": "yudao-module-ai/src/main/java/cn/iocoder/yudao/module/ai",
-  "techStack": ["spring-boot", "mybatis-plus"],
-  "modules": [
-    { "name": "chat", "entryDirs": ["controller/admin/chat"] },
-    { "name": "image", "entryDirs": ["controller/admin/image"] }
-  ]
-}
-```
-
-**Error handling**: If entry directory recognition fails for a platform, STOP and report the error with platform details. Do NOT proceed to Stage 1b for that platform.
-
----
-
-## Stage 1b: Generate Feature Inventory (Direct Execution)
-
-**Goal**: Based on the entry-dirs JSON generated in Stage 1a, generate per-platform feature inventory files.
-
-> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)**, NOT delegated to a Worker Agent.
-> Worker Agents do not have `run_in_terminal` capability, which is required for script execution.
-
-**Prerequisite**: Stage 1a completed. `entry-dirs-{platform_id}.json` files exist in `{sync_state_bizs_dir}/`.
-
-**Action** (dispatch executes directly via `run_in_terminal`):
-
-1. **Read platform mapping**: Read `{configs_dir}/platform-mapping.json` and `{configs_dir}/tech-stack-mappings.json` for platform configuration
-2. **Execute inventory script** for each platform:
-   ```
-   node "{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "{sync_state_bizs_dir}/entry-dirs-{platform_id}.json"
-   ```
-   - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js`
-   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
-
-**Script Parameters**:
-- `--entryDirsFile`: Path to the `entry-dirs-{platform_id}.json` file generated in Stage 1a (required)
-
-**Note**: `platformId` and `sourcePath` are read from the entry-dirs JSON file. Platform mapping and output directory are automatically derived by the script.
-
-**Optional Parameters**:
-- `--techIdentifier`: Technology identifier for tech-stack lookup (auto-detected from platform mapping if omitted)
-- `--fileExtensions`: Comma-separated list of file extensions to include (e.g., `.java,.kt`)
-- `--excludeDirs`: Additional directories to exclude
-
-**Output**:
-- `{sync_state_bizs_dir}/features-{platform_id}.json` — Per-platform feature inventory files
-- Each file contains: platform metadata, modules list, and flat features array with `analyzed` status
-
-**Features JSON Structure**:
-```json
-{
-  "platformId": "backend-ai",
-  "platformName": "AI Module",
-  "platformType": "backend",
-  "platformSubtype": "ai",
-  "techIdentifier": "spring",
-  "sourcePath": "yudao-module-ai/src/main/java/cn/iocoder/yudao/module/ai",
-  "modules": [
-    { "name": "chat", "featureCount": 12 },
-    { "name": "image", "featureCount": 8 },
-    { "name": "knowledge", "featureCount": 15 }
-  ],
-  "features": [
-    {
-      "fileName": "ChatConversationController",
-      "sourcePath": "controller/admin/chat/ChatConversationController.java",
-      "module": "chat",
-      "documentPath": "speccrew-workspace/knowledges/bizs/backend-ai/chat/ChatConversationController.md",
-      "platformType": "backend",
-      "platformSubtype": "ai",
-      "analyzed": false
-    }
-  ]
-}
-```
-
-**Error handling**: If the script exits with non-zero code, STOP and report the error. Do NOT create workaround scripts.
-
----
-
-## Stage 1c: Feature Merge (Incremental)
-
-**Goal**: If incremental inventory files (`features-*.new.json`) are detected, merge them with existing `features-*.json` files. Identifies added/removed/changed features, resets changed features for re-analysis, and cleans up artifacts for removed features.
-
-> **IMPORTANT**: This stage is executed **directly by the dispatch agent (Leader)** via `run_in_terminal`. NOT delegated to a Worker Agent.
-
-**Prerequisite**: Stage 1b completed.
-
-**Skip condition**: If no `features-*.new.json` files exist in `{sync_state_bizs_dir}/`, skip this Stage entirely and proceed to Stage 2.
-
-**Action** (dispatch executes directly via `run_in_terminal`):
-
-1. **Execute merge script**:
-   ```
-   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js" --syncStatePath "{sync_state_bizs_dir}" --completedDir "{completed_dir}" --projectRoot "{source_path}"
-   ```
-   - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js`
-   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
-
-3. **Read output JSON** from stdout and report merge results:
-   - Added features: new source files discovered
-   - Removed features: source files no longer exist (documents and markers cleaned up)
-   - Changed features: source files modified since last analysis (reset to `analyzed: false`)
-   - Unchanged features: source files not modified (analysis state preserved)
-
-**Merge Logic**:
-
-| Situation | Condition | Action |
-|-----------|-----------|--------|
-| Added | In new scan but not in existing features | Add with `analyzed: false` |
-| Removed | In existing features but not in new scan | Remove from list, delete `.md` doc + `.done.json` + `.graph.json` markers |
-| Changed | Both exist, `lastModified > completedAt` | Reset `analyzed: false` for re-analysis |
-| Unchanged | Both exist, `lastModified <= completedAt` | Preserve existing analysis state |
-
-**Output**: Updated `features-{platform}.json` files where:
-- New features: `analyzed: false`
-- Source-modified features: `analyzed: false`  
-- Unmodified features: preserved original `analyzed` status
-- Deleted features: removed from list, associated documents and markers cleaned up
-
-**Error handling**: If the merge script exits with non-zero code, STOP and report the error. Do NOT proceed to Stage 2 until merge is resolved.
-
-> ✅ **Stage 1 Milestone**: Feature inventory initialized. {feature_count} features across {platform_count} platforms. → Proceed to Stage 2.
-
----
-
-> **⚠️ MANDATORY RULES FOR PARALLEL EXECUTION (Stage 2-3)**:
-> 1. ALL workers for the same stage MUST be dispatched in PARALLEL — sequential execution is FORBIDDEN
-> 2. Each worker runs independently — do NOT wait for one worker before dispatching the next
-> 3. Monitor completion via marker files, NOT by polling worker status
-> 4. Failed workers can be retried independently without affecting successful ones
-> 5. Do NOT proceed to next Stage until ALL workers in current Stage have completed or failed
-
----
-
-## Stage 2: Feature Analysis (Batch Processing)
-
-**Overview**: Process all pending features in batches. Each batch gets a set of features, prepares task specifications for Worker Agents to analyze them, then processes the results.
-
-> **Script execution rule**: All script calls in Stage 2 are executed **directly by the dispatch agent** via `run_in_terminal`. Task specifications are prepared by this Skill; Worker dispatch is handled by the calling Agent (Team Leader).
-
-**Skill Routing Table (by platformType):**
+> **Note**: Detailed routing logic is defined in XML Stage 2 gateway (S2-G1).
 
 | platformType | skill_name | Description |
 |--------------|------------|-------------|
@@ -356,167 +936,22 @@ flowchart TB
 | `desktop` | `speccrew-knowledge-bizs-ui-analyze` | Desktop apps (Electron/WPF) |
 | `backend` | `speccrew-knowledge-bizs-api-analyze` | Backend APIs (Java/Python/Node.js) |
 
-> **CRITICAL**: Use this routing table to select the correct skill for each feature in Step 2.
+---
 
-#### Execution Flow
+### Platform Types
 
-Repeat the following 3 steps until all features are processed:
-
-**Step 0: Ensure completed directory exists (MANDATORY)**
-
-Before any Workers are dispatched by the calling Agent, you MUST ensure the `completed_dir` directory exists using Node.js (cross-platform compatible):
-
-```bash
-node -e "require('fs').mkdirSync('{completed_dir}', {recursive: true}); console.log('completed dir ready')"
-```
-
-> **Note**: Using Node.js ensures cross-platform compatibility (Windows/macOS/Linux).
-
-> **⚠️ CRITICAL**: The `completed_dir` MUST be an **absolute path** (e.g., `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`). Relative paths will cause Worker marker file writes to fail silently.
-
-**Step 1: Get Next Batch**
-
-1. **Execute get-batch**:
-   ```
-   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch --syncStatePath "{sync_state_bizs_dir}" --batchSize 5
-   ```
-   - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js`
-   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
-
-- If output `action` is `"done"` → All features processed. Exit Stage 2, proceed to Stage 3.
-- If output `action` is `"process"` → The `batch` array contains features to analyze. Proceed to Step 2.
-
-**Step 2: Prepare Analysis Task Specifications**
-
-> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
-
-For each feature in the `batch` array, prepare a task specification:
-- **Select skill** using the routing table at Stage 2 start
-- **Task parameters**: Prepare all feature fields plus `language`, `completed_dir`, `sourceFile`, `skill_path`
-- **Behavior constraint**: Workers MUST NOT create any temporary scripts
-
-**Task Preparation sequence**:
-1. Prepare ALL task specifications for the current batch
-2. Output the task specifications to the calling Agent
-3. The calling Agent will dispatch Workers based on these specifications
-4. Each Worker writes `.done` and `.graph.json` marker files to `completed_dir` upon completion
-
-> **NOTE**: This Skill does NOT dispatch analyze workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
-
-**Step 2.5: Graph Worker Task Preparation**
-
-> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
-
-After each analyze worker completes (writes `.done.json` marker), the calling Agent will dispatch the corresponding graph worker. This Skill prepares the task specifications:
-
-| Analyze Worker | Graph Worker | Input |
-|----------------|--------------|-------|
-| `speccrew-knowledge-bizs-api-analyze` | `speccrew-knowledge-bizs-api-graph` | `documentPath` from analyze output |
-| `speccrew-knowledge-bizs-ui-analyze` | `speccrew-knowledge-bizs-ui-graph` | `documentPath` from analyze output |
-
-**Graph Worker Task Specification Format**:
-
-**For API Graph Worker**:
-```json
-{
-  "skill_name": "speccrew-knowledge-bizs-api-graph",
-  "instructions": "Generate graph data nodes and edges from the analyzed API feature document.\\n\\nRequirements:\\n- Read the API analysis document at api_analysis_path\\n- Extract entities (APIs, services, tables, DTOs)\\n- Generate graph nodes and edges\\n- Write graph JSON to output_dir\\n- Create .graph-done.json completion marker at output_dir",
-  "context": {
-    "api_analysis_path": "<feature.documentPath>",
-    "platform_id": "<feature.platform_id>",
-    "output_dir": "<completed_dir_absolute_path>",
-    "workspace_path": "<workspace_path_absolute_path>",
-    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
-    "module": "<feature.module>",
-    "fileName": "<feature.fileName>",
-    "sourcePath": "<feature.sourcePath>",
-    "sourceFile": "<feature.sourceFile>",
-    "language": "<user language>",
-    "subpath": "<computed_subpath_from_sourcePath>"
-  }
-}
-```
-
-**For UI Graph Worker**:
-```json
-{
-  "skill_name": "speccrew-knowledge-bizs-ui-graph",
-  "instructions": "Generate graph data nodes and edges from the analyzed UI feature document.\\n\\nRequirements:\\n- Read the UI analysis document at documentPath\\n- Extract entities (pages, components, API calls, navigations)\\n- Generate graph nodes and edges\\n- Write graph JSON to completed_dir\\n- Create .graph-done.json completion marker at completed_dir",
-  "context": {
-    "feature": "<complete_feature_object>",
-    "fileName": "<feature.fileName>",
-    "sourcePath": "<feature.sourcePath>",
-    "documentPath": "<feature.documentPath>",
-    "module": "<feature.module>",
-    "platform_type": "<feature.platform_type>",
-    "platform_subtype": "<feature.platform_subtype>",
-    "completed_dir": "<completed_dir_absolute_path>",
-    "workspace_path": "<workspace_path_absolute_path>",
-    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
-    "sourceFile": "<feature.sourceFile>",
-    "status": "<analysis_status>",
-    "analysisNotes": "<analysis_notes>",
-    "language": "<user language>"
-  }
-}
-```
-
-**Task Preparation Sequence**:
-1. Scan `completed_dir` for new `.done.json` files from Step 2
-2. For each completed analyze worker, prepare corresponding graph worker task specification
-3. Output the task specifications to the calling Agent
-4. The calling Agent will dispatch graph workers based on these specifications
-5. Each graph worker writes `.graph-done.json` marker to `completed_dir` upon completion
-
-> **NOTE**: This Skill does NOT dispatch graph workers. The calling Agent (Team Leader) scans for `.done.json` markers and dispatches corresponding graph workers.
-
-**Worker Task Prompt Format**:
-
-```json
-{
-  "skill_name": "speccrew-knowledge-bizs-ui-analyze",
-  "instructions": "请分析以下源代码文件，生成详细的功能文档。\n\n⚠️ CRITICAL - Template Fill-in Workflow (MANDATORY):\n1. First, copy the analysis template to documentPath (template structure = document skeleton)\n2. Then fill each Section using search_replace to replace placeholders with actual data\n3. NEVER use create_file to rewrite the entire document — this destroys template structure\n4. NEVER delete or skip any template Section — if no data available, fill with "N/A"\n5. NEVER create custom Section structures — use ONLY the template's predefined Sections\n\n要求:\n- 读取源代码文件，理解相关功能接口\n- 生成详细的文档到 documentPath\n- 创建两个标记文件到 completed_dir\n- 使用 {skill_name} 技能完成此任务",
-  "context": {
-    "fileName": "<feature.fileName>",
-    "sourcePath": "<feature.sourcePath>",
-    "module": "<feature.module>",
-    "documentPath": "<feature.documentPath>",
-    "platformType": "<feature.platformType>",
-    "platformSubtype": "<feature.platformSubtype>",
-    "language": "<user language>",
-    "completed_dir": "<completed_dir_absolute_path>",
-    "workspace_path": "<workspace_path_absolute_path>",
-    "sync_state_bizs_dir": "<sync_state_bizs_dir_absolute_path>",
-    "sourceFile": "<feature.sourceFile>"
-  }
-}
-```
-
-> **⚠️ CRITICAL - completed_dir must be ABSOLUTE path**: The `completed_dir` parameter passed to Worker MUST be an absolute path (e.g., `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed`), NOT a relative path. Workers do not have context of the dispatch working directory.
-
-> ⚠️ **CRITICAL - Marker File Format**:
-> The `.done` file MUST be valid JSON format, NOT plain text.
->
-> Required `.done` JSON structure:
-> ```json
-> {
->   "fileName": "<class name without extension>",
->   "sourcePath": "<relative source file path>",
->   "sourceFile": "<features JSON filename, e.g. features-backend-ai.json>",
->   "module": "<business module name>",
->   "status": "success|partial|failed",
->   "analysisNotes": "<brief notes>"
-> }
-> ```
->
-> ❌ **WRONG**: Writing plain text like "COMPLETED" or "Analysis done"
-> ✅ **CORRECT**: Writing valid JSON with all required fields
+| Platform Type | Platform Subtype | Description |
+|---------------|------------------|-------------|
+| `web` | `vue`, `react`, `angular` | Web frontend applications |
+| `mobile` | `uniapp`, `flutter`, `react-native` | Mobile applications |
+| `desktop` | `electron`, `wpf` | Desktop applications |
+| `backend` | `spring`, `nodejs`, `python` | Backend services |
 
 ---
 
-### **CRITICAL - Marker File Naming Convention (STRICT RULES)**
+### Worker Completion Marker Format
 
-#### Formula
+#### Marker File Naming Convention
 
 **Pattern**: `{module}-{subpath}-{fileName}.{type}.json`
 
@@ -528,376 +963,71 @@ After each analyze worker completes (writes `.done.json` marker), the calling Ag
 | `type` | Marker type: `done`, `error`, or `skip` | `done` |
 
 **Examples**:
+
 | Source File Path | Marker File Name |
-|-----------------|------------------|
+|------------------|------------------|
 | `chat/ChatController.java` | `chat-ChatController.done.json` |
 | `user/admin/UserController.java` | `user-admin-UserController.done.json` |
 | `order/api/v2/OrderService.java` | `order-api-v2-OrderService.done.json` |
 
-> **NOTE**: This naming convention is implemented in `workspace-template/scripts/path-utils.js` via the `getMarkerFileName(moduleName, subpath, fileName, type)` function.
+#### .done.json Required Fields
 
----
-
-#### Full Path Format
-
-**✅ CORRECT Format - MUST USE:**
-```
-{completed_dir}/{module}-{subpath}-{fileName}.done.json     ← Completion status marker (JSON format)
-{completed_dir}/{module}-{subpath}-{fileName}.graph.json    ← Graph data marker (JSON format)
-```
-
-**Naming Rule Explanation:**
-
-The marker filename MUST follow the composite naming pattern `{module}-{subpath}-{fileName}` to prevent conflicts between same-named source files.
-
-**How Workers Generate the Filename:**
-
-1. **module**: Use the `{{module}}` input variable directly
-
-2. **subpath**: Extract from `{{sourcePath}}`:
-   - For UI (Vue/React): Middle path between `views/` or `pages/` and the file name
-   - For API (Java): Middle path between controller root and the file name
-   - Replace path separators (`/`) with hyphens (`-`)
-   - Omit if file is at module root (empty subpath)
-
-3. **fileName**: Use `{{fileName}}` input variable (file name WITHOUT extension)
-
-**Examples:**
-
-| Source File | module | subpath | fileName | Marker Filename |
-|-------------|--------|---------|----------|-----------------|
-| `yudao-ui/.../views/system/notify/message/index.vue` | `system` | `notify-message` | `index` | `system-notify-message-index.done.json` |
-| `yudao-ui/.../views/system/user/index.vue` | `system` | `user` | `index` | `system-user-index.done.json` |
-| `yudao-module-system/.../controller/admin/user/UserController.java` | `system` | `controller-admin-user` | `UserController` | `system-controller-admin-user-UserController.done.json` |
-
-**Full Path Examples:**
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-notify-message-index.done.json`
-- `d:/dev/speccrew/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/completed/system-controller-admin-user-UserController.graph.json`
-
-**❌ WRONG Format - NEVER USE:**
-```
-{fileName}.done.json              ← WRONG: missing module and subpath (causes conflicts)
-{fileName}.graph.json             ← WRONG: missing module and subpath (causes conflicts)
-{fileName}.completed.json         ← WRONG extension
-{fileName}.done                   ← WRONG extension (missing .json)
-{fileName}_done.json              ← WRONG separator and extension
-```
-
-**❌ WRONG Filename Examples - NEVER USE:**
-- `index.done.json` - WRONG: missing module and subpath (conflicts with other `index.vue` files)
-- `UserController.done.json` - WRONG: missing module and subpath (conflicts with other controllers)
-- `UserController.completed.json` - WRONG: uses `.completed.json` instead of `.done.json`
-- `UserController_done.json` - WRONG: uses underscore and wrong extension
-
----
-
-### **CRITICAL - Path Format Rules (STRICT RULES)**
-
-**Path Variables:**
-- `completed_dir` - Absolute path to marker files directory (passed to Worker)
-- `sourcePath` - Relative path to source file (from features JSON, passed to Worker)
-- `documentPath` - Relative path to generated document (from features JSON, passed to Worker)
-
-**Path Format Requirements:**
-
-| Field | Format | Example |
-|-------|--------|---------|
-| `sourcePath` in `.done` | Project-root-relative path | `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java` |
-| `documentPath` in `.done` | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
-| `sourcePath` in `.graph.json` nodes | Project-root-relative path | `yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java` |
-| `documentPath` in `.graph.json` nodes | Relative path (as-is from input) | `speccrew-workspace/knowledges/bizs/admin-api/system/user/UserController.md` |
-
-**⚠️ CRITICAL - sourcePath Validation Rules:**
-- `sourcePath` MUST be a project-root-relative path (e.g., `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue`, `yudao-module-system/src/main/java/.../UserController.java`)
-- NEVER use platform-source-relative short paths (e.g., `pages/bpm/index.vue`, `pages-bpm/category/index.vue`, `controller/admin/user/UserController.java`)
-- Exception: `node_modules/` and third-party library paths are kept as-is (e.g., `node_modules/wot-design-uni/components/wd-icon/wd-icon.vue`)
-
-**⚠️ CRITICAL - documentPath Rules:**
-- When no corresponding document exists for a component/API, `documentPath` MUST be `"N/A"`
-- NEVER use empty string `""` for `documentPath` — this causes downstream processing issues
-
-**⚠️ CRITICAL: NEVER convert relative paths to absolute paths in the JSON content!**
-
-**Correct vs Wrong Example:**
 ```json
-// ✅ CORRECT - .done file content:
 {
-  "fileName": "UserController",
-  "sourcePath": "yudao-module-system/yudao-module-system-biz/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java",
-  "sourceFile": "features-admin-api.json",
-  "module": "system",
-  "status": "success",
-  "analysisNotes": "Successfully analyzed UserController"
-}
-
-// ❌ WRONG - .done file content (DO NOT DO THIS):
-{
-  "fileName": "UserController",
-  "sourcePath": "d:/dev/project/yudao-module-system/.../UserController.java",  ← WRONG: absolute path
-  "sourceFile": "features-admin-api.json",
-  "module": "system",
-  "status": "success"
+  "fileName": "<class name without extension>",
+  "sourcePath": "<relative source file path>",
+  "sourceFile": "<features JSON filename, e.g. features-backend-ai.json>",
+  "module": "<business module name>",
+  "status": "success|partial|failed",
+  "analysisNotes": "<brief notes>"
 }
 ```
 
+> WRONG: Writing plain text like "COMPLETED" or "Analysis done"
+> CORRECT: Writing valid JSON with all required fields
+
 ---
 
-**Marker File Naming Convention Summary:**
+### Batch Processing Details
 
-> **Reference**: See [Marker File Naming Convention Formula](#critical---marker-file-naming-convention-strict-rules) for the complete formula and examples.
-> **Implementation**: `getMarkerFileName()` in `workspace-template/scripts/path-utils.js`
+#### get-batch Script Output Format
 
-| Marker Type | File Name Format | Example |
-|-------------|------------------|---------|
-| Completion marker | `{module}-{subpath}-{fileName}.done.json` | `system-notify-message-index.done.json`, `system-controller-admin-user-UserController.done.json` |
-| Graph data | `{module}-{subpath}-{fileName}.graph.json` | `system-notify-message-index.graph.json`, `system-controller-admin-user-UserController.graph.json` |
+```json
+{
+  "action": "process|done",
+  "batch": [
+    {
+      "id": "feature-001",
+      "fileName": "UserController",
+      "sourcePath": "controller/admin/user/UserController.java",
+      "module": "user",
+      "documentPath": "speccrew-workspace/knowledges/bizs/backend-system/user/UserController.md",
+      "platformType": "backend",
+      "platformSubtype": "spring",
+      "platformId": "backend-system",
+      "sourceFile": "features-backend-system.json"
+    }
+  ]
+}
+```
 
-**Worker Completion Requirements:**
+#### process-results Script Behavior
 
-- Worker MUST create **both** `.done.json` (JSON) and `.graph.json` (JSON) marker files
-- **Both files must be valid JSON format** — plain text content will cause processing failures
-- Task is considered **incomplete** if either file is missing or contains invalid JSON
-- The `.done.json` file must include all required fields: `fileName`, `sourcePath`, `sourceFile`, `module`, `status`, `analysisNotes`
-- The `.graph.json` file must follow the graph data schema defined in `speccrew-knowledge-graph-write/SKILL.md`
-- **sourcePath and documentPath MUST be relative paths** (as received from features JSON), NEVER convert to absolute paths
-- **documentPath MUST NOT be empty string** — use `"N/A"` when no corresponding document exists
-
-**Step 3: Process Batch Results**
-
-1. **Execute process-results**:
-   ```
-   node "{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results --syncStatePath "{sync_state_bizs_dir}" --graphRoot "{graph_root}" --platformId "{platformId}"
-   ```
-   - Script location: `{ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js`
-   - The `{ide_skills_dir}` parameter is passed by the caller as an absolute path
-
-This script:
 - Scans `.done.json` files → updates feature status to `completed` in features-*.json
-- Scans `.graph-done.json` files → confirms graph data generation completed
+- Scans `.graph-done.json` files → confirms graph data generation complete
 - Scans `.graph.json` files → writes graph data (nodes + edges) grouped by module
 - Cleans up all marker files
 
-After Step 3 completes, return to Step 1.
+---
 
-#### Context Recovery (Stateless Design)
+### Stateless Design
 
-Dispatch 采用完全无状态的文件驱动设计。如果执行过程中发生上下文压缩或中断：
-- 无需记忆任何批次状态或 Worker 输出
-- 重新执行循环：`get-batch` 会自动从文件状态恢复，跳过已完成和正在处理中的 features
-- `process-results` 会处理所有未清理的标记文件
-- 整个流程可安全重入
+Dispatch adopts a fully stateless file-driven design. Re-execute loop to recover: `get-batch` auto-recovers from file state; `process-results` handles uncleaned markers. The entire flow is safely re-entrant.
 
-#### Stage 2 Output
-
-- Generated by Analyze Workers: Feature documentation at `feature.documentPath` (one .md per feature); marker files (`.done.json`) in `completed_dir`
-- Generated by Graph Workers: Graph data files (`.graph.json`) in `completed_dir`; consolidated graph data in `{workspace_path}/knowledges/bizs/graph/`
-- Updated by `process-results`: Each `features-{platform}.json` updated with analysis timestamps and status
-- Marker files cleaned up after each batch
-
-**Stage 2 Completion Condition**: ALL analyze workers AND ALL graph workers completed (both `.done.json` and `.graph-done.json` markers present)
-
-**Feature Status Flow**: `pending` → `in_progress` → `completed` / `failed`
+---
 
 ### Large-Scale Scenario Guidance
 
-When dealing with modules containing more than **20 features**, consider the following:
+For modules with >20 features: dispatch multiple Worker Agents in parallel (each handles a subset). Use `get-next-batch` for resume support across sessions. Run `process-batch-results --validateDocs` after completion to verify.
 
-- **Single Agent Limit**: A single Worker Agent can reliably process ~20 features per session due to context window constraints. Beyond this, context degradation may cause incomplete document generation.
-- **Multi-Worker Strategy**: For modules with >20 features, the calling Agent should dispatch multiple Worker Agents in parallel, each handling a non-overlapping subset of features (e.g., by batch index range).
-- **Resume Support**: The `get-next-batch` script naturally supports resume across sessions — it skips features that already have `.done` files. To resume after a session break, simply restart the Stage 2 loop.
-- **Validation After Completion**: After all features are marked `analyzed=true`, run `process-batch-results` with `--validateDocs --syncStatePath "{sync_state_path}"` to verify document completeness.
 
-> ✅ **Stage 2 Milestone**: Feature analysis complete. {analyzed_count} features analyzed, {failed_count} failed. {graph_count} graph data files generated. → Proceed to Stage 3.
-
----
-
-## Stage 3: Module Summarize (Task Preparation)
-
-> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
-
-**Goal**: Prepare task specifications for each module overview based on feature details.
-
-**Prerequisite**: Stage 2 completed for the module (in full or incremental mode).
-
-**Action (full mode)**:
-- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
-- For each platform, group features by `module` to identify unique modules
-- For each module, prepare a task specification for `skill_name: speccrew-knowledge-module-summarize`
-- Parameters to include in task specification:
-  - `module_name`: Module code_name
-  - `module_path`: Path to module directory (e.g., `{workspace_path}/knowledges/bizs/{platform_id}/{module_name}/`)
-  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
-  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
-  - `language`: User's language — **REQUIRED**
-  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
-
-**Action (incremental mode)**:
-- Reuse module status from Stage 2 (NEW / CHANGED / DELETED / UNMODIFIED).
-- Only prepare task specifications for modules with status **NEW** or **CHANGED**.
-
-**Task Specifications** (grouped by platform):
-```
-Platform: Web Frontend (web)
-  Task 1: module="order",   module_path="speccrew-workspace/knowledges/bizs/web/order/"
-  Task 2: module="payment", module_path="speccrew-workspace/knowledges/bizs/web/payment/"
-
-Platform: Mobile App (mobile-flutter)
-  Task 3: module="order",   module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/order/"
-  Task 4: module="payment", module_path="speccrew-workspace/knowledges/bizs/mobile-flutter/payment/"
-```
-
-> **NOTE**: This Skill does NOT dispatch module summarize workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
-
-**Output per Module**:
-- `{{module_name}}-overview.md` (complete version)
-
----
-
-## Stage 3.5: UI Style Pattern Extract (Task Preparation)
-
-> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
-
-**Goal**: Prepare task specifications for extracting UI design patterns (page types, component patterns, layout patterns) from analyzed feature documents.
-
-**Prerequisite**: All Stage 3 tasks completed.
-
-**Platform Filter**: Only execute for frontend platforms (platformType = web, mobile, desktop). Backend platforms skip this stage.
-
-**Directory Creation**: The `ui-style-extract` skill automatically creates the output directory (`{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/`) if it does not exist. No pre-check required.
-
-**Action**:
-- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/`
-- Filter platforms where platformType is web/mobile/desktop
-- Determine platform_id (format: `{platformType}-{platformSubtype}`, e.g., `web-vue`, `mobile-uniapp`, `backend-system`)
-- For each qualifying platform, prepare a task specification for `skill_name: speccrew-knowledge-bizs-ui-style-extract`
-- Parameters to include in task specification:
-  - `platform_id`: Platform identifier
-  - `platform_type`: Platform type
-  - `feature_docs_path`: Feature document base path for that platform (e.g., `{workspace_path}/knowledges/bizs/{platform_id}`)
-  - `features_manifest_path`: Path to the corresponding `{sync_state_bizs_dir}/features-{platform}.json`
-  - `module_overviews_path`: **Parent directory** containing all module overview subdirectories for that platform (e.g., `{workspace_path}/knowledges/bizs/web-vue/`). This directory contains `{module}/module-overview.md` or `{module}/{module}-overview.md` files. **NOT** a specific module directory.
-  - `output_path`: `{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/`
-  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
-  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
-  - `language`: User's language
-  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
-
-**Cross-Pipeline Output**:
-- This stage writes to techs knowledge base, not bizs knowledge base
-- Output location: `speccrew-workspace/knowledges/techs/{platform_id}/ui-style-patterns/`
-- Subdirectories: `page-types/`, `components/`, `layouts/`
-- `ui-style-guide.md` and `styles/` are managed by techs pipeline, this stage does not modify them
-
-**Task Specifications**: One task specification per frontend platform.
-
-> **NOTE**: This Skill does NOT dispatch UI style extract workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specifications.
-
-**Output per Platform**:
-```
-{workspace_path}/knowledges/techs/{platform_id}/ui-style-patterns/
-├── page-types/
-│   └── {pattern-name}.md
-├── components/
-│   └── {pattern-name}.md
-└── layouts/
-    └── {pattern-name}.md
-```
-
-> ✅ **Stage 3 & 3.5 Milestone**: Module summaries and UI style patterns complete. {module_count} modules summarized, {pattern_count} patterns extracted. → Proceed to Stage 4.
-
----
-
-## Stage 4: System Summarize (Task Preparation)
-
-> **NOTE**: Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.
-
-**Goal**: Prepare task specification for generating complete system-overview.md aggregating all platforms and modules.
-
-**Prerequisite**: All Stage 3 tasks completed.
-
-**Action**:
-- Read all `features-{platform}.json` files from `{sync_state_bizs_dir}/` to get platform structure
-- Prepare a task specification for `skill_name: speccrew-knowledge-system-summarize`
-- Parameters to include in task specification:
-  - `modules_path`: Path to knowledge base directory containing all platform modules (e.g., `{workspace_path}/knowledges/bizs/`)
-  - `output_path`: Output path for system-overview.md (e.g., `{workspace_path}/knowledges/bizs/`)
-  - `workspace_path`: Absolute path to speccrew-workspace directory — **REQUIRED**
-  - `sync_state_bizs_dir`: Absolute path to sync-state/knowledge-bizs directory — **REQUIRED**
-  - `language`: User's language — **REQUIRED**
-  - **Behavior constraint**: Workers MUST NOT create any temporary scripts or workaround files
-
-> **NOTE**: This Skill does NOT dispatch system summarize workers. The calling Agent (Team Leader) dispatches workers based on the prepared task specification.
-
-**Output**:
-- `{workspace_path}/knowledges/bizs/system-overview.md` (complete with platform index and module hierarchy)
-
-> ✅ **Stage 4 Milestone**: System overview generated. All stages complete. Pipeline finished successfully.
-
----
-
-## Error Handling
-
-| Stage | Failure Scenario | Handling | Retry |
-|-------|-----------------|----------|-------|
-| Stage 1a | Entry directory recognition fails | Abort pipeline, report error with platform details | No retry |
-| Stage 1b | Script execution fails | Abort pipeline, report error | No retry |
-| Stage 2 | Single Worker fails | Mark feature as `failed`, continue other Workers | No auto-retry |
-| Stage 2 | Failure rate > 50% | Abort pipeline, report all failures | — |
-| Stage 3 | Single Worker fails | Skip that module, continue others | Retry once |
-| Stage 3.5 | Continue pipeline even if pattern extraction fails; report warning | — | — |
-| Stage 4 | Worker fails | Abort, preserve all generated content | Retry once |
-
-**Failed feature handling**: Features marked as `failed` via `update-feature-status` script retain their error details in `features-{platform}.json` for manual inspection or re-run.
-
----
-
-## Task Completion Report
-
-Upon completing all stages, output the following structured report:
-
-```json
-{
-  "status": "success | partial | failed",
-  "skill": "speccrew-knowledge-bizs-dispatch",
-  "stages_completed": ["stage_0", "stage_1", "stage_2", "stage_3", "stage_4"],
-  "stages_failed": [],
-  "output_summary": {
-    "platforms_processed": ["frontend", "backend"],
-    "features_analyzed": 32,
-    "modules_summarized": 8,
-    "system_overview_generated": true
-  },
-  "output_files": [
-    "knowledges/bizs/{platform}/features/",
-    "knowledges/bizs/{platform}/modules/",
-    "knowledges/bizs/system-overview.md"
-  ],
-  "errors": [],
-  "next_steps": ["Initialize techs knowledge base"]
-}
-```
-
----
-
-## Return
-
-After all 5 stages complete, return a summary object to the caller:
-
-```json
-{
-  "status": "completed",
-  "pipeline": "bizs",
-  "stages": {
-    "stage1a": { "status": "completed", "platforms": 2, "modules": 12 },
-    "stage1b": { "status": "completed", "platforms": 2, "features": 32 },
-    "stage2": { "status": "completed", "analyzed": 32, "failed": 0, "graphWritten": 32 },
-    "stage3": { "status": "completed", "modules": 8, "failed": 0 },
-    "stage3_5": { "status": "completed", "platforms": 2, "patterns": 15 },
-    "stage4": { "status": "completed" }
-  },
-  "output": {
-    "system_overview": "{workspace_path}/knowledges/bizs/system-overview.md",
-    "graph_root": "{workspace_path}/knowledges/bizs/graph/"
-  }
-}
-```

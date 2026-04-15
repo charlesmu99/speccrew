@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="module-initializer-main" status="pending" version="1.0" desc="Generate analyze task plan for a single business module">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="source_path" required="true" type="string" desc="Project source code root path"/>
+    <field name="module_name" required="true" type="string" desc="Module name"/>
+    <field name="platform_id" required="true" type="string" desc="Platform ID (e.g., web-vue, admin-api)"/>
+    <field name="platform_type" required="true" type="string" desc="web / mobile / backend / desktop"/>
+    <field name="platform_subtype" required="false" type="string" desc="Platform subtype (e.g., vue, spring-boot)"/>
+    <field name="tech_stack" required="false" type="array" desc="Platform tech stack (e.g., [java, spring-boot])"/>
+    <field name="features_file" required="true" type="string" desc="Path to the platform's features-{platform}.json file"/>
+    <field name="output_path" required="true" type="string" desc="Knowledge base output root path"/>
+    <field name="completed_dir" required="true" type="string" desc="Marker file output directory for api-analyze .done.json markers"/>
+    <field name="sourceFile" required="true" type="string" desc="Features JSON filename (e.g., features-backend-system.json)"/>
+    <field name="language" required="true" type="string" desc="Output language (zh / en)"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path for constructing absolute paths"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Path constraints">
+    <field name="text">Use the provided absolute paths directly. DO NOT construct or derive paths yourself.</field>
+    <field name="text">All paths must use forward slashes / as path separators (even on Windows)</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Execution constraints">
+    <field name="text">This skill generates task plan ONLY - do NOT execute analyzer skills</field>
+    <field name="text">Do NOT update features.json analyzed field</field>
+    <field name="text">All execution is handled by PM Agent based on task plan output</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Task Plan Generation" status="pending" desc="Generate task plan for module initialization">
+
+    <!-- Step 1: Read and filter features -->
+    <block type="task" id="B1" action="read-file" desc="Read features file and parse JSON">
+      <field name="path" value="${features_file}"/>
+      <field name="output" var="features_data"/>
+    </block>
+
+    <!-- Gateway: Validate features file -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify features file exists and is valid"
+           test="${features_data} != null"
+           fail-action="stop">
+      <field name="message">Features file not found or invalid: ${features_file}</field>
+    </block>
+
+    <!-- Step 2: Filter features by module and pending status -->
+    <block type="task" id="B2" action="analyze" desc="Filter features by module and analyzed=false">
+      <field name="input" value="${features_data}"/>
+      <field name="filter">
+        - module == ${module_name}
+        - analyzed == false
+      </field>
+      <field name="output" var="pending_features"/>
+    </block>
+
+    <!-- Step 3: Select analyzer by platform type -->
+    <block type="task" id="B3" action="analyze" desc="Select analyzer skill based on platform_type">
+      <field name="input" value="${platform_type}"/>
+      <field name="logic">
+        IF platform_type IN [web, mobile, desktop] THEN analyzer_skill = "speccrew-knowledge-bizs-ui-analyze"
+        ELSE IF platform_type == backend THEN analyzer_skill = "speccrew-knowledge-bizs-api-analyze"
+      </field>
+      <field name="output" var="analyzer_skill"/>
+    </block>
+
+    <!-- Step 4: Build task list -->
+    <block type="loop" id="L1" over="${pending_features}" as="feature" desc="Build task list for each pending feature">
+      <block type="task" id="B4" action="analyze" desc="Build task object for feature">
+        <field name="input" value="${feature}"/>
+        <field name="build_task">
+          id: "ki-${platform_id}-${feature.module}-${feature.fileName}"
+          fileName: ${feature.fileName}
+          sourcePath: ${feature.sourcePath}
+          documentPath: ${output_path}/bizs/${platform_id}/${feature.module}/features
+          module: ${feature.module}
+          platform_type: ${platform_type}
+          platform_subtype: ${platform_subtype}
+          tech_stack: ${tech_stack}
+          language: ${language}
+          status: "pending"
+        </field>
+        <field name="condition">IF platform_type == backend THEN include completed_dir and sourceFile</field>
+        <field name="output" var="task_entry"/>
+      </block>
+    </block>
+
+    <!-- Step 5: Build summarize parameters -->
+    <block type="task" id="B5" action="analyze" desc="Build summarize_params object">
+      <field name="build_object">
+        skill: "speccrew-knowledge-module-summarize"
+        module_name: ${module_name}
+        module_path: ${output_path}/bizs/${platform_id}/${module_name}
+        language: ${language}
+      </field>
+      <field name="output" var="summarize_params"/>
+    </block>
+
+    <!-- Step 6: Compile task plan JSON -->
+    <block type="task" id="B6" action="analyze" desc="Compile final task plan JSON">
+      <field name="compile">
+        module_name: ${module_name}
+        platform_id: ${platform_id}
+        analyzer_skill: ${analyzer_skill}
+        tasks: ${task_entries}
+        total_pending: ${task_entries.length}
+        summarize_params: ${summarize_params}
+      </field>
+      <field name="output" var="task_plan"/>
+    </block>
+
+    <!-- Checkpoint: Verify task plan generated -->
+    <block type="checkpoint" id="CP1" name="task-plan-generated" desc="Verify task plan is valid">
+      <field name="verify" value="${task_plan.module_name} != null AND ${task_plan.tasks} != null"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="module_name" from="${task_plan.module_name}" type="string" desc="Module being processed"/>
+    <field name="platform_id" from="${task_plan.platform_id}" type="string" desc="Platform identifier"/>
+    <field name="analyzer_skill" from="${task_plan.analyzer_skill}" type="string" desc="Selected analyzer skill name"/>
+    <field name="tasks" from="${task_plan.tasks}" type="array" desc="Array of pending features to analyze"/>
+    <field name="total_pending" from="${task_plan.total_pending}" type="number" desc="Count of pending features"/>
+    <field name="summarize_params" from="${task_plan.summarize_params}" type="object" desc="Parameters for module-summarize skill"/>
+    <field name="task_plan" from="${task_plan}" type="object" desc="Complete task plan JSON"/>
+  </block>
+
+</workflow>

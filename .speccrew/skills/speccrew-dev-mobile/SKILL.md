@@ -10,9 +10,17 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 - User asks "Start mobile development", "Implement mobile app", "Write mobile code"
 - System Developer Agent dispatches this skill with platform context (platform_id, techs paths)
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
+
+## Workflow
+
+### Absolute Constraints
 
 > **These rules apply to Task Record document generation. Violation = task failure.**
 

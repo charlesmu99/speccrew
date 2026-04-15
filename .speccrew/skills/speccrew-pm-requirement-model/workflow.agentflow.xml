@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="requirement-model-main" status="pending" version="1.0" desc="ISA-95 business modeling and module decomposition">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="iteration_path" required="true" type="string" desc="Path to iteration directory"/>
+    <field name="clarification_file" required="false" type="string" desc="Path to clarification summary (default: {iteration_path}/01.product-requirement/.clarification-summary.md)"/>
+    <field name="language" required="true" type="string" desc="Language code for generated content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">Verify .clarification-summary.md exists before starting</field>
+    <field name="text">Use 3 checkpoints (A/B/C) for progressive user confirmation</field>
+    <field name="text">Define clear module boundaries with minimal coupling</field>
+    <field name="text">Use update-progress.js for JSON files</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Forbidden actions">
+    <field name="text">Skip user checkpoints in complex mode</field>
+    <field name="text">Include technical implementation details</field>
+    <field name="text">Create circular module dependencies</field>
+    <field name="text">Manually write JSON files</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Requirement Modeling" status="pending" desc="Apply ISA-95 Stages 1-3 for business modeling">
+
+    <!-- Step 1: Verify Prerequisites -->
+    <block type="task" id="B1" action="read-file" desc="Read clarification summary">
+      <field name="path" value="${clarification_file}"/>
+      <field name="output" var="clarification_content"/>
+    </block>
+
+    <!-- Gateway: Validate prerequisite -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify clarification file exists"
+           test="${clarification_content} != null"
+           fail-action="stop">
+      <field name="message">ERROR: .clarification-summary.md not found. Run speccrew-pm-requirement-clarify first.</field>
+    </block>
+
+    <!-- Check complexity -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check complexity level">
+      <branch test="${clarification_content.complexity} == 'simple'" name="Simple - Skip to Step 4">
+        <block type="task" id="B2" action="analyze" desc="Set simple mode flag">
+          <field name="set_var" name="is_simple" value="true"/>
+        </block>
+      </branch>
+      <branch name="Complex - Full ISA-95" default="true">
+        <block type="task" id="B3" action="analyze" desc="Set complex mode flag">
+          <field name="set_var" name="is_simple" value="false"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 2: ISA-95 Business Modeling (Complex Only) -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Skip if simple mode">
+      <branch test="${is_simple} == false" name="Full ISA-95 Modeling">
+        <!-- 2.1 Stage 1 - Domain Description -->
+        <block type="task" id="B4" action="analyze" desc="Stage 1: Domain Description">
+          <field name="define">
+            - System Boundary: what's included/excluded
+            - Actors: user roles, external systems
+            - Domain Glossary: business terms only
+          </field>
+          <field name="output" var="domain_description"/>
+        </block>
+
+        <block type="event" id="E1" action="confirm" title="Checkpoint A" type="yesno" desc="Confirm domain description">
+          <field name="preview">Domain Description Complete. Does this match your understanding?</field>
+        </block>
+
+        <!-- 2.2 Stage 2 - Functions in Domain (WBS) -->
+        <block type="task" id="B5" action="analyze" desc="Stage 2: Functions in Domain (WBS)">
+          <field name="create">
+            - WBS decomposition (2-3 levels)
+            - Map functions to business capabilities
+            - Identify module boundaries
+          </field>
+          <field name="output" var="wbs_structure"/>
+        </block>
+
+        <!-- 2.3 Stage 3 - Functions of Interest (MoSCoW) -->
+        <block type="task" id="B6" action="analyze" desc="Stage 3: Functions of Interest (MoSCoW)">
+          <field name="apply">
+            - MoSCoW prioritization
+            - Identify core vs non-core functions
+            - Define MVP scope
+          </field>
+          <field name="output" var="moscow_priorities"/>
+        </block>
+
+        <block type="event" id="E2" action="confirm" title="Checkpoint B" type="yesno" desc="Confirm MVP scope">
+          <field name="preview">MVP Scope Defined. Is this prioritization correct?</field>
+        </block>
+
+        <block type="event" id="E3" action="confirm" title="Checkpoint C" type="yesno" desc="Confirm complete analysis">
+          <field name="preview">ISA-95 Analysis Complete. Ready to proceed with module decomposition?</field>
+        </block>
+      </branch>
+      <branch test="${is_simple} == true" name="Simple - Minimal Modeling">
+        <block type="event" id="E4" action="log" level="info" desc="Log simple mode">
+          <field name="message">Simple requirement - skipping full ISA-95 modeling</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 3: Module Decomposition & Ordering -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Module decomposition">
+      <branch test="${is_simple} == false" name="Complex - Full Decomposition">
+        <!-- 3.1 Define Module List -->
+        <block type="task" id="B7" action="analyze" desc="Define module list">
+          <field name="input" value="${wbs_structure}"/>
+          <field name="define">
+            - Map WBS functions to modules
+            - Define scope for each module
+            - Identify key entities per module
+          </field>
+          <field name="output" var="module_list"/>
+        </block>
+
+        <!-- 3.2 Cross-Module Dependency Matrix -->
+        <block type="task" id="B8" action="analyze" desc="Build dependency matrix">
+          <field name="identify">
+            - Data flows between modules
+            - Dependency types (Data/API/Event)
+            - Shared entities
+          </field>
+          <field name="output" var="dependency_matrix"/>
+        </block>
+
+        <!-- 3.3 Implementation Phases -->
+        <block type="task" id="B9" action="analyze" desc="Determine implementation phases">
+          <field name="sort">
+            - Sort modules by dependency (least dependent first)
+            - Group into phases (typically 3)
+            - Validate no circular dependencies
+          </field>
+          <field name="output" var="implementation_phases"/>
+        </block>
+
+        <block type="event" id="E5" action="confirm" title="Module Decomposition" type="yesno" desc="Confirm module decomposition">
+          <field name="preview">Module Decomposition Complete. Please review module list, dependency matrix, and implementation phases.</field>
+        </block>
+      </branch>
+      <branch test="${is_simple} == true" name="Simple - Single Module">
+        <block type="task" id="B10" action="analyze" desc="Create minimal module list">
+          <field name="create">
+            module_list: Single module from clarification
+            dependency_matrix: Empty
+            implementation_phases: Single phase
+          </field>
+          <field name="output" var="module_list"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Generate .module-design.md -->
+    <block type="task" id="B11" action="generate" desc="Generate module design document">
+      <field name="output_path" value="${iteration_path}/01.product-requirement/.module-design.md"/>
+      <field name="sections">
+        - ISA-95 Analysis Summary (if complex)
+        - Module List (Total: N modules)
+        - Dependency Matrix
+        - Implementation Phases
+      </field>
+      <field name="data">
+        domain_description: ${domain_description}
+        wbs_structure: ${wbs_structure}
+        moscow_priorities: ${moscow_priorities}
+        module_list: ${module_list}
+        dependency_matrix: ${dependency_matrix}
+        implementation_phases: ${implementation_phases}
+      </field>
+      <field name="output" var="module_design_path"/>
+    </block>
+
+    <!-- Step 5: Update .checkpoints.json -->
+    <block type="task" id="B12" action="run-script" desc="Update checkpoints via script">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoint requirement_modeling --passed true</field>
+      <field name="output" var="checkpoint_result"/>
+    </block>
+
+    <!-- Checkpoint: Modeling complete -->
+    <block type="checkpoint" id="CP1" name="modeling-complete" desc="Verify modeling completed">
+      <field name="file" value="${module_design_path}"/>
+      <field name="verify" value="file_exists(${module_design_path})"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="module_design_file" from="${module_design_path}" type="string" desc="Path to module design file"/>
+    <field name="checkpoint_file" value="${iteration_path}/01.product-requirement/.checkpoints.json" type="string" desc="Path to checkpoints file"/>
+    <field name="complexity" from="${clarification_content.complexity}" type="string" desc="Complexity level"/>
+    <field name="module_count" from="${module_list.count}" type="number" desc="Number of modules"/>
+    <field name="phases" from="${implementation_phases.count}" type="number" desc="Number of implementation phases"/>
+    <field name="message" value="Requirement modeling completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

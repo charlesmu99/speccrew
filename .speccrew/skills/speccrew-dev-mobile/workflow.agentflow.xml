@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="dev-mobile" status="pending" version="1.0" desc="Mobile Development SOP - Guide System Developer Agent to implement mobile app code">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="design_doc_path" required="true" type="string" desc="Path to single module design document"/>
+    <field name="platform_id" required="true" type="string" desc="Mobile platform identifier (mobile-uniapp, mobile-flutter, mobile-react-native)"/>
+    <field name="task_id" required="true" type="string" desc="Task identifier from dispatch context"/>
+    <field name="iteration_id" required="false" type="string" desc="Current iteration identifier"/>
+    <field name="source_root" required="true" type="string" desc="Root directory of mobile source code"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Task Record document constraints">
+    <field name="text">NEVER use create_file to write the Task Record document</field>
+    <field name="text">MUST create Task Record by copying template then filling sections with search_replace</field>
+    <field name="text">NEVER replace the entire Task Record content in a single operation</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before fill sections</field>
+    <field name="text">Source code is NOT template-filled - write directly based on design blueprints</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Mobile Development" status="pending" desc="Execute mobile development workflow">
+
+    <!-- Step 1: Read Design Documents -->
+    <block type="task" id="B1" action="read-file" desc="Read Module Design Document">
+      <field name="path" value="${design_doc_path}"/>
+      <field name="output" var="module_design"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read API Contract">
+      <field name="path">speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-name}-api-contract.md</field>
+      <field name="output" var="api_contract"/>
+    </block>
+
+    <block type="task" id="B3" action="read-file" desc="Read Task Record Template">
+      <field name="path">speccrew-dev-mobile/templates/TASK-RECORD-TEMPLATE.md</field>
+      <field name="output" var="task_template"/>
+    </block>
+
+    <!-- Step 2: Read Techs Knowledge -->
+    <block type="task" id="B4" action="read-file" desc="Read Techs Knowledge - conventions-dev">
+      <field name="path">knowledges/techs/${platform_id}/conventions-dev.md</field>
+      <field name="output" var="conventions_dev"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read Techs Knowledge - architecture">
+      <field name="path">knowledges/techs/${platform_id}/architecture.md</field>
+      <field name="output" var="architecture"/>
+    </block>
+
+    <block type="task" id="B6" action="read-file" desc="Read Techs Knowledge - tech-stack">
+      <field name="path">knowledges/techs/${platform_id}/tech-stack.md</field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+    <!-- Step 3: Extract Task List -->
+    <block type="task" id="B7" action="analyze" desc="Extract mobile-specific task list">
+      <field name="input" value="${module_design}"/>
+      <field name="extraction_rules">
+        - Screen/Page: Full screen UI implementation (LoginScreen, ProductDetailPage)
+        - Widget/Component: Reusable UI components (ProductCard, SearchBar)
+        - Navigation flow: Route configuration (GoRouter config, Stack navigator)
+        - State management: Store/provider setup (CartBloc, UserStore)
+        - API service: HTTP client integration (ProductService, AuthApi)
+        - Local storage: Persistence layer (Hive box, SQLite schema)
+        - Platform channel: Native module integration (BiometricAuth, CameraAccess)
+        - Asset management: Images, fonts, icons (pubspec.yaml, asset bundling)
+      </field>
+      <field name="output" var="extracted_items"/>
+    </block>
+
+    <block type="task" id="B8" action="analyze" desc="Generate Task Checklist Table">
+      <field name="input" value="${extracted_items}"/>
+      <field name="format">
+        | Task ID | Module | Description | Target Files | Platform Specific | Offline Support | Dependencies | Status |
+        | MB-001 | Auth | LoginScreen implementation | lib/screens/auth/ | iOS/Android | Yes | - | ⏳ Pending |
+      </field>
+      <field name="output" var="task_list"/>
+    </block>
+
+    <!-- Step 4: Create Task Record File -->
+    <block type="task" id="B9" action="create-file" desc="Copy template to Task Record path">
+      <field name="path">speccrew-workspace/iterations/{iteration}/04.development/${platform_id}/{module}-task.md</field>
+      <field name="content">${task_template} with top-level placeholders replaced</field>
+      <field name="output" var="task_record_path"/>
+    </block>
+
+    <block type="task" id="B10" action="edit-file" desc="Fill Task Record sections using search_replace">
+      <field name="path" value="${task_record_path}"/>
+      <field name="action">Fill each section with task checklist and design metadata</field>
+      <field name="output" var="task_record_filled"/>
+    </block>
+
+    <!-- Checkpoint: Task list extracted -->
+    <block type="checkpoint" id="CP1" name="task-list-extracted" desc="Verify task list extracted">
+      <field name="verify" value="${task_list.length} > 0"/>
+    </block>
+
+    <!-- Step 5: Execute Task by Task -->
+    <block type="loop" id="L1" over="${task_list}" as="task" desc="Execute tasks sequentially following dependencies">
+      <block type="task" id="B11" action="edit-file" desc="Mark task as In Progress">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to 🔄 In Progress</field>
+      </block>
+
+      <block type="task" id="B12" action="generate" desc="Implement task following design blueprint">
+        <field name="task" value="${task}"/>
+        <field name="design" value="${module_design}"/>
+        <field name="conventions" value="${conventions_dev}"/>
+        <field name="rules">
+          - Follow design file paths, naming, structure exactly
+          - Write actual code directly (no template filling)
+          - Reuse existing code via Glob/Grep
+          - Follow techs knowledge for naming, patterns, directory structure
+          - Handle iOS/Android differences where specified
+        </field>
+        <field name="output" var="implementation_result"/>
+      </block>
+
+      <!-- Local Checks -->
+      <block type="gateway" id="G1" mode="exclusive" desc="Platform-specific checks">
+        <branch test="${platform_id} == 'mobile-flutter'" name="Flutter Checks">
+          <block type="task" id="B13" action="run-script" desc="Flutter static analysis">
+            <field name="command">flutter analyze</field>
+            <field name="output" var="analysis_result"/>
+          </block>
+          <block type="task" id="B14" action="run-script" desc="Flutter build verification">
+            <field name="command">flutter build [ios/android]</field>
+            <field name="output" var="build_result"/>
+          </block>
+          <block type="task" id="B15" action="run-script" desc="Flutter unit tests">
+            <field name="command">flutter test</field>
+            <field name="output" var="test_result"/>
+          </block>
+        </branch>
+        <branch test="${platform_id} == 'mobile-react-native'" name="React Native Checks">
+          <block type="task" id="B16" action="run-script" desc="React Native lint">
+            <field name="command">npx react-native lint</field>
+            <field name="output" var="analysis_result"/>
+          </block>
+          <block type="task" id="B17" action="run-script" desc="React Native build">
+            <field name="command">npx react-native build-ios/build-android</field>
+            <field name="output" var="build_result"/>
+          </block>
+          <block type="task" id="B18" action="run-script" desc="React Native tests">
+            <field name="command">npm test</field>
+            <field name="output" var="test_result"/>
+          </block>
+        </branch>
+      </block>
+
+      <block type="task" id="B19" action="analyze" desc="Quick verify">
+        <field name="checks">
+          - App launches on simulator/emulator without crash
+        </field>
+        <field name="output" var="verify_result"/>
+      </block>
+
+      <block type="gateway" id="G2" mode="guard" desc="Verify checks passed"
+             test="${analysis_result.status} == 'passed' AND ${build_result.status} == 'passed'"
+             fail-action="stop">
+        <field name="message">Local checks failed for task ${task.id}</field>
+      </block>
+
+      <block type="task" id="B20" action="edit-file" desc="Update status to Complete">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to ✅ Complete</field>
+      </block>
+    </block>
+
+    <!-- Step 6: Record Deviations -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Check if deviations exist">
+      <branch test="${deviations.length} > 0" name="Has Deviations">
+        <block type="task" id="B21" action="edit-file" desc="Record deviations in task file">
+          <field name="path" value="${task_record_path}"/>
+          <field name="action">Add Deviation Notes section with MB-XXX prefix</field>
+        </block>
+      </branch>
+      <branch default="true" name="No Deviations">
+        <block type="event" id="E1" action="log" level="info" desc="No deviations">
+          <field name="message">No deviations from design</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 7: Record Technical Debt -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Check if technical debt exists">
+      <branch test="${tech_debt.length} > 0" name="Has Tech Debt">
+        <block type="task" id="B22" action="create-file" desc="Write technical debt document">
+          <field name="path">speccrew-workspace/iterations/{iteration}/tech-debt/{feature-name}-tech-debt.md</field>
+          <field name="content">${tech_debt} with categories: Platform-specific workarounds, Offline sync, Error handling, Accessibility, Test coverage</field>
+          <field name="output" var="tech_debt_path"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Tech Debt">
+        <block type="event" id="E2" action="log" level="info" desc="No tech debt">
+          <field name="message">No technical debt identified</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 8: Completion Notification -->
+    <block type="task" id="B23" action="edit-file" desc="Update task record status to complete">
+      <field name="path" value="${task_record_path}"/>
+      <field name="action">Update final status</field>
+    </block>
+
+    <block type="task" id="B24" action="report" desc="Generate completion notification">
+      <field name="template">
+Mobile Development Complete:
+- Tasks implemented: [X]
+- Deviation records: [Y] (see task file)
+- Technical debt records: [Z] (see tech-debt file)
+- Task record: speccrew-workspace/iterations/{iteration}/04.development/{platform_id}/{module}-task.md
+
+Ready for QA Agent acceptance testing.
+      </field>
+      <field name="output" var="completion_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="task_record_path" value="${task_record_path}" type="string" desc="Path to task record document"/>
+    <field name="task_count" from="${task_list.length}" type="number" desc="Number of tasks completed"/>
+    <field name="deviation_count" type="number" desc="Number of deviations recorded"/>
+    <field name="tech_debt_count" type="number" desc="Number of tech debt items"/>
+    <field name="completion_report" value="${completion_report}" type="string" desc="Completion notification text"/>
+  </block>
+
+</workflow>

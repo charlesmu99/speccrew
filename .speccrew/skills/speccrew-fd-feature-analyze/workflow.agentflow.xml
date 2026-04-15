@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="feature-analyze-main" status="pending" version="1.0" desc="Feature Analysis workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="prd_path" required="true" type="string" desc="Path to the Sub-PRD document"/>
+    <field name="feature_id" required="false" type="string" desc="Feature identifier, e.g., F-CRM-01"/>
+    <field name="feature_name" required="false" type="string" desc="Feature name in English, e.g., customer-list"/>
+    <field name="feature_type" required="false" type="string" desc="Page+API or API-only"/>
+    <field name="iteration_id" required="false" type="string" desc="Current iteration identifier"/>
+    <field name="frontend_platforms" required="false" type="array" desc="List of frontend platforms"/>
+    <field name="skip_checkpoint" required="false" type="boolean" default="false" desc="Skip Checkpoint A if true"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Script execution failure">
+    <field name="text">If update-progress.js fails, HARD STOP and report error</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Hand-written checkpoints">
+    <field name="text">ALWAYS use update-progress.js script for .checkpoints.json</field>
+  </block>
+
+  <block type="rule" id="R3" level="forbidden" desc="Skip Checkpoint A">
+    <field name="text">User confirmation required before proceeding (unless skip_checkpoint=true)</field>
+  </block>
+
+  <block type="rule" id="R4" level="forbidden" desc="Rename features">
+    <field name="text">Output filename MUST use exact feature_name parameter value</field>
+    <field name="text">DO NOT translate, abbreviate, or substitute with alternative names</field>
+  </block>
+
+  <block type="rule" id="R5" level="mandatory" desc="Business perspective only">
+    <field name="text">Feature Analysis is a PURE BUSINESS document</field>
+    <field name="text">Describes WHAT the system does, NOT HOW it's implemented</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Feature Analysis" status="pending" desc="Analyze PRD and produce function decomposition">
+
+    <!-- Step 1: Read PRD -->
+    <block type="task" id="B1" action="read-file" desc="Read PRD document">
+      <field name="path" value="${prd_path}"/>
+      <field name="output" var="prd_content"/>
+    </block>
+
+    <!-- Gateway: Validate PRD exists -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify PRD exists"
+           test="${prd_content} != null" fail-action="stop">
+      <field name="message">PRD document not found at: ${prd_path}</field>
+    </block>
+
+    <!-- Step 2: Load System Knowledge -->
+    <block type="task" id="B2" action="read-file" desc="Read System Overview">
+      <field name="path">${workspace_path}/knowledges/bizs/system-overview.md</field>
+      <field name="output" var="system_overview"/>
+    </block>
+
+    <!-- Step 3: Load Related Module Overviews -->
+    <block type="task" id="B3" action="analyze" desc="Identify related modules from PRD">
+      <field name="input" value="${prd_content}"/>
+      <field name="analysis_rules">
+        - Extract module names mentioned in PRD
+        - Identify cross-module dependencies
+        - List related module overview files to read
+      </field>
+      <field name="output" var="related_modules"/>
+    </block>
+
+    <!-- Loop: Read related module overviews -->
+    <block type="loop" id="L1" over="${related_modules}" as="module" desc="Read related module overviews">
+      <block type="task" id="B4" action="read-file" desc="Read module overview">
+        <field name="path">${workspace_path}/knowledges/bizs/${module.name}/${module.name}-overview.md</field>
+        <field name="output" var="module_overview_${module.name}"/>
+      </block>
+    </block>
+
+    <!-- Step 4: Discover Frontend Platforms -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Get frontend platforms">
+      <branch test="${frontend_platforms} != null AND ${frontend_platforms.length} > 0" name="Use provided platforms">
+        <block type="event" id="E1" action="log" level="info" desc="Using provided platforms">
+          <field name="message">Using provided frontend platforms: ${frontend_platforms}</field>
+        </block>
+      </branch>
+      <branch default="true" name="Auto-discover from techs-manifest">
+        <block type="task" id="B5" action="read-file" desc="Read techs manifest">
+          <field name="path">${workspace_path}/knowledges/techs/techs-manifest.json</field>
+          <field name="output" var="techs_manifest"/>
+        </block>
+        <block type="task" id="B6" action="analyze" desc="Extract frontend platforms">
+          <field name="input" value="${techs_manifest}"/>
+          <field name="extraction_rules">
+            - Filter platforms with type web-* or mobile-*
+            - Extract platform identifiers
+          </field>
+          <field name="output" var="frontend_platforms"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 5: Function Breakdown -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Select decomposition mode">
+      <branch test="${feature_id} != null" name="Feature-based decomposition">
+        <block type="task" id="B7" action="analyze" desc="Extract specific Feature from PRD">
+          <field name="input" value="${prd_content}"/>
+          <field name="feature_id" value="${feature_id}"/>
+          <field name="analysis_rules">
+            - Locate Feature in PRD Section 3.4 Feature Breakdown
+            - Extract only user stories mapped to this Feature
+            - Decompose into 3-8 focused Functions
+            - Mark API-only if feature_type indicates
+          </field>
+          <field name="output" var="function_breakdown"/>
+        </block>
+      </branch>
+      <branch default="true" name="Full PRD decomposition">
+        <block type="task" id="B8" action="analyze" desc="Decompose entire PRD">
+          <field name="input" value="${prd_content}"/>
+          <field name="analysis_rules">
+            - Decompose entire PRD into all required Functions
+            - May result in 10-20 Functions for complex modules
+          </field>
+          <field name="output" var="function_breakdown"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 6: Analyze Functions with System Markers -->
+    <block type="task" id="B9" action="analyze" desc="Analyze functions with system relationship markers">
+      <field name="input" value="${function_breakdown}">${system_overview}${related_modules}</field>
+      <field name="analysis_rules">
+        For each function, identify:
+        - Frontend Changes: New pages, components, or modifications
+        - Backend Changes: New interfaces or modifications
+        - Data Changes: New data structures or modifications
+        - System Relationship: [EXISTING], [MODIFIED], or [NEW]
+      </field>
+      <field name="output" var="analyzed_functions"/>
+    </block>
+
+    <!-- Checkpoint A: User Confirmation -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Handle checkpoint A">
+      <branch test="${skip_checkpoint} == true" name="Skip confirmation">
+        <block type="event" id="E2" action="log" level="info" desc="Skipping checkpoint A">
+          <field name="message">skip_checkpoint=true, proceeding without user confirmation</field>
+        </block>
+      </branch>
+      <branch default="true" name="Request confirmation">
+        <block type="event" id="E3" action="confirm" title="Function Breakdown Confirmation" type="yesno" desc="Present function breakdown for confirmation">
+          <field name="preview">Function Breakdown (Total: ${analyzed_functions.count} functions):
+
+${analyzed_functions.summary}
+
+System Relationship Markers:
+- [EXISTING]: ${analyzed_functions.existing_count} - Reuse existing capabilities
+- [MODIFIED]: ${analyzed_functions.modified_count} - Enhance existing features
+- [NEW]: ${analyzed_functions.new_count} - Create new functionality
+
+Does this function breakdown align with your understanding of the requirements?</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 7: Update Checkpoint A -->
+    <block type="task" id="B10" action="run-script" desc="Record checkpoint A passed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${workspace_path}/iterations/${iteration_id}/02.feature-design/.checkpoints.json" --stage 02_feature_design --checkpoint function_decomposition --passed true</field>
+      <field name="output" var="checkpoint_a_result"/>
+    </block>
+
+    <!-- Step 8: Write Output Contract -->
+    <block type="gateway" id="G5" mode="exclusive" desc="Determine output path">
+      <branch test="${feature_id} != null" name="With feature_id">
+        <block type="task" id="B11" action="generate" desc="Write feature analysis document">
+          <field name="content_template">speccrew-fd-feature-analyze/templates/FEATURE-ANALYSIS-TEMPLATE.md</field>
+          <field name="output_path">${prd_parent}/02.feature-design/${feature_id}-${feature_name}.feature-analysis.md</field>
+          <field name="data">
+            - feature_id: ${feature_id}
+            - feature_name: ${feature_name}
+            - feature_type: ${feature_type}
+            - prd_path: ${prd_path}
+            - functions: ${analyzed_functions}
+            - platforms: ${frontend_platforms}
+            - checkpoint_a: passed
+          </field>
+        </block>
+      </branch>
+      <branch default="true" name="Legacy mode">
+        <block type="task" id="B12" action="generate" desc="Write feature analysis document">
+          <field name="content_template">speccrew-fd-feature-analyze/templates/FEATURE-ANALYSIS-TEMPLATE.md</field>
+          <field name="output_path">${prd_parent}/02.feature-design/.feature-analysis.md</field>
+          <field name="data">
+            - feature_id: ${feature_id}
+            - feature_name: ${feature_name}
+            - feature_type: ${feature_type}
+            - prd_path: ${prd_path}
+            - functions: ${analyzed_functions}
+            - platforms: ${frontend_platforms}
+            - checkpoint_a: passed
+          </field>
+        </block>
+      </branch>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="analysis_path" value="${prd_parent}/02.feature-design/${feature_id}-${feature_name}.feature-analysis.md" type="string" desc="Path to feature analysis document"/>
+    <field name="function_count" from="${analyzed_functions.count}" type="number" desc="Number of functions decomposed"/>
+    <field name="checkpoint_a_status" value="passed" type="string" desc="Checkpoint A status"/>
+    <field name="frontend_platforms" from="${frontend_platforms}" type="array" desc="List of frontend platforms"/>
+  </block>
+
+</workflow>

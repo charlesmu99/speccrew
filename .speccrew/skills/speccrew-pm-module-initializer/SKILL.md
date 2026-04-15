@@ -97,115 +97,11 @@ Example: `"ki-web-vue-system-index"`
 
 > **Note**: This ID is consistent with task IDs in DISPATCH-PROGRESS.json and is used for progress tracking.
 
-## Workflow
+## AgentFlow Definition
 
-```mermaid
-flowchart TD
-    Start([Start]) --> Step1[Step 1: Read and filter features]
-    Step1 --> Step2[Step 2: Select analyzer by platform_type]
-    Step2 --> Step3[Step 3: Build task list]
-    Step3 --> Step4[Step 4: Build summarize params]
-    Step4 --> Step5[Step 5: Output task plan JSON]
-    Step5 --> End([End])
-```
+<!-- @agentflow: workflow.agentflow.xml -->
 
-### Step 1: Read and Filter Features
-
-**Step 1 Status: 🔄 IN PROGRESS**
-
-1. **Read features file**: Parse the `features_file` JSON
-2. **Filter by module**: Select features where `module == module_name` AND `analyzed == false`
-3. **Record counts**:
-   - Total features for this module
-   - Pending features (analyzed = false)
-
-**Output**: "Step 1 Status: ✅ COMPLETED - Found {total} total features, {pending} pending for analysis"
-
-### Step 2: Select Analyzer by Platform Type
-
-**Step 2 Status: 🔄 IN PROGRESS**
-
-Based on `platform_type`, select the appropriate analyzer Skill:
-
-| platform_type | skill_name | Description |
-|---------------|------------|-------------|
-| web, mobile, desktop | `speccrew-knowledge-bizs-ui-analyze` | UI Feature Analysis |
-| backend | `speccrew-knowledge-bizs-api-analyze` | API Controller Analysis |
-
-**Output**: "Step 2 Status: ✅ COMPLETED - Selected analyzer: {skill_name}"
-
-### Step 3: Build Task List
-
-**Step 3 Status: 🔄 IN PROGRESS**
-
-For each pending feature from Step 1, build a task object with analyzer parameters.
-
-> 🛑 **IMPORTANT**: This Skill does NOT execute analyze. It ONLY generates the task list. PM Agent will dispatch Workers based on this task plan.
-
-#### Task object structure for each pending feature:
-
-```json
-{
-  "id": "ki-{platform_id}-{feature.module}-{feature.fileName}",
-  "fileName": "{feature.fileName}",
-  "sourcePath": "{feature.sourcePath}",
-  "documentPath": "{output_path}/bizs/{platform_id}/{feature.module}/features",
-  "module": "{feature.module}",
-  "platform_type": "{platform_type}",
-  "platform_subtype": "{platform_subtype}",
-  "tech_stack": "{tech_stack}",
-  "language": "{language}",
-  "status": "pending"
-}
-```
-
-For backend features (api-analyze), also include:
-```json
-{
-  "completed_dir": "{completed_dir}",
-  "sourceFile": "{sourceFile}"
-}
-```
-
-**Note**: The `id` field format is `ki-{platform_id}-{module}-{fileName}` where `ki` stands for "knowledge initialization". This ID is consistent with task IDs in DISPATCH-PROGRESS.json for progress tracking.
-
-**Output**: "Step 3 Status: ✅ COMPLETED - Built {count} task entries"
-
-### Step 4: Build Summarize Parameters
-
-**Step 4 Status: 🔄 IN PROGRESS**
-
-Build the summarize_params object for module-summarize skill. This will be used by PM Agent after all analyze tasks complete.
-
-```json
-{
-  "skill": "speccrew-knowledge-module-summarize",
-  "module_name": "{module_name}",
-  "module_path": "{output_path}/bizs/{platform_id}/{module_name}",
-  "language": "{language}"
-}
-```
-
-**Output**: "Step 4 Status: ✅ COMPLETED - Summarize params ready"
-
-### Step 5: Output Task Plan JSON
-
-**Step 5 Status: 🔄 IN PROGRESS**
-
-Compile and output the final task plan:
-
-```json
-{
-  "module_name": "...",
-  "platform_id": "...",
-  "analyzer_skill": "...",
-  "tasks": [...],
-  "total_pending": <count>,
-  "summarize_params": {...}
-}
-```
-
-**Output**: "Step 5 Status: ✅ COMPLETED - Task plan generated with {count} pending features"
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 ## Constraints
 

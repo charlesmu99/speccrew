@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="knowledge-bizs-module-classify" status="pending" version="1.0" desc="Classify features into business modules by analyzing source code structure">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="features_file" required="true" type="string" desc="Path to features-{platform}.json file (for reference only, Worker should NOT read it)"/>
+    <field name="source_path" required="true" type="string" desc="Source code root path for context"/>
+    <field name="module_summary" required="true" type="string" desc="JSON string containing module names, feature counts, and sample source paths"/>
+    <field name="language" required="true" type="string" desc="User's language code (e.g., zh, en)"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Pure reasoning task constraints">
+    <field name="text">DO NOT use any tools (Read, Write, Bash, terminal, etc.)</field>
+    <field name="text">DO NOT read files — the module summary is provided as input parameter</field>
+    <field name="text">DO NOT modify any files — output a mapping JSON only</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Output constraints">
+    <field name="text">Only include modules that need to change in the mapping object</field>
+    <field name="text">Modules that remain the same should NOT be listed</field>
+    <field name="text">The mapping will be passed to apply-module-mapping.js by the dispatch agent</field>
+    <field name="text">Worker MUST NOT modify the features file directly</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Module Classification" status="pending" desc="Parse, analyze, and reclassify modules">
+
+    <!-- Step 1: Parse Module Summary -->
+    <block type="task" id="B1" action="analyze" desc="Parse module summary JSON parameter">
+      <field name="input">${module_summary}</field>
+      <field name="rules">
+        - Parse the module_summary JSON parameter
+        - Extract: module names, feature counts per module, and sample source paths
+        - Note: The summary contains compact data for LLM analysis, not the full features file
+      </field>
+      <field name="output" var="parsed_summary"/>
+    </block>
+
+    <!-- Step 2: Analyze Module Semantics -->
+    <block type="task" id="B2" action="analyze" desc="Analyze each module's business semantics">
+      <field name="rules">
+        - Analyze each module's sampleSourcePaths to identify business semantics
+        - Identify logical business domains based on path patterns:
+        
+        Path pattern analysis for web/mobile platforms:
+        - Examine sample paths under views/pages directories
+        - Match directory naming patterns to business domains
+        - Cross-reference with common business module patterns
+        
+        Path pattern analysis for backend platforms:
+        - Examine controller/module directory patterns
+        - Identify domain boundaries from package naming
+        
+        Build a business module map: a list of logical business domains with descriptions
+        - Example: system (system management), trade (trade/order), bpm (business process), infra (infrastructure)
+      </field>
+      <field name="output" var="module_map"/>
+    </block>
+
+    <!-- Step 3: Reclassify Modules -->
+    <block type="task" id="B3" action="analyze" desc="Reclassify modules based on business semantics">
+      <field name="rules">
+        - For each module in the parsed_summary:
+          - Analyze sample source paths and directory context
+          - Match to the most appropriate business module from the module map
+          - Determine if the module name needs to change
+        
+        Naming rules:
+        - Use lowercase for module names (e.g., system, trade, bpm)
+        - Use kebab-case for multi-word names (e.g., order-management)
+        - Module names must reflect business domains, NOT page types or UI components
+        
+        Classification rules:
+        - Modules clearly belonging to a business domain → use that domain name
+          - Example: system/user paths → module: system
+          - Example: trade/order paths → module: trade
+        - Utility/common modules that don't belong to a specific domain → module: _common
+          - Example: Error module → module: _common
+          - Example: Home module → module: _common
+          - Example: Redirect module → module: _common
+        - Login/authentication modules → module: system (or domain-appropriate)
+          - Example: Login module → module: system
+        
+        Validation:
+        - Every module in the mapping must have a valid business domain name
+        - No page-type module names should remain as values (Error, Login, Home, Profile, Redirect)
+        - All new module names are lowercase or kebab-case
+      </field>
+      <field name="output" var="reclassification_result"/>
+    </block>
+
+    <!-- Step 4: Output Module Mapping -->
+    <block type="task" id="B4" action="analyze" desc="Build and validate mapping result">
+      <field name="rules">
+        - Build the mapping object: For each module that needs to change:
+          - Key: original module name (directory-based)
+          - Value: new business module name
+          - Example: { "Error": "_common", "Login": "system" }
+        - Count reclassified features: Calculate total number of features that will be affected
+        
+        Validation before returning:
+        - Every mapping key-value pair has non-empty values
+        - No page-type module names remain as values (Error, Login, Home, Profile, Redirect should not appear as values)
+        - All new module names are lowercase or kebab-case
+        - modules_reclassified count is accurate
+      </field>
+      <field name="output" var="mapping_result"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${mapping_result.status}" type="string" desc="Status: success or failed"/>
+    <field name="message" from="${mapping_result.message}" type="string" desc="Description of reclassification"/>
+    <field name="mapping" from="${mapping_result.mapping}" type="object" desc="Module name mapping (old → new)"/>
+    <field name="modules_reclassified" from="${mapping_result.modules_reclassified}" type="number" desc="Number of features reclassified"/>
+  </block>
+
+</workflow>

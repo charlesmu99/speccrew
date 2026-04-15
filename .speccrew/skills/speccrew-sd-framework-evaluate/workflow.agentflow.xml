@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="sd-framework-evaluate-main" status="pending" version="1.0" desc="Framework Evaluation workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_spec_paths" required="true" type="array" desc="Array of Feature Spec file paths"/>
+    <field name="api_contract_paths" required="true" type="array" desc="Array of API Contract file paths"/>
+    <field name="techs_knowledge_paths" required="true" type="object" desc="Platform_id to knowledge paths mapping"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+    <field name="output_path" required="false" type="string" desc="Output file path (default: iteration_path/03.system-design/framework-evaluation.md)"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Read-only inputs">
+    <field name="text">NEVER modify Feature Spec or API Contract documents</field>
+    <field name="text">Only read for analysis</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Read-only techs knowledge">
+    <field name="text">NEVER modify techs knowledge files</field>
+    <field name="text">Only read for capability assessment</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Evidence-based evaluation">
+    <field name="text">Every recommendation MUST cite specific Feature Spec requirements</field>
+    <field name="text">Every recommendation MUST cite specific tech stack limitations</field>
+  </block>
+
+  <block type="rule" id="R4" level="forbidden" desc="No assumptions">
+    <field name="text">DO NOT assume framework capabilities</field>
+    <field name="text">Only recommend frameworks with documented capabilities</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Framework Evaluation" status="pending" desc="Evaluate frameworks and generate report">
+
+    <!-- Step 1: Read Inputs -->
+    <!-- Loop: Read all Feature Spec documents -->
+    <block type="loop" id="L1" over="${feature_spec_paths}" as="spec_path" desc="Read all Feature Spec documents">
+      <block type="task" id="B1" action="read-file" desc="Read Feature Spec">
+        <field name="path" value="${spec_path}"/>
+        <field name="output" var="feature_spec_${index}"/>
+      </block>
+    </block>
+
+    <!-- Loop: Read all API Contract documents -->
+    <block type="loop" id="L2" over="${api_contract_paths}" as="contract_path" desc="Read all API Contract documents">
+      <block type="task" id="B2" action="read-file" desc="Read API Contract">
+        <field name="path" value="${contract_path}"/>
+        <field name="output" var="api_contract_${index}"/>
+      </block>
+    </block>
+
+    <!-- Loop: Read techs knowledge per platform -->
+    <block type="loop" id="L3" over="${techs_knowledge_paths}" as="platform" desc="Read techs knowledge per platform">
+      <block type="task" id="B3" action="read-file" desc="Read tech-stack.md">
+        <field name="path">${platform.path}/tech-stack.md</field>
+        <field name="output" var="tech_stack_${platform.id}"/>
+      </block>
+
+      <block type="task" id="B4" action="read-file" desc="Read architecture.md">
+        <field name="path">${platform.path}/architecture.md</field>
+        <field name="output" var="architecture_${platform.id}"/>
+      </block>
+
+      <block type="task" id="B5" action="read-file" desc="Read conventions-design.md">
+        <field name="path">${platform.path}/conventions-design.md</field>
+        <field name="output" var="conventions_design_${platform.id}"/>
+      </block>
+
+      <block type="task" id="B6" action="read-file" desc="Read conventions-dev.md">
+        <field name="path">${platform.path}/conventions-dev.md</field>
+        <field name="output" var="conventions_dev_${platform.id}"/>
+      </block>
+    </block>
+
+    <!-- Step 2: Gap Analysis -->
+    <block type="task" id="B7" action="analyze" desc="Extract requirements from Feature Specs">
+      <field name="input" value="${feature_specs}">${api_contracts}</field>
+      <field name="extraction_rules">
+        Extract requirements for:
+        - Real-time features (WebSocket, SSE, push notifications)
+        - File processing (upload, download, preview, conversion)
+        - Data visualization (charts, dashboards, reports)
+        - Rich text / editor features
+        - Map / geolocation features
+        - Payment / third-party integrations
+        - Search / filtering / pagination patterns
+        - Media processing (image, video, audio)
+        - Communication protocols (REST, GraphQL, WebSocket, gRPC)
+        - Authentication patterns (JWT, OAuth, Session)
+        - Data formats (JSON, protobuf, multipart)
+      </field>
+      <field name="output" var="requirements"/>
+    </block>
+
+    <!-- Step 2.1: Build Capability Matrix -->
+    <block type="task" id="B8" action="analyze" desc="Build capability matrix">
+      <field name="input" value="${requirements}">${tech_stacks}</field>
+      <field name="analysis_rules">
+        For each requirement, evaluate against current tech stack:
+        - Requirement Category
+        - Specific Requirement
+        - Source (Feature ID)
+        - Current Stack Support (YES/NO/PARTIAL)
+        - Gap? (YES/NO)
+      </field>
+      <field name="output" var="capability_matrix"/>
+    </block>
+
+    <!-- Step 2.2: Categorize Gaps -->
+    <block type="task" id="B9" action="analyze" desc="Categorize gaps by severity">
+      <field name="input" value="${capability_matrix}"/>
+      <field name="categorization_rules">
+        - Critical Gaps: Core functionality cannot be implemented
+        - Enhancement Gaps: Functionality possible but better with library
+        - Optional Gaps: Nice-to-have improvements
+      </field>
+      <field name="output" var="categorized_gaps"/>
+    </block>
+
+    <!-- Step 3: Framework Research -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if gaps exist">
+      <branch test="${categorized_gaps.critical_count} == 0 AND ${categorized_gaps.enhancement_count} == 0" name="No gaps found">
+        <block type="event" id="E1" action="log" level="info" desc="No framework gaps found">
+          <field name="message">All Feature Spec requirements can be implemented with current tech stack. No new frameworks needed.</field>
+        </block>
+      </branch>
+      <branch default="true" name="Gaps found - research frameworks">
+        <!-- Loop: Evaluate candidates for each gap -->
+        <block type="loop" id="L4" over="${categorized_gaps.gaps}" as="gap" desc="Evaluate framework candidates">
+          <block type="task" id="B10" action="analyze" desc="Evaluate framework candidates">
+            <field name="input" value="${gap}"/>
+            <field name="evaluation_criteria">
+              - Functionality Fit: Does it solve the gap?
+              - License: MIT, Apache 2.0, BSD preferred (flag GPL)
+              - Maturity: GitHub stars, downloads, last release
+              - Bundle Size: Impact on frontend bundle
+              - Integration Complexity: Code modification needed
+              - Community & Docs: Documentation quality, support
+            </field>
+            <field name="output" var="framework_evaluation_${gap.id}"/>
+          </block>
+
+          <block type="task" id="B11" action="analyze" desc="Make primary recommendation">
+            <field name="input" value="${framework_evaluation_${gap.id}}"/>
+            <field name="selection_rules">
+              - Select single primary recommendation
+              - Provide justification
+              - List alternatives considered
+            </field>
+            <field name="output" var="recommendation_${gap.id}"/>
+          </block>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Generate Report -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Select report structure">
+      <branch test="${categorized_gaps.critical_count} == 0 AND ${categorized_gaps.enhancement_count} == 0" name="Simplified report">
+        <block type="task" id="B12" action="generate" desc="Generate simplified report">
+          <field name="template">speccrew-sd-framework-evaluate/templates/FRAMEWORK-EVALUATION-SIMPLE-TEMPLATE.md</field>
+          <field name="output_path">${output_path}</field>
+          <field name="data">
+            - feature_count: ${feature_spec_paths.length}
+            - platform_count: ${techs_knowledge_paths.length}
+            - capabilities_confirmed: ${capability_matrix.supported}
+          </field>
+        </block>
+      </branch>
+      <branch default="true" name="Full report with recommendations">
+        <block type="task" id="B13" action="generate" desc="Generate full framework evaluation report">
+          <field name="template">speccrew-sd-framework-evaluate/templates/FRAMEWORK-EVALUATION-TEMPLATE.md</field>
+          <field name="output_path">${output_path}</field>
+          <field name="data">
+            - iteration_name: ${iteration_path}
+            - feature_count: ${feature_spec_paths.length}
+            - platform_count: ${techs_knowledge_paths.length}
+            - gap_count: ${categorized_gaps.total_count}
+            - framework_count: ${recommendations.length}
+            - capability_matrix: ${capability_matrix}
+            - categorized_gaps: ${categorized_gaps}
+            - recommendations: ${recommendations}
+          </field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 5: Output Task Completion Report -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Output completion report">
+      <branch test="${categorized_gaps.critical_count} == 0 AND ${categorized_gaps.enhancement_count} == 0" name="No gaps success">
+        <block type="event" id="E2" action="log" level="info" desc="Output success report">
+          <field name="message">--- TASK COMPLETION REPORT ---
+Task: Framework Evaluation
+Status: SUCCESS
+Output: ${output_path}
+Gaps Found: 0
+Frameworks Recommended: 0
+--- END REPORT ---</field>
+        </block>
+      </branch>
+      <branch default="true" name="Gaps found success">
+        <block type="event" id="E3" action="log" level="info" desc="Output success report with gaps">
+          <field name="message">--- TASK COMPLETION REPORT ---
+Task: Framework Evaluation
+Status: SUCCESS
+Output: ${output_path}
+Gaps Found: ${categorized_gaps.total_count}
+Frameworks Recommended: ${recommendations.length}
+--- END REPORT ---</field>
+        </block>
+      </branch>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="report_path" value="${output_path}" type="string" desc="Path to framework evaluation report"/>
+    <field name="gaps_found" from="${categorized_gaps.total_count}" type="number" desc="Number of capability gaps found"/>
+    <field name="frameworks_recommended" from="${recommendations.length}" type="number" desc="Number of frameworks recommended"/>
+    <field name="critical_gaps" from="${categorized_gaps.critical_count}" type="number" desc="Number of critical gaps"/>
+    <field name="enhancement_gaps" from="${categorized_gaps.enhancement_count}" type="number" desc="Number of enhancement gaps"/>
+  </block>
+
+</workflow>

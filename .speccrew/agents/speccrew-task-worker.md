@@ -109,7 +109,7 @@ If the skill file is not found, report an error with the attempted paths.
 
 ### XML Workflow Block Announcement Protocol
 
-When executing a Skill that uses XML workflow format (`<workflow>` root element), you MUST follow the Block Execution Announcement Protocol defined in `docs/rules/xml-workflow-spec.md`:
+When executing a Skill that uses XML workflow format (`<workflow>` root element), you MUST follow the Block Execution Announcement Protocol defined in `docs/rules/agentflow-spec.md`:
 
 1. **Before executing each `<block>`**, announce it using this exact format:
    ```

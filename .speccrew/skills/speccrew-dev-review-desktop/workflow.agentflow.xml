@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="dev-review-desktop" status="pending" version="1.0" desc="Desktop Code Review - Reviews desktop app implementation against design and security standards">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="design_doc_path" required="true" type="string" desc="Path to desktop module design document"/>
+    <field name="implementation_report_path" required="true" type="string" desc="Path to desktop development report"/>
+    <field name="source_root" required="true" type="string" desc="Root directory of desktop source code"/>
+    <field name="platform_id" required="true" type="string" desc="Desktop platform (desktop-tauri, desktop-electron)"/>
+    <field name="task_id" required="true" type="string" desc="Task identifier from dispatch context"/>
+    <field name="api_contract_path" required="false" type="string" desc="Path to API contract file"/>
+    <field name="previous_review_path" required="false" type="string" desc="Path to previous review report"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Review operation constraints">
+    <field name="text">NEVER modify source code files - read-only operation</field>
+    <field name="text">Do NOT attempt to fix issues - only document them</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Output requirements">
+    <field name="text">PARTIAL/FAIL results MUST include specific Re-dispatch Guidance</field>
+    <field name="text">Skip items already marked as passed in previous review</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Desktop Code Review" status="pending" desc="Execute desktop code review workflow">
+
+    <!-- Step 1: Load Documents -->
+    <block type="task" id="B1" action="validate" desc="Validate Inputs">
+      <field name="checks">Verify all required parameters provided</field>
+      <field name="on_fail">Report error and stop</field>
+      <field name="output" var="validation_result"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read Design Document">
+      <field name="path" value="${design_doc_path}"/>
+      <field name="output" var="design_doc"/>
+    </block>
+
+    <block type="task" id="B3" action="analyze" desc="Extract from Design Document">
+      <field name="input" value="${design_doc}"/>
+      <field name="extraction">
+        - Module Overview
+        - Process Architecture
+        - IPC Contracts
+        - Native Integration points
+      </field>
+      <field name="output" var="design_specs"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read Implementation Report">
+      <field name="path" value="${implementation_report_path}"/>
+      <field name="output" var="impl_report"/>
+    </block>
+
+    <block type="task" id="B5" action="analyze" desc="Extract from Implementation Report">
+      <field name="input" value="${impl_report}"/>
+      <field name="extraction">Completed Files, Implementation Status, Known Issues</field>
+      <field name="output" var="impl_status"/>
+    </block>
+
+    <!-- Conditional: Read API Contract -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if API contract provided">
+      <branch test="${api_contract_path} != null" name="Has API Contract">
+        <block type="task" id="B6" action="read-file" desc="Read API Contract">
+          <field name="path" value="${api_contract_path}"/>
+          <field name="output" var="api_contract"/>
+        </block>
+      </branch>
+      <branch default="true" name="No API Contract">
+        <block type="event" id="E1" action="log" level="info" desc="Skip API validation">
+          <field name="message">API contract not provided - skipping API validation</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 2: File Completeness Check -->
+    <block type="task" id="B7" action="analyze" desc="Build Expected File List">
+      <field name="categories">
+        - Main Process: src-tauri/src/**/*.rs or main/**/* (e.g., src-tauri/src/main.rs)
+        - Renderer: src/**/* (frontend files, e.g., src/App.vue)
+        - Preload: preload/**/* or src-tauri/src/preload.rs
+        - IPC Handlers: src-tauri/src/commands/**/*.rs
+        - Native Modules: native/**/*
+      </field>
+      <field name="output" var="expected_files"/>
+    </block>
+
+    <block type="task" id="B8" action="analyze" desc="Scan Actual Files">
+      <field name="source_root" value="${source_root}"/>
+      <field name="action">Use Glob to scan for implemented files</field>
+      <field name="output" var="actual_files"/>
+    </block>
+
+    <block type="task" id="B9" action="analyze" desc="Calculate Completeness">
+      <field name="formula">Generate completeness matrix and percentage</field>
+      <field name="output" var="completeness_result"/>
+    </block>
+
+    <!-- Step 3: Desktop-Specific Compliance Check -->
+    <block type="task" id="B10" action="analyze" desc="Process Separation Validation">
+      <field name="checks">
+        - Main/Renderer Separation: Business logic in main process only - Severity: CRITICAL
+        - No Node in Renderer: Renderer has no direct Node.js access - Severity: CRITICAL
+        - Context Isolation: contextIsolation enabled - Severity: CRITICAL
+      </field>
+      <field name="output" var="process_check"/>
+    </block>
+
+    <block type="task" id="B11" action="analyze" desc="IPC Channel Consistency Check">
+      <field name="checks">
+        - Channel Naming: IPC channels follow naming convention - Severity: ERROR
+        - Type Safety: IPC payloads properly typed - Severity: ERROR
+        - Channel Registration: All channels registered in preload - Severity: ERROR
+        - Bidirectional Safety: No unsafe IPC patterns - Severity: CRITICAL
+      </field>
+      <field name="output" var="ipc_check"/>
+    </block>
+
+    <block type="task" id="B12" action="analyze" desc="Security Isolation Check">
+      <field name="checks">
+        - contextBridge: Uses contextBridge for API exposure - Severity: CRITICAL
+        - Preload Script: Preload script properly configured - Severity: CRITICAL
+        - CSP Headers: Content Security Policy configured - Severity: ERROR
+        - Remote Content: No unsafe remote content loading - Severity: CRITICAL
+      </field>
+      <field name="output" var="security_check"/>
+    </block>
+
+    <block type="task" id="B13" action="analyze" desc="Native Integration Check">
+      <field name="checks">
+        - File System: File operations in main process only - Severity: CRITICAL
+        - System Notifications: Notifications properly implemented - Severity: WARN
+        - Native Menus: Menu structure matches design - Severity: ERROR
+        - System Tray: Tray implementation if required - Severity: ERROR
+      </field>
+      <field name="output" var="native_check"/>
+    </block>
+
+    <block type="task" id="B14" action="analyze" desc="Packaging Configuration Check">
+      <field name="checks">
+        - Build Config: Build configuration complete - Severity: ERROR
+        - Assets: Required assets included - Severity: ERROR
+        - Signing: Code signing configured (if required) - Severity: WARN
+        - Auto-Update: Auto-update mechanism (if required) - Severity: WARN
+      </field>
+      <field name="output" var="packaging_check"/>
+    </block>
+
+    <!-- Step 4: Generate Review Report -->
+    <block type="task" id="B15" action="analyze" desc="Determine Result">
+      <field name="criteria">
+        - PASS: 100% files created, 0 ERROR-level issues
+        - PARTIAL: 70-99% files created, or non-critical ERROR issues
+        - FAIL: &lt;70% files created, or critical blockers present
+      </field>
+      <field name="output" var="review_result"/>
+    </block>
+
+    <block type="task" id="B16" action="read-file" desc="Read Review Report Template">
+      <field name="path">templates/REVIEW-REPORT-TEMPLATE.md</field>
+      <field name="output" var="report_template"/>
+    </block>
+
+    <block type="task" id="B17" action="generate" desc="Write Review Report">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[module]-review-report.md</field>
+      <field name="template" value="${report_template}"/>
+      <field name="content">
+        - Completeness: ${completeness_result}
+        - Process Separation: ${process_check}
+        - IPC Check: ${ipc_check}
+        - Security Check: ${security_check}
+        - Native Integration: ${native_check}
+        - Packaging Check: ${packaging_check}
+        - Final Result: ${review_result}
+      </field>
+      <field name="output" var="review_report_path"/>
+    </block>
+
+    <!-- Step 5: Task Completion Report -->
+    <block type="task" id="B18" action="report" desc="Generate Task Completion Report">
+      <field name="template">
+## Task Completion Report
+- **Status**: SUCCESS
+- **Task ID**: review-{original_task_id}
+- **Platform**: {platform_id}
+- **Module**: {module_name}
+- **Output Files**: {review_report_path}
+- **Summary**: Review {result}: {completed}/{total} files, {error_count} errors
+      </field>
+      <field name="output" var="completion_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="review_report_path" value="${review_report_path}" type="string" desc="Path to review report"/>
+    <field name="review_result" value="${review_result}" type="string" desc="PASS/PARTIAL/FAIL verdict"/>
+    <field name="completeness_pct" type="number" desc="File completeness percentage"/>
+    <field name="error_count" type="number" desc="Number of ERROR-level issues"/>
+    <field name="completion_report" value="${completion_report}" type="string" desc="Task completion report"/>
+  </block>
+
+</workflow>

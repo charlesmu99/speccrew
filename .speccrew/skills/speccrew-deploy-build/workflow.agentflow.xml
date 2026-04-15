@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="deploy-build" status="pending" version="1.0" desc="Execute application build and verify artifacts">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier (e.g., backend-spring, frontend-react)"/>
+    <field name="build_cmd" required="true" type="string" desc="Build command from conventions-data/build (e.g., mvn package -DskipTests)"/>
+    <field name="project_root" required="true" type="string" desc="Absolute path to the project root directory"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Build execution constraints">
+    <field name="text">All build commands come from input parameters - NO hard-coded commands</field>
+    <field name="text">Always verify expected artifacts exist after build</field>
+    <field name="text">Record and report build duration</field>
+    <field name="text">Capture and report relevant build output</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Build Application" status="pending" desc="Pre-check, execute build, verify output">
+
+    <!-- Step 1: Pre-build Check -->
+    <block type="task" id="B1" action="validate" desc="Verify project root exists">
+      <field name="check">directory_exists(${project_root})</field>
+      <field name="on_fail">STOP with Error Category: DEPENDENCY_MISSING</field>
+      <field name="output" var="project_root_valid"/>
+    </block>
+
+    <block type="task" id="B2" action="run-script" desc="Verify build tool is available">
+      <field name="command">detect build tool from "${build_cmd}" and run version check</field>
+      <field name="rules">
+        - mvn → Run `mvn --version`
+        - npm/pnpm/yarn → Run `{tool} --version`
+        - gradle → Run `gradle --version`
+        - go → Run `go version`
+      </field>
+      <field name="on_fail">STOP with Error Category: DEPENDENCY_MISSING</field>
+      <field name="output" var="tool_check_result"/>
+    </block>
+
+    <block type="task" id="B3" action="validate" desc="Check for build config files">
+      <field name="rules">
+        - Maven: pom.xml must exist in project_root
+        - Node.js: package.json must exist in project_root
+        - Gradle: build.gradle or build.gradle.kts must exist
+        - Go: go.mod must exist
+      </field>
+      <field name="on_fail">STOP with Error Category: VALIDATION_ERROR</field>
+      <field name="output" var="config_check_result"/>
+    </block>
+
+    <!-- Step 2: Execute Build -->
+    <block type="event" id="E1" action="log" level="info" desc="Record build start time">
+      <field name="message">Build starting for platform: ${platform_id}</field>
+      <field name="output" var="start_time"/>
+    </block>
+
+    <block type="task" id="B4" action="run-script" desc="Execute build command">
+      <field name="command">${build_cmd}</field>
+      <field name="working_directory">${project_root}</field>
+      <field name="capture_stdout">true</field>
+      <field name="capture_stderr">true</field>
+      <field name="output" var="build_result"/>
+    </block>
+
+    <block type="gateway" id="G1" mode="guard" desc="Check build exit code"
+           test="${build_result.exit_code} == 0"
+           fail-action="stop">
+      <field name="message">Build failed with exit code ${build_result.exit_code}. Error Category: BUILD_FAILURE</field>
+    </block>
+
+    <block type="event" id="E2" action="log" level="info" desc="Record build end time">
+      <field name="output" var="end_time"/>
+    </block>
+
+    <!-- Step 3: Verify Build Output -->
+    <block type="task" id="B5" action="analyze" desc="Detect expected artifacts by platform">
+      <field name="rules">
+        - Spring/Maven: target/*.jar files
+        - Node.js: dist/ or build/ directory
+        - Gradle: build/libs/*.jar
+        - Go: Binary executable in project root or bin/
+      </field>
+      <field name="output" var="artifact_patterns"/>
+    </block>
+
+    <block type="task" id="B6" action="search" desc="Find build artifacts">
+      <field name="patterns">${artifact_patterns}</field>
+      <field name="base_path">${project_root}</field>
+      <field name="output" var="artifacts"/>
+    </block>
+
+    <block type="gateway" id="G2" mode="guard" desc="Verify artifacts exist"
+           test="${artifacts.length} > 0"
+           fail-action="stop">
+      <field name="message">No build artifacts found. Error Category: BUILD_FAILURE</field>
+    </block>
+
+    <block type="event" id="E3" action="log" level="info" desc="Build completed successfully">
+      <field name="message">Build completed with ${artifacts.length} artifacts</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Build status"/>
+    <field name="platform_id" from="${platform_id}" type="string" desc="Platform identifier"/>
+    <field name="project_root" from="${project_root}" type="string" desc="Project root path"/>
+    <field name="build_duration" from="${end_time - start_time}" type="number" desc="Build duration in seconds"/>
+    <field name="build_command" from="${build_cmd}" type="string" desc="Build command executed"/>
+    <field name="artifact_paths" from="${artifacts}" type="array" desc="List of generated artifact paths"/>
+    <field name="artifact_count" from="${artifacts.length}" type="number" desc="Number of artifacts generated"/>
+  </block>
+
+</workflow>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="knowledge-graph-write" status="pending" version="1.0" desc="Write graph data to knowledge graph storage">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="action" required="true" type="string" desc="Write action: batch-write, init-module, update-node, remove-node"/>
+    <field name="platformId" required="true" type="string" desc="Platform identifier for directory segregation"/>
+    <field name="module" required="false" type="string" desc="Target business module"/>
+    <field name="graphData" required="false" type="object" desc="Graph data from skill output (for batch-write): {nodes: [], edges: []}"/>
+    <field name="nodeId" required="false" type="string" desc="Node ID (for update-node / remove-node)"/>
+    <field name="nodeData" required="false" type="object" desc="Updated node data (for update-node)"/>
+    <field name="graphRoot" required="true" type="string" desc="Path to graph root directory"/>
+    <field name="skill_path" required="true" type="string" desc="Path to this skill directory"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Write constraints">
+    <field name="text">action must be one of: batch-write, init-module, update-node, remove-node</field>
+    <field name="text">platformId is required for all write actions</field>
+    <field name="text">graphRoot path must be correct (speccrew-workspace/knowledges/bizs/graph)</field>
+    <field name="text">For batch-write: graphData must contain valid nodes and edges arrays</field>
+    <field name="text">Index and metadata must be updated after write operations</field>
+  </block>
+
+  <!-- ============================================================
+       Action Gateway
+       ============================================================ -->
+  <block type="gateway" id="G0" mode="exclusive" desc="Select write action">
+
+    <!-- Action: batch-write -->
+    <branch test="${action} == 'batch-write'" name="Batch Write">
+      
+      <!-- Step 1: Write graphData to temp file -->
+      <block type="task" id="B1" action="write-file" desc="Write graphData to temp file">
+        <field name="path">${graphRoot}/temp/batch-${module}-${timestamp}.json</field>
+        <field name="content">${graphData}</field>
+        <field name="output" var="temp_file_path"/>
+      </block>
+
+      <!-- Step 2: Add nodes -->
+      <block type="task" id="B2" action="run-script" desc="Add nodes from temp file">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "add-nodes" --platformId "${platformId}" --module "${module}" --file "${temp_file_path}" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="nodes_result"/>
+      </block>
+
+      <!-- Step 3: Add edges -->
+      <block type="task" id="B3" action="run-script" desc="Add edges from temp file">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "add-edges" --platformId "${platformId}" --module "${module}" --file "${temp_file_path}" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="edges_result"/>
+      </block>
+
+      <!-- Step 4: Update index -->
+      <block type="task" id="B4" action="run-script" desc="Rebuild global index">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "rebuild-index" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="index_result"/>
+      </block>
+
+      <!-- Step 5: Update metadata -->
+      <block type="task" id="B5" action="run-script" desc="Update graph metadata">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "update-meta" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="meta_result"/>
+      </block>
+
+      <!-- Step 6: Clean up temp file -->
+      <block type="task" id="B6" action="run-script" desc="Clean up temp file">
+        <field name="command">rm "${temp_file_path}"</field>
+        <field name="note">Remove temporary batch file after successful write</field>
+      </block>
+
+      <block type="event" id="E1" action="log" level="info" desc="Log batch write complete">
+        <field name="message">Batch write completed: ${nodes_result.count} nodes, ${edges_result.count} edges</field>
+        <field name="output" var="nodes_written" from="${nodes_result.count}"/>
+        <field name="output" var="edges_written" from="${edges_result.count}"/>
+      </block>
+
+    </branch>
+
+    <!-- Action: init-module -->
+    <branch test="${action} == 'init-module'" name="Initialize Module">
+      
+      <block type="task" id="B7" action="run-script" desc="Initialize empty module structure">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "init-module" --platformId "${platformId}" --module "${module}" --graphRoot "${graphRoot}"</field>
+        <field name="rules">
+          Creates:
+          - ${graphRoot}/nodes/${platformId}/${module}.json — empty nodes array
+          - ${graphRoot}/edges/${platformId}/${module}.json — empty edges array
+          - Updates ${graphRoot}/graph-meta.json — adds ${platformId}/${module} to modules list
+          - Creates ${graphRoot}/edges/${platformId}/cross-module.json if not exists
+          - Creates ${graphRoot}/indices/index.json if not exists
+        </field>
+        <field name="output" var="init_result"/>
+      </block>
+
+      <block type="event" id="E2" action="log" level="info" desc="Log module init complete">
+        <field name="message">Module ${module} initialized for platform ${platformId}</field>
+        <field name="output" var="nodes_written" value="0"/>
+        <field name="output" var="edges_written" value="0"/>
+      </block>
+
+    </branch>
+
+    <!-- Action: update-node -->
+    <branch test="${action} == 'update-node'" name="Update Node">
+      
+      <block type="task" id="B8" action="run-script" desc="Update existing node fields">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "update-node" --platformId "${platformId}" --id "${nodeId}" --data '${nodeData}' --graphRoot "${graphRoot}"</field>
+        <field name="output" var="update_result"/>
+      </block>
+
+      <block type="event" id="E3" action="log" level="info" desc="Log node update complete">
+        <field name="message">Node ${nodeId} updated successfully</field>
+        <field name="output" var="nodes_written" value="1"/>
+        <field name="output" var="edges_written" value="0"/>
+      </block>
+
+    </branch>
+
+    <!-- Action: remove-node -->
+    <branch test="${action} == 'remove-node'" name="Remove Node">
+      
+      <block type="task" id="B9" action="run-script" desc="Remove node and connected edges">
+        <field name="command">node "${skill_path}/scripts/graph-write.js" --action "remove-node" --platformId "${platformId}" --id "${nodeId}" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="remove_result"/>
+      </block>
+
+      <block type="event" id="E4" action="log" level="info" desc="Log node removal complete">
+        <field name="message">Node ${nodeId} and connected edges removed</field>
+        <field name="output" var="nodes_written" value="-1"/>
+        <field name="output" var="edges_written" value="-1"/>
+      </block>
+
+    </branch>
+
+  </block>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="success" type="string" desc="Operation result"/>
+    <field name="action" from="${action}" type="string" desc="Action performed"/>
+    <field name="module" from="${module}" type="string" desc="Target module"/>
+    <field name="nodesWritten" from="${nodes_written}" type="number" desc="Number of nodes written"/>
+    <field name="edgesWritten" from="${edges_written}" type="number" desc="Number of edges written"/>
+    <field name="message" type="string" desc="Summary message"/>
+  </block>
+
+</workflow>

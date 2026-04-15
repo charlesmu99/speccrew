@@ -1,10 +1,10 @@
 ---
 name: speccrew-knowledge-module-summarize
-description: Summarize a module's features to complete MODULE-OVERVIEW.md. Reads all FEATURE-DETAIL.md files of a module and generates the complete module overview with entities, dependencies, and business rules.
+description: Summarize a module's features to complete MODULE-OVERVIEW.md using XML workflow blocks. Reads all FEATURE-DETAIL.md files of a module and generates the complete module overview with entities, dependencies, and business rules.
 tools: Read, Write, Glob
 ---
 
-# Module Summarize - Complete Module Overview
+# Module Summarize - Complete Module Overview (XML Workflow)
 
 Read all {{feature_name}}.md files of a specific module, extract and summarize information to complete {{module_name}}-overview.md (full version with entities, dependencies, flows, and rules).
 
@@ -26,17 +26,17 @@ Read all {{feature_name}}.md files of a specific module, extract and summarize i
 
 ## Input
 
-- `module_name`: Module name to summarize
-- `module_path`: Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{{platform_type}}/{{module_name}}/`) containing:
-  - {{module_name}}-overview.md (initial version)
-  - features/{{feature_name}}.md files
-- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `module_name` | string | Yes | Module name to summarize |
+| `module_path` | string | Yes | Path to module directory (e.g., `speccrew-workspace/knowledges/bizs/{{platform_type}}/{{module_name}}/`) containing: {{module_name}}-overview.md (initial version), features/{{feature_name}}.md files |
+| `language` | string | Yes | Target language for generated content (e.g., "zh", "en") |
 
 ## Output
 
-- `{{module_path}}/{{module_name}}-overview.md` - Complete module overview (overwritten)
-  - Example: `speccrew-workspace/knowledges/bizs/backend-ai/chat/chat-overview.md`
-  - Example: `speccrew-workspace/knowledges/bizs/web-vue/order/order-overview.md`
+| Output | Path | Description |
+|--------|------|-------------|
+| `{{module_name}}-overview.md` | `{{module_path}}/{{module_name}}-overview.md` | Complete module overview (overwritten). Example: `speccrew-workspace/knowledges/bizs/backend-ai/chat/chat-overview.md` |
 
 ## Workflow
 
@@ -51,230 +51,378 @@ flowchart TD
     Step6 --> End([End])
 ```
 
-### Step 1: Read Prerequisites
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-Before processing, read all required files:
+## AgentFlow Definition
 
-1. **Read Template**: `templates/MODULE-OVERVIEW-TEMPLATE.md` - Understand the required content structure and section formats
+<!-- @agentflow: workflow.agentflow.xml -->
 
-2. **Read Initial Module Overview**: `{{module_path}}/{{module_name}}-overview.md` (initial skeleton created by dispatch) containing:
-   - Section 1: Module Basic Information
-   - Section 2: Feature List Table with links to detail docs
-   - Remaining sections: Empty placeholders
-   - **If missing**: Create a minimal skeleton from feature inventory data
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="module-summarize" version="1.0" status="pending" desc="Module summarization workflow">
 
-3. **Read All Feature Details**: Find and read all `{{module_path}}/features/{{feature_name}}.md` files
+  <!-- Input Block: Define workflow inputs -->
+  <block type="input" id="I1" desc="Module summarize input parameters">
+    <field name="module_name" required="true" type="string" desc="Module name to summarize"/>
+    <field name="module_path" required="true" type="string" desc="Path to module directory"/>
+    <field name="language" required="true" type="string" desc="Target language for generated content"/>
+    <field name="workspace_path" required="true" type="string" desc="Workspace root path"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Sync state directory path"/>
+  </block>
 
-**Edge Cases**:
-- **No feature documents found**: Generate a minimal overview with only Section 1-2, return with `status: "partial"`
-- **Incomplete feature documents**: Extract available data, note gaps with `<!-- DATA INCOMPLETE: {feature_name} missing Section X -->`
+  <!-- ==================== GLOBAL CONTINUOUS EXECUTION RULES ==================== -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
+    <field name="text">DO NOT suggest "Due to context window limits, let me pause" — complete current task, use checkpoint for resumption</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL items in sequence</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
 
-For each feature-detail.md, extract and categorize the following:
+  <!-- Step 1: Read Prerequisites -->
+  <sequence id="S1" name="Step 1: Read Prerequisites" status="pending" desc="Read template, initial overview, and discover features">
+    <block type="task" id="B1a" action="read-file" desc="Read module overview template">
+      <field name="path" value="./templates/MODULE-OVERVIEW-TEMPLATE.md"/>
+      <field name="output" var="template_content"/>
+    </block>
 
-**From Section 3 (Business Entities / State Objects)** — Priority: High
-- **Backend modules**: Entity names, database fields, types, relationships, ORM constraints
-- **Frontend modules**: State objects (Store/State), component prop interfaces, computed/derived data
-- Aggregate across features to build module-level entity list (deduplicate by entity name)
+    <block type="task" id="B1b" action="read-file" desc="Read initial overview">
+      <field name="path" value="${module_path}/${module_name}-overview.md"/>
+      <field name="output" var="initial_overview"/>
+    </block>
 
-**From Section 4 (Dependencies)** — Priority: High  
-- **Backend**: Internal module API calls, external service dependencies, shared DTOs
-- **Frontend**: Component imports, Store/State dependencies, route guard dependencies, shared composables/hooks
-- Classify as: "Provided by this module" vs "Consumed from other modules"
+    <block type="task" id="B1c" action="run-script" desc="Discover feature files">
+      <field name="command">Get-ChildItem -Path "${module_path}/features" -Filter "*.md" -File</field>
+      <field name="output" var="feature_files"/>
+    </block>
 
-**From Section 6 (Business Rules)** — Priority: High
-- Validation rules, state transitions, authorization rules, data consistency constraints
-- Associate each rule with its originating feature
+    <!-- Loop: Read all feature detail files -->
+    <block type="loop" id="L1" over="${feature_files}" as="feature_file" desc="Read all feature files">
+      <block type="task" id="B1d" action="read-file" desc="Read feature file">
+        <field name="path" value="${feature_file}"/>
+        <field name="output" var="feature_content"/>
+      </block>
+    </block>
 
-**From Section 5 (Core Processes)** — Priority: Medium
-- Step sequences, branching logic, exception handling paths
-- Identify cross-feature flows that span multiple features
+    <!-- Checkpoint: Verify prerequisites loaded -->
+    <block type="checkpoint" id="CP1" name="prerequisites_loaded" desc="Prerequisites loaded checkpoint">
+      <field name="verify" value="${template_content} != null AND ${feature_files} != null"/>
+    </block>
 
-**From Section 2 (Feature Details / API Definitions)** — Priority: Medium
-- Data constraints: field types, ranges, uniqueness, required fields
-- Build constraint matrix for entities
+    <!-- Gateway: Handle edge case - no features found -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if features exist">
+      <branch test="${feature_files.length} == 0" name="No features">
+        <block type="event" id="E1a" action="log" level="warning" desc="No features warning">
+          <field name="message">No feature documents found for module ${module_name}</field>
+        </block>
+        <block type="task" id="B1e" action="write-file" desc="Generate minimal overview">
+          <field name="path" value="${module_path}/${module_name}-overview.md"/>
+          <field name="content" value="${minimal_skeleton}"/>
+        </block>
+        <field name="status" value="partial"/>
+        <block type="event" id="E1b" action="signal" desc="Signal complete">
+          <field name="message">workflow_complete</field>
+        </block>
+      </branch>
+      <branch test="${feature_files.length} > 0" name="Features found">
+        <block type="event" id="E1c" action="log" level="info" desc="Features found">
+          <field name="message">Found ${feature_files.length} feature documents</field>
+        </block>
+      </branch>
+    </block>
+  </sequence>
 
-### Step 2: Extract Entities
+  <!-- Step 2: Extract Entities -->
+  <sequence id="S2" name="Step 2: Extract Entities" status="pending" desc="Extract and aggregate entities from features">
+    <block type="task" id="B2a" action="analyze" desc="Extract entities">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="extracted_entities"/>
+    </block>
 
-Aggregate entities from all features:
+    <!-- Loop: Process each entity for deduplication -->
+    <block type="loop" id="L2" over="${extracted_entities}" as="entity" desc="Aggregate entities">
+      <block type="task" id="B2b" action="analyze" desc="Aggregate entity">
+        <field name="entity" value="${entity}"/>
+        <field name="output" var="aggregated_entity"/>
+      </block>
+    </block>
 
-```
-From Feature A: Order, OrderItem
-From Feature B: Order, Payment
----------------------------------
-Module Entities: Order, OrderItem, Payment
-```
+    <!-- Checkpoint: Entities aggregated -->
+    <block type="checkpoint" id="CP2" name="entities_aggregated" desc="Entities aggregated checkpoint">
+      <field name="verify" value="${unique_entities.length} > 0"/>
+    </block>
+  </sequence>
 
-For each entity, collect:
-- Fields and types
-- Validation constraints
-- Relationships (from multiple features)
+  <!-- Step 3: Identify Dependencies -->
+  <sequence id="S3" name="Step 3: Identify Dependencies" status="pending" desc="Identify dependencies from features">
+    <block type="task" id="B3a" action="analyze" desc="Identify dependencies">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="dependencies"/>
+    </block>
 
-### Step 3: Identify Dependencies
+    <!-- Classify dependencies -->
+    <block type="loop" id="L3" over="${dependencies}" as="dependency" desc="Classify dependencies">
+      <block type="gateway" id="G3" mode="exclusive" desc="Classify direction">
+        <branch test="${dependency.direction} == 'provides'" name="Provides">
+          <field name="provided_deps" append="${dependency}"/>
+        </branch>
+        <branch test="${dependency.direction} == 'consumes'" name="Consumes">
+          <field name="consumed_deps" append="${dependency}"/>
+        </branch>
+      </block>
+    </block>
 
-Analyze feature details to identify:
-- **Internal dependencies**: Other modules this module calls
-- **External dependencies**: Third-party services, APIs
-- **Data dependencies**: Shared entities, common DTOs
+    <!-- Checkpoint: Dependencies classified -->
+    <block type="checkpoint" id="CP3" name="dependencies_classified" desc="Dependencies classified checkpoint">
+      <field name="verify" value="${dependencies} != null"/>
+    </block>
+  </sequence>
 
-### Step 4: Summarize Business Rules
+  <!-- Step 4: Summarize Business Rules -->
+  <sequence id="S4" name="Step 4: Summarize Rules" status="pending" desc="Extract and associate business rules">
+    <block type="task" id="B4a" action="analyze" desc="Extract rules">
+      <field name="inputs" value="${feature_contents}"/>
+      <field name="output" var="business_rules"/>
+    </block>
 
-Collect all business rules from feature details:
-- Validation rules
-- State transition rules
-- Authorization rules
-- Data consistency rules
+    <!-- Loop: Associate rules with features -->
+    <block type="loop" id="L4" over="${business_rules}" as="rule" desc="Associate rules">
+      <block type="task" id="B4b" action="analyze" desc="Find rule source">
+        <field name="rule" value="${rule}"/>
+        <field name="features" value="${feature_files}"/>
+        <field name="output" var="rule_with_source"/>
+      </block>
+    </block>
 
-### Step 5: Generate Complete MODULE-OVERVIEW.md
+    <!-- Checkpoint: Rules collected -->
+    <block type="checkpoint" id="CP4" name="rules_collected" desc="Rules collected checkpoint">
+      <field name="verify" value="${business_rules.length} >= 0"/>
+    </block>
+  </sequence>
 
-> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
->
-> This step MUST be executed in two phases to ensure consistent document structure.
+  <!-- Step 5: Generate Complete MODULE-OVERVIEW.md -->
+  <sequence id="S5" name="Step 5: Generate Overview" status="pending" desc="Generate complete module overview">
+    <!-- Phase A: Skeleton Construction -->
+    <block type="task" id="B5a" action="analyze" desc="Count entities">
+      <field name="items" value="${unique_entities}"/>
+      <field name="output" var="entity_count"/>
+    </block>
 
-### Phase A: Skeleton Construction (BEFORE any content filling)
+    <block type="task" id="B5b" action="analyze" desc="Count dependencies">
+      <field name="items" value="${dependencies}"/>
+      <field name="output" var="dependency_count"/>
+    </block>
 
-1. Read MODULE-OVERVIEW-TEMPLATE.md to identify the complete section structure
-2. Count data items from extracted information:
-   - Section 3: Count unique **Entities** (deduplicated by entity name)
-   - Section 4: Count unique **Dependencies** (internal + external)
-   - Section 5: Count unique **Core Business Flows**
-   - Section 6: Count unique **Business Rules**
-3. For each section with repeating data items, create complete skeleton structure:
-   - **Section 3 (Entities)**: For each entity, create table row with ALL column placeholders:
-     ```
-     | [Entity Name] | [TO BE FILLED] | [TO BE FILLED] | [TO BE FILLED] |
-     ```
-   - **Section 4 (Dependencies)**: For each dependency, create table row with ALL column placeholders:
-     ```
-     | [Direction] | [Target] | [Content] | [Method] |
-     ```
-   - **Section 5 (Core Business Flows)**: For each flow, create flow item with placeholders:
-     ```
-     **[Flow Name]**: [TO BE FILLED]
-     ```
-   - **Section 6 (Business Rules)**: For each rule, create table row with ALL column placeholders:
-     ```
-     | [Rule ID] | [Rule Name] | [Description] | [Related Features] |
-     ```
-4. Verify skeleton: confirm ALL data items have ALL required column/field placeholders before proceeding
+    <block type="task" id="B5c" action="analyze" desc="Count flows">
+      <field name="features" value="${feature_contents}"/>
+      <field name="output" var="flow_count"/>
+    </block>
 
-> ⚠️ DO NOT start filling content until the complete skeleton is verified.
+    <block type="task" id="B5d" action="analyze" desc="Count rules">
+      <field name="items" value="${business_rules}"/>
+      <field name="output" var="rule_count"/>
+    </block>
 
-### Phase B: Content Filling (AFTER skeleton is complete)
+    <!-- Create skeleton structure -->
+    <block type="task" id="B5e" action="analyze" desc="Create skeleton">
+      <field name="template" value="${template_content}"/>
+      <field name="entity_count" value="${entity_count}"/>
+      <field name="dependency_count" value="${dependency_count}"/>
+      <field name="flow_count" value="${flow_count}"/>
+      <field name="rule_count" value="${rule_count}"/>
+      <field name="language" value="${language}"/>
+      <field name="output" var="document_skeleton"/>
+    </block>
 
-Fill each `[TO BE FILLED]` placeholder with actual content:
-- Entity Description → Business description of the entity
-- Entity Key Attributes → Field names with types (deduplicated from all features)
-- Entity Business Rules → Constraints and validation rules aggregated from features
-- Dependency Content → What is provided/consumed
-- Dependency Method → How the dependency is realized (API call, import, injection)
-- Core Business Flow → Step sequence with actors and outcomes
-- Business Rule Description → Rule logic and enforcement point
+    <!-- Rule: Skeleton must be complete before filling -->
+    <block type="rule" id="R1" level="mandatory" desc="Skeleton first">
+      <field name="text">DO NOT start filling content until the complete skeleton is verified</field>
+    </block>
 
----
+    <!-- Checkpoint: Skeleton verified -->
+    <block type="checkpoint" id="CP5a" name="skeleton_verified" desc="Skeleton verified checkpoint">
+      <field name="verify" value="${document_skeleton} != null AND ${document_skeleton}.contains('[TO BE FILLED]')"/>
+    </block>
 
-**⚠️ CRITICAL CONSTRAINTS (apply to this step):**
+    <!-- Phase B: Content Filling -->
+    <!-- Read Mermaid rules -->
+    <block type="task" id="B5f" action="read-file" desc="Read Mermaid rules">
+      <field name="path" value="speccrew-workspace/docs/rules/mermaid-rule.md"/>
+      <field name="output" var="mermaid_rules"/>
+    </block>
+
+    <!-- Fill Section 3: Business Entities -->
+    <block type="loop" id="L5a" over="${unique_entities}" as="entity" desc="Fill entity rows">
+      <block type="task" id="B5g" action="analyze" desc="Fill entity row">
+        <field name="entity" value="${entity}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="entity_row"/>
+      </block>
+    </block>
+
+    <!-- Fill Section 4: Dependencies -->
+    <block type="loop" id="L5b" over="${dependencies}" as="dependency" desc="Fill dependency rows">
+      <block type="task" id="B5h" action="analyze" desc="Fill dependency row">
+        <field name="dependency" value="${dependency}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="dependency_row"/>
+      </block>
+    </block>
+
+    <!-- Fill Section 5: Core Business Flows -->
+    <block type="loop" id="L5c" over="${core_flows}" as="flow" desc="Fill flow items">
+      <block type="task" id="B5i" action="analyze" desc="Fill flow item">
+        <field name="flow" value="${flow}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="flow_item"/>
+      </block>
+    </block>
+
+    <!-- Fill Section 6: Business Rules -->
+    <block type="loop" id="L5d" over="${business_rules}" as="rule" desc="Fill rule rows">
+      <block type="task" id="B5j" action="analyze" desc="Fill rule row">
+        <field name="rule" value="${rule}"/>
+        <field name="language" value="${language}"/>
+        <field name="output" var="rule_row"/>
+      </block>
+    </block>
+
+    <!-- Error Handler for document writing -->
+    <block type="error-handler" id="EH1" desc="Handle document writing errors">
+      <try>
+        <!-- Write final document -->
+        <block type="gateway" id="G5" mode="exclusive" desc="Check existing document">
+          <branch test="${initial_overview} != null" name="Existing document">
+            <!-- Use search_replace for existing document -->
+            <block type="loop" id="L5e" over="${sections}" as="section" desc="Replace sections">
+              <block type="task" id="B5k" action="run-skill" desc="Replace section">
+                <field name="skill" value="search_replace"/>
+                <field name="file_path" value="${module_path}/${module_name}-overview.md"/>
+                <field name="section" value="${section}"/>
+              </block>
+            </block>
+          </branch>
+          <branch test="${initial_overview} == null" name="New document">
+            <!-- Create new document -->
+            <block type="task" id="B5l" action="write-file" desc="Write overview">
+              <field name="path" value="${module_path}/${module_name}-overview.md"/>
+              <field name="content" value="${document_skeleton}"/>
+            </block>
+          </branch>
+        </block>
+      </try>
+      <catch error-type="write_error">
+        <block type="event" id="EH1-E1" action="log" level="error" desc="Write error">
+          <field name="message">Failed to write overview document: ${write_error.message}</field>
+        </block>
+        <field name="status" value="failed"/>
+      </catch>
+      <finally>
+        <block type="event" id="EH1-E2" action="log" level="info" desc="Write completed">
+          <field name="message">Document write operation completed</field>
+        </block>
+      </finally>
+    </block>
+
+    <!-- Rule: Content language constraint -->
+    <block type="rule" id="R2" level="mandatory" desc="Language constraint">
+      <field name="text">ALL generated content MUST be in the language specified by the language parameter</field>
+    </block>
+
+    <!-- Rule: Forbidden operations -->
+    <block type="rule" id="R3" level="forbidden" desc="No create_file for rewrite">
+      <field name="text">FORBIDDEN: create_file for overview document rewrite - use search_replace instead</field>
+    </block>
+    <block type="rule" id="R4" level="forbidden" desc="No full-file rewrite">
+      <field name="text">FORBIDDEN: Full-file rewrite - always use targeted search_replace on specific sections</field>
+    </block>
+
+    <!-- Checkpoint: Document generated -->
+    <block type="checkpoint" id="CP5b" name="document_generated" desc="Document generated checkpoint">
+      <field name="verify" value="${output_file_exists} == true"/>
+    </block>
+  </sequence>
+
+  <!-- Step 6: Report Results -->
+  <sequence id="S6" name="Step 6: Report Results" status="pending" desc="Generate completion report">
+    <block type="task" id="B6" action="analyze" desc="Generate report">
+      <field name="module_name" value="${module_name}"/>
+      <field name="feature_count" value="${feature_files.length}"/>
+      <field name="entity_count" value="${unique_entities.length}"/>
+      <field name="dependency_count" value="${dependencies.length}"/>
+      <field name="rule_count" value="${business_rules.length}"/>
+      <field name="output" var="completion_report"/>
+    </block>
+
+    <!-- Event: Log completion -->
+    <block type="event" id="E6" action="log" level="info" desc="Log completion">
+      <field name="message">Module summarization completed:
+- Module: ${module_name}
+- Features Processed: ${feature_files.length}
+- Entities Extracted: ${unique_entities.length}
+- Dependencies Identified: ${dependencies.length}
+- Business Rules Summarized: ${business_rules.length}
+- Output: ${module_name}-overview.md (complete)
+- Status: success</field>
+    </block>
+  </sequence>
+
+  <!-- Output Block: Define workflow outputs -->
+  <block type="output" id="O1" desc="Module summarize output results">
+    <field name="status" value="success"/>
+    <field name="module_name" from="${module_name}"/>
+    <field name="output_file" from="${module_name}-overview.md"/>
+    <field name="message" value="Module summarization completed with ${feature_files.length} features processed"/>
+  </block>
+
+</workflow>
+
+## Constraints
+
+### Critical Constraints
+
 > 1. **FORBIDDEN: `create_file` for overview document** — If skeleton exists, use `search_replace`; if not, copy template first then fill with `search_replace`
 > 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
 > 3. **MANDATORY: Template-first workflow** — Template (or existing skeleton) MUST be in place before filling sections
 
+### Content Language
+
 **IMPORTANT**: ALL generated content (entity descriptions, business rules, flow descriptions, section headers, and narrative text) MUST be written in the language specified by the `language` parameter. Only code identifiers, file paths, and technical terms (class names, API endpoints) remain in their original language.
 
-1. **Read Configuration**:
-   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` - Get Mermaid diagram compatibility guidelines
+## Return Value Format
 
-2. **Prepare document file (if not already exists)**:
-   - If the initial skeleton from Step 1 exists at `module_path/module_name-overview.md`:
-     - Use the existing file as the base (sections 1-2 already populated)
-   - If no skeleton exists:
-     - **Read template**: `templates/MODULE-OVERVIEW-TEMPLATE.md`
-     - **Replace top-level placeholders** (module name, language, etc.)
-     - **Create document** using `create_file` at `module_path/module_name-overview.md`
-
-3. **Fill each section using search_replace**:
-
-> ⚠️ **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document** — it destroys template/skeleton structure
-> - **MUST use `search_replace` to fill each section individually**
-> - **All section titles and numbering MUST be preserved**
-> - If a section has no applicable content, keep the section title and replace placeholder with "N/A"
-
-**Locate and fill via `search_replace`:**
-
-**Section 1: Module Basic Info** (from initial version)
-- Keep existing information
-
-**Locate and fill via `search_replace`:**
-
-**Section 2: Feature List** (from initial version)
-- Keep feature list table
-- Ensure all links to {{feature_name}}.md are correct
-
-**Locate and fill via `search_replace`:**
-
-**Section 3: Business Entities** (NEW)
-
-**Backend example:**
-| Entity Name | Description | Key Attributes | Business Rules |
-|---|---|---|---|
-| Order | Order master data | id, orderNo, amount, status | Status flow constraint |
-
-**Frontend example:**
-| Entity Name | Description | Key Attributes | Business Rules |
-|---|---|---|---|
-| OrderState | Order list view state | orders[], selectedOrder, loading, error | loading prevents re-fetch |
-| OrderFormProps | Order form component interface | order: Order, editable: boolean, onSave: Function | order required |
-
-Include ER diagram based on entity relationships.
-
-**Locate and fill via `search_replace`:**
-
-**Section 4: Dependencies** (NEW)
-
-**Backend example:**
-| Direction | Target | Content | Method |
-|---|---|---|---|
-| Uses | UserService | Get user info | API call |
-
-**Frontend example:**
-| Direction | Target | Content | Method |
-|---|---|---|---|
-| Imports | UserStore | Get user state | Store injection |
-| Imports | UserCard | Display user info | Component import |
-
-**Locate and fill via `search_replace`:**
-
-**Section 5: Core Business Flows** (NEW)
-
-Based on feature interactions, identify core flows:
-
-**Backend example:**
-Create Order: Validate params → Calculate amount → Save to DB → Notify downstream
-
-**Frontend example:**
-Order List: Load data → Display list → User selects → Load detail → Display detail → Edit → Submit → Update state
-
-**Locate and fill via `search_replace`:**
-
-**Section 6: Business Rules** (NEW)
-
-| Rule ID | Rule Name | Description | Related Features |
-|---------|-----------|-------------|------------------|
-| R001 | Order amount > 0 | Order total must be positive | create-order |
-| R002 | Stock check | Must check inventory before order | create-order |
-
-Apply source traceability rules (see [Reference Guides > Source Traceability Guide](#source-traceability-guide))
-
-### Step 6: Report Results
-
+```json
+{
+  "status": "success|failed",
+  "module_name": "module_name",
+  "output_file": "module_name-overview.md",
+  "message": "Module summarization completed with N features processed"
+}
 ```
-Module summarization completed:
-- Module: {{module_name}}
-- Features Processed: {{feature_count}}
-- Entities Extracted: {{entity_count}}
-- Dependencies Identified: {{dependency_count}}
-- Business Rules Summarized: {{rule_count}}
-- Output: {{module_name}}-overview.md (complete)
-- Status: success
+
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-module-summarize",
+  "output_files": [
+    "{module_path}/{module_name}-overview.md"
+  ],
+  "summary": "Module overview completed with entities, dependencies, and business rules extracted from {feature_count} features",
+  "metrics": {
+    "modules_processed": 1,
+    "documents_generated": 1,
+    "features_covered": 0
+  },
+  "errors": [],
+  "next_steps": [
+    "Run speccrew-knowledge-system-summarize to aggregate all modules into system overview"
+  ]
+}
 ```
 
 ## Reference Guides
@@ -356,47 +504,6 @@ Frontend (React): `[OrderDetail.tsx](../../../../../src/pages/order/OrderDetail.
 
 > **Note**: This skill focuses on document aggregation only. Knowledge graph data (nodes, edges) is handled separately by the dispatch skill's `process-batch-results.js` script during Stage 2. Module-summarize does NOT read from or write to the knowledge graph.
 
-## Return
-
-**Return Value (JSON format):**
-
-```json
-{
-  "status": "success|failed",
-  "module_name": "module_name",
-  "output_file": "module_name-overview.md",
-  "message": "Module summarization completed with N features processed"
-}
-```
-
----
-
-## Task Completion Report
-
-Upon completion, output the following structured report:
-
-```json
-{
-  "status": "success | partial | failed",
-  "skill": "speccrew-knowledge-module-summarize",
-  "output_files": [
-    "{module_path}/{module_name}-overview.md"
-  ],
-  "summary": "Module overview completed with entities, dependencies, and business rules extracted from {feature_count} features",
-  "metrics": {
-    "modules_processed": 1,
-    "documents_generated": 1,
-    "features_covered": 0
-  },
-  "errors": [],
-  "next_steps": [
-    "Run speccrew-knowledge-system-summarize to aggregate all modules into system overview"
-  ]
-}
-```
-
----
-
 ## Checklist
 
 - [ ] Step 1: Prerequisites read (template, initial overview, feature details)
@@ -405,4 +512,3 @@ Upon completion, output the following structured report:
 - [ ] Step 4: Business rules collected
 - [ ] Step 5: Section 3-6 completed in {{module_name}}-overview.md
 - [ ] Step 6: Results reported
-

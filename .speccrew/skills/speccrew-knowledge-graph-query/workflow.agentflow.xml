@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="knowledge-graph-query" status="pending" version="1.0" desc="Query knowledge graph to find nodes, edges, relationships">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="action" required="true" type="string" desc="Query action: get-node, query-nodes, get-edges, search, trace-upstream, trace-downstream"/>
+    <field name="id" required="false" type="string" desc="Node ID (for get-node, trace-*)"/>
+    <field name="module" required="false" type="string" desc="Filter by module (for query-nodes, search)"/>
+    <field name="type" required="false" type="string" desc="Filter by node type (for query-nodes, search)"/>
+    <field name="keyword" required="false" type="string" desc="Search keyword (for search)"/>
+    <field name="direction" required="false" type="string" desc="Edge direction: in, out, both (for get-edges)"/>
+    <field name="depth" required="false" type="number" default="2" desc="Trace depth (for trace-*)"/>
+    <field name="nodeId" required="false" type="string" desc="Node ID for get-edges"/>
+    <field name="graphRoot" required="true" type="string" desc="Path to graph root directory"/>
+    <field name="skill_path" required="true" type="string" desc="Path to this skill directory"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Query constraints">
+    <field name="text">action must be one of: get-node, query-nodes, get-edges, search, trace-upstream, trace-downstream</field>
+    <field name="text">graphRoot path must be correct (speccrew-workspace/knowledges/bizs/graph)</field>
+    <field name="text">For get-node / trace-*: id must follow {type}-{module}-{name} format</field>
+    <field name="text">For get-edges: direction must be one of in, out, both</field>
+    <field name="text">For trace-*: depth must be a positive integer (default: 2)</field>
+  </block>
+
+  <!-- ============================================================
+       Action Gateway
+       ============================================================ -->
+  <block type="gateway" id="G0" mode="exclusive" desc="Select query action">
+
+    <!-- Action: get-node -->
+    <branch test="${action} == 'get-node'" name="Get Node">
+      <block type="task" id="B1" action="run-script" desc="Get single node by ID">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "get-node" --id "${id}" --graphRoot "${graphRoot}"</field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+    <!-- Action: query-nodes -->
+    <branch test="${action} == 'query-nodes'" name="Query Nodes">
+      <block type="task" id="B2" action="run-script" desc="Query nodes by module and/or type">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "query-nodes" --module "${module}" --type "${type}" --graphRoot "${graphRoot}"</field>
+        <field name="note">module and type parameters are optional filters</field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+    <!-- Action: get-edges -->
+    <branch test="${action} == 'get-edges'" name="Get Edges">
+      <block type="task" id="B3" action="run-script" desc="Get edges for node">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "get-edges" --nodeId "${nodeId}" --direction "${direction}" --graphRoot "${graphRoot}"</field>
+        <field name="rules">
+          Direction values:
+          - in: edges where this node is the target
+          - out: edges where this node is the source
+          - both: all edges connected to this node
+        </field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+    <!-- Action: search -->
+    <branch test="${action} == 'search'" name="Search">
+      <block type="task" id="B4" action="run-script" desc="Search nodes by keyword">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "search" --keyword "${keyword}" --type "${type}" --module "${module}" --graphRoot "${graphRoot}"</field>
+        <field name="note">Searches across name, description, tags, and keywords fields</field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+    <!-- Action: trace-upstream -->
+    <branch test="${action} == 'trace-upstream'" name="Trace Upstream">
+      <block type="task" id="B5" action="run-script" desc="Trace upstream dependencies">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "trace-upstream" --id "${id}" --depth ${depth} --graphRoot "${graphRoot}"</field>
+        <field name="note">Use case: Impact analysis — "If I change this table, what APIs and pages are affected?"</field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+    <!-- Action: trace-downstream -->
+    <branch test="${action} == 'trace-downstream'" name="Trace Downstream">
+      <block type="task" id="B6" action="run-script" desc="Trace downstream dependencies">
+        <field name="command">node "${skill_path}/scripts/graph-query.js" --action "trace-downstream" --id "${id}" --depth ${depth} --graphRoot "${graphRoot}"</field>
+        <field name="note">Use case: Dependency analysis — "What does this page call? What tables does this API touch?"</field>
+        <field name="output" var="query_result"/>
+      </block>
+    </branch>
+
+  </block>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${query_result.status}" type="string" desc="Query result: success or not-found"/>
+    <field name="action" from="${action}" type="string" desc="Action performed"/>
+    <field name="resultCount" from="${query_result.resultCount}" type="number" desc="Number of results returned"/>
+    <field name="data" from="${query_result.data}" type="array" desc="Query result data"/>
+  </block>
+
+</workflow>

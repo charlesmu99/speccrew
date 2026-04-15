@@ -10,291 +10,172 @@ tools: Read, Write, Glob, Grep
 - When user explicitly requests test case design from feature specification
 - When user asks "Design test cases for this feature" or "Create test case matrix"
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
 
-> **These rules apply to ALL document generation steps. Violation = task failure.**
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write the test case design document. It MUST be created by copying the template then filling sections with `search_replace`.
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="test-case-design-main" status="pending" version="1.0" desc="Design structured test cases from Feature Spec and API Contract documents">
 
-2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+  <!-- Input Parameters -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_spec_path" required="true" type="string" desc="Path to feature specification document"/>
+    <field name="api_contract_path" required="false" type="string" desc="Path to API contract document"/>
+    <field name="system_design_path" required="false" type="string" desc="Path to system design document"/>
+    <field name="output_dir" required="true" type="string" desc="Directory for test case design output"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name for output file naming"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform identifier"/>
+    <field name="module" required="true" type="string" desc="Module abbreviation (3-4 letters)"/>
+  </block>
 
-3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections. Skipping copy and writing content directly is FORBIDDEN.
+  <!-- Global Constraints -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">NEVER use create_file to write the test case design document directly</field>
+    <field name="text">MUST copy template first, then fill sections with search_replace</field>
+    <field name="text">NEVER replace entire document content in a single operation</field>
+  </block>
 
-## Step 1: Read Feature Spec
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before filling sections</field>
+    <field name="text">All section titles MUST be preserved</field>
+  </block>
 
-Read the feature spec document specified by `feature_spec_path`:
+  <!-- Main Processing Sequence -->
+  <sequence id="S1" name="Test Case Design" status="pending" desc="Design test cases from feature specifications">
 
-**Default Path Pattern:**
+    <!-- Step 1: Read Feature Spec -->
+    <block type="task" id="B1" action="read-file" desc="Read feature specification document">
+      <field name="path" value="${feature_spec_path}"/>
+      <field name="output" var="feature_spec"/>
+    </block>
+
+    <!-- Step 2: Read API Contract (if provided) -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if API contract path is provided">
+      <branch test="${api_contract_path} != null AND ${api_contract_path} != ''">
+        <block type="task" id="B2" action="read-file" desc="Read API contract document">
+          <field name="path" value="${api_contract_path}"/>
+          <field name="output" var="api_contract"/>
+        </block>
+      </branch>
+      <branch default="true" name="No API Contract">
+        <block type="event" id="E1" action="log" level="info" desc="Log API contract skip">
+          <field name="message">API contract path not provided, skipping API contract analysis</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 3: Read System Design (if provided) -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if system design path is provided">
+      <branch test="${system_design_path} != null AND ${system_design_path} != ''">
+        <block type="task" id="B3" action="read-file" desc="Read system design document">
+          <field name="path" value="${system_design_path}"/>
+          <field name="output" var="system_design"/>
+        </block>
+      </branch>
+      <branch default="true" name="No System Design">
+        <block type="event" id="E2" action="log" level="info" desc="Log system design skip">
+          <field name="message">System design path not provided, skipping system design analysis</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Read Testing Conventions (optional) -->
+    <block type="task" id="B4" action="read-file" desc="Read testing conventions if available">
+      <field name="path" value="speccrew-workspace/knowledges/techs/${platform_id}/conventions-system-test.md"/>
+      <field name="optional" value="true"/>
+      <field name="output" var="testing_conventions"/>
+    </block>
+
+    <!-- Step 5: Analyze Test Dimensions -->
+    <block type="task" id="B5" action="analyze" desc="Analyze test dimensions for comprehensive coverage">
+      <field name="analysis_dimensions">
+        - Functional Positive Tests (Happy Path)
+        - Boundary Value Tests
+        - Exception/Error Handling Tests
+        - Business Rule Constraint Tests
+        - Permission/Security Tests
+        - Data Validation Tests
+        - State Transition Tests (if applicable)
+      </field>
+      <field name="output" var="test_dimensions_analysis"/>
+    </block>
+
+    <!-- Step 6: Generate Test Case Matrix -->
+    <block type="task" id="B6" action="generate" desc="Generate structured test case matrix">
+      <field name="module" value="${module}"/>
+      <field name="naming_convention">TC-{MODULE}-{SEQ}</field>
+      <field name="priority_mapping">
+        - P0 (Critical) → P0-Critical
+        - P1 (Important) → P1-High
+        - P2 (Standard) → P2-Medium
+        - P3 (Minor) → P3-Low
+      </field>
+      <field name="output" var="test_case_matrix"/>
+    </block>
+
+    <!-- Step 7: Coverage Self-Check -->
+    <block type="task" id="B7" action="analyze" desc="Perform coverage self-check against acceptance criteria">
+      <field name="validation_rules">
+        - Each acceptance criterion has corresponding test case(s)
+        - Test case fully validates the criterion
+        - Coverage status marked for each requirement
+      </field>
+      <field name="output" var="coverage_check"/>
+    </block>
+
+    <!-- Step 8: Read Template -->
+    <block type="task" id="B8" action="read-file" desc="Read test case design template">
+      <field name="path" value="speccrew-test-case-design/templates/TEST-CASE-DESIGN-TEMPLATE.md"/>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Step 9: Create Output Document -->
+    <block type="task" id="B9" action="write-file" desc="Create test case design document from template">
+      <field name="path" value="${output_dir}/${feature_name}-test-case-design.md"/>
+      <field name="template" value="${template_content}"/>
+      <field name="output" var="document_created"/>
+    </block>
+
+    <!-- Step 10: Fill Document Sections -->
+    <block type="task" id="B10" action="edit-file" desc="Fill Test Overview section">
+      <field name="path" value="${output_dir}/${feature_name}-test-case-design.md"/>
+      <field name="section">Test Overview</field>
+    </block>
+
+    <block type="task" id="B11" action="edit-file" desc="Fill Test Case Matrix section">
+      <field name="path" value="${output_dir}/${feature_name}-test-case-design.md"/>
+      <field name="section">Test Case Matrix</field>
+    </block>
+
+    <block type="task" id="B12" action="edit-file" desc="Fill Test Data Definition section">
+      <field name="path" value="${output_dir}/${feature_name}-test-case-design.md"/>
+      <field name="section">Test Data Definition</field>
+    </block>
+
+    <block type="task" id="B13" action="edit-file" desc="Fill Coverage Traceability section">
+      <field name="path" value="${output_dir}/${feature_name}-test-case-design.md"/>
+      <field name="section">Coverage Traceability</field>
+    </block>
+
+    <!-- Checkpoint -->
+    <block type="checkpoint" id="CP1" name="document-complete" desc="Verify test case design document is complete">
+      <field name="file" value="${output_dir}/${feature_name}-test-case-design.md"/>
+    </block>
+
+  </sequence>
+
+  <!-- Output Results -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="test_case_design_path" value="${output_dir}/${feature_name}-test-case-design.md" type="string" desc="Path to generated test case design document"/>
+    <field name="test_case_count" type="number" desc="Total number of test cases designed"/>
+    <field name="coverage_status" type="string" desc="Coverage status (full/partial)"/>
+  </block>
+
+</workflow>
 ```
-speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
-```
-
-**Extract Key Information:**
-
-| Section | What to Extract |
-|---------|-----------------|
-| Interaction Flow Description | User scenarios and interaction flows |
-| Business Rule Constraints | Business rules and validation constraints |
-| Data Field Definition | Field definitions, types, and constraints |
-| Acceptance Criteria | Criteria for feature acceptance |
-
-**For Master-Sub PRD Structure:**
-- Read Master Feature Spec for cross-module scenarios
-- Read Sub Feature Specs for module-specific scenarios
-
-## Step 2: Read API Contract
-
-If `api_contract_path` is provided, read the API contract document:
-
-**Default Path Pattern:**
-```
-speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md
-```
-
-**Extract API Information:**
-
-| Item | What to Extract |
-|------|-----------------|
-| Interface Endpoints | API paths and HTTP methods |
-| Request/Response Format | Request body and response structure |
-| Error Codes | Error code definitions and meanings |
-| Interface Constraints | Rate limits, validation rules, etc. |
-
-## Step 3: Read System Design
-
-If `system_design_path` is provided, read the system design document:
-
-**Default Path Pattern:**
-```
-speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/[feature-name]-design.md
-```
-
-**Extract System Context:**
-
-| Item | What to Extract |
-|------|-----------------|
-| Module Dependencies | How this feature depends on other modules |
-| Platform Constraints | Platform-specific interaction constraints |
-| Exception Handling | Error handling mechanisms |
-| State Transitions | State flow if applicable |
-
-## Step 3.5: Read Testing Conventions (Optional)
-
-If available, read the system testing conventions for the platform:
-
-**Path Pattern:**
-```
-speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
-```
-
-**Extract Testing Conventions:**
-
-| Item | What to Extract |
-|------|-----------------|
-| E2E Framework | End-to-end testing framework (Cypress, Playwright, etc.) |
-| Integration Test Patterns | How integration tests are structured |
-| Test Data Management | Fixtures, seeding, mock strategies |
-| API Contract Testing | Contract testing conventions if applicable |
-
-**Fallback Handling:**
-
-IF `conventions-system-test.md` not found:
-1. Use default analysis dimensions defined in Step 4
-2. Proceed without platform-specific testing conventions
-3. Log a note: "Testing conventions file not found, using default analysis dimensions"
-
-## Step 4: Analyze Test Dimensions
-
-Systematically analyze test dimensions to ensure comprehensive coverage:
-
-### 4.1 Functional Positive Tests (Happy Path)
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Core User Scenarios | Main user flows from entry to completion |
-| Data CRUD Operations | Create, Read, Update, Delete operations |
-| Integration Points | Cross-module or external system interactions |
-
-### 4.2 Boundary Value Tests
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Numeric Boundaries | Min, max, zero, negative values |
-| String Boundaries | Empty, max length, special characters |
-| Time/Date Boundaries | Timezone, date range, format edge cases |
-| Collection Boundaries | Empty list, single item, max items |
-
-### 4.3 Exception/Error Handling Tests
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Input Validation Errors | Invalid format, missing required fields |
-| Business Rule Violations | Constraint violations, state conflicts |
-| System Errors | Timeout, service unavailable |
-| Data Errors | Not found, duplicate, conflict |
-
-### 4.4 Business Rule Constraint Tests
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Permission Rules | Role-based access, authorization checks |
-| Data Constraints | Uniqueness, referential integrity |
-| Workflow Rules | State transitions, approval flows |
-| Calculation Rules | Price calculation, quantity limits |
-
-### 4.5 Permission/Security Tests
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Authentication | Unauthenticated access attempts |
-| Authorization | Unauthorized operation attempts |
-| Data Visibility | Cross-tenant or cross-user data access |
-| Sensitive Data | PII handling, data masking |
-
-### 4.6 Data Validation Tests
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Format Validation | Email, phone, URL formats |
-| Type Validation | String, number, boolean, date types |
-| Constraint Validation | Required fields, length limits, ranges |
-| Relationship Validation | Foreign key references, dependencies |
-
-### 4.7 State Transition Tests (If Applicable)
-
-| Analysis Focus | Description |
-|----------------|-------------|
-| Valid Transitions | Allowed state changes |
-| Invalid Transitions | Prohibited state changes |
-| Concurrent Transitions | Race conditions, locking |
-
-## Step 5: Generate Test Case Matrix
-
-Generate structured test cases based on the analysis. Each test case must include:
-
-### 5.1 Test Case Naming Convention
-
-**Format:** `TC-{MODULE}-{SEQ}`
-
-| Component | Description | Example |
-|-----------|-------------|---------|
-| TC | Fixed prefix | TC |
-| MODULE | Module abbreviation (3-4 letters) | ORD, USR, PRD |
-| SEQ | Sequence number (3 digits) | 001, 002, 003 |
-
-**Examples:**
-- `TC-ORD-001` - Order module, test case 1
-- `TC-USR-015` - User module, test case 15
-- `TC-PRD-003` - Product module, test case 3
-
-### 5.2 Test Case Structure
-
-Each test case contains:
-
-| Field | Description |
-|-------|-------------|
-| TC ID | Unique identifier following naming convention |
-| Category | Test dimension classification |
-| Description | Brief description of what is being tested |
-| Preconditions | Required state before test execution |
-| Steps | Numbered list of test execution steps |
-| Input Data | Test data description or reference |
-| Expected Result | Expected outcome after execution |
-| Priority | P0-Critical / P1-High / P2-Medium / P3-Low |
-
-### 5.3 Priority Definition
-
-| Priority | Definition | Example Scenarios |
-|----------|------------|-------------------|
-| P0-Critical | Core functionality, blocks release | Happy path of main feature, security vulnerabilities |
-| P1-High | Important functionality, significant impact | Key business rules, main error handling |
-| P2-Medium | Standard functionality, moderate impact | Edge cases, secondary flows |
-| P3-Low | Minor functionality, low impact | UI polish, rare edge cases |
-
-**Priority Mapping from Feature Spec to Test Cases:**
-
-| Feature Spec Priority | Test Case Priority | Mapping Rationale |
-|-----------------------|-------------------|------------------|
-| P0 (Critical) | P0 (Critical) | Core functionality must have critical test coverage |
-| P1 (Important) | P1 (High) | Important features need high-priority test validation |
-| P2 (Standard) | P2 (Medium) | Standard features receive medium-priority testing |
-| P3 (Minor) | P3 (Low) | Minor features receive low-priority testing |
-| Unspecified | P2 (Medium) | Default to medium priority if not specified |
-
-## Step 6: Coverage Self-Check
-
-### 6.1 Acceptance Criteria Coverage
-
-Cross-reference test cases against Feature Spec acceptance criteria:
-
-```
-For each acceptance criterion:
-  1. Find corresponding test case(s)
-  2. Verify test case fully validates the criterion
-  3. Mark coverage status
-```
-
-### 6.2 Coverage Traceability Matrix
-
-Generate a matrix mapping requirements to test cases:
-
-| Requirement ID | Requirement Description | Test Case IDs | Coverage Status |
-|----------------|------------------------|---------------|-----------------|
-| REQ-001 | {requirement text} | TC-{MOD}-001, TC-{MOD}-002 | Covered |
-| REQ-002 | {requirement text} | - | Not Covered |
-
-### 6.3 Uncovered Items Handling
-
-For any uncovered acceptance criteria:
-
-| Status | Action |
-|--------|--------|
-| Not Covered | Create new test case(s) or document reason for exclusion |
-| Partially Covered | Add additional test cases for missing scenarios |
-
-## Step 7: Write Output
-
-### 7.1 Determine Output Path
-
-**Test Case Design Document:**
-```
-speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/cases/[feature-name]-test-case-design.md
-```
-
-### 7.2 Read Template
-
-Read the template file:
-```
-speccrew-test-case-design/templates/TEST-CASE-DESIGN-TEMPLATE.md
-```
-
-### 7.3 Copy Template to Document Path
-
-1. **Read the template file**: `templates/TEST-CASE-DESIGN-TEMPLATE.md` (loaded in 7.2)
-2. **Replace top-level placeholders** (feature name, module, date, etc.)
-3. **Create the document** using `create_file` at the path from Step 7.1
-4. **Verify**: Document has complete section structure ready for filling
-
-### 7.4 Fill Each Section Using search_replace
-
-Fill each section with test case data using `search_replace`.
-
-> ⚠️ **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document**
-> - **MUST use `search_replace` to fill each section individually**
-> - **All section titles MUST be preserved**
-
-**Section Filling Order:**
-
-| Section | Content Source |
-|---------|---------------|
-| **Test Overview** | Feature name, module, scope, related documents |
-| **Test Case Matrix** | All test cases organized by category from Step 5 |
-| **Test Data Definition** | Normal, boundary, and exception data sets |
-| **Coverage Traceability** | Requirement-to-test-case mapping from Step 6 |
-| **Notes** | Additional information and assumptions |
 
 # Key Rules
 

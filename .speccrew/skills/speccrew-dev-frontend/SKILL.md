@@ -10,9 +10,17 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 - System design confirmed, user requests frontend development
 - User asks "Start frontend development" or "Implement frontend code"
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
+
+## Workflow
+
+### Absolute Constraints
 
 > **These rules apply to Task Record document generation. Violation = task failure.**
 

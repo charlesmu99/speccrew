@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="deploy-migrate" status="pending" version="1.0" desc="Execute database migration and validate results">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platform_id" required="true" type="string" desc="Platform identifier"/>
+    <field name="migration_cmd" required="true" type="string" desc="Migration execution command from conventions-data (e.g., mvn flyway:migrate)"/>
+    <field name="validation_cmd" required="false" type="string" desc="Migration validation command (e.g., mvn flyway:validate)"/>
+    <field name="migration_scripts" required="true" type="string" desc="JSON array of migration scripts: [{name, path, type}]"/>
+    <field name="project_root" required="true" type="string" desc="Absolute path to the project root directory"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Migration execution constraints">
+    <field name="text">Always verify migration script files exist before execution</field>
+    <field name="text">Validation step is optional based on validation_cmd presence</field>
+    <field name="text">Parse migration_scripts JSON to extract script metadata</field>
+    <field name="text">Report tables affected by each migration script</field>
+    <field name="text">Record and report migration execution duration</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Database Migration" status="pending" desc="Pre-check, execute migration, validate results">
+
+    <!-- Step 1: Pre-migration Check -->
+    <block type="task" id="B1" action="analyze" desc="Parse migration scripts JSON">
+      <field name="input">${migration_scripts}</field>
+      <field name="parse_json">true</field>
+      <field name="output" var="scripts_list"/>
+    </block>
+
+    <block type="loop" id="L1" over="${scripts_list}" as="script" desc="Verify each migration script file exists">
+      <block type="task" action="validate" desc="Verify script file exists">
+        <field name="check">file_exists(${script.path})</field>
+        <field name="on_fail">STOP with Error Category: DEPENDENCY_MISSING</field>
+      </block>
+    </block>
+
+    <block type="task" id="B2" action="run-script" desc="Verify migration tool is available">
+      <field name="command">detect tool from "${migration_cmd}" (e.g., mvn, npm, npx) and run version check</field>
+      <field name="on_fail">STOP with Error Category: DEPENDENCY_MISSING</field>
+      <field name="output" var="tool_check_result"/>
+    </block>
+
+    <block type="event" id="E1" action="log" level="info" desc="Log script count">
+      <field name="message">Preparing to execute ${scripts_list.length} migration scripts</field>
+    </block>
+
+    <!-- Step 2: Execute Migration -->
+    <block type="event" id="E2" action="log" level="info" desc="Record migration start time">
+      <field name="output" var="start_time"/>
+    </block>
+
+    <block type="task" id="B3" action="run-script" desc="Execute migration command">
+      <field name="command">${migration_cmd}</field>
+      <field name="working_directory">${project_root}</field>
+      <field name="capture_stdout">true</field>
+      <field name="capture_stderr">true</field>
+      <field name="output" var="migration_result"/>
+    </block>
+
+    <block type="gateway" id="G1" mode="guard" desc="Check migration exit code"
+           test="${migration_result.exit_code} == 0"
+           fail-action="stop">
+      <field name="message">Migration failed with exit code ${migration_result.exit_code}. Error Category: BUILD_FAILURE</field>
+    </block>
+
+    <!-- Step 3: Validate Migration (if validation_cmd provided) -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if validation is required">
+      <branch test="${validation_cmd} != null AND ${validation_cmd} != ''" name="Run Validation">
+        <block type="task" id="B4" action="run-script" desc="Execute validation command">
+          <field name="command">${validation_cmd}</field>
+          <field name="working_directory">${project_root}</field>
+          <field name="capture_output">true</field>
+          <field name="output" var="validation_result"/>
+        </block>
+
+        <block type="gateway" id="G3" mode="guard" desc="Check validation result"
+               test="${validation_result.exit_code} == 0"
+               fail-action="stop">
+          <field name="message">Migration validation failed. Error Category: VALIDATION_ERROR</field>
+        </block>
+
+        <block type="event" action="log" level="info" desc="Log validation passed">
+          <field name="message">Migration validation passed</field>
+          <field name="output" var="validation_status" value="PASSED"/>
+        </block>
+      </branch>
+      <branch default="true" name="Skip Validation">
+        <block type="event" action="log" level="info" desc="Log validation skipped">
+          <field name="message">No validation command provided, skipping validation</field>
+          <field name="output" var="validation_status" value="SKIPPED"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Report Migration Results -->
+    <block type="event" id="E3" action="log" level="info" desc="Record migration end time">
+      <field name="output" var="end_time"/>
+    </block>
+
+    <block type="task" id="B5" action="analyze" desc="Analyze tables affected">
+      <field name="rules">
+        - Parse `type` field from each script:
+          - CREATE TABLE → New table created
+          - ALTER TABLE → Table modified
+          - DROP TABLE → Table removed
+      </field>
+      <field name="output" var="tables_affected"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Migration status"/>
+    <field name="platform_id" from="${platform_id}" type="string" desc="Platform identifier"/>
+    <field name="project_root" from="${project_root}" type="string" desc="Project root path"/>
+    <field name="migration_command" from="${migration_cmd}" type="string" desc="Migration command executed"/>
+    <field name="scripts_executed" from="${scripts_list.length}" type="number" desc="Number of scripts executed"/>
+    <field name="tables_affected" from="${tables_affected}" type="object" desc="Tables affected by migration"/>
+    <field name="validation_status" from="${validation_status}" type="string" desc="Validation status"/>
+    <field name="execution_duration" from="${end_time - start_time}" type="number" desc="Execution duration in seconds"/>
+  </block>
+
+</workflow>

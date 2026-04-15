@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="requirement-analysis-main" status="pending" version="1.0" desc="Generate PRD documents from clarified requirements and module design">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="iteration_path" required="true" type="string" desc="Path to iteration directory"/>
+    <field name="clarification_file" required="false" type="string" desc="Path to clarification summary (default: {iteration_path}/01.product-requirement/.clarification-summary.md)"/>
+    <field name="module_design_file" required="false" type="string" desc="Path to module design (default: {iteration_path}/01.product-requirement/.module-design.md)"/>
+    <field name="language" required="true" type="string" desc="Language code for generated content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">FORBIDDEN: create_file for documents - use search_replace on templates</field>
+    <field name="text">FORBIDDEN: Full-file rewrite - use targeted search_replace</field>
+    <field name="text">MANDATORY: Template-first workflow</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Content boundary constraints">
+    <field name="text">DO NOT include: API definitions, DB structures, code snippets, technical terminology</field>
+    <field name="text">These belong to: Feature Designer or System Designer</field>
+    <field name="text">Required: Use BUSINESS LANGUAGE only</field>
+  </block>
+
+  <block type="rule" id="R3" level="forbidden" desc="Sub-PRD generation constraints">
+    <field name="text">DO NOT generate Sub-PRD files in this Skill - output dispatch plan ONLY</field>
+    <field name="text">DO NOT skip Sub-PRD generation - Sub-PRDs are REQUIRED</field>
+    <field name="text">RETURN control to PM Agent for Phase 4 execution</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="PRD Generation" status="pending" desc="Generate PRD from clarification and modeling artifacts">
+
+    <!-- Step 1: Verify Prerequisites -->
+    <block type="task" id="B1" action="read-file" desc="Read clarification summary">
+      <field name="path" value="${clarification_file}"/>
+      <field name="output" var="clarification_content"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read module design">
+      <field name="path" value="${module_design_file}"/>
+      <field name="output" var="module_design_content"/>
+    </block>
+
+    <!-- Gateway: Validate prerequisites -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify both prerequisite files exist"
+           test="${clarification_content} != null AND ${module_design_content} != null"
+           fail-action="stop">
+      <field name="message">ERROR: Prerequisite files not found. Both .clarification-summary.md AND .module-design.md MUST exist. Run speccrew-pm-requirement-clarify and speccrew-pm-requirement-model first.</field>
+    </block>
+
+    <!-- Step 2: Extract module information -->
+    <block type="task" id="B3" action="analyze" desc="Extract module count and list from module design">
+      <field name="input" value="${module_design_content}"/>
+      <field name="extract">
+        - Module count from "## Module List (Total: N modules)" heading
+        - Module list from Module List table
+        - Dependency matrix from Dependency Matrix table
+        - Implementation phases from Implementation Phases section
+      </field>
+      <field name="output" var="module_info"/>
+    </block>
+
+    <!-- Step 3: Read PRD Template -->
+    <block type="task" id="B4" action="run-script" desc="Search for PRD template">
+      <field name="command">Get-ChildItem -Path "." -Recurse -Filter "PRD-TEMPLATE.md" | Where-Object { $_.FullName -like "*speccrew-pm-requirement-analysis*" } | Select-Object -First 1 -ExpandProperty FullName</field>
+      <field name="output" var="template_path"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read PRD template">
+      <field name="path" value="${template_path}"/>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Step 4: Determine PRD Structure -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Determine PRD structure based on module count">
+      <branch test="${module_info.count} >= 2" name="Master-Sub Structure">
+        <block type="task" id="B6" action="analyze" desc="Set Master-Sub structure">
+          <field name="set_var" name="prd_structure" value="master-sub"/>
+          <field name="set_var" name="sub_prd_count" value="${module_info.count}"/>
+        </block>
+      </branch>
+      <branch test="${module_info.count} < 2" name="Single PRD Structure" default="true">
+        <block type="task" id="B7" action="analyze" desc="Set Single PRD structure">
+          <field name="set_var" name="prd_structure" value="single"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 5: Write Master PRD -->
+    <block type="task" id="B8" action="generate" desc="Generate Master PRD content">
+      <field name="template" value="${template_content}"/>
+      <field name="fill_sections">
+        - Section 1: Background & Goals (system-wide)
+        - Section 2: User Stories (high-level)
+        - Section 3: Functional Requirements (system-level)
+        - Section 4: Non-functional Requirements (system-wide)
+        - Section 5: Acceptance Criteria
+        - Section 8: Module list, dependency matrix, implementation phases
+        - Section 9: Sub-PRD Index (if Master-Sub)
+      </field>
+      <field name="use_business_language_only">true</field>
+      <field name="output_path" value="${iteration_path}/01.product-requirement/{feature-name}-prd.md"/>
+      <field name="output" var="master_prd_path"/>
+    </block>
+
+    <!-- Checkpoint: Master PRD written -->
+    <block type="checkpoint" id="CP1" name="master-prd-written" desc="Verify Master PRD created">
+      <field name="file" value="${master_prd_path}"/>
+      <field name="verify" value="file_exists(${master_prd_path})"/>
+    </block>
+
+    <!-- Step 6: Generate Dispatch Plan (if Master-Sub) -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Generate dispatch plan if Master-Sub structure">
+      <branch test="${prd_structure} == 'master-sub'" name="Generate Dispatch Plan">
+        <block type="loop" id="L1" over="${module_info.modules}" as="module" desc="Build dispatch context for each module">
+          <block type="task" id="B9" action="analyze" desc="Build module context">
+            <field name="build_context">
+              module_id: M{index}
+              module_name: ${module.name}
+              module_key: ${module.key}
+              module_scope: ${module.scope}
+              module_entities: ${module.entities}
+              module_user_stories: ${module.user_stories}
+              module_requirements: ${module.requirements}
+              module_features: ${module.features}
+              module_dependencies: ${module.dependencies}
+            </field>
+            <field name="output" var="module_context"/>
+          </block>
+        </block>
+
+        <block type="task" id="B10" action="analyze" desc="Compile dispatch plan">
+          <field name="compile">
+            dispatch_plan: Array of module contexts
+            master_prd_path: ${master_prd_path}
+            template_path: ${template_path}
+            output_base_path: ${iteration_path}/01.product-requirement
+            feature_name: {extracted from clarification}
+          </field>
+          <field name="output" var="dispatch_plan"/>
+        </block>
+
+        <block type="event" id="E1" action="log" level="info" desc="Log handoff to PM Agent">
+          <field name="message">MANDATORY: RETURN to PM Agent Phase 4 (Sub-PRD Worker Dispatch). PM Agent invokes speccrew-task-worker for each module. Each worker uses speccrew-pm-sub-prd-generate/SKILL.md. After ALL workers complete -> PM Agent executes Phase 5 Verification.</field>
+        </block>
+      </branch>
+      <branch test="${prd_structure} == 'single'" name="Single PRD - Skip Dispatch">
+        <block type="event" id="E2" action="log" level="info" desc="Log single PRD completion">
+          <field name="message">Single PRD structure - no Sub-PRDs needed. PRD generation complete.</field>
+        </block>
+      </branch>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="master_prd_path" from="${master_prd_path}" type="string" desc="Path to generated Master PRD"/>
+    <field name="prd_structure" from="${prd_structure}" type="string" desc="PRD structure type: single or master-sub"/>
+    <field name="dispatch_plan" from="${dispatch_plan}" type="object" desc="Sub-PRD dispatch plan (if Master-Sub)"/>
+    <field name="module_count" from="${module_info.count}" type="number" desc="Number of modules"/>
+    <field name="message" value="PRD generation complete" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

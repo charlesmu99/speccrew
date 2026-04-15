@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="feature-design-main" status="pending" version="1.0" desc="Feature Design and Spec Generation workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_analysis_path" required="true" type="string" desc="Path to .feature-analysis.md"/>
+    <field name="prd_path" required="true" type="string" desc="Path to the Sub-PRD document"/>
+    <field name="feature_id" required="false" type="string" desc="Feature identifier, e.g., F-CRM-01"/>
+    <field name="feature_name" required="false" type="string" desc="Feature name in English"/>
+    <field name="feature_type" required="false" type="string" desc="Page+API or API-only"/>
+    <field name="frontend_platforms" required="false" type="array" desc="List of frontend platforms"/>
+    <field name="output_path" required="false" type="string" desc="Custom output path (auto-generated if not provided)"/>
+    <field name="skip_checkpoint" required="false" type="boolean" default="false" desc="Skip Checkpoint B if true"/>
+    <field name="iteration_id" required="true" type="string" desc="Current iteration identifier"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Phase B Content Filling">
+    <field name="text">NEVER use create_file to rewrite document after skeleton creation</field>
+    <field name="text">NEVER abandon search_replace mid-way and switch to create_file</field>
+    <field name="text">MUST continue using search_replace for EVERY section</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Step 5 (copy template) MUST precede Step 6 (fill content)</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Mermaid diagrams">
+    <field name="text">ALL interaction flows MUST use Mermaid syntax</field>
+    <field name="text">Plain text ASCII flowcharts are FORBIDDEN</field>
+  </block>
+
+  <block type="rule" id="R4" level="forbidden" desc="Rename features">
+    <field name="text">Output filename MUST use exact feature_name parameter value</field>
+    <field name="text">DO NOT translate, abbreviate, or substitute</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Feature Design" status="pending" desc="Generate Feature Spec from analysis">
+
+    <!-- Step 0: Precondition Check -->
+    <block type="task" id="B1" action="read-file" desc="Read feature analysis document">
+      <field name="path" value="${feature_analysis_path}"/>
+      <field name="output" var="feature_analysis"/>
+    </block>
+
+    <!-- Gateway: Validate analysis exists -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify analysis exists"
+           test="${feature_analysis} != null" fail-action="stop">
+      <field name="message">Feature Analysis document not found. Run speccrew-fd-feature-analyze first.</field>
+    </block>
+
+    <!-- Step 0.2: Verify Checkpoint A -->
+    <block type="task" id="B2" action="analyze" desc="Verify Checkpoint A passed">
+      <field name="input" value="${feature_analysis}"/>
+      <field name="verification_rules">
+        - Check function_decomposition.passed == true
+        - Extract feature_id, feature_name, feature_type
+        - Extract functions list
+        - Extract platforms list
+      </field>
+      <field name="output" var="checkpoint_a_status"/>
+    </block>
+
+    <!-- Gateway: Checkpoint A validation -->
+    <block type="gateway" id="G2" mode="guard" desc="Verify Checkpoint A passed"
+           test="${checkpoint_a_status.passed} == true" fail-action="stop">
+      <field name="message">Checkpoint A not passed. Run speccrew-fd-feature-analyze first.</field>
+    </block>
+
+    <!-- Step 0.3: Verify Feature Name Consistency -->
+    <block type="task" id="B3" action="analyze" desc="Check feature name consistency">
+      <field name="input" value="${feature_analysis}">${feature_name}</field>
+      <field name="check_rules">
+        - Compare analysis file Feature Name with feature_name parameter
+        - Log discrepancy if found
+        - Continue with feature_name parameter for file naming
+      </field>
+      <field name="output" var="name_check_result"/>
+    </block>
+
+    <!-- Step 1: Frontend Design (Conditional) -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Conditional frontend design">
+      <branch test="${feature_type} == 'API-only'" name="Skip frontend">
+        <block type="event" id="E1" action="log" level="info" desc="Skipping frontend design">
+          <field name="message">feature_type is API-only, skipping frontend design</field>
+        </block>
+      </branch>
+      <branch default="true" name="Execute frontend design">
+        <block type="task" id="B4" action="analyze" desc="Design UI prototypes">
+          <field name="input" value="${feature_analysis}">${frontend_platforms}</field>
+          <field name="design_rules">
+            - Create ASCII wireframes for each platform
+            - Use Pattern M-A (Card List), M-B (Mobile Form), M-C (Action Sheet) for mobile
+            - Document interface element descriptions
+          </field>
+          <field name="output" var="ui_prototypes"/>
+        </block>
+
+        <block type="task" id="B5" action="analyze" desc="Design interaction flows">
+          <field name="input" value="${feature_analysis}">${ui_prototypes}</field>
+          <field name="design_rules">
+            - Document User Action → Frontend Response → Backend API Call
+            - Generate Mermaid sequenceDiagram for each flow
+            - Map cross-module data flows (ISA-95 Stage 4)
+          </field>
+          <field name="output" var="interaction_flows"/>
+        </block>
+
+        <block type="task" id="B6" action="analyze" desc="Map backend APIs">
+          <field name="input" value="${interaction_flows}">${feature_analysis}</field>
+          <field name="mapping_rules">
+            - Map each frontend action to backend API endpoint
+            - Document data exchanged
+          </field>
+          <field name="output" var="api_mapping"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 2: Backend Design -->
+    <block type="task" id="B7" action="analyze" desc="Design backend interfaces">
+      <field name="input" value="${feature_analysis}">${api_mapping}</field>
+      <field name="design_rules">
+        - List API/Interface with method and description
+        - Document processing logic flow (Mermaid flowchart TD)
+        - Document data access scheme (Read/Write targets)
+        - Document cross-module interactions
+      </field>
+      <field name="output" var="backend_design"/>
+    </block>
+
+    <!-- Step 3: Data Model and Business Rules -->
+    <block type="task" id="B8" action="analyze" desc="Design data model">
+      <field name="input" value="${feature_analysis}">${backend_design}</field>
+      <field name="design_rules">
+        - Define new data structures (field, type, constraints, description)
+        - Document modifications to existing structures
+        - Define data relationships (1:1, 1:N, N:M)
+        - Document data sources
+        - Define permission rules
+        - Define business logic rules (Rule ID, Description, Trigger, Action)
+        - Define validation rules (Frontend and Backend)
+      </field>
+      <field name="output" var="data_model"/>
+    </block>
+
+    <!-- Step 4: Checkpoint B -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Handle checkpoint B">
+      <branch test="${skip_checkpoint} == true" name="Skip confirmation">
+        <block type="event" id="E2" action="log" level="info" desc="Skipping checkpoint B">
+          <field name="message">skip_checkpoint=true, proceeding without user confirmation</field>
+        </block>
+      </branch>
+      <branch default="true" name="Request confirmation">
+        <block type="event" id="E3" action="confirm" title="Feature Design Summary - Checkpoint B" type="yesno" desc="Present design summary for confirmation">
+          <field name="preview">Feature: ${feature_name} (${feature_id})
+
+FUNCTIONS DESIGNED
+Total: ${feature_analysis.function_count} functions
+
+SYSTEM RELATIONSHIP SUMMARY
+- [EXISTING]: ${feature_analysis.existing_count} - Reuse existing capabilities
+- [MODIFIED]: ${feature_analysis.modified_count} - Enhance existing features
+- [NEW]: ${feature_analysis.new_count} - Create new functionality
+
+FRONTEND COMPONENTS
+- Platforms: ${frontend_platforms}
+- Total Functions with UI: ${ui_prototypes.function_count}
+
+BACKEND INTERFACES
+- Total APIs: ${backend_design.api_count}
+- Cross-Module Interactions: ${backend_design.cross_module_count}
+
+DATA ENTITIES
+- New Entities: ${data_model.new_entities_count}
+- Modified Entities: ${data_model.modified_entities_count}
+- Business Rules: ${data_model.business_rules_count}
+
+Please confirm:
+1. Function Coverage: Does this design cover all functions?
+2. System Relationship Markers: Are [EXISTING]/[MODIFIED]/[NEW] markers accurate?
+3. UI/UX Approach: Do wireframes match expectations?
+4. Backend Interface Scope: Are API endpoints correctly identified?
+5. Data Model Completeness: Does it cover all fields and relationships?
+6. Business Perspective: Verify NO file paths, framework names, code snippets, SQL, or technical types</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4.3: Update Checkpoint B -->
+    <block type="task" id="B9" action="run-script" desc="Record checkpoint B passed">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${workspace_path}/iterations/${iteration_id}/02.feature-design/.checkpoints.json" --stage 02_feature_design --checkpoint feature_design_review --passed true</field>
+      <field name="output" var="checkpoint_b_result"/>
+    </block>
+
+    <!-- Step 5: Determine Output Path and Copy Template -->
+    <block type="task" id="B10" action="read-file" desc="Read Feature Spec template">
+      <field name="path">speccrew-fd-feature-design/templates/FEATURE-SPEC-TEMPLATE.md</field>
+      <field name="output" var="template_content"/>
+    </block>
+
+    <!-- Gateway: Determine output path mode -->
+    <block type="gateway" id="G5" mode="exclusive" desc="Determine output path">
+      <branch test="${feature_id} != null" name="Single Feature Mode">
+        <block type="task" id="B11" action="generate" desc="Create document from template">
+          <field name="template" value="${template_content}"/>
+          <field name="placeholders">
+            - [Feature Name] → ${feature_name}
+            - {Feature ID} → ${feature_id}
+            - {Feature Name} → ${feature_name}
+            - {Page+API / API-only} → ${feature_type}
+            - {Link to Sub-PRD} → ${prd_path}
+          </field>
+          <field name="output_path">${workspace_path}/iterations/${iteration_id}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md</field>
+          <field name="output" var="document_created"/>
+        </block>
+      </branch>
+      <branch default="true" name="Legacy Mode">
+        <block type="task" id="B12" action="generate" desc="Create document from template">
+          <field name="template" value="${template_content}"/>
+          <field name="placeholders">
+            - [Feature Name] → ${feature_name}
+            - {Feature ID} → ${feature_id}
+            - {Feature Name} → ${feature_name}
+            - {Page+API / API-only} → ${feature_type}
+            - {Link to Sub-PRD} → ${prd_path}
+          </field>
+          <field name="output_path">${workspace_path}/iterations/${iteration_id}/02.feature-design/${feature_name}-feature-spec.md</field>
+          <field name="output" var="document_created"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 6: Fill Sections Using search_replace -->
+    <block type="loop" id="L1" over="${feature_analysis.functions}" as="function" desc="Fill each function section">
+      <block type="task" id="B13" action="edit-file" desc="Fill Frontend Prototype section">
+        <field name="path">${output_path}</field>
+        <field name="operation">search_replace</field>
+        <field name="search">#### ${function.id}.1 Frontend Prototype
+
+[TO BE FILLED]</field>
+        <field name="replace">#### ${function.id}.1 Frontend Prototype
+
+${ui_prototypes[function.id]}</field>
+      </block>
+
+      <block type="task" id="B14" action="edit-file" desc="Fill Interaction Flow section">
+        <field name="path">${output_path}</field>
+        <field name="operation">search_replace</field>
+        <field name="search">#### ${function.id}.2 Interaction Flow
+
+[TO BE FILLED]</field>
+        <field name="replace">#### ${function.id}.2 Interaction Flow
+
+${interaction_flows[function.id]}</field>
+      </block>
+
+      <block type="task" id="B15" action="edit-file" desc="Fill Backend Interface section">
+        <field name="path">${output_path}</field>
+        <field name="operation">search_replace</field>
+        <field name="search">#### ${function.id}.3 Backend Interface
+
+[TO BE FILLED]</field>
+        <field name="replace">#### ${function.id}.3 Backend Interface
+
+${backend_design[function.id]}</field>
+      </block>
+
+      <block type="task" id="B16" action="edit-file" desc="Fill Data Definition section">
+        <field name="path">${output_path}</field>
+        <field name="operation">search_replace</field>
+        <field name="search">#### ${function.id}.4 Data Definition
+
+[TO BE FILLED]</field>
+        <field name="replace">#### ${function.id}.4 Data Definition
+
+${data_model[function.id]}</field>
+      </block>
+    </block>
+
+    <!-- Step 7: Mermaid Diagram Compliance -->
+    <block type="task" id="B17" action="analyze" desc="Verify Mermaid compliance">
+      <field name="input" value="${output_path}"/>
+      <field name="verification_rules">
+        - NO style definitions (classDef, style)
+        - NO HTML tags (<br/>, <b>)
+        - Use standard syntax only (sequenceDiagram, flowchart TD)
+      </field>
+      <field name="output" var="mermaid_check"/>
+    </block>
+
+    <!-- Step 8: Update Checkpoint -->
+    <block type="task" id="B18" action="run-script" desc="Record feature spec review checkpoint">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${workspace_path}/iterations/${iteration_id}/02.feature-design/.checkpoints.json" --stage 02_feature_design --checkpoint feature_spec_review --passed true</field>
+    </block>
+
+    <!-- Step 9: Update Progress with Metadata -->
+    <block type="task" id="B19" action="run-script" desc="Update dispatch progress with metadata">
+      <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${workspace_path}/iterations/${iteration_id}/DISPATCH-PROGRESS.json" --task-id "${feature_id}" --status completed --metadata '{"function_count": ${feature_analysis.function_count}, "component_count": ${ui_prototypes.component_count}, "api_count": ${backend_design.api_count}, "entity_count": ${data_model.entity_count}}'</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="feature_spec_path" value="${output_path}" type="string" desc="Path to generated Feature Spec"/>
+    <field name="function_count" from="${feature_analysis.function_count}" type="number" desc="Number of functions designed"/>
+    <field name="api_count" from="${backend_design.api_count}" type="number" desc="Number of APIs defined"/>
+    <field name="checkpoint_b_status" value="passed" type="string" desc="Checkpoint B status"/>
+  </block>
+
+</workflow>

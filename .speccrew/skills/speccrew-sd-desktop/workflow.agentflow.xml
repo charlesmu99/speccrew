@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="sd-desktop-main" status="pending" version="1.0" desc="Desktop System Design workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="feature_name" required="true" type="string" desc="Feature name"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform, e.g., desktop-electron, desktop-tauri"/>
+    <field name="iteration_path" required="true" type="string" desc="Absolute path to iteration directory"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace"/>
+    <field name="task_id" required="false" type="string" desc="Task ID from dispatch context"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document creation constraints">
+    <field name="text">NEVER use create_file to write design documents or INDEX directly</field>
+    <field name="text">MUST create by copying template then filling with search_replace</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Full-file rewrite prohibition">
+    <field name="text">NEVER replace entire document content in single operation</field>
+    <field name="text">ALWAYS use targeted search_replace on specific sections</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before fill sections</field>
+    <field name="text">Skipping copy and writing content directly is FORBIDDEN</field>
+  </block>
+
+  <block type="rule" id="R4" level="mandatory" desc="Actual framework syntax">
+    <field name="text">All pseudo-code MUST use actual framework syntax from techs knowledge</field>
+    <field name="text">Include actual import statements and API patterns</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Desktop System Design" status="pending" desc="Generate desktop detailed design documents">
+
+    <!-- Step 1: Read Inputs -->
+    <block type="task" id="B1" action="read-file" desc="Read Feature Spec document">
+      <field name="path">${iteration_path}/02.feature-design/${feature_name}-feature-spec.md</field>
+      <field name="output" var="feature_spec"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read API Contract">
+      <field name="path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="output" var="api_contract"/>
+    </block>
+
+    <!-- Read Techs Knowledge -->
+    <block type="task" id="B3" action="read-file" desc="Read tech-stack.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/tech-stack.md</field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read architecture.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/architecture.md</field>
+      <field name="output" var="architecture"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read conventions-design.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/conventions-design.md</field>
+      <field name="output" var="conventions_design"/>
+    </block>
+
+    <block type="task" id="B6" action="read-file" desc="Read conventions-dev.md">
+      <field name="path">${workspace_path}/knowledges/techs/${platform_id}/conventions-dev.md</field>
+      <field name="output" var="conventions_dev"/>
+    </block>
+
+    <!-- Step 2: Analyze Existing Code Structure -->
+    <block type="task" id="B7" action="analyze" desc="Analyze desktop codebase structure">
+      <field name="analysis_targets">
+        - Main process: src/main/**/*.{ts,js} or src-tauri/src/**/*.rs
+        - Renderer process: src/renderer/**/*.{tsx,vue,html}
+        - IPC definitions: src/main/ipc/**/* or src-tauri/src/commands/**/*.rs
+        - Window management patterns
+        - Preload scripts: src/preload/**/* or preload.{ts,js}
+        - Native modules: src/main/native/**/*
+        - State management: src/renderer/stores/**/* or src/stores/**/*
+        - API layer: src/renderer/apis/**/* or src/apis/**/*
+      </field>
+      <field name="output" var="codebase_analysis"/>
+    </block>
+
+    <!-- Step 3: Extract Functions from Feature Spec -->
+    <block type="task" id="B8" action="analyze" desc="Extract desktop functions">
+      <field name="input" value="${feature_spec}">${api_contract}</field>
+      <field name="extraction_rules">
+        - Parse Feature Spec Section 2.N pattern
+        - Extract UI prototype for each function
+        - Extract interaction flow
+        - Extract backend API calls from API Contract
+        - Extract local operations (file system, native API, local DB)
+        - Extract data requirements
+        - Mark components as [EXISTING], [MODIFIED], or [NEW]
+      </field>
+      <field name="output" var="extracted_functions"/>
+    </block>
+
+    <!-- Checkpoint A: Present function extraction summary -->
+    <block type="event" id="E1" action="confirm" title="Function Extraction Confirmation" type="yesno" desc="Present function extraction summary">
+      <field name="preview">Desktop Functions Extracted for: ${feature_name}
+Platform: ${platform_id}
+
+Function Extraction Summary:
+${extracted_functions.summary}
+
+Component Markers:
+- [NEW]: ${extracted_functions.new_count} components
+- [MODIFIED]: ${extracted_functions.modified_count} components
+- [EXISTING]: ${extracted_functions.existing_count} components
+
+Confirm function extraction before proceeding?</field>
+    </block>
+
+    <!-- Step 4: Generate Module Design Documents -->
+    <block type="task" id="B9" action="read-file" desc="Read design template">
+      <field name="path">speccrew-sd-desktop/templates/SD-DESKTOP-TEMPLATE.md</field>
+      <field name="output" var="design_template"/>
+    </block>
+
+    <!-- Loop: Generate design for each function -->
+    <block type="loop" id="L1" over="${extracted_functions.functions}" as="function" desc="Generate module design documents">
+      <block type="task" id="B10" action="generate" desc="Copy template and create document">
+        <field name="template" value="${design_template}"/>
+        <field name="placeholders">
+          - {Module Name} → ${function.module_name}
+          - {Feature Name} → ${feature_name}
+          - {Platform ID} → ${platform_id}
+        </field>
+        <field name="output_path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="output" var="module_doc_created"/>
+      </block>
+
+      <block type="task" id="B11" action="edit-file" desc="Fill Process Architecture section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${architecture}${tech_stack}</field>
+        <field name="section">Process Architecture</field>
+      </block>
+
+      <block type="task" id="B12" action="edit-file" desc="Fill IPC Channels section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_design}${function}</field>
+        <field name="section">IPC Channels</field>
+      </block>
+
+      <block type="task" id="B13" action="edit-file" desc="Fill Window Design section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${feature_spec}${conventions_design}</field>
+        <field name="section">Window Design</field>
+      </block>
+
+      <block type="task" id="B14" action="edit-file" desc="Fill Native Integration section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${function}${tech_stack}</field>
+        <field name="section">Native Integration</field>
+      </block>
+
+      <block type="task" id="B15" action="edit-file" desc="Fill Local Storage section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_data}</field>
+        <field name="section">Local Storage</field>
+      </block>
+
+      <block type="task" id="B16" action="edit-file" desc="Fill Security section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${architecture}${conventions_design}</field>
+        <field name="section">Security</field>
+      </block>
+
+      <block type="task" id="B17" action="edit-file" desc="Fill Auto-update section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${tech_stack}</field>
+        <field name="section">Auto-update</field>
+      </block>
+
+      <block type="task" id="B18" action="edit-file" desc="Fill Pseudo-code section">
+        <field name="path">${iteration_path}/03.system-design/${platform_id}/${function.module_name}-design.md</field>
+        <field name="operation">search_replace</field>
+        <field name="content_source">${conventions_dev}${function}</field>
+        <field name="section">Pseudo-code</field>
+      </block>
+    </block>
+
+    <!-- Step 5: Generate Platform INDEX.md -->
+    <block type="task" id="B19" action="read-file" desc="Read index template">
+      <field name="path">speccrew-sd-desktop/templates/INDEX-TEMPLATE.md</field>
+      <field name="output" var="index_template"/>
+    </block>
+
+    <block type="task" id="B20" action="generate" desc="Create INDEX.md from template">
+      <field name="template" value="${index_template}"/>
+      <field name="placeholders">
+        - {Platform Name} → ${platform_id}
+        - {Feature Name} → ${feature_name}
+      </field>
+      <field name="output_path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+    </block>
+
+    <block type="task" id="B21" action="edit-file" desc="Fill Tech Stack Summary">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${tech_stack}</field>
+      <field name="section">Tech Stack Summary</field>
+    </block>
+
+    <block type="task" id="B22" action="edit-file" desc="Fill Target Operating Systems">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${tech_stack}</field>
+      <field name="section">Target Operating Systems</field>
+    </block>
+
+    <block type="task" id="B23" action="edit-file" desc="Fill Process Architecture Strategy">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${architecture}</field>
+      <field name="section">Process Architecture Strategy</field>
+    </block>
+
+    <block type="task" id="B24" action="edit-file" desc="Fill IPC Patterns">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${conventions_design}</field>
+      <field name="section">IPC Patterns</field>
+    </block>
+
+    <block type="task" id="B25" action="edit-file" desc="Fill Security Model">
+      <field name="path">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="operation">search_replace</field>
+      <field name="content_source">${architecture}</field>
+      <field name="section">Security Model</field>
+    </block>
+
+    <!-- Step 6: Present Summary -->
+    <block type="event" id="E2" action="log" level="info" desc="Present design summary">
+      <field name="message">Desktop System Design Summary for: ${feature_name}
+Platform: ${platform_id}
+Framework: ${tech_stack.framework}
+
+Module Design Documents: ${extracted_functions.design_count}
+${extracted_functions.file_list}
+
+Key Design Decisions:
+- Process Architecture: ${architecture.process_model}
+- IPC Strategy: ${conventions_design.ipc_pattern}
+- State Management: ${conventions_design.state_management}
+- Security Model: ${architecture.security_model}
+- Auto-Update: ${tech_stack.updater}
+
+Please confirm:
+1. Are the process architectures appropriate?
+2. Is the IPC communication design correct?
+3. Do the pseudo-code patterns match project conventions?
+4. Are all API calls from API Contract covered?
+5. Is the native integration approach suitable?</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" value="SUCCESS" type="string" desc="Task completion status"/>
+    <field name="task_id" from="${task_id}" type="string" desc="Task ID"/>
+    <field name="platform" value="${platform_id}" type="string" desc="Target platform"/>
+    <field name="feature" value="${feature_name}" type="string" desc="Feature name"/>
+    <field name="output_files" type="array" desc="List of generated files">
+      <field name="file">${iteration_path}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="files" from="${extracted_functions.output_files}"/>
+    </field>
+    <field name="summary" value="Desktop system design completed for ${feature_name} on ${platform_id}" type="string" desc="Completion summary"/>
+  </block>
+
+</workflow>

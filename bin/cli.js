@@ -15,6 +15,7 @@ Commands:
   init        Initialize SpecCrew in the current project
   update      Update SpecCrew agents and skills
   doctor      Check environment and installation health
+  validate    Validate AgentFlow XML files
   uninstall   Remove SpecCrew from the current project
   list        List installed agents and skills
 
@@ -38,6 +39,12 @@ switch (command) {
     break;
   case 'doctor':
     require('../lib/commands/doctor').run(projectRoot, args);
+    break;
+  case 'validate':
+    const success = require('../lib/commands/validate').run(projectRoot, args);
+    if (!success) {
+      process.exit(1);
+    }
     break;
   case 'uninstall':
     require('../lib/commands/uninstall').run(projectRoot, args).then((result) => {

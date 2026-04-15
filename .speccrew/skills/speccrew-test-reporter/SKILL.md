@@ -25,190 +25,211 @@ tools: Read, Write, Glob, Grep
 **Upstream Dependencies**: speccrew-test-runner
 **Downstream Consumers**: speccrew-test-manager, development teams, QA teams
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
 
-> **These rules apply to ALL document generation steps. Violation = task failure.**
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-1. **FORBIDDEN: `create_file` for documents** — NEVER use `create_file` to write test reports or bug reports. Documents MUST be created by copying the template then filling sections with `search_replace`.
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="test-reporter-main" status="pending" version="1.0" desc="Generate comprehensive test reports and individual bug reports from test execution results">
 
-2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+  <!-- Input Parameters -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="execution_results_path" required="true" type="string" desc="Path to test execution results from speccrew-test-runner"/>
+    <field name="test_cases_path" required="true" type="string" desc="Path to test cases document with expected results"/>
+    <field name="output_dir" required="true" type="string" desc="Directory for report output"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name for output file naming"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform identifier"/>
+  </block>
 
-3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections.
+  <!-- Global Constraints -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">NEVER use create_file to write test reports or bug reports directly</field>
+    <field name="text">MUST copy template first, then fill sections with search_replace</field>
+    <field name="text">NEVER replace entire document content in a single operation</field>
+  </block>
 
-4. **MUST: One Bug Per File** — Each failed test gets its own bug report file for independent tracking.
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before filling sections</field>
+    <field name="text">All section titles MUST be preserved</field>
+  </block>
 
-5. **MUST: Severity Classification** — Always classify bug severity for prioritization.
+  <block type="rule" id="R3" level="mandatory" desc="Bug report requirements">
+    <field name="text">Each failed test gets its own bug report file for independent tracking</field>
+    <field name="text">Always classify bug severity for prioritization</field>
+    <field name="text">Bug reports must include suggested fix direction</field>
+  </block>
 
-6. **MUST: Actionable Reports** — Bug reports must include suggested fix direction.
+  <!-- Main Processing Sequence -->
+  <sequence id="S1" name="Test Reporting" status="pending" desc="Generate test reports and bug reports">
 
-## Input Parameters
+    <!-- Step 1: Read Inputs -->
+    <block type="task" id="B1" action="read-file" desc="Read test execution results">
+      <field name="path" value="${execution_results_path}"/>
+      <field name="output" var="execution_results"/>
+    </block>
 
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `execution_results_path` | Yes | Path to test execution results from speccrew-test-runner |
-| `test_cases_path` | Yes | Path to test cases document with expected results |
-| `output_dir` | Yes | Directory for report output |
-| `feature_name` | Yes | Feature name for output file naming |
-| `platform_id` | Yes | Target platform identifier |
+    <block type="task" id="B2" action="read-file" desc="Read test cases document">
+      <field name="path" value="${test_cases_path}"/>
+      <field name="output" var="test_cases"/>
+    </block>
 
-## Step 1: Read Inputs
+    <!-- Step 2: Analyze Execution Results -->
+    <block type="task" id="B3" action="analyze" desc="Extract summary statistics">
+      <field name="extract_fields">
+        - total_tests
+        - passed
+        - failed
+        - errors
+        - skipped
+        - pass_rate
+        - execution_duration
+        - platform
+        - framework
+      </field>
+      <field name="output" var="summary_stats"/>
+    </block>
 
-Read the following documents in order:
+    <block type="task" id="B4" action="analyze" desc="Identify failed tests">
+      <field name="filter_status">FAIL, ERROR, SKIP</field>
+      <field name="output" var="failed_tests"/>
+    </block>
 
-1. **Test Execution Results**: `execution_results_path`
-   - Structured execution data from speccrew-test-runner
-   - Contains test results, deviations, environment info
+    <block type="task" id="B5" action="analyze" desc="Classify by test dimension">
+      <field name="dimensions">
+        - Happy Path
+        - Boundary Value
+        - Exception Handling
+        - Business Rules
+        - Permission/Security
+        - Data Validation
+      </field>
+      <field name="output" var="dimension_breakdown"/>
+    </block>
 
-2. **Test Cases Document**: `test_cases_path`
-   - Original test case definitions with expected results
-   - Used for detailed comparison and bug report generation
+    <!-- Step 3: Generate Test Report -->
+    <block type="task" id="B6" action="read-file" desc="Read test report template">
+      <field name="path" value="speccrew-test-reporter/templates/TEST-REPORT-TEMPLATE.md"/>
+      <field name="output" var="report_template"/>
+    </block>
 
-**Input Validation**:
-- Verify execution results document exists and follows expected format
-- If input is missing or malformed, report to user and stop
+    <block type="task" id="B7" action="write-file" desc="Create test report document">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="template" value="${report_template}"/>
+      <field name="output" var="report_created"/>
+    </block>
 
-## Step 2: Analyze Execution Results
+    <block type="task" id="B8" action="edit-file" desc="Fill Execution Summary section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Execution Summary</field>
+    </block>
 
-### 2.1 Extract Summary Statistics
+    <block type="task" id="B9" action="edit-file" desc="Fill Results Overview section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Results Overview</field>
+    </block>
 
-Parse execution results to extract:
-- Total tests executed
-- Pass/fail/error/skip counts
-- Pass rate percentage
-- Execution duration
-- Platform and framework information
+    <block type="task" id="B10" action="edit-file" desc="Fill Results by Test Dimension section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Results by Test Dimension</field>
+    </block>
 
-### 2.2 Identify Failed Tests
+    <block type="task" id="B11" action="edit-file" desc="Fill Failed Test Details section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Failed Test Details</field>
+    </block>
 
-Extract all tests with status FAIL, ERROR, or SKIP:
-- TC ID for traceability
-- Test name and description
-- Error messages and stack traces
-- Expected vs actual results
+    <block type="task" id="B12" action="edit-file" desc="Fill Coverage Status section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Coverage Status</field>
+    </block>
 
-### 2.3 Classify by Test Dimension
+    <block type="task" id="B13" action="edit-file" desc="Fill Environment Information section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Environment Information</field>
+    </block>
 
-Group results by test dimension (if available):
-- Happy Path
-- Boundary Value
-- Exception Handling
-- Business Rules
-- Permission/Security
-- Data Validation
+    <block type="task" id="B14" action="edit-file" desc="Fill Recommendations section">
+      <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+      <field name="section">Recommendations</field>
+    </block>
 
-## Step 3: Generate Test Report
+    <!-- Step 4: Generate Bug Reports -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if there are failed tests">
+      <branch test="${failed_tests.count} > 0">
+        <block type="task" id="B15" action="read-file" desc="Read bug report template">
+          <field name="path" value="speccrew-test-reporter/templates/BUG-REPORT-TEMPLATE.md"/>
+          <field name="output" var="bug_template"/>
+        </block>
 
-### 3.1 Read Template
+        <block type="loop" id="L1" over="${failed_tests.items}" as="failure" desc="Generate bug report for each failure">
+          <block type="task" id="B16" action="analyze" desc="Determine bug severity">
+            <field name="severity_criteria">
+              - Critical: Blocks core functionality, no workaround
+              - High: Major feature broken, workaround exists
+              - Medium: Minor feature issue, cosmetic problem
+              - Low: Enhancement, minor improvement
+            </field>
+            <field name="output" var="bug_severity"/>
+          </block>
 
-Read template: `templates/TEST-REPORT-TEMPLATE.md`
+          <block type="task" id="B17" action="analyze" desc="Perform root cause analysis">
+            <field name="analysis_aspects">
+              - Error Category: Syntax, Logic, Integration, Environment, Performance
+              - Impact Assessment: What functionality is affected
+              - Likely Cause: Probable source of the issue
+              - Suggested Fix: Direction for resolution
+            </field>
+            <field name="output" var="root_cause_analysis"/>
+          </block>
 
-### 3.2 Copy Template to Report Path
+          <block type="task" id="B18" action="write-file" desc="Create bug report">
+            <field name="path" value="${output_dir}/bugs/${feature_name}-bug-${failure.sequence}.md"/>
+            <field name="template" value="${bug_template}"/>
+          </block>
 
-1. **Read template** from Step 3.1
-2. **Replace top-level placeholders** (feature name, platform, execution date, etc.)
-3. **Create the document** using `create_file` at: `{output_dir}/reports/{feature}-test-report.md`
-4. **Verify**: Document has complete section structure
+          <block type="task" id="B19" action="edit-file" desc="Fill Bug Description section"/>
+          <block type="task" id="B20" action="edit-file" desc="Fill Reproduction Steps section"/>
+          <block type="task" id="B21" action="edit-file" desc="Fill Expected vs Actual section"/>
+          <block type="task" id="B22" action="edit-file" desc="Fill Error Log section"/>
+          <block type="task" id="B23" action="edit-file" desc="Fill Root Cause Analysis section"/>
+          <block type="task" id="B24" action="edit-file" desc="Fill Suggested Fix section"/>
+        </block>
+      </branch>
+    </block>
 
-### 3.3 Fill Each Section Using search_replace
+    <!-- Step 5: Update Test Report with Bug Links -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if bug reports were generated">
+      <branch test="${failed_tests.count} > 0">
+        <block type="task" id="B25" action="edit-file" desc="Update Failed Test Details with bug links">
+          <field name="path" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+          <field name="section">Failed Test Details</field>
+        </block>
+      </branch>
+    </block>
 
-Fill each section with test execution data.
+    <!-- Checkpoint -->
+    <block type="checkpoint" id="CP1" name="reports-generated" desc="Verify test report generated">
+      <field name="file" value="${output_dir}/reports/${feature_name}-test-report.md"/>
+    </block>
 
-> **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document**
-> - **MUST use `search_replace` to fill each section individually**
-> - **All section titles MUST be preserved**
+  </sequence>
 
-**Section Filling Guide:**
+  <!-- Output Results -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="test_report_path" value="${output_dir}/reports/${feature_name}-test-report.md" type="string" desc="Path to generated test report"/>
+    <field name="bug_reports_dir" value="${output_dir}/bugs/" type="string" desc="Directory containing bug reports"/>
+    <field name="total_tests" type="number" desc="Total number of tests"/>
+    <field name="passed_tests" type="number" desc="Number of passed tests"/>
+    <field name="failed_tests" type="number" desc="Number of failed tests"/>
+    <field name="bug_report_count" type="number" desc="Number of bug reports generated"/>
+    <field name="pass_rate" type="string" desc="Overall pass rate percentage"/>
+  </block>
 
-| Section | Content |
-|---------|---------|
-| **Execution Summary** | Feature name and platform, test framework and version, execution date and duration, overall pass rate |
-| **Results Overview** | Counts and percentages for all result types, visual pass/fail indication |
-| **Results by Test Dimension** | Breakdown by test type (happy path, boundary, exception, etc.), pass rate per dimension |
-| **Failed Test Details** | Table of all failed tests, links to corresponding bug reports |
-| **Coverage Status** | Requirement-to-test-case mapping, status per requirement |
-| **Environment Information** | OS, runtime, framework versions, key dependencies |
-| **Recommendations** | Priority fixes needed, suggested next steps |
-
-## Step 4: Generate Bug Reports
-
-### 4.1 Read Template
-
-Read template: `templates/BUG-REPORT-TEMPLATE.md`
-
-### 4.2 Create Bug Reports Directory
-
-Ensure directory exists: `{output_dir}/bugs/`
-
-### 4.3 Generate Bug Report for Each Failure
-
-For each FAIL or ERROR type failure:
-
-1. **Read template** from Step 4.1: `templates/BUG-REPORT-TEMPLATE.md`
-2. **Replace top-level placeholders** (Bug ID, feature name, TC ID)
-3. **Create document** using `create_file` at: `{output_dir}/bugs/{feature}-bug-{seq}.md`
-
-### 4.4 Fill Each Bug Report Using search_replace
-
-For each bug report created in 4.3, fill sections using `search_replace`:
-
-> **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document**
-> - **MUST use `search_replace` to fill each section individually**
-
-**Section Filling Guide:**
-
-1. **Assign Bug ID**: `BUG-{feature}-{seq}` (sequential numbering)
-
-2. **Determine Severity**:
-   | Criteria | Severity |
-   |----------|----------|
-   | Blocks core functionality, no workaround | Critical |
-   | Major feature broken, workaround exists | High |
-   | Minor feature issue, cosmetic problem | Medium |
-   | Enhancement, minor improvement | Low |
-
-3. **Fill Bug Report Content**:
-   - Bug title reflecting the failure
-   - Related TC ID for traceability
-   - Clear reproduction steps
-   - Expected result from test case
-   - Actual result from execution
-   - Relevant error log excerpt
-   - Suggested fix direction
-
-### 4.4 Root Cause Analysis
-
-For each bug, perform detailed analysis:
-
-| Analysis Aspect | Description |
-|-----------------|-------------|
-| **Error Category** | Syntax, Logic, Integration, Environment, Performance |
-| **Impact Assessment** | What functionality is affected |
-| **Likely Cause** | Probable source of the issue |
-| **Suggested Fix** | Direction for resolution |
-
-### 4.5 Bug Report Quality Checklist
-
-Each bug report must include:
-- [ ] Unique Bug ID
-- [ ] Related TC ID
-- [ ] Severity classification
-- [ ] Clear reproduction steps
-- [ ] Expected vs actual result
-- [ ] Relevant log excerpt
-- [ ] Suggested fix direction
-- [ ] Root cause analysis
-
-## Step 5: Update Test Report with Bug Links
-
-After all bug reports are generated, update the test report:
-
-1. Read the test report: `{output_dir}/reports/{feature}-test-report.md`
-2. Update "Failed Test Details" section with links to bug reports
-3. Use `search_replace` to add bug report file paths
+</workflow>
+```
 
 ## Output
 

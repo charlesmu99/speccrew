@@ -10,9 +10,17 @@ tools: Read, Write, Glob, Grep, Bash
 - User asks "Start Electron development", "Implement Electron app"
 - Design documents confirmed in `03.system-design/{platform_id}/`
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
+
+## Workflow
+
+### Absolute Constraints
 
 > **These rules apply to Task Record document generation. Violation = task failure.**
 

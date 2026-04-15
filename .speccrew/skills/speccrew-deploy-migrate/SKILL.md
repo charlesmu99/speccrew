@@ -21,72 +21,11 @@ tools: Read, Bash, Glob
 | `project_root` | Yes | string | Absolute path to the project root directory |
 | `iteration_path` | Yes | string | Current iteration directory path |
 
-# Workflow
+## AgentFlow Definition
 
-## Step 1: Pre-migration Check
+<!-- @agentflow: workflow.agentflow.xml -->
 
-Verify prerequisites before executing migrations:
-
-1. **Verify migration script files exist**
-   - Parse `migration_scripts` JSON array
-   - For each script, verify file exists at specified `path`
-   - If any script missing → FAILED with Error Category: DEPENDENCY_MISSING
-
-2. **Verify migration tool is available**
-   - Detect tool from `migration_cmd` (e.g., `mvn`, `npm`, `npx`)
-   - Run tool version check
-   - If tool not available → FAILED with Error Category: DEPENDENCY_MISSING
-
-3. **Count total scripts to execute**
-   - Record total script count from `migration_scripts`
-   - Log: "Preparing to execute {count} migration scripts"
-
-## Step 2: Execute Migration
-
-Run the migration command:
-
-1. **Execute migration_cmd via Bash**
-   - Working directory: `project_root`
-   - Command: `migration_cmd`
-   - Capture stdout and stderr
-   - Record start time before execution
-
-2. **Check exit code**
-   - Exit code 0 → Continue to Step 3
-   - Exit code non-zero → FAILED with Error Category: BUILD_FAILURE
-
-## Step 3: Validate Migration (if validation_cmd provided)
-
-Run validation if command is provided:
-
-1. **Execute validation_cmd via Bash**
-   - Working directory: `project_root`
-   - Command: `validation_cmd`
-   - Capture output
-
-2. **Verify validation result**
-   - Exit code 0 → All migrations applied successfully
-   - Exit code non-zero → FAILED with Error Category: VALIDATION_ERROR
-
-3. **If validation fails**
-   - Report specific failure reason from output
-   - Include suggestion for manual intervention
-
-## Step 4: Report Migration Results
-
-Compile and report migration summary:
-
-1. **List scripts executed**
-   - Extract from migration output or use input `migration_scripts`
-
-2. **List tables affected**
-   - Parse `type` field from each script:
-     - CREATE TABLE → New table created
-     - ALTER TABLE → Table modified
-     - DROP TABLE → Table removed
-
-3. **Calculate execution duration**
-   - Duration = end_time - start_time
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 # Task Completion Report
 

@@ -10,7 +10,13 @@ tools: Read, Write, Glob, Grep
 - System Designer Agent receives task to create backend detailed design for a specific platform
 - User asks "Design backend implementation" or "Create backend design for {platform}"
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

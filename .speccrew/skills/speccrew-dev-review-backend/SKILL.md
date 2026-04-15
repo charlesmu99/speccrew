@@ -23,9 +23,17 @@ tools: Read, Glob, Grep
 | `task_id` | Yes | Task identifier from dispatch context |
 | `previous_review_path` | No | Path to previous review report for incremental review |
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
+
+## Workflow
+
+### Absolute Constraints
 
 > **Violation = review failure.**
 

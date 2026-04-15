@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="dev-backend" status="pending" version="1.0" desc="Backend Development SOP - Guide System Developer Agent to implement backend code">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="design_doc_path" required="true" type="string" desc="Path to a single module design document"/>
+    <field name="platform_id" required="true" type="string" desc="Platform identifier (e.g., backend-spring, backend-nodejs)"/>
+    <field name="task_id" required="true" type="string" desc="Task identifier from dispatch context"/>
+    <field name="iteration_id" required="false" type="string" desc="Current iteration identifier for progress messages"/>
+    <field name="output_dir" required="false" type="string" desc="Output directory for task record"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Task Record document constraints">
+    <field name="text">NEVER use create_file to write the Task Record document</field>
+    <field name="text">MUST create Task Record by copying template then filling sections with search_replace</field>
+    <field name="text">NEVER replace the entire Task Record content in a single operation</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">Copy template MUST execute before fill sections</field>
+    <field name="text">Source code is NOT template-filled - write directly based on design blueprints</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Backend Development" status="pending" desc="Execute backend development workflow">
+
+    <!-- Step 1: Read Design Documents -->
+    <block type="task" id="B1" action="read-file" desc="Read Module Design Document">
+      <field name="path" value="${design_doc_path}"/>
+      <field name="output" var="module_design"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read Platform INDEX">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/${platform_id}/INDEX.md</field>
+      <field name="output" var="platform_index"/>
+    </block>
+
+    <block type="task" id="B3" action="read-file" desc="Read API Contract">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md</field>
+      <field name="output" var="api_contract"/>
+    </block>
+
+    <block type="task" id="B4" action="read-file" desc="Read Techs Knowledge - tech-stack">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/tech-stack.md</field>
+      <field name="output" var="tech_stack"/>
+    </block>
+
+    <block type="task" id="B5" action="read-file" desc="Read Techs Knowledge - architecture">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/architecture.md</field>
+      <field name="output" var="architecture"/>
+    </block>
+
+    <block type="task" id="B6" action="read-file" desc="Read Techs Knowledge - conventions-design">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/conventions-design.md</field>
+      <field name="output" var="conventions_design"/>
+    </block>
+
+    <block type="task" id="B7" action="read-file" desc="Read Techs Knowledge - conventions-dev">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/conventions-dev.md</field>
+      <field name="output" var="conventions_dev"/>
+    </block>
+
+    <block type="task" id="B8" action="read-file" desc="Read Techs Knowledge - conventions-data">
+      <field name="path">speccrew-workspace/knowledges/techs/${platform_id}/conventions-data.md</field>
+      <field name="output" var="conventions_data"/>
+    </block>
+
+    <block type="task" id="B9" action="read-file" desc="Read Task Record Template">
+      <field name="path">speccrew-dev-backend/templates/TASK-RECORD-TEMPLATE.md</field>
+      <field name="output" var="task_template"/>
+    </block>
+
+    <!-- Step 2: Create Task Record File -->
+    <block type="task" id="B10" action="create-file" desc="Copy template to Task Record path">
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/04.development/${platform_id}/[module]-task.md</field>
+      <field name="content">${task_template} with top-level placeholders replaced</field>
+      <field name="output" var="task_record_path"/>
+    </block>
+
+    <block type="task" id="B11" action="edit-file" desc="Fill Task Record sections using search_replace">
+      <field name="path" value="${task_record_path}"/>
+      <field name="action">Fill each section with design metadata</field>
+      <field name="output" var="task_record_filled"/>
+    </block>
+
+    <!-- Step 3: Extract Task List -->
+    <block type="task" id="B12" action="analyze" desc="Extract task list from design documents">
+      <field name="input" value="${module_design}"/>
+      <field name="extraction_rules">
+        - Entity/Model tasks: entity/, model/, domain/ directories
+        - Repository/DAO tasks: repository/, dao/, mapper/ directories
+        - Service tasks: service/, manager/, handler/ directories
+        - Controller/API tasks: controller/, router/, api/ directories
+        - Database Migration tasks: db/migration/, migrations/ directories
+        - API Configuration tasks: config/, routes/ directories
+        - Middleware/Interceptor tasks: middleware/, interceptor/ directories
+      </field>
+      <field name="output" var="task_list"/>
+    </block>
+
+    <!-- Checkpoint: Task list extracted -->
+    <block type="checkpoint" id="CP1" name="task-list-extracted" desc="Verify task list extracted">
+      <field name="verify" value="${task_list.length} > 0"/>
+    </block>
+
+    <!-- Step 4: Task-by-Task Implementation -->
+    <block type="loop" id="L1" over="${task_list}" as="task" desc="Execute tasks in dependency order">
+      <block type="task" id="B13" action="edit-file" desc="Mark task as In Progress">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to 🔄 In Progress</field>
+      </block>
+
+      <block type="task" id="B14" action="generate" desc="Implement the code following design specification">
+        <field name="task" value="${task}"/>
+        <field name="design" value="${module_design}"/>
+        <field name="conventions" value="${conventions_dev}, ${conventions_data}"/>
+        <field name="output" var="implementation_result"/>
+      </block>
+
+      <!-- Step 6: Local Checks (embedded in loop) -->
+      <block type="task" id="B15" action="run-script" desc="Run local quality checks">
+        <field name="command">Run compile, lint, unit tests, API smoke test as applicable</field>
+        <field name="output" var="check_result"/>
+      </block>
+
+      <block type="gateway" id="G1" mode="guard" desc="Verify checks passed"
+             test="${check_result.status} == 'passed'"
+             fail-action="stop">
+        <field name="message">Local checks failed for task ${task.id}</field>
+      </block>
+
+      <block type="task" id="B16" action="edit-file" desc="Update status to Complete">
+        <field name="path" value="${task_record_path}"/>
+        <field name="action">Update task status to ✅ Complete</field>
+      </block>
+    </block>
+
+    <!-- Step 5: Database Migration Verification (conditional) -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if migration tasks exist">
+      <branch test="${task_list.has_migration_tasks} == true" name="Has Migrations">
+        <block type="task" id="B17" action="analyze" desc="Verify Migration Scripts">
+          <field name="checks">
+            - Check script existence at specified paths
+            - Check naming convention follows conventions-data.md
+            - Check script content matches Table Schema in design
+          </field>
+          <field name="output" var="migration_verification"/>
+        </block>
+
+        <block type="task" id="B18" action="analyze" desc="Verify Migration Order">
+          <field name="checks">
+            - Check dependency order (referenced table before foreign key)
+            - Check version sequence has no gaps
+          </field>
+          <field name="output" var="migration_order"/>
+        </block>
+
+        <block type="task" id="B19" action="edit-file" desc="Add Migration Summary to task record">
+          <field name="path" value="${task_record_path}"/>
+          <field name="action">Add migration summary table</field>
+        </block>
+      </branch>
+      <branch default="true" name="No Migrations">
+        <block type="event" id="E1" action="log" level="info" desc="No migration tasks">
+          <field name="message">No database migration tasks in this module</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 7: Record Deviations -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Check if deviations exist">
+      <branch test="${deviations.length} > 0" name="Has Deviations">
+        <block type="task" id="B20" action="edit-file" desc="Record deviations in task file">
+          <field name="path" value="${task_record_path}"/>
+          <field name="action">Add Deviation Log section with task ID, design spec, actual implementation, reason</field>
+        </block>
+      </branch>
+      <branch default="true" name="No Deviations">
+        <block type="event" id="E2" action="log" level="info" desc="No deviations">
+          <field name="message">No deviations from design</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 8: Handle Technical Debt -->
+    <block type="gateway" id="G4" mode="exclusive" desc="Check if technical debt exists">
+      <branch test="${tech_debt.length} > 0" name="Has Tech Debt">
+        <block type="task" id="B21" action="create-file" desc="Write technical debt document">
+          <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/tech-debt/[module]-tech-debt.md</field>
+          <field name="content">${tech_debt} using unified template</field>
+          <field name="output" var="tech_debt_path"/>
+        </block>
+      </branch>
+      <branch default="true" name="No Tech Debt">
+        <block type="event" id="E3" action="log" level="info" desc="No tech debt">
+          <field name="message">No technical debt identified</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 9: Completion Notification -->
+    <block type="task" id="B22" action="edit-file" desc="Update task record final status">
+      <field name="path" value="${task_record_path}"/>
+      <field name="action">Update final statuses for all tasks</field>
+    </block>
+
+    <block type="task" id="B23" action="report" desc="Generate completion notification">
+      <field name="template">
+Backend Development Complete: {module-name}
+Platform: {platform_id}
+
+Tasks Completed: {X}
+├── ✅ Complete: {count}
+├── 🚫 Blocked: {count}
+└── Deviations: {count}
+
+API Endpoints:
+├── Implemented: {count} endpoints
+└── Status: See task record for details
+
+Database Changes:
+├── New Tables: {count}
+├── Modified Tables: {count}
+└── Migrations: {count}
+
+Technical Debt: {count} items (see tech-debt/)
+Task Record: speccrew-workspace/iterations/{number}-{type}-{name}/04.development/{platform_id}/[module]-task.md
+
+Ready for testing phase.
+      </field>
+      <field name="output" var="completion_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="task_record_path" value="${task_record_path}" type="string" desc="Path to task record document"/>
+    <field name="task_count" from="${task_list.length}" type="number" desc="Number of tasks completed"/>
+    <field name="deviation_count" type="number" desc="Number of deviations recorded"/>
+    <field name="tech_debt_count" type="number" desc="Number of tech debt items"/>
+    <field name="completion_report" value="${completion_report}" type="string" desc="Completion notification text"/>
+  </block>
+
+</workflow>

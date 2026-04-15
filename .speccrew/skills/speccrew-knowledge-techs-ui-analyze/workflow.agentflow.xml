@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="knowledge-techs-ui-analyze" status="pending" version="1.0" desc="Analyze UI codebase to extract styles, patterns, and conventions">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="source_path" required="true" type="string" desc="Path to UI source code directory"/>
+    <field name="platform_id" required="true" type="string" desc="Platform identifier (e.g., admin-pc, admin-mobile)"/>
+    <field name="platform_type" required="true" type="string" desc="Platform type (web, mobile, desktop)"/>
+    <field name="framework" required="true" type="string" desc="Frontend framework (vue3, react, uniapp, etc.)"/>
+    <field name="output_path" required="true" type="string" desc="Output directory for generated style guide"/>
+    <field name="language" required="true" type="string" desc="Target language (e.g., zh, en)"/>
+    <field name="skill_path" required="true" type="string" desc="Path to this skill directory"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">FORBIDDEN: create_file for analysis documents — NEVER use create_file to write any UI analysis document</field>
+    <field name="text">FORBIDDEN: Full-file rewrite — NEVER replace the entire document content in a single operation</field>
+    <field name="text">Each document MUST be created by copying the appropriate template then filling sections with search_replace</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow">
+    <field name="text">MANDATORY: Template-first workflow — For every output document, copy the corresponding template to target path first, then fill sections with search_replace</field>
+    <field name="text">Skipping copy and writing content directly is FORBIDDEN</field>
+  </block>
+
+  <!-- ============================================================
+       Step 0: Pre-load Required Templates
+       ============================================================ -->
+  <block type="task" id="B0" action="read-file" desc="Read all template files to understand document structures">
+    <field name="templates">
+      - templates/UI-STYLE-GUIDE-TEMPLATE.md → ui-style-guide.md
+      - templates/PAGE-TYPE-SUMMARY-TEMPLATE.md → page-types/page-type-summary.md
+      - templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md → page-types/[type]-pages.md
+      - templates/COMPONENT-LIBRARY-TEMPLATE.md → components/component-library.md
+      - templates/COMMON-COMPONENTS-TEMPLATE.md → components/common-components.md
+      - templates/BUSINESS-COMPONENTS-TEMPLATE.md → components/business-components.md
+      - templates/COMPONENT-INDIVIDUAL-TEMPLATE.md → components/{component-name}.md
+      - templates/LAYOUT-PATTERNS-TEMPLATE.md → layouts/page-layouts.md
+      - templates/NAVIGATION-PATTERNS-TEMPLATE.md → layouts/navigation-patterns.md
+      - templates/LAYOUT-INDIVIDUAL-TEMPLATE.md → layouts/{layout-name}-layout.md
+      - templates/STYLE-SYSTEM-TEMPLATE.md → styles/color-system.md
+      - templates/TYPOGRAPHY-TEMPLATE.md → styles/typography.md
+      - templates/SPACING-TEMPLATE.md → styles/spacing-system.md
+    </field>
+    <field name="on_fail">STOP and report error with template path</field>
+    <field name="output" var="templates_loaded"/>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="UI Style Analysis" status="pending" desc="Discover, analyze, and document UI patterns">
+
+    <!-- Step 1: Discover Source Structure -->
+    <block type="task" id="B1" action="analyze" desc="Explore project structure">
+      <field name="key_directories">
+        - src/views/ or src/pages/ - Page components
+        - src/components/ - Reusable components
+        - src/layout/ or src/layouts/ - Layout components
+        - src/styles/ or src/assets/styles/ - Style files
+      </field>
+      <field name="extract_for">ui-style-guide.md Sections: Project Overview, Platform Summary</field>
+      <field name="output" var="project_structure"/>
+    </block>
+
+    <!-- Step 2: Analyze Page Types -->
+    <block type="task" id="B2" action="analyze" desc="Dynamic page type discovery">
+      <field name="rules">
+        File Name Analysis:
+        - Extract naming patterns from page files
+        - Group files by similar naming conventions
+        - Examples: *List.vue, *Form.vue, *Detail.vue, *Chart.vue
+        
+        Component Usage Analysis:
+        - Identify dominant components in each file group
+        - Table-heavy files → likely list/query pages
+        - Form-heavy files → likely create/edit pages
+        - Chart-heavy files → likely report/dashboard pages
+        
+        Route/Navigation Analysis:
+        - Check router configuration for page organization
+        - Identify menu structures and page hierarchies
+      </field>
+      <field name="output" var="page_types"/>
+    </block>
+
+    <block type="task" id="B3" action="generate" desc="Generate page-types/page-type-summary.md">
+      <field name="template">templates/PAGE-TYPE-SUMMARY-TEMPLATE.md</field>
+      <field name="output">${output_path}/page-types/page-type-summary.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="loop" id="L1" over="${page_types}" as="page_type" desc="Generate individual page type documents">
+      <block type="task" action="generate" desc="Generate page-types/${page_type.name}-pages.md">
+        <field name="template">templates/PAGE-TYPE-INDIVIDUAL-TEMPLATE.md</field>
+        <field name="output">${output_path}/page-types/${page_type.name}-pages.md</field>
+        <field name="method">copy template, then use search_replace to fill sections</field>
+      </block>
+    </block>
+
+    <!-- Step 3: Extract Component Usage -->
+    <block type="task" id="B4" action="analyze" desc="Analyze component imports and usage">
+      <field name="categories">
+        UI Framework Components (Element Plus, Ant Design, Vant):
+        - Button, Input, Select, Table, Form, Modal, etc.
+        
+        Common Components (Project-specific):
+        - SearchForm, Pagination, DictTag, ImagePreview, etc.
+        
+        Business Components (Domain-specific):
+        - UserSelect, DeptTree, RolePicker, etc.
+      </field>
+      <field name="output" var="components"/>
+    </block>
+
+    <block type="task" id="B5" action="generate" desc="Generate components/component-library.md">
+      <field name="template">templates/COMPONENT-LIBRARY-TEMPLATE.md</field>
+      <field name="output">${output_path}/components/component-library.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="task" id="B6" action="generate" desc="Generate components/common-components.md">
+      <field name="template">templates/COMMON-COMPONENTS-TEMPLATE.md</field>
+      <field name="output">${output_path}/components/common-components.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="task" id="B7" action="generate" desc="Generate components/business-components.md">
+      <field name="template">templates/BUSINESS-COMPONENTS-TEMPLATE.md</field>
+      <field name="output">${output_path}/components/business-components.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="loop" id="L2" over="${components.individual}" as="component" desc="Generate individual component documents">
+      <block type="task" action="generate" desc="Generate components/${component.name}.md">
+        <field name="template">templates/COMPONENT-INDIVIDUAL-TEMPLATE.md</field>
+        <field name="output">${output_path}/components/${component.name}.md</field>
+        <field name="method">copy template, then use search_replace to fill sections</field>
+        <field name="rules">
+          - For UI framework components: Focus on project-specific usage patterns
+          - For custom components: Full Props/Events/Slots documentation
+          - Skip trivial components (&lt; 10 lines, no props/events)
+        </field>
+      </block>
+    </block>
+
+    <!-- Step 4: Analyze Layout Patterns -->
+    <block type="task" id="B8" action="analyze" desc="Identify common layout patterns">
+      <field name="layout_types">
+        Standard List Layout:
+        - Search Form
+        - Toolbar (Add/Export/Delete buttons)
+        - Data Table
+        - Pagination
+        
+        Standard Form Layout:
+        - Form Card
+        - Form Fields (2-3 columns)
+        - Action Buttons (Submit/Cancel)
+        
+        Detail View Layout:
+        - Detail Card
+        - Description List
+        - Action Buttons
+        
+        Split Pane Layout:
+        - Left: Tree/Menu
+        - Right: Content Table/Form
+      </field>
+      <field name="output" var="layouts"/>
+    </block>
+
+    <block type="task" id="B9" action="generate" desc="Generate layouts/page-layouts.md">
+      <field name="template">templates/LAYOUT-PATTERNS-TEMPLATE.md</field>
+      <field name="output">${output_path}/layouts/page-layouts.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="task" id="B10" action="generate" desc="Generate layouts/navigation-patterns.md">
+      <field name="template">templates/NAVIGATION-PATTERNS-TEMPLATE.md</field>
+      <field name="output">${output_path}/layouts/navigation-patterns.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="loop" id="L3" over="${layouts.individual}" as="layout" desc="Generate individual layout documents">
+      <block type="task" action="generate" desc="Generate layouts/${layout.name}-layout.md">
+        <field name="template">templates/LAYOUT-INDIVIDUAL-TEMPLATE.md</field>
+        <field name="output">${output_path}/layouts/${layout.name}-layout.md</field>
+        <field name="method">copy template, then use search_replace to fill sections</field>
+        <field name="rules">
+          - Minimum 2 pages must share a layout pattern to warrant a document
+          - Generate ASCII layout diagram from actual page structure
+        </field>
+      </block>
+    </block>
+
+    <!-- Step 5: Extract Style Conventions -->
+    <block type="task" id="B11" action="analyze" desc="Analyze style files for color, typography, spacing">
+      <field name="extract">
+        Color System:
+        - Primary colors, Status colors, Text colors, Background colors, Border colors
+        
+        Typography:
+        - Font families, Font sizes, Font weights, Line heights
+        
+        Spacing System:
+        - Padding/Margin scales, Grid system, Container widths
+      </field>
+      <field name="output" var="styles"/>
+    </block>
+
+    <block type="task" id="B12" action="generate" desc="Generate styles/color-system.md">
+      <field name="template">templates/STYLE-SYSTEM-TEMPLATE.md</field>
+      <field name="output">${output_path}/styles/color-system.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="task" id="B13" action="generate" desc="Generate styles/typography.md">
+      <field name="template">templates/TYPOGRAPHY-TEMPLATE.md</field>
+      <field name="output">${output_path}/styles/typography.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <block type="task" id="B14" action="generate" desc="Generate styles/spacing-system.md">
+      <field name="template">templates/SPACING-TEMPLATE.md</field>
+      <field name="output">${output_path}/styles/spacing-system.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+    </block>
+
+    <!-- Step 6: Generate Main Documentation -->
+    <block type="task" id="B15" action="generate" desc="Generate ui-style-guide.md">
+      <field name="template">templates/UI-STYLE-GUIDE-TEMPLATE.md</field>
+      <field name="output">${output_path}/ui-style-guide.md</field>
+      <field name="method">copy template, then use search_replace to fill sections</field>
+      <field name="note">ui-style-guide.md should reference/link to all other generated documents</field>
+    </block>
+
+    <!-- Step 7: Verify Output Completeness -->
+    <block type="task" id="B16" action="validate" desc="Verify all required files exist">
+      <field name="required_files">
+        - ui-style-guide.md
+        - page-types/page-type-summary.md
+        - page-types/[type]-pages.md (one per discovered type)
+        - components/component-library.md
+        - components/common-components.md
+        - components/business-components.md
+        - components/{component-name}.md (one per discovered component)
+        - layouts/page-layouts.md
+        - layouts/navigation-patterns.md
+        - layouts/{layout-name}-layout.md (one per discovered layout)
+        - styles/color-system.md
+        - styles/typography.md
+        - styles/spacing-system.md
+      </field>
+      <field name="output" var="verification_result"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${verification_result.status}" type="string" desc="Analysis status"/>
+    <field name="platform_id" from="${platform_id}" type="string" desc="Platform identifier"/>
+    <field name="output_path" from="${output_path}" type="string" desc="Output directory"/>
+    <field name="page_types_count" from="${page_types.length}" type="number" desc="Number of page types discovered"/>
+    <field name="components_count" from="${components.individual.length}" type="number" desc="Number of components documented"/>
+    <field name="layouts_count" from="${layouts.individual.length}" type="number" desc="Number of layouts documented"/>
+    <field name="documents_generated" from="${verification_result.documents_count}" type="number" desc="Total documents generated"/>
+  </block>
+
+</workflow>

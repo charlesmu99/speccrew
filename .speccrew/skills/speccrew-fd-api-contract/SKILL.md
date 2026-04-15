@@ -9,7 +9,13 @@ tools: Read, Write, Glob, Grep
 - Automatically triggered by speccrew-fd-feature-design Skill after feature spec document completion
 - User requests "Generate API documentation" or "Define API contract"
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

@@ -1,10 +1,10 @@
 ---
 name: speccrew-knowledge-system-summarize
-description: Generate complete system-overview.md by reading all {{module_name}}-overview.md files. Aggregates module information, builds dependency graph, and creates system-level documentation. In incremental mode, this skill always regenerates the system overview from the latest module overviews.
+description: Generate complete system-overview.md by reading all {{module_name}}-overview.md files using XML workflow blocks. Aggregates module information, builds dependency graph, and creates system-level documentation.
 tools: Read, Write, Glob, Skill
 ---
 
-# System Summarize - Complete System Overview
+# System Summarize - Complete System Overview (XML Workflow)
 
 Read all {{module_name}}-overview.md files, aggregate information to generate complete system-overview.md with module index, topology, and business flows.
 
@@ -30,313 +30,67 @@ Worker Agent (speccrew-task-worker)
 
 ## Input
 
-- `modules_path`: Path to modules directory (e.g., `speccrew-workspace/knowledges/bizs/`) containing all {{platform_type}}/{{module_name}}/{{module_name}}-overview.md files
-- `output_path`: Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`)
-- `language`: Target language for generated content (e.g., "zh", "en") - **REQUIRED**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `modules_path` | string | Yes | Path to modules directory (e.g., `speccrew-workspace/knowledges/bizs/`) containing all {{platform_type}}/{{module_name}}/{{module_name}}-overview.md files |
+| `output_path` | string | Yes | Output path for system-overview.md (e.g., `speccrew-workspace/knowledges/bizs/`) |
+| `language` | string | Yes | Target language for generated content (e.g., "zh", "en") |
 
 ## Output
 
-- `{{output_path}}/system-overview.md` - Complete system overview
-  - Example (single platform): `speccrew-workspace/knowledges/bizs/system-overview.md`
-  - Example (multi-platform): `speccrew-workspace/knowledges/bizs/system-overview.md` (aggregates all platforms)
+| Output | Path | Description |
+|--------|------|-------------|
+| `system-overview.md` | `{{output_path}}/system-overview.md` | Complete system overview. Example: `speccrew-workspace/knowledges/bizs/system-overview.md` |
 
-## Workflow
+## AgentFlow Definition
 
-### Prerequisites
+<!-- @agentflow: workflow.agentflow.xml -->
 
-Before starting, verify:
+## Constraints
 
-- **Module overviews completed**: `modules_path` contains subdirectories for each platform_type, with module directories containing completed `*-overview.md` files (from Stage 3: module-summarize)
-- **Output location**: `system-overview.md` will be created at `output_path/system-overview.md`
-- **If no modules found**: Proceed with skeleton generation (see Edge Cases)
+### Critical Constraints
 
-### Edge Cases
-
-- **Empty modules directory**: If no `*-overview.md` files found, generate a skeleton system-overview.md with empty statistics and return `status: "warning"`.
-- **Incomplete module overviews**: If a module-overview.md only has Section 1-2 (initial version), use available data and note gaps with `<!-- DATA INCOMPLETE -->`.
-- **Same module name from different platforms**: Treat as separate modules. Use `{module_name} ({platform_type})` for display and `{module_name}_{platform_type}` as internal ID.
-- **Timestamp generation**: Run `node scripts/get-timestamp.js` to get current timestamp. If the script is unavailable, use system current time as fallback.
-
-```mermaid
-flowchart TD
-    Start([Start]) --> Step0[Step 0: Read System Overview Template]
-    Step0 --> Step1[Step 1: Discover All Modules]
-    Step1 --> Step2[Step 2: Read All Module Overviews]
-    Step2 --> Step3[Step 3: Build Module Index]
-    Step3 --> Step4[Step 4: Build Dependency Graph]
-    Step4 --> Step5[Step 5: Identify Business Domains]
-    Step5 --> Step6[Step 6: Identify End-to-End Flows]
-    Step6 --> Step7[Step 7: Generate system-overview.md]
-    Step7 --> Step8[Step 8: Report Results]
-    Step8 --> End([End])
-```
-
-### Step 0: Read System Overview Template
-
-Before processing, read the template file to understand the required content structure:
-- **Read**: `templates/SYSTEM-OVERVIEW-TEMPLATE.md`
-- **Purpose**: Understand the template chapters and example content requirements for system overview documents
-- **Key sections to follow**:
-  - Index and Overview (Statistics Overview, Module Quick Index)
-  - Section 1: System Overview (System Positioning, Business Domain Division with Mermaid diagram)
-  - Section 2: Functional Module Topology (Module Hierarchy, Module Dependency Diagram, Module List Index)
-  - Section 3: End-to-End Business Processes (Core Business Process List, Process-Module Mapping Matrix, Typical Business Process Diagram)
-  - Section 4: System Boundaries and Integration (External System Integration Diagram, Integration Interface List)
-  - Section 5: Requirement Assessment Guide
-  - Section 6: Change History
-
-### Step 1: Discover All Modules
-
-Find all `*-overview.md` files recursively under `modules_path`, including nested platform_type directories:
-
-```
-modules_path/
-├── platform_type_1/
-│   ├── module_1/
-│   │   └── module_1-overview.md
-│   └── module_2/
-│       └── module_2-overview.md
-└── platform_type_2/
-    └── module_3/
-        └── module_3-overview.md
-```
-
-**Example** (bizs knowledge):
-```
-knowledges/bizs/
-├── web-vue/
-│   ├── order/order-overview.md
-│   └── payment/payment-overview.md
-└── backend-java/
-    ├── order/order-overview.md
-    └── user/user-overview.md
-```
-
-Use recursive glob: `**/*-overview.md`
-Extract `platform_type` from the path structure for each discovered module.
-
-### Step 2: Read All Module Overviews
-
-For each discovered `*-overview.md`, extract:
-- Module name and purpose
-- Business domain
-- Platform type (from path: web-vue, backend-java, etc.)
-- Entity list (backend: DB entities; frontend: State/Props)
-- Dependencies (internal modules and external systems)
-- Feature count and API/Interface count
-
-**Multi-Tech Stack Aggregation Rules:**
-
-1. **Same-name modules from different platforms**: Treat as SEPARATE entries
-   - Display as: `order (web-vue)`, `order (backend-java)` in Module Quick Index
-   - Keep separate in all aggregations
-
-2. **Cross-platform dependencies**:
-   - web-vue/order may consume backend-java/order API
-   - backend-java/order may depend on backend-java/payment
-   - Show cross-platform dependencies clearly in Section 4
-
-3. **Entity aggregation**:
-   - Backend entities (DB tables, DTOs) and Frontend entities (Store State, Component Props) listed separately with platform annotation
-
-4. **Statistics**:
-   - Total modules = COUNT of all *-overview.md files
-   - Total entities = SUM across all modules
-   - Total APIs = SUM of backend APIs + frontend interfaces
-
-### Step 3: Build Module Index
-
-Create module index table:
-
-| Module | Domain | Purpose | Entities | APIs | Detail Doc |
-|--------|--------|---------|----------|------|------------|
-| order | Sales | Order lifecycle | Order, OrderItem | 8 | [View](order/order-overview.md) |
-| payment | Finance | Payment processing | Payment, Refund | 5 | [View](payment/payment-overview.md) |
-
-### Step 4: Build Dependency Graph
-
-**Extraction Rules:**
-1. Read Section 4 (Dependencies) from each module-overview.md
-2. Classify dependencies:
-   - **Internal**: Module-to-module dependencies within the system
-   - **External**: Third-party systems/services (Payment Gateway, ERP, etc.)
-
-3. **Internal dependencies** → Build directed graph:
-   - Node: module name (with platform_type annotation if multiple platforms)
-   - Edge: A → B means A depends on B
-   - Include cross-platform dependencies (e.g., web-vue/order → backend-java/order)
-
-4. **External dependencies** → Collect separately for Section 4: System Boundaries
-
-**Generate Mermaid dependency diagram:**
-- Show internal module dependencies only
-- Use `graph LR` for layout
-- Annotate platform_type if multiple platforms involved
-
-### Step 5: Identify Business Domains
-
-1. Read "Business Domain" field from each module-overview.md
-2. Collect unique domain names
-3. Group modules by domain (with platform_type):
-   
-   Example:
-   - Sales domain: web-vue/order, backend-java/order, backend-java/promotion
-   - User Management: web-vue/user, backend-java/user
-
-4. Generate domain-based Mermaid diagram with domains as subgraphs
-
-### Step 6: Identify End-to-End Flows
-
-Analyze cross-module dependencies to identify business flows:
-
-**Order-to-Payment Flow:**
-```
-USER → ORDER → INVENTORY → PAYMENT → NOTIFICATION
-```
-
-**Refund Flow:**
-```
-ORDER → PAYMENT → INVENTORY → NOTIFICATION
-```
-
-Create flow-module mapping matrix:
-
-| Flow / Module | ORDER | INVENTORY | PAYMENT | NOTIFICATION |
-|---------------|-------|-----------|---------|--------------|
-| Order-Payment | ✓ | ✓ | ✓ | ✓ |
-| Refund | ✓ | ✓ | ✓ | ✓ |
-
-### Step 7: Generate system-overview.md
-
-> **⚠️ CRITICAL: Two-Phase Strategy (Skeleton-First, Content-After)**
->
-> This step MUST be executed in two phases to ensure consistent document structure.
-
-### Phase A: Skeleton Construction (BEFORE any content filling)
-
-1. Read SYSTEM-OVERVIEW-TEMPLATE.md to identify the complete section structure
-2. Count aggregated data items from discovered modules:
-   - Section 2: Count unique **Modules** (including platform_type annotation for duplicates)
-   - Section 3: Count unique **End-to-End Business Flows**
-   - Section 4: Count unique **External Integrations**
-3. For each section with repeating data items, create complete skeleton structure:
-   - **Section 2 (Module Topology)**: For each module, create index table row with ALL column placeholders:
-     ```
-     | [Module Name] | [Domain] | [Purpose] | [Entities] | [APIs] | [Detail Doc] |
-     ```
-   - **Section 3 (Business Flows)**: For each flow, create mapping matrix row:
-     ```
-     | [Flow Name] | [Module 1] | [Module 2] | ... | [Module N] |
-     ```
-   - **Section 4 (External Integrations)**: For each integration, create table row:
-     ```
-     | [System Name] | [Integration Type] | [Data Exchanged] | [Protocol] |
-     ```
-4. Verify skeleton: confirm ALL data items have ALL required column placeholders before proceeding
-
-> ⚠️ DO NOT start filling content until the complete skeleton is verified.
-
-### Phase B: Content Filling (AFTER skeleton is complete)
-
-Fill each `[TO BE FILLED]` placeholder with actual content:
-- Module Domain → Business domain classification from module overview
-- Module Purpose → Business purpose extracted from module overview
-- Module Entities → Entity count and key entity names
-- Module APIs → API/Interface count from module overview
-- Module Detail Doc → Relative link to module-overview.md
-- Flow Module Mapping → ✓ for involved modules, - for not involved
-- Integration Data Exchanged → Data structures and formats exchanged
-- Integration Protocol → HTTP/REST, gRPC, WebSocket, etc.
-
----
-
-**⚠️ CRITICAL CONSTRAINTS (apply to Step 7a and 7b):**
 > 1. **FORBIDDEN: `create_file` for documents** — Document MUST be created by copying template (Step 7a) then filling with `search_replace` (Step 7b)
 > 2. **FORBIDDEN: Full-file rewrite** — Always use targeted `search_replace` on specific sections
 > 3. **MANDATORY: Template-first workflow** — Step 7a MUST execute before Step 7b
 
-**Step 7a: Prepare Document**
+### Content Language
 
-1. **Read Configuration**:
-   - Read `speccrew-workspace/docs/configs/tech-stack-mappings.json` → system tech stacks and display names
-   - Read `speccrew-workspace/docs/rules/mermaid-rule.md` → Mermaid diagram guidelines
+**IMPORTANT**: ALL generated content (system description, module summaries, flow descriptions, section headers, and narrative text) MUST be written in the language specified by the `language` parameter. Only code identifiers, file paths, and technical terms remain in their original language.
 
-2. **Get timestamp** by running the script:
-   - Run: `node scripts/get-timestamp.js`
-   - Default format: `YYYY-MM-DD-HHmmss` (e.g., `2026-03-17-132645`)
-   - Use the output as generation timestamp in document
+## Return Value Format
 
-3. **Determine Technology Stack**:
-   - Extract platform types from discovered module paths
-   - Map platform_type to display name via tech-stack-mappings.json
-   - Example: `web-vue` → `Vue 3 + TypeScript`; `backend-java` → `Java 17 + Spring Boot`
-
-4. **Copy template to document path**:
-   - Read template: `templates/SYSTEM-OVERVIEW-TEMPLATE.md` (already loaded in Step 0)
-   - Replace top-level placeholders (system name, generation timestamp, tech stack info)
-   - Create document using `create_file` at: `{{output_path}}/system-overview.md`
-   - Verify: Document has complete section structure ready for filling
-
-**Step 7b: Fill Each Section Using search_replace**
-
-> ⚠️ **CRITICAL**: Use `search_replace` to fill each section individually. If a section has no applicable content, keep the section title and replace placeholder with "N/A"
-
-**Fill via `search_replace`:**
-
-**Section: Index and Overview** (NEW)
-- Generation timestamp (from get-timestamp skill)
-- Technology stack (from project config)
-- Statistics: module count, entity count, API count, flow count
-- Module quick index table
-
-**Fill via `search_replace`:**
-
-**Section 1: System Overview**
-- System name from project config
-- Core positioning
-- Target users
-- Deployment type
-
-**Fill via `search_replace`:**
-
-**Section 2: Module Topology**
-- Business domain diagram
-- Module hierarchy diagram
-- Module dependency diagram
-- Module index table (from Step 3)
-
-**Fill via `search_replace`:**
-
-**Section 3: End-to-End Business Flows**
-- Core business process list
-- Flow-module mapping matrix (from Step 6)
-- Typical flow diagrams
-
-**Fill via `search_replace`:**
-
-**Section 4: System Boundaries and Integration**
-- External system integration diagram
-- Integration interface list
-
-**Fill via `search_replace`:**
-
-**Section 5: Requirement Assessment Guide**
-- Reference to `speccrew-pm-requirement-assess` skill
-- Quick location guide (which section to reference)
-
-Apply source traceability rules (see [Reference Guides > Source Traceability Guide](#source-traceability-guide))
-
-### Step 8: Report Results
-
+```json
+{
+  "status": "success|failed",
+  "output_file": "system-overview.md",
+  "message": "System summarization completed with N modules processed"
+}
 ```
-System summarization completed:
-- Modules Processed: {{module_count}}
-- Entities Aggregated: {{entity_count}}
-- APIs Counted: {{api_count}}
-- Dependencies Mapped: {{dependency_count}}
-- Business Flows Identified: {{flow_count}}
-- Output: system-overview.md (complete)
-- Status: success
+
+## Task Completion Report
+
+Upon completion, output the following structured report:
+
+```json
+{
+  "status": "success | partial | failed",
+  "skill": "speccrew-knowledge-system-summarize",
+  "output_files": [
+    "{output_path}/system-overview.md"
+  ],
+  "summary": "System overview generated from {module_count} modules across {platform_count} platforms",
+  "metrics": {
+    "platforms_covered": 0,
+    "modules_summarized": 0,
+    "system_overview_generated": true
+  },
+  "errors": [],
+  "next_steps": [
+    "Review system-overview.md for completeness",
+    "Run speccrew-pm-requirement-assess if requirement assessment is needed"
+  ]
+}
 ```
 
 ## Reference Guides
@@ -391,47 +145,6 @@ Aggregate source file references from all module overview documents:
 - Aggregated from all module overview documents
 ```
 
-## Return
-
-**Return Value (JSON format):**
-
-```json
-{
-  "status": "success|failed",
-  "output_file": "system-overview.md",
-  "message": "System summarization completed with N modules processed"
-}
-```
-
----
-
-## Task Completion Report
-
-Upon completion, output the following structured report:
-
-```json
-{
-  "status": "success | partial | failed",
-  "skill": "speccrew-knowledge-system-summarize",
-  "output_files": [
-    "{output_path}/system-overview.md"
-  ],
-  "summary": "System overview generated from {module_count} modules across {platform_count} platforms",
-  "metrics": {
-    "platforms_covered": 0,
-    "modules_summarized": 0,
-    "system_overview_generated": true
-  },
-  "errors": [],
-  "next_steps": [
-    "Review system-overview.md for completeness",
-    "Run speccrew-pm-requirement-assess if requirement assessment is needed"
-  ]
-}
-```
-
----
-
 ## Checklist
 
 - [ ] All {{module_name}}-overview.md files discovered
@@ -445,4 +158,3 @@ Upon completion, output the following structured report:
 - [ ] Source traceability information included
 - [ ] Mermaid diagrams follow compatibility guidelines
 - [ ] Results reported
-

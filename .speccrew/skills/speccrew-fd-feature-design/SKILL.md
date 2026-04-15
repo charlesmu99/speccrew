@@ -22,7 +22,13 @@ ISA-95 Stages 4-6 as internal thinking framework:
 - Checkpoint A passed (function breakdown confirmed)
 - Feature Spec document generation needed
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 ## Absolute Constraints
 

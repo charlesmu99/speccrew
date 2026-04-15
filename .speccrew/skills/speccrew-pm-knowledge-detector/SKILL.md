@@ -58,79 +58,11 @@ Detect business knowledge base availability and completeness status. Scans the s
 | `lite` | has_features = true AND has_system_overview = false |
 | `none` | has_features = false AND has_system_overview = false |
 
-## Workflow
+## AgentFlow Definition
 
-```mermaid
-flowchart TD
-    Start([Start]) --> Step1[Step 1: Check system-overview.md]
-    Step1 --> Step2[Step 2: Scan for features files]
-    Step2 --> Step3[Step 3: Scan for entry-dirs files]
-    Step3 --> Step4[Step 4: Count modules and platforms]
-    Step4 --> Step5[Step 5: Determine status and return JSON]
-    Step5 --> End([End])
-```
+<!-- @agentflow: workflow.agentflow.xml -->
 
-### Step 1: Check system-overview.md
-
-Check if the system overview file exists:
-
-1. Path: `{workspace_path}/knowledges/bizs/system-overview.md`
-2. Attempt to read the file
-3. Set `has_system_overview` = true if exists, false otherwise
-4. Set `system_overview_path` = path if exists, null otherwise
-
-**Output**: "Step 1 Status: ✅ COMPLETED - system-overview.md {exists|not found}"
-
-### Step 2: Scan for features files
-
-Scan the sync-state directory for feature inventory files:
-
-1. Use provided path: `{sync_state_bizs_dir}/`
-2. Glob pattern: `features-*.json`
-3. Collect all matching files into `features_files` array
-4. Set `has_features` = true if any files found
-
-**Output**: "Step 2 Status: ✅ COMPLETED - Found {count} features files"
-
-### Step 3: Scan for entry-dirs files
-
-Scan for entry directory configuration files:
-
-1. Use provided path: `{sync_state_bizs_dir}/`
-2. Glob pattern: `entry-dirs-*.json`
-3. Collect all matching files into `entry_dirs_files` array
-4. Set `has_entry_dirs` = true if any files found
-
-**Output**: "Step 3 Status: ✅ COMPLETED - Found {count} entry-dirs files"
-
-### Step 4: Count modules and platforms
-
-For each features file found:
-
-1. Read the JSON content
-2. Extract `platformId` and add to `available_platforms` array
-3. Sum up `modules` array length for `module_count`
-4. Extract `features` array length for feature count per platform
-
-**Output**: "Step 4 Status: ✅ COMPLETED - {platform_count} platforms, {module_count} modules"
-
-### Step 5: Determine status and return JSON
-
-Calculate the overall status:
-
-```
-IF has_system_overview AND has_features THEN
-    status = "full"
-ELSE IF has_features THEN
-    status = "lite"
-ELSE
-    status = "none"
-END IF
-```
-
-Return the complete JSON output.
-
-**Output**: "Step 5 Status: ✅ COMPLETED - Knowledge status: {status}"
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
 ## Constraints
 

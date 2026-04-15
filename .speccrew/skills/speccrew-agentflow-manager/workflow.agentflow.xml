@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="agentflow-manager-main" status="pending" version="1.0" desc="AgentFlow definition management workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Receive operation mode and parameters">
+    <field name="mode" required="true" type="string" desc="Operation mode: create | validate | refine"/>
+    <field name="description" required="false" type="string" desc="Natural language SOP description (create mode)"/>
+    <field name="parameters" required="false" type="array" desc="Parameter list as JSON array (create mode)"/>
+    <field name="target_file" required="false" type="string" desc="Target .agentflow.xml file path (validate/refine mode)"/>
+    <field name="skill_dir" required="false" type="string" desc="Target skill directory path (create mode)"/>
+    <field name="workspace_path" required="true" type="string" desc="Current workspace path"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Mode validation rules">
+    <field name="text">Mode MUST be one of: create, validate, refine</field>
+    <field name="text">Create mode requires: description, parameters, skill_dir</field>
+    <field name="text">Validate/refine mode requires: target_file</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Execution constraints">
+    <field name="text">DO NOT ask user for confirmation between blocks</field>
+    <field name="text">DO NOT skip any block in the workflow</field>
+    <field name="text">DO NOT modify files outside of specified target paths</field>
+  </block>
+
+  <!-- ============================================================
+       Load AgentFlow Specification
+       ============================================================ -->
+  <block type="task" id="R1" action="read-file" desc="Load AgentFlow specification">
+    <field name="path">${workspace_path}/docs/rules/agentflow-spec.md</field>
+    <field name="note">Read and internalize the AgentFlow specification. All generated XML must strictly comply with this spec.</field>
+    <field name="output" var="spec_content"/>
+  </block>
+
+  <!-- ============================================================
+       Gateway - Route by Mode
+       ============================================================ -->
+  <block type="gateway" id="G1" mode="exclusive" desc="Route to operation based on mode">
+    <branch test="${mode} == 'create'" name="Create Mode">
+      <field name="next_sequence">CREATE_SEQ</field>
+    </branch>
+    <branch test="${mode} == 'validate'" name="Validate Mode">
+      <field name="next_sequence">VALIDATE_SEQ</field>
+    </branch>
+    <branch test="${mode} == 'refine'" name="Refine Mode">
+      <field name="next_sequence">REFINE_SEQ</field>
+    </branch>
+    <branch default="true" name="Invalid Mode">
+      <field name="next_sequence">ERROR_SEQ</field>
+    </branch>
+  </block>
+
+  <!-- ============================================================
+       CREATE MODE SEQUENCE
+       ============================================================ -->
+  <sequence id="CREATE_SEQ" name="Create Mode" status="pending" desc="Create new AgentFlow from SOP description">
+
+    <!-- B1: Analyze description and design block structure -->
+    <block type="task" id="B1" action="analyze" desc="Analyze SOP description and design block structure">
+      <field name="input_description">${description}</field>
+      <field name="input_parameters">${parameters}</field>
+      <field name="analysis_tasks">
+        1. Extract task steps from natural language description
+        2. Identify required block types (input, task, gateway, loop, output, etc.)
+        3. Design variable passing chain between blocks
+        4. Determine block execution order and dependencies
+        5. Identify checkpoints and error handling needs
+      </field>
+      <field name="output" var="block_design"/>
+    </block>
+
+    <!-- B2: Generate workflow.agentflow.xml -->
+    <block type="task" id="B2" action="generate" desc="Generate workflow.agentflow.xml file">
+      <field name="template">agentflow-xml-template</field>
+      <field name="block_design">${block_design}</field>
+      <field name="parameters">${parameters}</field>
+      <field name="output_path">${skill_dir}/workflow.agentflow.xml</field>
+      <field name="generation_rules">
+        - MUST include XML declaration: <?xml version="1.0" encoding="UTF-8"?>
+        - MUST have <workflow> root element with id, status, version attributes
+        - MUST start with <block type="input"> for parameter definitions
+        - MUST end with <block type="output"> for result definitions
+        - All block IDs must be unique and follow pattern: [Type][Number] (e.g., B1, G1, O1)
+        - All <case> and <branch> elements must have valid next references
+        - Variable references must use ${variable_name} syntax
+      </field>
+      <field name="output" var="agentflow_content"/>
+    </block>
+
+    <!-- Write workflow.agentflow.xml -->
+    <block type="task" id="B2_WRITE" action="create-file" desc="Write workflow.agentflow.xml to disk">
+      <field name="path">${skill_dir}/workflow.agentflow.xml</field>
+      <field name="content">${agentflow_content}</field>
+      <field name="output" var="write_result_b2"/>
+    </block>
+
+    <!-- Checkpoint: Verify workflow file created -->
+    <block type="checkpoint" id="CP1" name="workflow_created" desc="Verify workflow.agentflow.xml was created">
+      <field name="file">${skill_dir}/workflow.agentflow.xml</field>
+      <field name="verify" value="file_exists(${skill_dir}/workflow.agentflow.xml)"/>
+    </block>
+
+    <!-- B3: Generate SKILL.md skeleton -->
+    <block type="task" id="B3" action="generate" desc="Generate SKILL.md skeleton">
+      <field name="template">skill-md-skeleton</field>
+      <field name="skill_name">${skill_dir.split('/').pop()}</field>
+      <field name="description">${description}</field>
+      <field name="parameters">${parameters}</field>
+      <field name="generation_rules">
+        - Include skill metadata: name, version, description, tools
+        - Include Input Parameters table with all parameters
+        - Include Output section
+        - Include trigger scenarios section
+        - Include AgentFlow reference declaration: <!-- @agentflow: workflow.agentflow.xml -->
+        - Follow existing skill format and style
+      </field>
+      <field name="output" var="skill_md_content"/>
+    </block>
+
+    <!-- Write SKILL.md -->
+    <block type="task" id="B3_WRITE" action="create-file" desc="Write SKILL.md to disk">
+      <field name="path">${skill_dir}/SKILL.md</field>
+      <field name="content">${skill_md_content}</field>
+      <field name="output" var="write_result_b3"/>
+    </block>
+
+    <!-- Log completion -->
+    <block type="event" id="E1" action="log" level="info" desc="Log create mode completion">
+      <field name="message">AgentFlow created successfully:
+- Workflow: ${skill_dir}/workflow.agentflow.xml
+- Skill Doc: ${skill_dir}/SKILL.md</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       VALIDATE MODE SEQUENCE
+       ============================================================ -->
+  <sequence id="VALIDATE_SEQ" name="Validate Mode" status="pending" desc="Validate existing AgentFlow file">
+
+    <!-- B4: Run validate-agentflow.js script -->
+    <block type="task" id="B4" action="run-script" desc="Run validate-agentflow.js validation script">
+      <field name="command">node "${workspace_path}/scripts/validate-agentflow.js" "${target_file}" --format json</field>
+      <field name="alt_command_fallback">node -e "
+const fs = require('fs');
+const path = require('path');
+const targetFile = process.argv[1];
+if (!fs.existsSync(targetFile)) {
+  console.log(JSON.stringify({valid: false, errors: [{severity: 'error', message: 'File not found: ' + targetFile}], warnings: []}));
+  process.exit(1);
+}
+const content = fs.readFileSync(targetFile, 'utf8');
+const errors = [];
+const warnings = [];
+// Basic XML structure validation
+if (!content.includes('<?xml')) warnings.push({severity: 'warning', message: 'Missing XML declaration'});
+if (!content.includes('<workflow')) errors.push({severity: 'error', message: 'Missing <workflow> root element'});
+if (!content.includes('<block type=\"input\"')) errors.push({severity: 'error', message: 'Missing input block'});
+if (!content.includes('<block type=\"output\"')) errors.push({severity: 'error', message: 'Missing output block'});
+// Check for unique IDs
+const idMatches = content.match(/id=\"[^\"]+\"/g) || [];
+const ids = idMatches.map(m => m.replace('id=\"', '').replace('\"', ''));
+const duplicates = ids.filter((item, index) => ids.indexOf(item) !== index);
+if (duplicates.length > 0) errors.push({severity: 'error', message: 'Duplicate block IDs: ' + duplicates.join(', ')});
+console.log(JSON.stringify({valid: errors.length === 0, errors, warnings}));
+" "${target_file}"</field>
+      <field name="output" var="validation_json"/>
+    </block>
+
+    <!-- B5: Format and present validation report -->
+    <block type="task" id="B5" action="report" desc="Format validation report">
+      <field name="input">${validation_json}</field>
+      <field name="format">human-readable</field>
+      <field name="grouping">severity</field>
+      <field name="sections">
+        - Summary: valid/invalid status
+        - Errors: List all errors with line references if available
+        - Warnings: List all warnings with recommendations
+        - Fix suggestions: Actionable recommendations for each issue
+      </field>
+      <field name="output" var="validation_report"/>
+    </block>
+
+    <!-- Log validation result -->
+    <block type="event" id="E2" action="log" level="info" desc="Log validation completion">
+      <field name="message">Validation complete for: ${target_file}
+${validation_report.summary}</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       REFINE MODE SEQUENCE
+       ============================================================ -->
+  <sequence id="REFINE_SEQ" name="Refine Mode" status="pending" desc="Auto-fix validation errors">
+
+    <!-- B6: Read target file and validation report -->
+    <block type="task" id="B6_READ" action="read-file" desc="Read target AgentFlow file">
+      <field name="path">${target_file}</field>
+      <field name="output" var="target_content"/>
+    </block>
+
+    <!-- Run validation if report not provided -->
+    <block type="task" id="B6_VALIDATE" action="run-script" desc="Get validation report">
+      <field name="command">node "${workspace_path}/scripts/validate-agentflow.js" "${target_file}" --format json</field>
+      <field name="alt_command_fallback">node -e "
+const fs = require('fs');
+const targetFile = process.argv[1];
+if (!fs.existsSync(targetFile)) {
+  console.log(JSON.stringify({valid: false, errors: [{severity: 'error', message: 'File not found'}], warnings: []}));
+  process.exit(1);
+}
+const content = fs.readFileSync(targetFile, 'utf8');
+const errors = [];
+const warnings = [];
+if (!content.includes('<?xml')) warnings.push({severity: 'warning', line: 1, message: 'Missing XML declaration'});
+if (!content.includes('<workflow')) errors.push({severity: 'error', message: 'Missing <workflow> root element'});
+if (!content.includes('<block type=\"input\"')) errors.push({severity: 'error', message: 'Missing input block'});
+if (!content.includes('<block type=\"output\"')) errors.push({severity: 'error', message: 'Missing output block'});
+console.log(JSON.stringify({valid: errors.length === 0, errors, warnings}));
+" "${target_file}"</field>
+      <field name="output" var="validation_result"/>
+    </block>
+
+    <!-- Gateway: Check if fixes needed -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if fixes are needed">
+      <branch test="${validation_result.valid} == true" name="Already Valid">
+        <block type="event" id="E3" action="log" level="info" desc="File is already valid">
+          <field name="message">No fixes needed - ${target_file} is already valid</field>
+        </block>
+        <field name="refine_status" value="no_fixes_needed"/>
+      </branch>
+      <branch test="${validation_result.errors.length} == 0 AND ${validation_result.warnings.length} > 0" name="Warnings Only">
+        <block type="event" id="E4" action="log" level="warn" desc="Warnings found">
+          <field name="message">Only warnings found - no critical errors to fix</field>
+        </block>
+        <field name="refine_status" value="warnings_only"/>
+      </branch>
+      <branch default="true" name="Has Errors">
+        <field name="next">B7</field>
+      </branch>
+    </block>
+
+    <!-- B7: Apply fixes based on validation errors -->
+    <block type="task" id="B7" action="edit-file" desc="Apply fixes to validation errors">
+      <field name="target_file">${target_file}</field>
+      <field name="current_content">${target_content}</field>
+      <field name="errors">${validation_result.errors}</field>
+      <field name="fix_rules">
+        - Add XML declaration if missing: <?xml version="1.0" encoding="UTF-8"?>
+        - Add <workflow> root element if missing with proper attributes
+        - Add <block type="input"> at start if missing
+        - Add <block type="output"> at end if missing
+        - Fix duplicate IDs by appending unique suffixes
+        - Fix unclosed tags by adding proper closing elements
+        - Fix invalid next references by correcting target IDs
+      </field>
+      <field name="fix_documentation">Document each fix applied with explanation</field>
+      <field name="output" var="fix_result"/>
+    </block>
+
+    <!-- B8: Re-validate after fixes -->
+    <block type="task" id="B8" action="run-script" desc="Re-validate after fixes">
+      <field name="command">node "${workspace_path}/scripts/validate-agentflow.js" "${target_file}" --format json</field>
+      <field name="alt_command_fallback">node -e "
+const fs = require('fs');
+const targetFile = process.argv[1];
+const content = fs.readFileSync(targetFile, 'utf8');
+const errors = [];
+const warnings = [];
+if (!content.includes('<?xml')) warnings.push({severity: 'warning', message: 'Missing XML declaration'});
+if (!content.includes('<workflow')) errors.push({severity: 'error', message: 'Missing <workflow> root element'});
+if (!content.includes('<block type=\"input\"')) errors.push({severity: 'error', message: 'Missing input block'});
+if (!content.includes('<block type=\"output\"')) errors.push({severity: 'error', message: 'Missing output block'});
+console.log(JSON.stringify({valid: errors.length === 0, errors, warnings}));
+" "${target_file}"</field>
+      <field name="output" var="revalidation_result"/>
+    </block>
+
+    <!-- Report final status -->
+    <block type="task" id="B8_REPORT" action="report" desc="Report refine results">
+      <field name="original_errors">${validation_result.errors.length}</field>
+      <field name="remaining_errors">${revalidation_result.errors.length}</field>
+      <field name="fixes_applied">${fix_result.fixes}</field>
+      <field name="output" var="refine_report"/>
+    </block>
+
+    <!-- Log refine result -->
+    <block type="event" id="E5" action="log" level="info" desc="Log refine completion">
+      <field name="message">Refine complete for: ${target_file}
+${refine_report.summary}</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       ERROR SEQUENCE (Invalid Mode)
+       ============================================================ -->
+  <sequence id="ERROR_SEQ" name="Error Sequence" status="pending" desc="Handle invalid mode parameter">
+
+    <block type="event" id="E_ERR" action="log" level="error" desc="Log invalid mode error">
+      <field name="message">ERROR: Invalid mode '${mode}'. Must be one of: create, validate, refine</field>
+    </block>
+
+    <block type="task" id="B_ERR" action="report" desc="Generate error report">
+      <field name="error_type">invalid_mode</field>
+      <field name="provided_mode">${mode}</field>
+      <field name="valid_modes">["create", "validate", "refine"]</field>
+      <field name="output" var="error_report"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="AgentFlow manager results">
+    <field name="mode" from="${mode}" type="string" desc="Operation mode executed"/>
+    <field name="status" from="${workflow.status}" type="string" desc="Workflow execution status"/>
+    
+    <!-- Create mode outputs -->
+    <field name="workflow_file" from="${skill_dir}/workflow.agentflow.xml" type="string" desc="Generated workflow file path (create mode)"/>
+    <field name="skill_md_file" from="${skill_dir}/SKILL.md" type="string" desc="Generated SKILL.md file path (create mode)"/>
+    <field name="block_count" from="${block_design.block_count}" type="number" desc="Number of blocks designed (create mode)"/>
+    
+    <!-- Validate mode outputs -->
+    <field name="validation_valid" from="${validation_result.valid}" type="boolean" desc="Validation passed status (validate mode)"/>
+    <field name="validation_errors" from="${validation_result.errors}" type="array" desc="Validation errors (validate mode)"/>
+    <field name="validation_warnings" from="${validation_result.warnings}" type="array" desc="Validation warnings (validate mode)"/>
+    <field name="validation_report" from="${validation_report}" type="string" desc="Formatted validation report (validate mode)"/>
+    
+    <!-- Refine mode outputs -->
+    <field name="refine_status" from="${refine_status}" type="string" desc="Refine operation status (refine mode)"/>
+    <field name="fixes_applied" from="${fix_result.fixes}" type="array" desc="List of fixes applied (refine mode)"/>
+    <field name="remaining_errors" from="${revalidation_result.errors}" type="array" desc="Errors that could not be auto-fixed (refine mode)"/>
+    <field name="refine_report" from="${refine_report}" type="string" desc="Formatted refine report (refine mode)"/>
+    
+    <!-- Error mode outputs -->
+    <field name="error_report" from="${error_report}" type="string" desc="Error report (error mode)"/>
+  </block>
+
+</workflow>

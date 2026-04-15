@@ -51,7 +51,13 @@ tools: Read, Write, Glob, Grep
 1. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
 2. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections.
 
-# Workflow
+# AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
 
 ## Step 1: Load Context
 

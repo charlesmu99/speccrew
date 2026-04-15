@@ -22,7 +22,13 @@ This skill applies ISA-95 Stages 1-3 as an internal thinking framework for analy
 - Feature Designer Agent needs to decompose PRD into functions before design
 - User asks "Analyze this feature" or "Break down this requirement"
 
-# Workflow
+## AgentFlow Definition
+
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+## Workflow
 
 **MANDATORY:**
 - **Business Perspective Only** — Feature Analysis is a PURE BUSINESS document. It describes WHAT the system does from a business/user perspective, NOT HOW it's technically implemented.

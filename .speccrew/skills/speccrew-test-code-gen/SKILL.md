@@ -10,331 +10,211 @@ tools: Read, Write, Glob, Grep
 - When user explicitly requests test code generation from confirmed test cases
 - When user asks "Generate test code", "Create test files from test cases"
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
 
-> **These rules apply to document generation steps (Step 7). Violation = task failure.**
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-1. **FORBIDDEN: `create_file` for plan document** — NEVER use `create_file` to write the test code plan document. It MUST be created by copying the template then filling sections with `search_replace`.
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="test-code-gen-main" status="pending" version="1.0" desc="Generate executable test code from confirmed test case documents">
 
-2. **FORBIDDEN: Full-file rewrite** — NEVER replace the entire document content in a single operation. Always use targeted `search_replace` on specific sections.
+  <!-- Input Parameters -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="test_cases_path" required="true" type="string" desc="Path to test cases document"/>
+    <field name="system_design_path" required="false" type="string" desc="Path to system design document"/>
+    <field name="output_dir" required="true" type="string" desc="Directory for test code output"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name for output file naming"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform identifier"/>
+    <field name="module" required="true" type="string" desc="Module name for file organization"/>
+  </block>
 
-3. **MANDATORY: Template-first workflow** — Copy template MUST execute before filling sections.
+  <!-- Global Constraints -->
+  <block type="rule" id="R1" level="forbidden" desc="Document generation constraints">
+    <field name="text">NEVER use create_file to write the test code plan document directly</field>
+    <field name="text">MUST copy template first, then fill sections with search_replace for plan document</field>
+    <field name="text">NEVER replace entire document content in a single operation</field>
+  </block>
 
-4. **CLARIFICATION: Test source code is NOT template-filled** — Actual test code files in Step 6 are written directly. The template-fill workflow applies ONLY to the Code Plan document in Step 7.
+  <block type="rule" id="R2" level="mandatory" desc="Template-first workflow for plan document">
+    <field name="text">Copy template MUST execute before filling sections for code plan document</field>
+    <field name="text">Test source code files are written directly (NOT template-filled)</field>
+  </block>
 
-## Step 1: Read Test Cases
+  <block type="rule" id="R3" level="mandatory" desc="TC ID traceability">
+    <field name="text">Every test function MUST have a TC ID comment</field>
+    <field name="text">Format: // TC-{MODULE}-{SEQ}: {description}</field>
+  </block>
 
-Read the confirmed test case document specified by `test_cases_path`:
+  <!-- Main Processing Sequence -->
+  <sequence id="S1" name="Test Code Generation" status="pending" desc="Generate test code from test cases">
 
-1. **Parse Test Case Matrix**: Extract TC ID, test steps, inputs, expected results
-2. **Statistics**: Count total test cases and distribution by dimension (module, priority, type)
-3. **Extract Test Data**: Identify test data definitions and fixtures required
+    <!-- Step 1: Read Test Cases -->
+    <block type="task" id="B1" action="read-file" desc="Read confirmed test case document">
+      <field name="path" value="${test_cases_path}"/>
+      <field name="output" var="test_cases"/>
+    </block>
 
-### Test Case Document Structure Expected
+    <!-- Step 2: Read Technical Conventions -->
+    <block type="task" id="B2" action="read-file" desc="Read platform testing conventions">
+      <field name="path" value="speccrew-workspace/knowledges/techs/${platform_id}/conventions-system-test.md"/>
+      <field name="optional" value="true"/>
+      <field name="output" var="system_test_conventions"/>
+    </block>
 
-| Section | Content to Extract |
-|---------|-------------------|
-| Test Case Matrix | TC ID, Description, Steps, Input, Expected Result |
-| Test Data | Fixture definitions, test data sets |
-| Preconditions | Setup requirements, mock data needs |
+    <!-- Fallback: Read unit test conventions -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check if system test conventions found">
+      <branch test="${system_test_conventions} == null">
+        <block type="task" id="B3" action="read-file" desc="Read unit test conventions as fallback">
+          <field name="path" value="speccrew-workspace/knowledges/techs/${platform_id}/conventions-unit-test.md"/>
+          <field name="optional" value="true"/>
+          <field name="output" var="unit_test_conventions"/>
+        </block>
+      </branch>
+    </block>
 
-## Step 2: Read Technical Conventions
+    <!-- Step 3: Read System Design (if provided) -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check if system design path is provided">
+      <branch test="${system_design_path} != null AND ${system_design_path} != ''">
+        <block type="task" id="B4" action="read-file" desc="Read system design document">
+          <field name="path" value="${system_design_path}"/>
+          <field name="output" var="system_design"/>
+        </block>
+      </branch>
+    </block>
 
-Load platform testing conventions to understand the target test framework:
+    <!-- Step 4: Generate Code Plan -->
+    <block type="task" id="B5" action="analyze" desc="Determine file grouping strategy">
+      <field name="grouping_rules">
+        - IF test cases share same module/component THEN group into single test file
+        - IF test cases are independent THEN one test file per test case
+        - Maximum test cases per file: 10
+        - Naming convention: {module-name}.test.{ext} or {module-name}.spec.{ext}
+      </field>
+      <field name="output" var="file_grouping_strategy"/>
+    </block>
 
-### 2.1 Primary Convention Path
+    <block type="task" id="B6" action="analyze" desc="Plan test file structure">
+      <field name="analysis_focus">
+        - Files per module
+        - Single vs multiple files
+        - Integration test separation
+      </field>
+      <field name="output" var="test_file_structure"/>
+    </block>
 
+    <block type="task" id="B7" action="analyze" desc="Plan shared resources">
+      <field name="resource_types">
+        - Fixtures: Common test data
+        - Helpers: Reusable test utilities
+        - Mocks: Shared mock definitions
+      </field>
+      <field name="output" var="shared_resources_plan"/>
+    </block>
+
+    <block type="task" id="B8" action="analyze" desc="Plan mock/stub strategy">
+      <field name="dependency_types">
+        - Database: Mock repository/DAO or use test database
+        - External API: Mock HTTP client or use stub server
+        - File System: Mock file operations or use temp directory
+        - Message Queue: Mock producer/consumer
+        - Cache: Mock cache client or use in-memory cache
+      </field>
+      <field name="output" var="mock_strategy"/>
+    </block>
+
+    <block type="task" id="B9" action="analyze" desc="Create file-to-testcase mapping">
+      <field name="output" var="file_case_mapping"/>
+    </block>
+
+    <!-- Step 5: Checkpoint - Present Code Plan for Confirmation -->
+    <block type="task" id="B10" action="generate" desc="Generate code plan summary">
+      <field name="output" var="code_plan_summary"/>
+    </block>
+
+    <block type="event" id="E1" action="confirm" title="Confirm Test Code Plan" type="yesno" desc="Wait for user confirmation before generating code">
+      <field name="preview" value="${code_plan_summary}"/>
+      <on-confirm>
+        <field name="confirmed" value="true"/>
+      </on-confirm>
+      <on-cancel>
+        <field name="workflow.status" value="cancelled"/>
+      </on-cancel>
+    </block>
+
+    <!-- Step 6: Generate Test Code -->
+    <block type="task" id="B11" action="generate" desc="Generate fixtures">
+      <field name="output_dir" value="${output_dir}/__fixtures__"/>
+      <field name="output" var="fixtures_generated"/>
+    </block>
+
+    <block type="task" id="B12" action="generate" desc="Generate helpers">
+      <field name="output_dir" value="${output_dir}/__helpers__"/>
+      <field name="output" var="helpers_generated"/>
+    </block>
+
+    <block type="task" id="B13" action="generate" desc="Generate mocks">
+      <field name="output_dir" value="${output_dir}/__mocks__"/>
+      <field name="output" var="mocks_generated"/>
+    </block>
+
+    <block type="loop" id="L1" over="${file_case_mapping.files}" as="file_mapping" desc="Generate test files">
+      <block type="task" id="B14" action="generate" desc="Generate test file ${file_mapping.file_name}">
+        <field name="tc_annotation_format">// TC-{MODULE}-{SEQ}: {description}</field>
+        <field name="test_structure">Arrange-Act-Assert</field>
+        <field name="output_path" value="${output_dir}/${file_mapping.file_name}"/>
+      </block>
+    </block>
+
+    <!-- Step 7: Write Code Plan Document -->
+    <block type="task" id="B15" action="read-file" desc="Read test code plan template">
+      <field name="path" value="speccrew-test-code-gen/templates/TEST-CODE-PLAN-TEMPLATE.md"/>
+      <field name="output" var="plan_template"/>
+    </block>
+
+    <block type="task" id="B16" action="write-file" desc="Create test code plan document">
+      <field name="path" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+      <field name="template" value="${plan_template}"/>
+      <field name="output" var="plan_document_created"/>
+    </block>
+
+    <block type="task" id="B17" action="edit-file" desc="Fill File-to-TestCase Mapping section">
+      <field name="path" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+      <field name="section">File-to-TestCase Mapping</field>
+    </block>
+
+    <block type="task" id="B18" action="edit-file" desc="Fill Mock Strategy section">
+      <field name="path" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+      <field name="section">Mock Strategy</field>
+    </block>
+
+    <block type="task" id="B19" action="edit-file" desc="Fill Shared Resources section">
+      <field name="path" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+      <field name="section">Shared Resources</field>
+    </block>
+
+    <block type="task" id="B20" action="edit-file" desc="Fill Test File Structure section">
+      <field name="path" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+      <field name="section">Test File Structure</field>
+    </block>
+
+    <!-- Checkpoint -->
+    <block type="checkpoint" id="CP1" name="code-generation-complete" desc="Verify test code generation complete">
+      <field name="file" value="${output_dir}/${feature_name}-test-code-plan.md"/>
+    </block>
+
+  </sequence>
+
+  <!-- Output Results -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="test_code_plan_path" value="${output_dir}/${feature_name}-test-code-plan.md" type="string" desc="Path to test code plan document"/>
+    <field name="test_files" type="array" desc="List of generated test files"/>
+    <field name="total_test_cases" type="number" desc="Total number of test cases implemented"/>
+  </block>
+
+</workflow>
 ```
-speccrew-workspace/knowledges/techs/{platform_id}/conventions-system-test.md
-```
-
-### 2.2 Unit Test Convention Path (Fallback)
-
-If `conventions-system-test.md` does not exist or for unit test specifics, read:
-
-```
-speccrew-workspace/knowledges/techs/{platform_id}/conventions-unit-test.md
-```
-
-### 2.3 Generic Convention Path (Last Resort)
-
-If neither conventions file exists, read `conventions-dev.md` and infer:
-
-| Convention File | Inference Strategy |
-|-----------------|-------------------|
-| conventions-dev.md | Extract framework from tech stack, infer unit test framework |
-
-### 2.4 Information to Extract
-
-| Item | Purpose |
-|------|---------|
-| Test Framework | Jest, JUnit, pytest, Mocha, Go test, etc. |
-| Test Directory | Where test files should be placed |
-| File Naming | Test file naming conventions |
-| Mock Strategy | How mocking is handled (jest.mock, unittest.mock, etc.) |
-| Assertion Style | expect, assert, should, etc. |
-| Fixture Location | Where to place shared fixtures |
-| Helper Location | Where to place test helpers |
-
-## Step 3: Read System Design
-
-Read the system design document specified by `system_design_path`:
-
-### 3.1 Understand Module Structure
-
-- Identify module boundaries and responsibilities
-- Map test cases to corresponding modules
-
-### 3.2 Identify External Dependencies
-
-For mocking strategy planning:
-
-| Dependency Type | Mock Approach |
-|-----------------|---------------|
-| Database | Mock repository/DAO or use test database |
-| External API | Mock HTTP client or use stub server |
-| File System | Mock file operations or use temp directory |
-| Message Queue | Mock producer/consumer |
-| Cache | Mock cache client or use in-memory cache |
-
-### 3.3 Confirm Interface Signatures
-
-- Extract function/method signatures from design
-- Identify parameter types and return types
-- Note any complex data models that need test fixtures
-
-## Step 4: Generate Code Plan
-
-Create a comprehensive test code generation plan:
-
-### 4.0 Determine File Grouping Strategy
-
-Before organizing test files, determine the grouping strategy:
-
-| Condition | Grouping Strategy |
-|-----------|-------------------|
-| Test cases share same module/component | Group into single test file |
-| Test cases are independent | One test file per test case |
-| Test cases span multiple modules | Create separate test files per module |
-
-**File Grouping Rules:**
-
-1. **IF test cases share same module/component THEN** group into single test file
-2. **IF test cases are independent THEN** one test file per test case
-3. **Maximum test cases per file:** 10 (split into multiple files if exceeded)
-4. **Naming convention:** `{module-name}.test.{ext}` or `{module-name}.spec.{ext}`
-
-### 4.1 Test File Structure Planning
-
-Determine how test files are organized:
-
-| Decision | Consideration |
-|----------|---------------|
-| Files per Module | Group tests by module or by feature |
-| Single vs Multiple | One test file per source file, or split by test type |
-| Integration Tests | Separate integration test files if needed |
-
-### 4.2 Shared Resources Planning
-
-| Resource Type | Decision Points |
-|---------------|-----------------|
-| Fixtures | Common test data (users, products, etc.) |
-| Helpers | Reusable test utilities (setup, teardown, assertions) |
-| Mocks | Shared mock definitions |
-
-### 4.3 Mock/Stub Strategy
-
-For each external dependency:
-
-| Dependency | Mock Type | Implementation Approach |
-|-----------|-----------|------------------------|
-| {dependency_name} | mock/stub/spy | {how to implement} |
-
-### 4.4 File-to-TestCase Mapping Table
-
-| Test File | Test Cases Covered | Description |
-|-----------|-------------------|-------------|
-| {file_path} | TC-{MOD}-001, TC-{MOD}-002 | {brief description} |
-
-## Step 5: Checkpoint - Present Code Plan for Confirmation
-
-Present the code generation plan to user before generating actual code:
-
-### Plan Summary Structure
-
-```
-Test Code Plan Summary: {feature_name}
-
-Platform: {platform_id}
-Test Framework: {framework}
-
-Test Cases: {count} total
-├── Module A: {count} cases
-├── Module B: {count} cases
-└── Module C: {count} cases
-
-Test Files: {file_count} files
-├── {file_1}: {case_count} cases
-├── {file_2}: {case_count} cases
-└── ...
-
-Shared Resources:
-├── Fixtures: {count} files
-├── Helpers: {count} files
-└── Mocks: {count} modules
-
-Mock Strategy:
-├── {dependency_1}: {mock_type}
-├── {dependency_2}: {mock_type}
-└── ...
-```
-
-### Confirmation Questions
-
-Ask user to confirm:
-
-1. Is the test file grouping appropriate?
-2. Is the mock strategy correct for your environment?
-3. Are there any additional shared resources needed?
-4. Should I proceed with code generation?
-
-**Wait for user confirmation before proceeding to Step 6.**
-
-## Step 6: Generate Test Code
-
-Execute the code plan, generating test files one by one:
-
-### 6.1 TC ID Annotation Format
-
-Every test function/method MUST have a TC ID comment:
-
-```javascript
-// TC-{MOD}-{SEQ}: {test case description}
-test('should validate user input', () => {
-  // test implementation
-});
-```
-
-**Format Pattern**: `// TC-{MODULE}-{SEQUENCE}: {description}`
-
-| Component | Format | Example |
-|-----------|--------|---------|
-| MODULE | 2-4 character module code | USR, ORD, PAY |
-| SEQUENCE | 3-digit zero-padded number | 001, 002, 003 |
-| description | Brief test case description | User login with valid credentials |
-
-### 6.2 Test Code Structure (Arrange-Act-Assert)
-
-Each test should follow clear structure:
-
-```
-// TC-{MOD}-{SEQ}: {description}
-test('{test name}', () => {
-  // Arrange - Setup test data and mocks
-  const input = { ... };
-  mockDependency.method.mockReturnValue(expectedValue);
-
-  // Act - Execute the function under test
-  const result = functionUnderTest(input);
-
-  // Assert - Verify the outcome
-  expect(result).toEqual(expectedOutput);
-  expect(mockDependency.method).toHaveBeenCalledWith(expectedParams);
-});
-```
-
-### 6.3 Platform-Specific Conventions
-
-Follow conventions from `conventions-unit-test.md`:
-
-| Platform | Convention Examples |
-|----------|---------------------|
-| Node.js/Jest | `describe`/`test`/`expect`, `jest.mock()` |
-| Java/JUnit | `@Test`, `@Mock`, `when().thenReturn()` |
-| Python/pytest | `def test_`, `@pytest.fixture`, `mocker.patch` |
-| Go | `func TestXxx(t *testing.T)`, `gomock` |
-
-### 6.4 Generate Shared Resources
-
-Create fixtures and helpers:
-
-**Fixtures** (`__fixtures__` or `fixtures/`):
-```javascript
-// users.fixture.js
-module.exports = {
-  validUser: {
-    id: 'user-001',
-    username: 'testuser',
-    email: 'test@example.com'
-  },
-  adminUser: {
-    id: 'admin-001',
-    username: 'admin',
-    role: 'ADMIN'
-  }
-};
-```
-
-**Helpers** (`__helpers__` or `helpers/`):
-```javascript
-// test.helpers.js
-function createMockResponse(data) {
-  return {
-    json: jest.fn().mockReturnValue(data),
-    status: jest.fn().mockReturnThis()
-  };
-}
-module.exports = { createMockResponse };
-```
-
-### 6.5 Generation Order
-
-Generate files in dependency order:
-
-1. **Fixtures** - Test data definitions
-2. **Helpers** - Test utilities
-3. **Mocks** - Mock definitions (if separate files)
-4. **Test Files** - Actual test code
-
-## Step 7: Write Code Plan Document
-
-Output the code plan document for traceability:
-
-### 7.1 Copy Template to Document Path
-
-1. **Read the template**: `templates/TEST-CODE-PLAN-TEMPLATE.md`
-2. **Replace top-level placeholders** (feature name, platform, date, etc.)
-3. **Create the document** using `create_file`:
-   - Target path: `speccrew-workspace/iterations/{number}-{type}-{name}/06.system-test/code/{platform_id}/[feature]-test-code-plan.md`
-   - Content: Template with top-level placeholders replaced
-4. **Verify**: Document has complete section structure
-
-### 7.2 Fill Each Section Using search_replace
-
-Fill each section with code plan data from Step 4.
-
-> ⚠️ **CRITICAL CONSTRAINTS:**
-> - **FORBIDDEN: `create_file` to rewrite the entire document**
-> - **MUST use `search_replace` to fill each section individually**
-> - **All section titles MUST be preserved**
-
-**Section Filling Guide:**
-
-| Section | Content Source |
-|---------|---------------|
-| **File-to-TestCase Mapping** | From Step 4.4 |
-| **Mock Strategy** | From Step 4.3 |
-| **Shared Resources** | From Step 4.2 |
-| **Test File Structure** | From Step 4.1 |
-
-### Document Purpose
-
-- Records file-to-test-case mapping
-- Documents mock strategy decisions
-- Provides reference for future test maintenance
-- Enables traceability from test code to test cases
 
 # Key Rules
 

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="knowledge-detector-main" status="pending" version="1.0" desc="Detect business knowledge base availability and completeness status">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew workspace"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to sync-state/knowledge-bizs directory"/>
+    <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs directory"/>
+    <field name="language" required="true" type="string" desc="Language code for output content"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Path constraints">
+    <field name="text">Use the provided absolute paths directly. DO NOT construct or derive paths yourself.</field>
+    <field name="text">All paths must use forward slashes / as path separators (even on Windows)</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Execution constraints">
+    <field name="text">This skill is READ-ONLY - do not modify any files</field>
+    <field name="text">Use Glob for scanning, avoid deep file reads</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Knowledge Base Detection" status="pending" desc="Scan and detect knowledge base status">
+
+    <!-- Step 1: Check system-overview.md -->
+    <block type="task" id="B1" action="read-file" desc="Check if system-overview.md exists">
+      <field name="path" value="${workspace_path}/knowledges/bizs/system-overview.md"/>
+      <field name="output" var="system_overview_content"/>
+      <field name="on_error">continue</field>
+    </block>
+
+    <!-- Step 2: Scan for features files -->
+    <block type="task" id="B2" action="run-script" desc="Scan for features-*.json files">
+      <field name="command">Get-ChildItem -Path "${sync_state_bizs_dir}" -Filter "features-*.json" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName</field>
+      <field name="output" var="features_files_list"/>
+    </block>
+
+    <!-- Step 3: Scan for entry-dirs files -->
+    <block type="task" id="B3" action="run-script" desc="Scan for entry-dirs-*.json files">
+      <field name="command">Get-ChildItem -Path "${sync_state_bizs_dir}" -Filter "entry-dirs-*.json" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName</field>
+      <field name="output" var="entry_dirs_files_list"/>
+    </block>
+
+    <!-- Step 4: Analyze features files and count modules/platforms -->
+    <block type="loop" id="L1" over="${features_files_list}" as="features_file" desc="Process each features file">
+      <block type="task" id="B4" action="read-file" desc="Read features file content">
+        <field name="path" value="${features_file}"/>
+        <field name="output" var="features_data"/>
+      </block>
+      <block type="task" id="B5" action="analyze" desc="Extract platform and module info">
+        <field name="input" value="${features_data}"/>
+        <field name="extract">
+          - platformId
+          - platformType
+          - modules array length
+          - features array length
+        </field>
+        <field name="output" var="platform_info"/>
+      </block>
+    </block>
+
+    <!-- Step 5: Determine status and compile results -->
+    <block type="task" id="B6" action="analyze" desc="Determine knowledge base status">
+      <field name="input">
+        system_overview_exists: ${system_overview_content} != null
+        features_files: ${features_files_list}
+        entry_dirs_files: ${entry_dirs_files_list}
+        platform_data: ${platform_info}
+      </field>
+      <field name="logic">
+        IF has_system_overview AND has_features THEN status = "full"
+        ELSE IF has_features THEN status = "lite"
+        ELSE status = "none"
+      </field>
+      <field name="output" var="detection_result"/>
+    </block>
+
+    <!-- Checkpoint: Verify detection complete -->
+    <block type="checkpoint" id="CP1" name="detection-complete" desc="Verify detection completed">
+      <field name="verify" value="${detection_result.status} != null"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="status" from="${detection_result.status}" type="string" desc="Knowledge base status: full, lite, or none"/>
+    <field name="has_system_overview" from="${detection_result.has_system_overview}" type="boolean" desc="Whether system-overview.md exists"/>
+    <field name="has_features" from="${detection_result.has_features}" type="boolean" desc="Whether features files exist"/>
+    <field name="has_entry_dirs" from="${detection_result.has_entry_dirs}" type="boolean" desc="Whether entry-dirs files exist"/>
+    <field name="available_platforms" from="${detection_result.available_platforms}" type="array" desc="List of available platform IDs"/>
+    <field name="module_count" from="${detection_result.module_count}" type="number" desc="Total module count"/>
+    <field name="features_files" from="${detection_result.features_files}" type="array" desc="List of features file paths"/>
+    <field name="entry_dirs_files" from="${detection_result.entry_dirs_files}" type="array" desc="List of entry-dirs file paths"/>
+    <field name="system_overview_path" from="${detection_result.system_overview_path}" type="string" desc="Path to system overview file"/>
+    <field name="message" value="Knowledge base status detected successfully" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

@@ -1,128 +1,175 @@
 ---
 name: speccrew-knowledge-bizs-init-features
-description: Scan source code directories to identify all platforms and generate features.json inventory for knowledge base initialization. Use when initializing business knowledge base from source code.
-tools: Read, Write, Glob, Grep, SearchCodebase, Skill, Bash
+description: Execute generate-inventory.js script to create features.json inventory for a single platform. Called by bizs-dispatch Stage 1b for each platform.
+tools: Read, Write, Bash
 ---
 
-## Input
+# speccrew-knowledge-bizs-init-features
+
+Execute generate-inventory.js script to create features.json inventory for a single platform. This is a Stage 1b worker skill called by dispatch after platform detection and entry directory identification are complete.
+
+## Language Adaptation
+
+All generated documents must match the user's language. Detect the language from the user's input and generate content accordingly.
+
+- User writes in 中文 → Generate Chinese documents, use `language: "zh"`
+- User writes in English → Generate English documents, use `language: "en"`
+- User writes in other languages → Use appropriate language code
+
+## Trigger Scenarios
+
+- Called by `speccrew-knowledge-bizs-dispatch` Stage 1b
+- "Generate feature inventory for platform"
+- "Create features.json from entry-dirs"
+
+## Input Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `source_path` | string | No | Source code directory path (default: project root) |
-| `language` | string | Yes | Target language for generated content (e.g., "zh", "en") |
-| `sync_state_bizs_dir` | string | Yes | Absolute path to features and entry-dirs JSON output directory |
-| `configs_dir` | string | Yes | Absolute path to configuration files directory |
-| `ide_skills_dir` | string | Yes | Absolute path to IDE skills directory (e.g., `.qoder/skills`) |
+| `platformId` | string | Yes | Platform identifier (e.g., "backend-system", "frontend-web", "mobile-app") |
+| `platformName` | string | Yes | Platform display name |
+| `platformType` | string | Yes | Platform type: backend, web, mobile |
+| `platformSubtype` | string | No | Platform subtype (e.g., vue, react, uniapp) |
+| `sourcePath` | string | Yes | Absolute path to platform source root |
+| `techIdentifier` | string | Yes | Technology stack identifier |
+| `entryDirsFile` | string | Yes | Absolute path to entry-dirs JSON file |
+| `outputDir` | string | Yes | Absolute path to features JSON output directory |
+| `workspace_path` | string | Yes | Absolute path to speccrew-workspace directory |
+| `sync_state_bizs_dir` | string | Yes | Absolute path to sync-state/knowledge-bizs directory |
+| `language` | string | Yes | Language code for generated content |
 
 ## Output
 
-- `{sync_state_bizs_dir}/features-{platform}.json` - Platform-specific feature inventory files
-- `{sync_state_bizs_dir}/entry-dirs-{platform}.json` - Entry directories configuration files
+- `${outputDir}/features-${platformId}.json`
 
-## Workflow
+## AgentFlow Definition
 
-```mermaid
-flowchart TD
-    Start([Start]) --> Step1[Step 1: Identify Platforms]
-    Step1 --> Step2[Step 2: Identify Entry Directories]
-    Step2 --> Step3[Step 3: Execute Inventory Scripts]
-    Step3 --> Step4[Step 4: Report Results]
-    Step4 --> End([End])
-```
+<!-- @agentflow: workflow.agentflow.xml -->
 
-### Step 1: Identify Platforms
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 
-**Detection Process:**
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="platformId" required="true" type="string" desc="Platform identifier"/>
+    <field name="platformName" required="true" type="string" desc="Platform display name"/>
+    <field name="platformType" required="true" type="string" desc="Platform type: backend/web/mobile"/>
+    <field name="platformSubtype" required="false" type="string" desc="Platform subtype"/>
+    <field name="sourcePath" required="true" type="string" desc="Absolute path to platform source root"/>
+    <field name="techIdentifier" required="true" type="string" desc="Technology stack identifier"/>
+    <field name="entryDirsFile" required="true" type="string" desc="Absolute path to entry-dirs JSON file"/>
+    <field name="outputDir" required="true" type="string" desc="Absolute path to features JSON output directory"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
+    <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to sync-state/knowledge-bizs directory"/>
+    <field name="language" required="true" type="string" desc="Language code for generated content"/>
+  </block>
 
-1. **Read Configuration:**
-   - `{configs_dir}/platform-mapping.json` - Platform type and subtype mappings
-   - `{configs_dir}/tech-stack-mappings.json` - Tech stack configurations and exclude directories
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Path constraints">
+    <field name="text">Use the provided absolute paths directly. DO NOT construct or derive paths yourself.</field>
+    <field name="text">All paths must use forward slashes / as path separators (even on Windows)</field>
+  </block>
 
-2. Scan `{source_path}` for platform-specific configuration files (e.g., package.json, pubspec.yaml, pom.xml)
+  <block type="rule" id="R2" level="forbidden" desc="Script execution constraints">
+    <field name="text">DO NOT manually scan source files or manually construct features JSON</field>
+    <field name="text">MUST execute generate-inventory.js script - if script not found, STOP and report error</field>
+    <field name="text">DO NOT use read_file, Glob, Grep, or search_codebase as substitutes for script execution</field>
+  </block>
 
-3. Match detected files against `platform-mapping.json` → `platform_categories`
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="forbidden" desc="Continuous execution constraints — NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" or "How would you like to proceed?" during execution</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial / Stop" — always execute ALL tasks to completion</field>
+    <field name="text">DO NOT suggest "Due to context window limits, let me pause" — complete current task, use checkpoint for resumption</field>
+    <field name="text">DO NOT estimate workload and suggest breaking it into phases — execute ALL items in sequence</field>
+    <field name="text">DO NOT warn about "large number of files" or "this may take a while" — proceed with generation</field>
+    <field name="text">Context window management: if approaching limit, save progress to checkpoint file and resume — do NOT ask user for guidance</field>
+  </block>
 
-4. For each matched platform, extract `platform_type` and `platform_subtype`
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Generate Features Inventory" status="pending" desc="Execute script to generate features.json">
 
-5. Use `tech-stack-mappings.json` to determine:
-   - `FileExtensions`: Which file extensions to scan
-   - `ExcludeDirs`: Which directories to exclude
-   - `TechStack`: Technology stack array
+    <!-- Step 1: Verify entry-dirs JSON exists and is valid -->
+    <block type="task" id="B1" action="read-file" desc="Read entry-dirs JSON to verify file exists and modules non-empty">
+      <field name="path" value="${entryDirsFile}"/>
+      <field name="output" var="entry_dirs_content"/>
+    </block>
 
-6. Each detected platform will generate one `features-{platform}.json` file
+    <!-- Gateway: Validate entry-dirs content -->
+    <block type="gateway" id="G1" mode="guard" desc="Verify entry-dirs has modules"
+           test="${entry_dirs_content.modules} != null AND ${entry_dirs_content.modules.length} > 0"
+           fail-action="stop">
+      <field name="message">Entry-dirs JSON must have non-empty modules array: ${entryDirsFile}</field>
+    </block>
 
-**Example Detection:**
-- Found `frontend-web/package.json` with `"vue"` in dependencies
-- Lookup `platform-mapping.json`: `web` + `vue` → `platform_type=web`, `platform_subtype=vue`
-- Lookup `tech-stack-mappings.json`: vue → extensions=[".vue"], exclude_dirs=["components","utils"]
+    <!-- Step 2: Execute generate-inventory.js script -->
+    <block type="task" id="B2" action="run-script" desc="Execute generate-inventory.js to create features.json">
+      <field name="command">node "${workspace_path}/../.speccrew/skills/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "${entryDirsFile}" --outputDir "${outputDir}"</field>
+      <field name="note">Script path discovery: Worker must locate generate-inventory.js in IDE skills directory. Search order: 1) .qoder/skills/ 2) .speccrew/skills/ 3) .cursor/skills/ - all relative to project root (workspace_path parent). If script not found, STOP and report error.</field>
+      <field name="output" var="script_result"/>
+    </block>
 
-### Step 2: Identify Entry Directories
+    <!-- Checkpoint: Verify features.json generated -->
+    <block type="checkpoint" id="CP1" name="features-generated" desc="Verify features JSON was generated">
+      <field name="file" value="${outputDir}/features-${platformId}.json"/>
+      <field name="verify" value="file_exists(${outputDir}/features-${platformId}.json)"/>
+    </block>
 
-For each platform detected in Step 1, identify business module entry directories.
+    <!-- Step 3: Validate output JSON structure -->
+    <block type="task" id="B3" action="analyze" desc="Validate features.json structure">
+      <field name="input" value="${outputDir}/features-${platformId}.json"/>
+      <field name="validation_rules">
+        - platformName matches input platformName
+        - platformType matches input platformType
+        - techStack is valid array
+        - features array is non-empty
+        - each feature has: fileName, sourcePath, module, analyzed=false
+        - sourcePath uses forward slashes
+      </field>
+      <field name="output" var="validation_result"/>
+    </block>
 
-**Option A: Invoke Skill (Recommended)**
+    <!-- Gateway: Handle validation result -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Handle validation result">
+      <branch test="${validation_result.status} == 'failed'">
+        <block type="event" id="E1" action="log" level="error" desc="Log validation failure">
+          <field name="message">Features JSON validation failed for platform ${platformId}: ${validation_result.errors}</field>
+        </block>
+        <block type="error-handler" id="EH1" desc="Handle validation failure">
+          <catch error-type="validation_failed">
+            <field name="action">STOP - features.json structure invalid, manual intervention required</field>
+          </catch>
+        </block>
+      </branch>
+      <branch test="${validation_result.status} == 'passed'">
+        <block type="event" id="E2" action="log" level="info" desc="Log validation success">
+          <field name="message">Platform ${platformId} features.json validation passed</field>
+        </block>
+      </branch>
+    </block>
 
-Execute `speccrew-knowledge-bizs-identify-entries` skill with the following parameters:
+  </sequence>
 
-> **NOTE**: Worker dispatch is handled by the calling Agent. This Skill only specifies the parameters needed.
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="generated_file" value="${outputDir}/features-${platformId}.json" type="string" desc="Path to generated features JSON"/>
+    <field name="feature_count" from="${validation_result.feature_count}" type="number" desc="Number of features in inventory"/>
+    <field name="validation_status" from="${validation_result.status}" type="string" desc="Validation result status"/>
+  </block>
 
-| Parameter | Value |
-|-----------|-------|
-| `platforms` | Platform list from Step 1 (each with platformId, sourcePath, platformType, platformSubtype, techStack) |
-| `workspace_path` | Absolute path to speccrew-workspace |
-| `sync_state_bizs_dir` | `{sync_state_bizs_dir}` |
-| `configs_dir` | `{configs_dir}` |
+</workflow>
 
-Expected output: `entry-dirs-{platform_id}.json` files in `{sync_state_bizs_dir}/`.
+## Output JSON Format
 
-**Option B: Direct Execution**
-
-If executing directly (without Worker dispatch), follow the same logic as the `speccrew-knowledge-bizs-identify-entries` skill:
-1. Read each platform's directory tree (3 levels deep)
-2. Identify entry directories based on platform type:
-   - **Backend**: Find directories containing `*Controller.*` files, extract business package names
-   - **Frontend**: Find `views/` or `pages/` directories, use first-level subdirectories as modules
-   - **Mobile**: Find `pages/` subdirectories + top-level `pages-*` directories
-3. Apply exclusion rules from `{configs_dir}/tech-stack-mappings.json`
-4. Generate `entry-dirs-{platform_id}.json` files to `{sync_state_bizs_dir}/`
-
-**Verification**: Confirm each entry-dirs JSON has non-empty `modules` array with business-meaningful names.
-
-### Step 3: Execute Inventory Scripts
-
-> **MANDATORY**: You MUST execute the provided scripts via `run_in_terminal`. DO NOT use `read_file`, `search_codebase`, `Glob`, or any other tool to substitute script execution. DO NOT manually scan files and construct JSON output yourself.
-
-Execute the inventory script for each platform using the entry-dirs JSON from Step 2:
-
-**Prerequisites:**
-- Node.js 14.0+
-
-**Script Location:**
-- All Platforms: `{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js`
-
-**Execution Command:**
-```bash
-node "{ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "{sync_state_bizs_dir}/entry-dirs-{platform_id}.json" --outputDir "{sync_state_bizs_dir}"
-```
-
-**Parameters:**
-- `--entryDirsFile`: Path to the `entry-dirs-{platform_id}.json` file in `{sync_state_bizs_dir}/`
-- `--outputDir`: Output directory for `features-{platform}.json` (use `{sync_state_bizs_dir}`)
-
-**Example:**
-```bash
-# Execute for each platform's entry-dirs file
-node "d:/project/.qoder/skills/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js" --entryDirsFile "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs/entry-dirs-backend-system.json" --outputDir "d:/project/speccrew-workspace/knowledges/base/sync-state/knowledge-bizs"
-```
-
-**Script Parameters**:
-- `--entryDirsFile`: (Required) Path to the `entry-dirs-{platform_id}.json` file in `{sync_state_bizs_dir}/`
-- `--outputDir`: (Required) Output directory for `features-{platform}.json` (use `{sync_state_bizs_dir}`)
-- `--techIdentifier`: (Optional) Technology identifier for tech-stack lookup (auto-detected from platform mapping if omitted)
-- `--fileExtensions`: (Optional) Comma-separated list of file extensions to include
-- `--excludeDirs`: (Optional) Additional directories to exclude
-
-**Output: `features-{platform}.json` Structure:**
 ```json
 {
   "platformName": "Web Frontend",
@@ -140,7 +187,7 @@ node "d:/project/.qoder/skills/speccrew-knowledge-bizs-init-features/scripts/gen
   "features": [
     {
       "fileName": "index",
-      "sourcePath": "yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue",
+      "sourcePath": "frontend-web/src/views/system/user/index.vue",
       "documentPath": "speccrew-workspace/knowledges/bizs/web-vue/src/views/system/user/index.md",
       "module": "system",
       "analyzed": false,
@@ -152,76 +199,48 @@ node "d:/project/.qoder/skills/speccrew-knowledge-bizs-init-features/scripts/gen
 }
 ```
 
-**Module Detection Rule:**
-- When using `--entryDirsFile` mode (recommended), the `module` field for each feature is determined by matching the file's path against the entry directories defined in the entry-dirs JSON
-- Each file is assigned to the module whose `entryDirs` path matches the file's relative directory
-- The top-level `modules` array lists all modules with their feature counts
-- Files not matching any entry directory → module = `_root`
+### Field Definitions
 
-**sourcePath Format:**
-- In both full-scan mode and entry-dirs mode, `sourcePath` is always a **project-root-relative path**
-- Example: `yudao-ui/yudao-ui-admin-uniapp/src/pages/bpm/index.vue` (NOT `pages/bpm/index.vue`)
-- Example: `yudao-module-system/src/main/java/cn/iocoder/yudao/module/system/controller/admin/user/UserController.java`
+- `platformName`: Human-readable platform name
+- `platformType`: Platform type (backend, web, mobile)
+- `sourcePath`: Platform source root path (project-root-relative)
+- `techStack`: Array of technology identifiers
+- `modules`: Array of modules with feature counts
+- `totalFiles`: Total number of feature files
+- `analyzedCount`: Number of analyzed features (initially 0)
+- `pendingCount`: Number of pending features (initially totalFiles)
+- `generatedAt`: ISO timestamp when file was generated
+- `features`: Array of feature objects
+  - `fileName`: File name without extension
+  - `sourcePath`: Relative path to source file (project-root-relative)
+  - `documentPath`: Relative path to target document
+  - `module`: Module name this feature belongs to
+  - `analyzed`: Whether analysis is complete (initially false)
+  - `startedAt`: Analysis start timestamp (null initially)
+  - `completedAt`: Analysis completion timestamp (null initially)
+  - `analysisNotes`: Analysis notes (null initially)
 
-**Verification Checklist:**
-- [ ] All `features-{platform}.json` files exist and are valid JSON
-- [ ] Each file has correct platform metadata (platformName, platformType, techStack)
-- [ ] All features have `analyzed: false` initially
-- [ ] File paths are correct and accessible
+## Error Handling
 
-### Step 4: Report Results
-
-```
-Feature Inventory Generated
-- Platforms Found: [N]
-  - Platform 1: [platform_name] ([platform_type]) - [feature_count] features
-  - Platform 2: [platform_name] ([platform_type]) - [feature_count] features
-- Total Features: [N]
-
-Platform Inventory Files:
-- Web Frontend:
-  - Inventory File: {sync_state_bizs_dir}/features-web.json
-  - Total Features: [N]
-  - Status: Generated ✓
-- Mobile App:
-  - Inventory File: {sync_state_bizs_dir}/features-mobile.json
-  - Total Features: [N]
-  - Status: Generated ✓
-- Backend API:
-  - Inventory File: {sync_state_bizs_dir}/features-api.json
-  - Total Features: [N]
-  - Status: Generated ✓
-
-Final Output:
-- Platform Files:
-  - {sync_state_bizs_dir}/features-web.json
-  - {sync_state_bizs_dir}/features-mobile.json
-  - {sync_state_bizs_dir}/features-api.json
-```
+| Scenario | Handling |
+|----------|----------|
+| entry-dirs JSON not found | STOP and report error with file path |
+| entry-dirs modules array empty | STOP - cannot generate features without entry directories |
+| generate-inventory.js script not found | STOP and report error - do NOT attempt manual generation |
+| Script execution fails | STOP and report error with exit code and stderr |
+| features.json validation fails | STOP - manual intervention required |
+| features array empty | WARNING - platform may have no recognizable features |
 
 ## Checklist
 
-### Platform Detection
-- [ ] Platforms identified (Web, Mobile, Desktop, or API)
-- [ ] Each platform has correct `platformName`, `platformType`, `techStack` configuration
-- [ ] Source directories located for all platforms
+- [ ] entry-dirs JSON file exists and is readable
+- [ ] entry-dirs JSON has non-empty modules array
+- [ ] generate-inventory.js script located and executed
+- [ ] features-${platformId}.json file generated
+- [ ] Output JSON has valid platform metadata
+- [ ] features array is non-empty
+- [ ] Each feature has required fields (fileName, sourcePath, module, analyzed)
+- [ ] All sourcePath values use forward slashes
+- [ ] analyzed field is false for all features (initial state)
 
-### Entry Directory Identification
-- [ ] Entry-dirs JSON files generated for all platforms
-- [ ] Each platform has non-empty modules array
-- [ ] Module names are business-meaningful (not technical terms like `config`, `util`, `controller`)
-- [ ] Entry directory paths are correct and accessible
-
-### Inventory Generation
-- [ ] **Inventory scripts executed**: Node.js script generated `features-{platform}.json` files
-- [ ] **Inventory files valid**: JSON structure correct, all features listed
-- [ ] **Total count verified**: `totalFiles` matches actual source file count per platform
-- [ ] **File paths correct**: All `sourcePath` and `documentPath` values are accurate (sourcePath MUST be project-root-relative path)
-
-### Output Generation
-- [ ] All platform inventory files generated in `{sync_state_bizs_dir}` directory
-- [ ] Output path verified
-- [ ] Results reported
-
-> **MANDATORY**: Use the provided absolute paths directly. DO NOT construct or derive paths yourself. DO NOT manually create JSON files.
-
+> **MANDATORY**: Use the provided absolute paths directly. DO NOT construct or derive paths yourself. DO NOT manually create JSON files - MUST execute the script.

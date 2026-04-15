@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="test-runner-main" status="pending" version="1.0" desc="Execute test code, parse results, and detect deviations between expected and actual outcomes">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="test_code_plan_path" required="true" type="string" desc="Path to test code plan document with test file mappings"/>
+    <field name="test_cases_path" required="true" type="string" desc="Path to test cases document with expected results"/>
+    <field name="output_dir" required="true" type="string" desc="Directory for execution results output"/>
+    <field name="feature_name" required="true" type="string" desc="Feature name for output file naming"/>
+    <field name="platform_id" required="true" type="string" desc="Target platform identifier"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Environment verification">
+    <field name="text">Always verify environment before running tests - never skip pre-checks</field>
+    <field name="text">Capture both stdout and stderr for diagnostics</field>
+  </block>
+
+  <block type="rule" id="R2" level="mandatory" desc="TC ID traceability">
+    <field name="text">Every test result must be traced back to its TC ID</field>
+    <field name="text">Extract TC IDs from test file comments</field>
+  </block>
+
+  <block type="rule" id="R3" level="forbidden" desc="Report generation restriction">
+    <field name="text">This skill does NOT generate human-readable reports or bug documents</field>
+    <field name="text">Output must be structured data for downstream consumption</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Test Execution" status="pending" desc="Execute tests and generate structured results">
+
+    <!-- Step 1: Read Inputs -->
+    <block type="task" id="B1" action="read-file" desc="Read test code plan document">
+      <field name="path" value="${test_code_plan_path}"/>
+      <field name="output" var="test_code_plan"/>
+    </block>
+
+    <block type="task" id="B2" action="read-file" desc="Read test cases document">
+      <field name="path" value="${test_cases_path}"/>
+      <field name="output" var="test_cases"/>
+    </block>
+
+    <!-- Step 2: Environment Pre-check -->
+    <block type="task" id="B3" action="run-script" desc="Check runtime availability">
+      <field name="command">
+        <platform id="frontend">node --version</platform>
+        <platform id="backend-node">node --version</platform>
+        <platform id="backend-python">python --version</platform>
+        <platform id="default">echo "Runtime check for ${platform_id}"</platform>
+      </field>
+      <field name="output" var="runtime_check"/>
+    </block>
+
+    <block type="task" id="B4" action="run-script" desc="Check test dependencies">
+      <field name="command">
+        <platform id="frontend">npm ls jest 2&gt;nul || npm ls vitest 2&gt;nul</platform>
+        <platform id="backend-node">npm ls jest 2&gt;nul || npm ls mocha 2&gt;nul</platform>
+        <platform id="backend-python">pip show pytest</platform>
+        <platform id="default">echo "Dependency check for ${platform_id}"</platform>
+      </field>
+      <field name="output" var="dependency_check"/>
+    </block>
+
+    <block type="task" id="B5" action="analyze" desc="Check test configuration files">
+      <field name="platform_id" value="${platform_id}"/>
+      <field name="framework" value="${test_code_plan.framework}"/>
+      <field name="config_files">
+        - Jest: jest.config.js, jest.config.ts, or jest field in package.json
+        - Vitest: vitest.config.ts or vite.config.ts with test section
+        - Pytest: pytest.ini, pyproject.toml, or setup.cfg
+        - JUnit: junit.xml or build tool configuration
+      </field>
+      <field name="output" var="config_check"/>
+    </block>
+
+    <block type="task" id="B6" action="analyze" desc="Check service dependencies">
+      <field name="test_code_plan" value="${test_code_plan}"/>
+      <field name="check_items">
+        - Database service running
+        - API server running
+        - Mock services configured
+      </field>
+      <field name="output" var="service_check"/>
+    </block>
+
+    <!-- Gateway: Stop if environment check fails -->
+    <block type="gateway" id="G1" mode="guard" desc="Validate environment pre-check"
+           test="${runtime_check.success} == true AND ${dependency_check.success} == true AND ${config_check.exists} == true"
+           fail-action="stop">
+      <field name="message">Environment pre-check failed. Runtime: ${runtime_check.success}, Dependencies: ${dependency_check.success}, Config: ${config_check.exists}</field>
+    </block>
+
+    <!-- Step 3: Execute Tests -->
+    <block type="task" id="B7" action="analyze" desc="Determine test command">
+      <field name="platform_id" value="${platform_id}"/>
+      <field name="framework" value="${test_code_plan.framework}"/>
+      <field name="command_mapping">
+        - Frontend/Jest: npm test -- --json --outputFile=test-results.json
+        - Frontend/Vitest: npx vitest run --reporter=json --outputFile=test-results.json
+        - Backend/Jest: npm test -- --json --outputFile=test-results.json
+        - Backend/Pytest: pytest --json-report --json-report-file=test-results.json
+      </field>
+      <field name="output" var="test_command"/>
+    </block>
+
+    <block type="task" id="B8" action="run-script" desc="Execute test command">
+      <field name="command" value="${test_command}"/>
+      <field name="capture_stdout" value="true"/>
+      <field name="capture_stderr" value="true"/>
+      <field name="capture_exit_code" value="true"/>
+      <field name="output" var="test_execution"/>
+    </block>
+
+    <!-- Gateway: Handle execution errors -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Check test execution result">
+      <branch test="${test_execution.exit_code} != 0 AND ${test_execution.syntax_error} == true">
+        <block type="event" id="E1" action="log" level="error" desc="Log syntax error">
+          <field name="message">Test execution failed due to syntax errors: ${test_execution.stderr}</field>
+        </block>
+        <block type="error-handler" id="EH1" desc="Handle syntax error">
+          <catch error-type="syntax_error">
+            <field name="action">STOP - Fix syntax errors and retry</field>
+          </catch>
+        </block>
+      </branch>
+      <branch test="${test_execution.exit_code} != 0 AND ${test_execution.config_error} == true">
+        <block type="event" id="E2" action="log" level="error" desc="Log config error">
+          <field name="message">Test execution failed due to configuration errors: ${test_execution.stderr}</field>
+        </block>
+        <block type="error-handler" id="EH2" desc="Handle config error">
+          <catch error-type="config_error">
+            <field name="action">STOP - Fix configuration and retry</field>
+          </catch>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 4: Parse Results -->
+    <block type="task" id="B9" action="analyze" desc="Extract test summary">
+      <field name="input_execution" value="${test_execution}"/>
+      <field name="extract_fields">
+        - total: Total number of test cases executed
+        - passed: Number of passed tests
+        - failed: Number of failed tests
+        - errors: Number of tests with runtime errors
+        - skipped: Number of skipped tests
+        - duration: Total execution time
+      </field>
+      <field name="output" var="test_summary"/>
+    </block>
+
+    <block type="task" id="B10" action="analyze" desc="Extract test details">
+      <field name="input_execution" value="${test_execution}"/>
+      <field name="input_test_files" value="${test_code_plan.test_files}"/>
+      <field name="extract_fields">
+        - test_function_name: Full test name/suite
+        - tc_id: Associated test case ID from comments
+        - status: PASS / FAIL / ERROR / SKIP
+        - error_message: Primary error description
+        - stack_trace: Call stack leading to failure
+        - assertion_details: Expected vs actual values
+        - duration: Individual test execution time
+      </field>
+      <field name="output" var="test_details"/>
+    </block>
+
+    <block type="task" id="B11" action="analyze" desc="Map tests to TC IDs">
+      <field name="input_test_details" value="${test_details}"/>
+      <field name="input_test_cases" value="${test_cases}"/>
+      <field name="tc_id_pattern">TC-{MODULE}-{SEQ}</field>
+      <field name="extraction_sources">
+        - Test file comments
+        - Test description patterns
+        - Test code plan mapping
+      </field>
+      <field name="output" var="tc_id_mapping"/>
+    </block>
+
+    <!-- Step 5: Deviation Detection -->
+    <block type="task" id="B12" action="analyze" desc="Compare expected vs actual results">
+      <field name="input_test_results" value="${test_details}"/>
+      <field name="input_expected_results" value="${test_cases}"/>
+      <field name="comparison_fields">
+        - expected_result: From test cases document
+        - actual_result: From test execution
+        - deviation_type: Classification of difference
+      </field>
+      <field name="output" var="deviation_comparison"/>
+    </block>
+
+    <block type="task" id="B13" action="analyze" desc="Classify deviation types">
+      <field name="input_deviations" value="${deviation_comparison}"/>
+      <field name="deviation_types">
+        - PASS: Test passed as expected
+        - FAIL: Test assertion failed - actual differs from expected (Severity: High)
+        - ERROR: Runtime error - code threw exception (Severity: Critical)
+        - SKIP: Test was skipped - preconditions not met (Severity: Medium)
+        - FLAKY: Intermittent failure - non-deterministic behavior (Severity: High)
+      </field>
+      <field name="output" var="deviation_classification"/>
+    </block>
+
+    <block type="task" id="B14" action="analyze" desc="Perform basic root cause analysis">
+      <field name="input_deviations" value="${deviation_classification}"/>
+      <field name="analysis_focus">
+        - Assertion Failure: Which specific assertion failed and why
+        - Runtime Error: Exception type and location
+        - Skip Reason: Why test could not execute
+        - Flaky Pattern: Conditions causing intermittent failure
+      </field>
+      <field name="output" var="root_cause_basic"/>
+    </block>
+
+    <!-- Step 6: Generate Execution Results -->
+    <block type="task" id="B15" action="read-file" desc="Read test execution results template">
+      <field name="path" value="speccrew-test-runner/templates/TEST-EXECUTION-RESULT-TEMPLATE.md"/>
+      <field name="output" var="results_template"/>
+    </block>
+
+    <block type="task" id="B16" action="write-file" desc="Create execution results document">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="template" value="${results_template}"/>
+      <field name="placeholders">
+        - feature_name: ${feature_name}
+        - platform_id: ${platform_id}
+        - date: ${timestamp}
+      </field>
+      <field name="output" var="results_created"/>
+    </block>
+
+    <block type="task" id="B17" action="edit-file" desc="Fill Execution Summary section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Execution Summary</field>
+      <field name="content">
+        Feature: ${feature_name}
+        Platform: ${platform_id}
+        Framework: ${test_code_plan.framework}
+        Execution Date: ${timestamp}
+        Duration: ${test_summary.duration}ms
+        Pass Rate: ${test_summary.pass_rate}%
+      </field>
+    </block>
+
+    <block type="task" id="B18" action="edit-file" desc="Fill Results Overview section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Results Overview</field>
+      <field name="content" value="${test_summary}"/>
+    </block>
+
+    <block type="task" id="B19" action="edit-file" desc="Fill Test Results Detail section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Test Results Detail</field>
+      <field name="content" value="${test_details}"/>
+    </block>
+
+    <block type="task" id="B20" action="edit-file" desc="Fill Deviation Analysis section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Deviation Analysis</field>
+      <field name="content" value="${deviation_classification}"/>
+    </block>
+
+    <block type="task" id="B21" action="edit-file" desc="Fill Environment Information section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Environment Information</field>
+      <field name="content">
+        OS: ${runtime_check.os}
+        Runtime Version: ${runtime_check.version}
+        Framework Version: ${dependency_check.version}
+        Dependencies: ${dependency_check.dependencies}
+      </field>
+    </block>
+
+    <block type="task" id="B22" action="edit-file" desc="Fill Raw Output section">
+      <field name="path" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="section">Raw Output</field>
+      <field name="content">
+        STDOUT:
+        ${test_execution.stdout}
+
+        STDERR:
+        ${test_execution.stderr}
+      </field>
+    </block>
+
+    <!-- Checkpoint: Verify output -->
+    <block type="checkpoint" id="CP1" name="execution-results-generated" desc="Verify execution results generated">
+      <field name="file" value="${output_dir}/${feature_name}-test-execution-results.md"/>
+      <field name="verify" value="file_exists(${output_dir}/${feature_name}-test-execution-results.md)"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="execution_results_path" value="${output_dir}/${feature_name}-test-execution-results.md" type="string" desc="Path to structured test execution results"/>
+    <field name="total_tests" from="${test_summary.total}" type="number" desc="Total number of tests executed"/>
+    <field name="passed" from="${test_summary.passed}" type="number" desc="Number of passed tests"/>
+    <field name="failed" from="${test_summary.failed}" type="number" desc="Number of failed tests"/>
+    <field name="errors" from="${test_summary.errors}" type="number" desc="Number of tests with errors"/>
+    <field name="skipped" from="${test_summary.skipped}" type="number" desc="Number of skipped tests"/>
+    <field name="pass_rate" from="${test_summary.pass_rate}" type="string" desc="Overall pass rate percentage"/>
+    <field name="deviations" from="${deviation_classification}" type="array" desc="List of all deviations detected"/>
+    <field name="next_step" value="Dispatch to speccrew-test-reporter for report generation" type="string" desc="Recommended next step"/>
+  </block>
+
+</workflow>

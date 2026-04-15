@@ -20,9 +20,17 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 | `iteration_id` | No | string | Current iteration identifier for progress messages |
 | `output_dir` | No | string | Output directory for task record (default: auto-derived from iteration path) |
 
-# Workflow
+## AgentFlow Definition
 
-## Absolute Constraints
+<!-- @agentflow: workflow.agentflow.xml -->
+
+> **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
+
+---
+
+## Workflow
+
+### Absolute Constraints
 
 > **These rules apply to Task Record document generation. Violation = task failure.**
 

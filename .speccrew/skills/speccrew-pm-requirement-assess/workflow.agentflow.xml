@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="requirement-assess-main" status="pending" version="1.0" desc="Quick impact assessment for new requirements">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="requirement_text" required="true" type="string" desc="New requirement description"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew workspace"/>
+    <field name="system_overview_path" required="false" type="string" desc="Path to system-overview.md"/>
+    <field name="language" required="true" type="string" desc="Target language for output"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">This skill is READ-ONLY - do not modify any files</field>
+    <field name="text">Use knowledge graph query for cross-module dependency analysis</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Requirement Assessment" status="pending" desc="Assess new requirement impact">
+
+    <!-- Step 1: Understand the Requirement -->
+    <block type="task" id="B1" action="analyze" desc="Analyze the new requirement">
+      <field name="input" value="${requirement_text}"/>
+      <field name="extract">
+        - What business problem does it solve?
+        - What entities are involved?
+        - What processes are affected?
+      </field>
+      <field name="output" var="requirement_analysis"/>
+    </block>
+
+    <!-- Step 2: Load System Context -->
+    <block type="task" id="B2" action="read-file" desc="Read system overview">
+      <field name="path" value="${workspace_path}/knowledges/bizs/system-overview.md"/>
+      <field name="on_error">continue</field>
+      <field name="output" var="system_overview"/>
+    </block>
+
+    <!-- Step 3: Identify potentially affected modules -->
+    <block type="task" id="B3" action="analyze" desc="Identify potentially affected modules">
+      <field name="input">
+        requirement: ${requirement_analysis}
+        system_overview: ${system_overview}
+      </field>
+      <field name="identify">
+        - Which business domain the requirement belongs to
+        - Which modules are potentially related
+        - Which business processes are involved
+      </field>
+      <field name="output" var="affected_modules"/>
+    </block>
+
+    <!-- Step 4: Load related module overviews -->
+    <block type="loop" id="L1" over="${affected_modules}" as="module" desc="Load related module overviews">
+      <block type="task" id="B4" action="read-file" desc="Read module overview">
+        <field name="path" value="${workspace_path}/knowledges/bizs/${module.name}/${module.name}-overview.md"/>
+        <field name="on_error">continue</field>
+        <field name="output" var="module_overview"/>
+      </block>
+    </block>
+
+    <!-- Step 5: Query Knowledge Graph -->
+    <block type="task" id="B5" action="run-skill" desc="Query knowledge graph for dependencies">
+      <field name="skill">speccrew-knowledge-graph-query</field>
+      <field name="action">trace-dependencies</field>
+      <field name="entities" value="${affected_modules.entities}"/>
+      <field name="output" var="dependency_graph"/>
+    </block>
+
+    <!-- Step 6: Determine Change Type -->
+    <block type="task" id="B6" action="analyze" desc="Determine change type using decision tree">
+      <field name="input">
+        requirement: ${requirement_analysis}
+        affected_modules: ${affected_modules}
+        dependencies: ${dependency_graph}
+      </field>
+      <field name="decision_tree">
+        IF involves new business entity -> NEW FEATURE
+        ELSE IF modifies core attributes of existing entity -> MODIFICATION
+        ELSE IF adds new process steps but reuses existing entities -> MIXED
+        ELSE IF affects cross-module data flow -> CROSS-MODULE CHANGE
+        ELSE IF can be handled by configuration -> CONFIGURATION
+      </field>
+      <field name="output" var="change_type"/>
+    </block>
+
+    <!-- Step 7: Identify Impact Scope -->
+    <block type="task" id="B7" action="analyze" desc="Identify impact scope">
+      <field name="input">
+        affected_modules: ${affected_modules}
+        dependency_graph: ${dependency_graph}
+      </field>
+      <field name="identify">
+        - Direct modules: Modules explicitly mentioned in requirement
+        - Dependency modules: Upstream/downstream from graph query
+        - External integrations: Third-party systems
+        - Data entities: New or modified entities
+      </field>
+      <field name="output" var="impact_scope"/>
+    </block>
+
+    <!-- Step 8: Assess Risk Level -->
+    <block type="task" id="B8" action="analyze" desc="Assess risk level">
+      <field name="input">
+        impact_scope: ${impact_scope}
+        change_type: ${change_type}
+      </field>
+      <field name="risk_factors">
+        - Scope: Affects 3+ modules = High
+        - Data: Modifies core entity structure = High
+        - Integration: Changes external API contracts = High
+        - Process: Alters critical business flow = High
+        - State: Modifies entity state machine = High
+      </field>
+      <field name="output" var="risk_level"/>
+    </block>
+
+    <!-- Step 9: Recommend Workflow Path -->
+    <block type="task" id="B9" action="analyze" desc="Recommend workflow path">
+      <field name="input">
+        impact_scope: ${impact_scope}
+        change_type: ${change_type}
+        risk_level: ${risk_level}
+      </field>
+      <field name="recommendation_matrix">
+        - 1 module, low risk, clear domain -> Simple PRD (skip ISA-95 modeling)
+        - 2+ modules, medium risk -> Full requirement-analysis with ISA-95 modeling
+        - Cross-module, high risk -> Full requirement-analysis + Master-Sub PRD
+        - Configuration only -> Direct implementation, PRD optional
+      </field>
+      <field name="output" var="recommendation"/>
+    </block>
+
+    <!-- Step 10: Generate Assessment Report -->
+    <block type="task" id="B10" action="generate" desc="Generate assessment report">
+      <field name="template">Assessment Report Template</field>
+      <field name="fill_data">
+        requirement_summary: ${requirement_analysis}
+        change_type: ${change_type}
+        impact_scope: ${impact_scope}
+        risk_level: ${risk_level}
+        recommendation: ${recommendation}
+        graph_findings: ${dependency_graph}
+      </field>
+      <field name="output" var="assessment_report"/>
+    </block>
+
+    <!-- Checkpoint: Assessment complete -->
+    <block type="checkpoint" id="CP1" name="assessment-complete" desc="Verify assessment completed">
+      <field name="verify" value="${assessment_report} != null"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="change_type" from="${change_type}" type="string" desc="Change type: New Feature, Modification, Mixed, Cross-module, Configuration"/>
+    <field name="impact_scope" from="${impact_scope}" type="object" desc="Impact scope with direct and indirect modules"/>
+    <field name="risk_level" from="${risk_level}" type="string" desc="Risk level: Low, Medium, High"/>
+    <field name="recommendation" from="${recommendation}" type="string" desc="Recommended workflow path"/>
+    <field name="assessment_report" from="${assessment_report}" type="string" desc="Complete assessment report"/>
+    <field name="message" value="Requirement assessment completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>
