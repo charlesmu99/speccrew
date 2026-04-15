@@ -18,6 +18,7 @@
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
         "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "hocs", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/pages/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
+        "module_scan": { "root": "src/pages", "depth": 1 },
         "api_call_patterns": ["fetch(", "axios.", "apiClient.", "useQuery", "useMutation"],
         "state_management": ["useState", "useReducer", "Redux", "Zustand", "MobX"],
         "routing": ["react-router", "next/router"],
@@ -27,6 +28,7 @@
         "extensions": [".vue", ".ts", ".js"],
         "exclude_dirs": ["components", "composables", "hooks", "utils", "mixins", "directives", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/views/**/*.vue", "src/components/**/*.vue", "pages/**/*.vue"],
+        "module_scan": { "root": "src/views", "depth": 1 },
         "api_call_patterns": ["axios.", "fetch(", "$http", "useFetch"],
         "state_management": ["Pinia", "Vuex", "ref", "reactive", "computed"],
         "routing": ["vue-router"],
@@ -36,6 +38,7 @@
         "extensions": [".ts", ".html", ".scss", ".css"],
         "exclude_dirs": ["components", "directives", "pipes", "guards", "interceptors", "services", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/app/components/**/*.ts", "src/app/pages/**/*.ts"],
+        "module_scan": { "root": "src/app", "depth": 1 },
         "api_call_patterns": ["HttpClient", "http.get", "http.post"],
         "state_management": ["RxJS", "NgRx", "BehaviorSubject", "Observable"],
         "routing": ["@angular/router"],
@@ -45,6 +48,7 @@
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
         "exclude_dirs": ["components", "hooks", "lib", "utils", "contexts", "api", "views", "pages", "layout", "layouts", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["app/**/*.{tsx,jsx}", "pages/**/*.{tsx,jsx}"],
+        "module_scan": { "root": "app", "depth": 1 },
         "api_call_patterns": ["fetch(", "axios.", "useSWR", "React Query"],
         "state_management": ["useState", "Zustand", "Redux", "Context API"],
         "routing": ["file-system routing", "next/navigation"],
@@ -54,6 +58,7 @@
         "extensions": [".vue", ".ts", ".js"],
         "exclude_dirs": ["components", "composables", "utils", "plugins", "middleware", "views", "pages", "api", "layout", "layouts", "assets", "store", "stores", "router", "routes", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
+        "module_scan": { "root": "pages", "depth": 1 },
         "api_call_patterns": ["$fetch", "useFetch", "axios."],
         "state_management": ["Pinia", "useState", "composables"],
         "routing": ["file-system routing", "vue-router"],
@@ -63,6 +68,7 @@
         "extensions": [".svelte", ".ts", ".js"],
         "exclude_dirs": ["components", "lib", "utils", "stores", "actions", "views", "pages", "api", "layout", "layouts", "assets", "store", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/**/*.svelte", "routes/**/*.svelte"],
+        "module_scan": { "root": "src/routes", "depth": 1 },
         "api_call_patterns": ["fetch(", "axios."],
         "state_management": ["writable", "readable", "derived", "Svelte Store"],
         "routing": ["svelte-routing", "file-system routing"],
@@ -74,6 +80,7 @@
         "extensions": [".dart"],
         "exclude_dirs": ["widgets", "components", "utils", "helpers", "models", "services"],
         "entry_patterns": ["lib/**/*.dart", "lib/pages/**/*.dart", "lib/screens/**/*.dart"],
+        "module_scan": { "root": "lib/pages", "depth": 1 },
         "api_call_patterns": ["http.", "dio.", "Dio()", "get(", "post("],
         "state_management": ["Provider", "Riverpod", "Bloc", "GetX", "MobX"],
         "routing": ["Navigator", "GoRouter", "Get.to"],
@@ -83,6 +90,7 @@
         "extensions": [".tsx", ".ts", ".jsx", ".js"],
         "exclude_dirs": ["components", "hooks", "utils", "contexts", "navigations", "views", "pages", "api", "screens", "assets", "store", "stores", "router", "routes", "plugins", "styles", "types", "typings", "locales", "i18n", "lang", "config", "configs"],
         "entry_patterns": ["src/screens/**/*.{tsx,jsx}", "src/components/**/*.{tsx,jsx}"],
+        "module_scan": { "root": "src/screens", "depth": 1 },
         "api_call_patterns": ["fetch(", "axios.", "apiClient."],
         "state_management": ["useState", "Redux", "MobX", "Zustand", "Recoil"],
         "routing": ["react-navigation", "expo-router"],
@@ -94,6 +102,7 @@
         "exclude_file_suffixes": [],
         "strip_module_prefixes": ["pages-"],
         "entry_patterns": ["pages/**/*.vue", "components/**/*.vue"],
+        "module_scan": { "root": "src/pages", "depth": 1 },
         "api_call_patterns": ["uni.request", "uni.uploadFile", "uni.downloadFile"],
         "state_management": ["Vuex", "Pinia", "globalData"],
         "routing": ["pages.json", "uni.navigateTo"],
@@ -102,6 +111,7 @@
       "android": {
         "extensions": [".kt", ".java", ".xml"],
         "entry_patterns": ["app/src/main/java/**/*.kt", "app/src/main/java/**/*.java"],
+        "module_scan": { "root": "app/src/main/java", "depth": 2 },
         "api_call_patterns": ["Retrofit", "OkHttp", "HttpURLConnection"],
         "state_management": ["ViewModel", "LiveData", "StateFlow", "Compose State"],
         "routing": ["Intent", "Navigation Component", "Jetpack Navigation"],
@@ -110,6 +120,7 @@
       "ios": {
         "extensions": [".swift", ".m", ".h", ".storyboard"],
         "entry_patterns": ["**/*.swift", "ViewControllers/**/*.swift"],
+        "module_scan": { "root": "ViewControllers", "depth": 1 },
         "api_call_patterns": ["URLSession", "Alamofire", "AF.request"],
         "state_management": ["@State", "@ObservedObject", "@StateObject", "Combine"],
         "routing": ["NavigationView", "TabView", "UIStoryboardSegue"],
@@ -121,6 +132,7 @@
         "exclude_file_suffixes": [],
         "strip_module_prefixes": ["pages-"],
         "entry_patterns": ["pages/**/*.js", "pages/**/*.ts", "components/**/*.js"],
+        "module_scan": { "root": "pages", "depth": 1 },
         "api_call_patterns": ["wx.request", "wx.uploadFile", "wx.downloadFile"],
         "state_management": ["Page data", "globalData", "MobX", "Westore"],
         "routing": ["app.json pages", "wx.navigateTo", "wx.redirectTo"],
@@ -134,6 +146,7 @@
         "exclude_file_suffixes": ["VO", "DTO", "DO", "Entity", "Convert", "Converter"],
         "exclude_file_names": ["package-info"],
         "entry_patterns": ["**/*Controller.java", "**/*Controller.kt", "**/*Service.java"],
+        "module_scan": { "root": "controller", "depth": 1 },
         "api_patterns": {
           "controller": ["@Controller", "@RestController", "@RequestMapping"],
           "methods": ["@GetMapping", "@PostMapping", "@PutMapping", "@DeleteMapping", "@PatchMapping"],
@@ -148,6 +161,7 @@
         "exclude_dirs": ["services", "repositories", "entities", "dtos", "guards", "interceptors", "middleware", "pipes", "filters", "decorators", "utils", "helpers"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["**/*.controller.ts", "**/*.service.ts", "**/*.module.ts"],
+        "module_scan": { "root": "src/modules", "depth": 1 },
         "api_patterns": {
           "controller": ["@Controller"],
           "methods": ["@Get", "@Post", "@Put", "@Delete", "@Patch", "@Query", "@Param", "@Body"],
@@ -162,6 +176,7 @@
         "exclude_dirs": ["services", "models", "middleware", "utils", "helpers", "validators", "schemas"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["routes/**/*.js", "controllers/**/*.js", "**/*.routes.ts"],
+        "module_scan": { "root": "routes", "depth": 1 },
         "api_patterns": {
           "router": ["router.get", "router.post", "router.put", "router.delete", "router.patch"],
           "app": ["app.get", "app.post", "app.use"],
@@ -176,6 +191,7 @@
         "exclude_dirs": ["services", "models", "schemas", "plugins", "hooks", "utils", "helpers"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["routes/**/*.js", "**/*.routes.ts"],
+        "module_scan": { "root": "routes", "depth": 1 },
         "api_patterns": {
           "routes": ["fastify.get", "fastify.post", "fastify.route"],
           "schema": ["schema:", "body:", "querystring:", "params:"]
@@ -189,6 +205,7 @@
         "exclude_dirs": ["models", "serializers", "forms", "utils", "helpers", "middleware", "templatetags"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["views.py", "**/views/*.py", "api/*.py"],
+        "module_scan": { "root": "", "depth": 1 },
         "api_patterns": {
           "views": ["def.*request", "class.*APIView", "@api_view"],
           "decorators": ["@require_http_methods", "@csrf_exempt", "@permission_classes"]
@@ -202,6 +219,7 @@
         "exclude_dirs": ["models", "schemas", "services", "repositories", "utils", "helpers", "dependencies", "middleware"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["main.py", "routers/*.py", "api/*.py"],
+        "module_scan": { "root": "controller", "depth": 1 },
         "api_patterns": {
           "routes": ["@app.get", "@app.post", "@app.put", "@app.delete", "@router.get"],
           "dependencies": ["Depends", "Query", "Path", "Body"]
@@ -215,6 +233,7 @@
         "exclude_dirs": ["service", "services", "repository", "repositories", "model", "models", "dto", "dtos", "middleware", "utils", "helpers"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["**/*.go", "handlers/*.go", "controllers/*.go"],
+        "module_scan": { "root": "handlers", "depth": 1 },
         "api_patterns": {
           "router": ["gin.Router", "echo.Echo", "mux.Router", "http.HandleFunc"],
           "handlers": ["gin.HandlerFunc", "echo.HandlerFunc", "func.*http.ResponseWriter"]
@@ -228,6 +247,7 @@
         "exclude_dirs": ["service", "services", "repository", "repositories", "model", "models", "dto", "dtos", "middleware", "utils", "helpers", "schema", "migrations"],
         "exclude_file_suffixes": [],
         "entry_patterns": ["src/**/*.rs", "handlers/*.rs", "routes/*.rs"],
+        "module_scan": { "root": "src/handlers", "depth": 1 },
         "api_patterns": {
           "frameworks": ["actix-web", "axum", "rocket", "warp"],
           "handlers": ["#[get]", "#[post]", "async fn", "HttpResponse"]
@@ -241,6 +261,7 @@
       "electron": {
         "extensions": [".ts", ".tsx", ".js", ".jsx", ".html"],
         "entry_patterns": ["src/main.ts", "src/renderer/**/*.tsx", "src/preload.ts"],
+        "module_scan": { "root": "src/renderer", "depth": 1 },
         "ipc_patterns": ["ipcMain", "ipcRenderer", "contextBridge"],
         "state_management": ["Redux", "Zustand", "Electron Store"],
         "component_patterns": ["React", "Vue", "Angular in renderer"]
@@ -248,6 +269,7 @@
       "tauri": {
         "extensions": [".rs", ".ts", ".tsx", ".vue"],
         "entry_patterns": ["src-tauri/src/main.rs", "src/**/*.ts", "src/**/*.vue"],
+        "module_scan": { "root": "src", "depth": 1 },
         "ipc_patterns": ["invoke", "listen", "emit", "#[tauri::command]"],
         "state_management": ["Pinia", "Redux", "Tauri Store"],
         "component_patterns": ["Frontend framework components", "Rust commands"]
@@ -255,18 +277,21 @@
       "wpf": {
         "extensions": [".cs", ".xaml"],
         "entry_patterns": ["**/*.xaml.cs", "ViewModels/**/*.cs", "Views/**/*.xaml"],
+        "module_scan": { "root": "Views", "depth": 1 },
         "patterns": ["INotifyPropertyChanged", "ICommand", "MVVM"],
         "state_management": ["MVVM", "ObservableObject", "RelayCommand"]
       },
       "winforms": {
         "extensions": [".cs", ".vb"],
         "entry_patterns": ["**/*.cs", "Forms/**/*.cs"],
+        "module_scan": { "root": "Forms", "depth": 1 },
         "patterns": ["Form class", "Event handlers", "Control bindings"],
         "state_management": ["DataBinding", "INotifyPropertyChanged"]
       },
       "qt": {
         "extensions": [".cpp", ".h", ".ui", ".py"],
         "entry_patterns": ["src/**/*.cpp", "widgets/**/*.cpp", "*.ui"],
+        "module_scan": { "root": "src", "depth": 1 },
         "patterns": ["Q_OBJECT", "signals:", "slots:", "connect("],
         "state_management": ["Qt Property System", "QAbstractItemModel"]
       }

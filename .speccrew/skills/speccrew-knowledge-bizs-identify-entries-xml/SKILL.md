@@ -104,10 +104,11 @@ For each platform, generates:
         <field name="platform_type" value="${platform.platformType}"/>
         <field name="platform_subtype" value="${platform.platformSubtype}"/>
         <field name="tech_stack" value="${platform.techStack}"/>
-        <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files. These are API entry directories. Module name = the business package name of the entry directory. CRITICAL: Group by DIRECTORY, not by individual controller files. If multiple controllers reside in the same directory, that is ONE module with that directory as entryDirs"/>
-        <field name="logic_frontend_vue_react" value="Find views/ or pages/ directories. First-level subdirectories under these directories are business modules"/>
-        <field name="logic_mobile_uniapp" value="Find first-level subdirectories under pages/. Plus top-level pages-* directories (module name = directory name without pages- prefix)"/>
-        <field name="logic_mobile_miniprogram" value="Find first-level subdirectories under pages/ as modules"/>
+        <field name="logic_module_scan" value="Read tech-stack-mappings.json for the techStack's module_scan configuration. Use module_scan.root as the scan starting point and module_scan.depth as the grouping level (depth=1 means first-level subdirectories = one module each)"/>
+        <field name="logic_backend" value="Find all directories containing *Controller.java or *Controller.kt files under module_scan.root. These are API entry directories. Module name = the business package name of the entry directory. Apply module_scan.depth for grouping level"/>
+        <field name="logic_frontend_vue_react" value="Find directories under module_scan.root (e.g., src/views or src/pages). First-level subdirectories under module_scan.root are business modules when depth=1"/>
+        <field name="logic_mobile_uniapp" value="Find first-level subdirectories under module_scan.root (e.g., src/pages). Plus top-level pages-* directories (module name = directory name without pages- prefix)"/>
+        <field name="logic_mobile_miniprogram" value="Find first-level subdirectories under module_scan.root (e.g., pages) as modules"/>
         <field name="output" var="identified_entries"/>
       </block>
 
@@ -244,20 +245,30 @@ For each platform, generates:
 
 ### Module Granularity (CRITICAL)
 
-- **modules = directory-level groupings**, NOT file-level features
-- Each module represents a distinct source directory (or set of directories) containing entry files
-- **NEVER create multiple modules pointing to the SAME entryDirs** — if 10 controller files all reside in `module_admin/controller/`, that is ONE module named `admin` with entryDirs `["module_admin/controller"]`, NOT 10 separate modules
+**Core Principle**: modules = directory-level groupings, NOT file-level features
+
+**Configuration-Driven Approach**:
+1. Read `tech-stack-mappings.json` to get the `module_scan` configuration for the detected `techStack`
+2. Use `module_scan.root` as the scanning starting point (e.g., `src/views` for vue, `controller` for spring)
+3. Use `module_scan.depth` as the grouping level:
+   - `depth=1`: Each first-level subdirectory under `module_scan.root` = ONE module
+   - `depth=2`: Each second-level subdirectory = ONE module (e.g., for android)
+4. Each module represents a distinct source directory containing entry files
+
+**NEVER create multiple modules pointing to the SAME entryDirs** — if 10 controller files all reside in the same directory, that is ONE module with that directory as entryDirs, NOT 10 separate modules
+
+**Key Rules**:
 - The downstream `generate-inventory.js` script handles file-level decomposition within each module's entryDirs — that is NOT the job of this skill
 - Module names should correspond to directory names, not individual file names
 - Typical module count for a medium project: 3-10 modules (not 30+)
 
-**Correct example** (directory-level):
+**Correct example** (directory-level, vue with module_scan.root="src/views", depth=1):
 ```json
 {
   "modules": [
-    { "name": "admin", "entryDirs": ["module_admin/controller"] },
-    { "name": "ai", "entryDirs": ["module_ai/controller"] },
-    { "name": "bpm", "entryDirs": ["module_bpm/controller"] }
+    { "name": "ai", "entryDirs": ["src/views/ai"] },
+    { "name": "bpm", "entryDirs": ["src/views/bpm"] },
+    { "name": "system", "entryDirs": ["src/views/system"] }
   ]
 }
 ```
@@ -266,9 +277,9 @@ For each platform, generates:
 ```json
 {
   "modules": [
-    { "name": "system-user", "entryDirs": ["module_admin/controller"] },
-    { "name": "system-config", "entryDirs": ["module_admin/controller"] },
-    { "name": "system-dept", "entryDirs": ["module_admin/controller"] }
+    { "name": "system-user", "entryDirs": ["src/views/system"] },
+    { "name": "system-role", "entryDirs": ["src/views/system"] },
+    { "name": "system-dept", "entryDirs": ["src/views/system"] }
   ]
 }
 ```
