@@ -117,8 +117,11 @@
           - Root object MUST contain "modules" field (array type)
           - Root object MUST NOT contain "businessModules", "subModules", or "components" fields
           - Each module in "modules" array MUST have exactly two fields: "name" (string) and "entryDirs" (array of strings)
-          - For platforms with hierarchical directory structure (e.g. frontend views/system/user/), flatten into individual modules
-          - Module names should use hyphen-separated composite names for sub-modules (e.g. "system-user", "system-role")
+          - Module granularity MUST follow the module_scan.depth configuration from tech-stack-mappings.json
+          - When depth=1: first-level subdirectories under module_scan.root are modules (e.g., src/views/system → module "system", src/views/bpm → module "bpm")
+          - When depth=2: second-level subdirectories are modules (e.g., src/main/java/com/example/controller → grouped by controller subdirectories)
+          - Each module's entryDirs should contain the module root directory path (e.g., ["src/views/system"] for module "system"), NOT individual sub-paths
+          - DO NOT flatten hierarchical directories into hyphen-separated sub-modules (e.g., DO NOT create "system-user", "system-role" — create one "system" module instead)
           - Multiple modules MUST NOT share the same entryDirs value. If multiple business areas share the same directory, they belong to ONE module.
           - If the generated JSON does not match this format, you MUST regenerate it before proceeding
         </field>
