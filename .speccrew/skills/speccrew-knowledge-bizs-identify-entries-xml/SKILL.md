@@ -164,9 +164,7 @@ For each platform, generates:
           - Multiple modules MUST NOT share the same entryDirs value. If multiple business areas share the same directory, they belong to ONE module.
           - If the generated JSON does not match this format, you MUST regenerate it before proceeding
         </field>
-        <field name="text">The ONLY output file from this skill is the entry-dirs JSON file specified in the output path.</field>
-        <field name="text">DO NOT generate any additional files such as reports (.md), logs, or summaries.</field>
-        <field name="text">Any extra files beyond the entry-dirs JSON are considered errors.</field>
+        <field name="text">Output is strictly the entry-dirs JSON file at the specified output path. Per xml-workflow-spec.md "Strict Block Adherence" rule, no extra files are permitted.</field>
       </block>
 
       <!-- Checkpoint: Persist Generated JSON -->

@@ -482,6 +482,19 @@ Team Leader executes:
 7. **`rule level="forbidden"`** = immediate stop if violated
 8. **Input/Output blocks** define the contract — respect required parameters
 
+### Strict Block Adherence
+
+When executing an XML workflow, the Agent MUST strictly follow the block sequence defined in the workflow:
+
+1. **Only perform actions defined by blocks** — Every action the Agent takes must correspond to a specific block in the workflow. The Agent MUST NOT perform any actions not defined by the blocks.
+2. **Prohibited extra actions** include but are not limited to:
+   - Generating files not specified in block output paths (e.g. summary reports, analysis documents, logs)
+   - Running scripts or commands not defined in any block
+   - Creating intermediate/temporary files outside of block definitions
+   - Adding "bonus" analysis steps or documentation beyond what blocks require
+3. **Output scope** — The workflow's output is strictly limited to what is defined in `output` blocks or block-level output fields (`<field name="output">`). Any file or artifact not traceable to a block definition is considered an error.
+4. **When in doubt, don't do it** — If an action is not explicitly defined in any block, the Agent must skip it, even if it seems "helpful".
+
 ### Block Execution Announcement Protocol
 
 Before executing each `<block>`, the agent MUST announce the block being executed. The announcement format is:
