@@ -132,7 +132,7 @@ Stage 4: System Summary
     <field name="max_concurrent_workers" required="false" type="number" default="5" desc="Maximum parallel Worker count"/>
     <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace directory"/>
     <field name="sync_state_bizs_dir" required="true" type="string" desc="Absolute path to knowledges/base/sync-state/knowledge-bizs/"/>
-    <field name="speccrew_skills_dir" required="true" type="string" desc="Absolute path to .speccrew/skills/ directory containing skill scripts"/>
+    <field name="ide_skills_dir" required="true" type="string" desc="Absolute path to IDE-specific skills directory (e.g., .qoder/skills/, .cursor/skills/, .claude/skills/) where skill scripts are deployed"/>
     <field name="configs_dir" required="true" type="string" desc="Absolute path to docs/configs/ directory"/>
     <field name="graph_root" required="false" type="string" desc="Graph data output root path (absolute path preferred)" default="${workspace_path}/knowledges/bizs/graph"/>
     <field name="completed_dir" required="true" type="string" desc="Marker file output directory for Worker results (absolute path required)"/>
@@ -324,7 +324,7 @@ Continue with knowledge base generation?
     <block type="loop" id="S1b-L1" over="${platforms}" as="platform" desc="Generate Feature inventory for each platform">
       <!-- Step 1: Read platform mapping config -->
       <block type="task" id="S1b-B1" action="run-script" status="pending" desc="Read platform mapping config">
-        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
+        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-init-features/scripts/generate-inventory.js"</field>
         <field name="arg">--entryDirsFile</field>
         <field name="arg">${sync_state_bizs_dir}/entry-dirs-${platform.platformId}.json</field>
         <field name="output" var="features_${platform.platformId}"/>
@@ -364,7 +364,7 @@ Continue with knowledge base generation?
       <branch test="${sync_mode} == 'incremental'" name="Incremental mode">
         <!-- Step 1: Execute Feature merge -->
         <block type="task" id="S1c-B1" action="run-script" status="pending" desc="Merge new and existing Feature inventories">
-          <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js"</field>
+          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/merge-features.js"</field>
           <field name="arg">--syncStatePath</field>
           <field name="arg">${sync_state_bizs_dir}</field>
           <field name="arg">--completedDir</field>
@@ -385,7 +385,7 @@ Continue with knowledge base generation?
 
         <!-- Step 3: Mark stale Features -->
         <block type="task" id="S1c-B2" action="run-script" status="pending" desc="Clean up documents and markers for deleted Features">
-          <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/mark-stale.js"</field>
+          <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/mark-stale.js"</field>
           <field name="arg">--syncStatePath</field>
           <field name="arg">${sync_state_bizs_dir}</field>
           <field name="arg">--completedDir</field>
@@ -446,7 +446,7 @@ Continue with knowledge base generation?
       
       <!-- Step 1: Get next batch -->
       <block type="task" id="S2-B1" action="run-script" status="pending" desc="Get next batch of pending Features">
-        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch</field>
+        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" get-batch</field>
         <field name="arg">--syncStatePath</field>
         <field name="arg">${sync_state_bizs_dir}</field>
         <field name="arg">--batchSize</field>
@@ -618,7 +618,7 @@ Requirements:
 
           <!-- Step 3: Process batch results -->
           <block type="task" id="S2-B3" action="run-script" status="pending" desc="Collect and process batch Worker results">
-            <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results</field>
+            <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/batch-orchestrator.js" process-results</field>
             <field name="arg">--syncStatePath</field>
             <field name="arg">${sync_state_bizs_dir}</field>
             <field name="arg">--graphRoot</field>
@@ -839,7 +839,7 @@ Requirements:
       <field name="message">Worker ${error.worker} failed: ${error.message}</field>
       </block>
       <block type="task" id="EH1-B1" action="run-script" desc="Update failed status">
-        <field name="command">node "${speccrew_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
+        <field name="command">node "${ide_skills_dir}/speccrew-knowledge-bizs-dispatch/scripts/update-feature-status.js"</field>
         <field name="arg">--featureId</field>
         <field name="arg">${error.feature_id}</field>
         <field name="arg">--status</field>
