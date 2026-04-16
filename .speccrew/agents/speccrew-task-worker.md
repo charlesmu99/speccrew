@@ -100,6 +100,13 @@ Receive from the calling Agent:
 
 If the skill file is not found, report an error with the attempted paths.
 
+### Skill Path Resolution
+
+When Worker loads a skill (via `skill_name` or `skill_path` parameter):
+1. Resolve the skill directory path (e.g., `.qoder/skills/speccrew-pm-requirement-clarify/`)
+2. Set `skill_path` variable to the resolved directory path (NOT the SKILL.md file path)
+3. This `skill_path` is passed to the skill's workflow execution context, enabling the skill to reference templates, scripts, and other resources within the skill directory using `${skill_path}/templates/...` syntax
+
 ### 3. Execute Task
 
 **If `skill_path` or `skill_name` is provided:**

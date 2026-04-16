@@ -82,8 +82,24 @@
     </branch>
   </block>
 
-  <!-- === Phase 3: 执行任务 === -->
-  <block type="event" id="E5" action="log" desc="开始执行任务">📋 Phase 3: Execute Task</block>
+  <!-- === Phase 3: 设置 skill_path 变量 === -->
+  <block type="event" id="E5" action="log" desc="设置 skill_path 变量">📋 Phase 3: Set skill_path Variable</block>
+
+  <block type="gateway" id="G5b" mode="exclusive" desc="设置 skill_path 目录路径">
+    <branch test="${resolved_skill_path} != null" name="从 resolved_skill_path 推导">
+      <block type="task" id="T5b" action="run-script" desc="提取 skill 目录路径">
+        <field name="command">node -e "const path = require('path'); const skillFilePath = process.env.SKILL_FILE_PATH || '${resolved_skill_path}'; const skillDir = path.dirname(skillFilePath); console.log(skillDir);"</field>
+        <field name="output" var="skill_path"/>
+      </block>
+      <block type="event" id="E5b" action="log" desc="skill_path 已设置">📁 skill_path set to: ${skill_path}</block>
+    </branch>
+    <branch test="true" name="无 skill 路径">
+      <block type="event" id="E5c" action="log" desc="无 skill_path">ℹ️ No skill_path to set</block>
+    </branch>
+  </block>
+
+  <!-- === Phase 4: 执行任务 === -->
+  <block type="event" id="E6" action="log" desc="开始执行任务">📋 Phase 4: Execute Task</block>
 
   <block type="rule" id="R1" level="mandatory" desc="技能执行强制约束">
     如果技能指定通过 run_in_terminal 或 Bash 执行脚本 → 必须通过终端执行
@@ -130,13 +146,14 @@
       <block type="task" id="T8" action="run-skill" desc="执行技能工作流">
         <field name="skill">${resolved_skill_path}</field>
         <field name="context">${context}</field>
+        <field name="skill_path">${skill_path}</field>
       </block>
       <field name="execution_status" value="success"/>
     </branch>
   </block>
 
-  <!-- === Phase 4: 报告结果 === -->
-  <block type="event" id="E10" action="log" desc="开始报告结果">📋 Phase 4: Report Results</block>
+  <!-- === Phase 5: 报告结果 === -->
+  <block type="event" id="E10" action="log" desc="开始报告结果">📋 Phase 5: Report Results</block>
 
   <block type="gateway" id="G7" mode="exclusive" desc="选择报告格式">
     <branch test="${execution_status} == success" name="成功报告">
@@ -163,7 +180,7 @@
     </branch>
   </block>
 
-  <!-- === Phase 5: 完成报告输出 === -->
+  <!-- === Phase 6: 完成报告输出 === -->
   <block type="event" id="E11" action="log" desc="输出结构化完成报告">
 ## Task Completion Report
 - **Status**: ${status}
