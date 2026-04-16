@@ -254,6 +254,14 @@
     </field>
   </block>
 
+  <!-- Source Link Path Prefix Rule -->
+  <block type="rule" id="R-SRCLINK" level="mandatory" desc="Source link path prefix is FIXED at 6 levels">
+    <field name="text">MANDATORY: All source file links in the document MUST use exactly 6 levels of parent directory traversal: ../../../../../../</field>
+    <field name="text">The path format is: [View](../../../../../../{relative-path-from-project-root})</field>
+    <field name="text">DO NOT compute or modify the path prefix. DO NOT use fewer levels like ../../ or ../../../../</field>
+    <field name="text">This is because documents are located at: speccrew-workspace/knowledges/bizs/{platformId}/{module}/{file}.md (6 levels deep from project root)</field>
+  </block>
+
   <!-- Ensure Document Output Directory Exists -->
   <block type="task" id="B14a" action="run-script" desc="Ensure document output directory exists">
     <field name="command">node -e "require('fs').mkdirSync(require('path').dirname('${documentPath}'), {recursive: true})"</field>
