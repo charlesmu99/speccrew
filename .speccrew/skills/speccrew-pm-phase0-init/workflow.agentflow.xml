@@ -19,6 +19,8 @@
     <field name="text">ALL WORKFLOW-PROGRESS.json operations MUST use update-progress.js script</field>
     <field name="text">ALL path variables MUST be absolute paths</field>
     <field name="text">Check for active iteration before creating new one</field>
+    <field name="text">Phase 0 MUST create EXACTLY TWO subdirectories: 00.docs and 01.product-requirement</field>
+    <field name="text">FORBIDDEN: Pre-creating directories for later phases (02.feature-design, 03.system-design, 04.development, etc.). Each phase creates its own directory when needed.</field>
   </block>
 
   <block type="rule" id="R2" level="forbidden" desc="Phase 0 Forbidden Actions">
@@ -118,7 +120,24 @@
         <block type="task" id="P0-1-B9" action="run-script" status="pending" desc="Copy requirement document to iteration">
           <field name="command">Copy-Item "${user_requirement}" "${iteration_path}/00.docs/" -ErrorAction SilentlyContinue</field>
         </block>
-        
+                
+        <!-- Step 2.7: Load WORKFLOW-PROGRESS template -->
+        <block type="task" id="P0-1-B9A" action="read-file" status="pending" desc="Load WORKFLOW-PROGRESS template">
+          <field name="path" value="${skill_path}/templates/WORKFLOW-PROGRESS-TEMPLATE.json"/>
+          <field name="output" var="workflow_progress_template"/>
+        </block>
+                
+        <!-- Step 2.8: Generate initial WORKFLOW-PROGRESS.json from template -->
+        <block type="task" id="P0-1-B9B" action="generate" status="pending" desc="Create WORKFLOW-PROGRESS.json from template">
+          <field name="template" value="${workflow_progress_template}"/>
+          <field name="output_path" value="${iteration_path}/WORKFLOW-PROGRESS.json"/>
+          <field name="vars">
+            - created_at: ${current_timestamp}
+            - updated_at: ${current_timestamp}
+          </field>
+          <field name="output" var="workflow_progress_path"/>
+        </block>
+                
         <!-- Step 0.1.1: Initialize WORKFLOW-PROGRESS.json -->
         <block type="task" id="P0-1-B10" action="run-script" status="pending" desc="Initialize WORKFLOW-PROGRESS.json via script">
           <!-- MANDATORY: Use update-progress.js script -->

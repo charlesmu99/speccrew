@@ -112,15 +112,34 @@ When Worker loads a skill (via `skill_name` or `skill_path` parameter):
 **If `skill_path` or `skill_name` is provided:**
 1. If `skill_path` is provided, use it directly; otherwise use Skill Discovery
 2. If Skill file does not exist, immediately report error
-3. If `context` parameters exist, substitute them into placeholders in the Skill
-4. Strictly execute according to the workflow defined in the Skill
-5. Complete the task and output results
+3. **Read SKILL.md** to understand skill overview, constraints, and templates
+4. **Read workflow.agentflow.xml** — this is the AUTHORITATIVE execution definition
+5. If `context` parameters exist, substitute them into placeholders
+6. **Execute blocks defined in workflow.agentflow.xml sequentially** (top-to-bottom, announcing each block)
+7. Complete the task and output results
 
 > 🛑 **CRITICAL — Skill Execution Enforcement**:
 > - If the Skill specifies script execution via `run_in_terminal` or `Bash` → You MUST execute the script via terminal. DO NOT substitute with manual file creation.
 > - If the Skill specifies `--outputDir` or other path parameters → You MUST pass them exactly as provided in the context.
 > - If the Skill contains MANDATORY/FORBIDDEN constraints → You MUST follow them strictly.
 > - DO NOT improvise alternative execution paths. If a step fails, report the error — do not attempt workarounds.
+
+### MANDATORY: XML Workflow Loading Protocol
+
+When executing any Skill that contains `workflow.agentflow.xml`:
+
+1. **SKILL.md is METADATA ONLY** — it provides overview, constraints, and template references. It is NOT the execution plan.
+2. **workflow.agentflow.xml is the AUTHORITATIVE execution plan** — Worker MUST read this file and execute its blocks in sequential document order.
+3. **FORBIDDEN**: Starting task execution based solely on SKILL.md without reading workflow.agentflow.xml.
+4. **FORBIDDEN**: Summarizing or paraphrasing the workflow — execute blocks exactly as defined.
+5. **FORBIDDEN**: Skipping, reordering, or merging blocks.
+
+**Execution sequence:**
+```
+Read SKILL.md → Read workflow.agentflow.xml → Execute blocks in XML order → Report results
+```
+
+If workflow.agentflow.xml does not exist in the skill directory, fall back to SKILL.md-based execution.
 
 ### XML Workflow Block Announcement Protocol
 
@@ -211,10 +230,14 @@ When the task fails or is blocked, output:
 **MUST DO:**
 - If `skill_name` is provided, MUST use Skill Discovery to resolve the full path and strictly follow the Skill definition
 - If `skill_name` is provided but Skill file does not exist, immediately report error
+- If Skill directory contains workflow.agentflow.xml, MUST read it and execute blocks in sequential order — this is the authoritative execution plan
+- MUST announce each XML block before execution using the Block Announcement Protocol
 - Only process the single task assigned to the current Worker
 
 **MUST NOT DO:**
 - Do not skip or ignore a provided Skill file
+- Do not execute tasks based solely on SKILL.md when workflow.agentflow.xml exists — the XML workflow is authoritative
+- Do not skip reading workflow.agentflow.xml even if SKILL.md seems sufficient
 - Do not actively modify code beyond the task scope
 - Do not overstep to handle other tasks
 - Do not assume context information not provided

@@ -134,7 +134,21 @@
         <field name="output" var="skill_definition"/>
       </block>
       <block type="event" id="E8" action="log" desc="加载技能">📄 Loaded skill: ${resolved_skill_path}</block>
+            
+      <!-- MANDATORY: Load XML Workflow Definition -->
+      <block type="rule" id="R-WORKFLOW-FIRST" level="mandatory" desc="XML workflow is the authoritative execution definition">
+        <field name="text">MANDATORY: workflow.agentflow.xml is the AUTHORITATIVE execution definition. SKILL.md is supplementary context only.</field>
+        <field name="text">Worker MUST read workflow.agentflow.xml BEFORE starting any task execution.</field>
+        <field name="text">Worker MUST execute ONLY the blocks defined in workflow.agentflow.xml, in sequential document order.</field>
+        <field name="text">FORBIDDEN: Executing tasks based solely on SKILL.md description without reading the XML workflow.</field>
+      </block>
       
+      <block type="task" id="T6b" action="read-file" desc="MANDATORY: Read XML workflow definition">
+        <field name="path">${skill_path}/workflow.agentflow.xml</field>
+        <field name="output" var="skill_workflow_xml"/>
+      </block>
+      <block type="event" id="E8b" action="log" desc="Loaded XML workflow">📄 Loaded workflow: ${skill_path}/workflow.agentflow.xml — This is the AUTHORITATIVE execution plan. Execute blocks in document order.</block>
+            
       <!-- 加载 AgentFlow 规范 -->
       <block type="task" id="T7" action="read-file" desc="读取 AgentFlow 规范">
         <field name="path">${workspace_root}/speccrew-workspace/docs/rules/agentflow-spec.md</field>
@@ -143,10 +157,12 @@
       <block type="event" id="E9" action="log" desc="加载规范">📖 Loaded AgentFlow specification</block>
       
       <!-- 执行技能工作流 -->
-      <block type="task" id="T8" action="run-skill" desc="执行技能工作流">
+      <block type="task" id="T8" action="run-skill" desc="Execute skill workflow — follow XML blocks sequentially">
         <field name="skill">${resolved_skill_path}</field>
         <field name="context">${context}</field>
         <field name="skill_path">${skill_path}</field>
+        <field name="workflow_xml">${skill_workflow_xml}</field>
+        <field name="execution_mode">xml-block-sequential</field>
       </block>
       <field name="execution_status" value="success"/>
     </branch>

@@ -1,0 +1,56 @@
+{
+  "created_at": "{created_at}",
+  "updated_at": "{updated_at}",
+  "current_stage": null,
+  "stages": {
+    "01_prd": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "02_feature_design": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "03_system_design": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "04_development": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "05_deployment": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "06_system_test": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    },
+    "07_delivery": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "confirmed_at": null,
+      "output": null
+    }
+  }
+}

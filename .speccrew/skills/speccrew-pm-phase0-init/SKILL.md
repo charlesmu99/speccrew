@@ -31,6 +31,12 @@ Applies workspace initialization principles:
 - Progress tracking via WORKFLOW-PROGRESS.json
 - Checkpoint recovery for session continuity
 
+## Templates Used
+
+| Template | Path | Purpose |
+|----------|------|---------|
+| WORKFLOW-PROGRESS | `templates/WORKFLOW-PROGRESS-TEMPLATE.json` | Standard workflow progress tracking with 7 predefined stages |
+
 ## Output Deliverables
 
 | Deliverable | Path | Description |
@@ -68,9 +74,15 @@ Applies workspace initialization principles:
 - Compute all path variables as absolute paths
 - Check for active iteration before creating new one
 - Copy requirement document to iteration's 00.docs directory
+- Create EXACTLY two subdirectories: `00.docs/` (original requirement documents) and `01.product-requirement/` (PRD and clarification outputs)
+- Initialize `WORKFLOW-PROGRESS.json` from `WORKFLOW-PROGRESS-TEMPLATE.json` template — stage names MUST match template exactly (01_prd, 02_feature_design, etc.)
 
 **Must not do:**
 - Manually create WORKFLOW-PROGRESS.json via Write/Edit tools
 - Skip checkpoint recovery check
 - Use relative paths in Worker dispatches
 - Create iteration directory without proper naming convention
+- Pre-create directories for later phases (`02.feature-design/`, `03.system-design/`, `04.development/`, `05.deployment/`, `06.system-test/`, `07.delivery/`) — each phase creates its own directory when needed
+- Invent directory names not defined in `workspace-structure.md`
+- Manually write WORKFLOW-PROGRESS.json content — MUST use template + update-progress.js script
+- Invent custom stage names (e.g., phase0_initialization, phase1_requirement_analysis) — use template-defined names only
