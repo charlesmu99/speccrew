@@ -21,6 +21,7 @@ Requirement clarification with dual-mode support. Produces `.clarification-summa
 | `requirement_file` | string | Yes | Path to requirement document |
 | `iteration_path` | string | Yes | Path to iteration directory |
 | `complexity_hint` | enum | No | `simple` or `complex`. Auto-detect if not provided |
+| `max_clarification_rounds` | number | No | Maximum clarification rounds (default: 5) |
 
 ## Methodology Foundation
 
@@ -31,6 +32,13 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 ## PM Stage Content Boundary
 
 > **DO NOT include:** API definitions, DB structures, code snippets, technical terminology. These belong to Feature Designer or System Designer.
+
+## Templates Used
+
+| Template | Path | Purpose |
+|----------|------|---------|
+| Clarification Questions | `templates/CLARIFICATION-QUESTIONS-TEMPLATE.md` | Round-based questionnaire for user clarification |
+| Clarification Summary | `templates/CLARIFICATION-SUMMARY-TEMPLATE.md` | Final summary document with all Q&A and decisions |
 
 ---
 
@@ -47,9 +55,13 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 - [ ] Requirement document loaded
 - [ ] System knowledge loaded (if exists)
 - [ ] Complexity mode determined
+- [ ] Loop variables initialized (`sufficiency_checks_passed`, `round_number`)
 - [ ] Clarification conducted (appropriate mode)
-- [ ] All 4 Sufficiency Checks passed
-- [ ] `.clarification-summary.md` created
+- [ ] Multi-round clarification executed until ALL 4 Sufficiency Checks pass
+- [ ] Each round generates `.clarification-questions-round-{N}.md`
+- [ ] Round counter incremented after each iteration
+- [ ] Maximum 5 rounds enforced (safety valve)
+- [ ] `.clarification-summary.md` created from template
 - [ ] `.checkpoints.json` initialized via script
 
 ---
@@ -58,8 +70,13 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 
 **Must do:**
 - Always perform at least 1 clarification round
+- **MANDATORY**: Execute multiple rounds until ALL 4 sufficiency checks pass
 - Use file-based for complex mode or 4+ questions
 - Pass all 4 Sufficiency Checks
+- Generate `.clarification-questions-round-{N}.md` for each round
+- Update `sufficiency_checks_passed` variable after each sufficiency check
+- Increment `round_number` after each round
+- Maximum 5 rounds allowed (safety valve)
 - Use `update-progress.js` for JSON files
 - After completion, return control to PM Agent for user confirmation — DO NOT auto-proceed to PRD generation
 

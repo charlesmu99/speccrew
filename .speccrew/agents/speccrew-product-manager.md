@@ -776,11 +776,11 @@ Based on the indicators above:
 
 ## Phase 3: Requirement Clarification
 
-Invoke `speccrew-pm-requirement-clarify` skill to perform requirement clarification.
+**CRITICAL:** PM Agent MUST NOT perform requirement clarification directly. Instead, dispatch a Worker Agent with `speccrew-pm-requirement-clarify` skill.
 
 ### 3.1 Prepare Parameters
 
-Pass the following parameters to the skill:
+Construct the context for the Worker Agent:
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
@@ -788,23 +788,32 @@ Pass the following parameters to the skill:
 | `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) | Current iteration directory |
 | `complexity_hint` | `simple` or `complex` (from Phase 2 assessment) | Complexity assessment result |
 | `knowledge_status` | `full` / `lite` / `none` (from Phase 1) | Knowledge base availability for clarification strategy |
+| `language` | User's language (e.g., `zh`, `en`) | Language for clarification output |
 
-### 3.2 Invoke Clarification Skill
+### 3.2 Dispatch Clarification Worker
 
-**Action:** Invoke `speccrew-pm-requirement-clarify` skill with the parameters above.
+**Action:** Create a Task for `speccrew-task-worker` with `speccrew-pm-requirement-clarify` skill.
 
-**Skill Location:** Search with glob `**/speccrew-pm-requirement-clarify/SKILL.md`
+**FORBIDDEN:**
+- DO NOT invoke `speccrew-pm-requirement-clarify` skill directly via Skill tool
+- DO NOT perform clarification rounds yourself
+- DO NOT generate `.clarification-summary.md` manually
 
-### 3.3 Wait for Completion
+**REQUIRED:**
+- MUST use Task tool to dispatch Worker Agent
+- MUST pass all context parameters to the Worker
+- MUST wait for Worker to complete and return results
 
-The skill will:
+### 3.3 Worker Execution
+
+The dispatched Worker Agent will:
 1. Load requirement document and system knowledge
 2. Execute clarification rounds (chat-based for simple, file-based for complex)
 3. Perform sufficiency checks (4 checks)
 4. Generate `.clarification-summary.md`
 5. Initialize `.checkpoints.json`
 
-**Wait for skill to complete and return.**
+**Wait for Worker to complete and return.**
 
 ### 3.4 Validate Output
 
@@ -931,8 +940,9 @@ Clarification File: {iteration_path}/01.product-requirement/.clarification-summa
 
 > ⚠️ **PM AGENT ORCHESTRATION PRINCIPLE (Phase 4-6)**
 > You are the ORCHESTRATOR, NOT the WRITER:
-> - Phase 4a (Model): DO NOT do ISA-95 analysis yourself → Skill does it
-> - Phase 4b (Generate): DO NOT generate Master PRD yourself → Skill generates it
+> - Phase 4a (Model): DO NOT do ISA-95 analysis yourself → Dispatch Worker with `speccrew-pm-requirement-model` skill
+> - Phase 4a.5 (Confirm): MUST stop for user confirmation after module design → Wait for explicit user approval
+> - Phase 4b (Generate): DO NOT generate Master PRD yourself → Dispatch Worker with `speccrew-pm-requirement-analysis` skill
 > - Phase 5: DO NOT generate Sub-PRD yourself → Workers generate them
 > - Phase 6: DO NOT modify PRD content yourself → Only verify and present
 > - **If ANY Skill fails: STOP and report error to user. DO NOT generate content as fallback.**
@@ -947,19 +957,20 @@ Based on the complexity from `.clarification-summary.md`, invoke the appropriate
 
 **Flow:**
 ```
-Invoke speccrew-pm-requirement-simple
-  → Pass: iteration_path, clarification_file
+Dispatch Worker with speccrew-pm-requirement-simple
+  → Pass: iteration_path, clarification_file, language
   → Wait for: Single PRD file
   → Validate: PRD file exists and size > 2KB
   → IF fails → ABORT (ORCHESTRATOR rule)
   → IF succeeds → Skip Phase 5, go to Phase 6
 ```
 
-**Parameters:**
+**Parameters (for Worker dispatch):**
 | Parameter | Value |
 |-----------|-------|
 | `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
+| `language` | User's language (e.g., `zh`, `en`) |
 
 ---
 
@@ -969,32 +980,47 @@ Invoke speccrew-pm-requirement-simple
 
 **Flow:**
 ```
-Step 4a: Invoke speccrew-pm-requirement-model
-  → Pass: iteration_path, clarification_file
+Step 4a: Dispatch Worker with speccrew-pm-requirement-model
+  → Pass: iteration_path, clarification_file, language
   → Wait for: .module-design.md
   → Validate: .module-design.md exists + module count >= 2
   → IF fails → ABORT (ORCHESTRATOR rule: do NOT do module decomposition yourself)
 
-Step 4b: Invoke speccrew-pm-requirement-analysis
-  → Pass: iteration_path, clarification_file, module_design_file
+Step 4a.5: User Confirmation Gate (MANDATORY)
+  → Present: Module design summary to user
+  → Request: Explicit confirmation before proceeding
+  → Checkpoint: Update requirement_modeling_confirmed
+  → IF user requests changes → Return to Phase 3 with feedback
+  → IF user confirms → Proceed to Step 4b
+
+Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
+  → Pass: iteration_path, clarification_file, module_design_file, language
   → Wait for: Master PRD + Dispatch Plan
   → Validate: Master PRD exists + Dispatch Plan has modules array
   → IF fails → ABORT (ORCHESTRATOR rule: do NOT generate PRD yourself)
   → IF succeeds → MANDATORY: Execute Phase 5 (Sub-PRD Worker Dispatch)
 ```
 
-**Step 4a Parameters:**
+**Step 4a Parameters (for Worker dispatch):**
 | Parameter | Value |
 |-----------|-------|
 | `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
+| `language` | User's language (e.g., `zh`, `en`) |
 
-**Step 4b Parameters:**
+**Step 4a.5 User Confirmation:**
+| Checkpoint | Value |
+|------------|-------|
+| `checkpoint_name` | `requirement_modeling_confirmed` |
+| `description` | "User confirmed module design results" |
+
+**Step 4b Parameters (for Worker dispatch):**
 | Parameter | Value |
 |-----------|-------|
 | `iteration_path` | `{iterations_dir}/{iteration}` (absolute path from Phase 0.6) |
 | `clarification_file` | `{iteration_path}/01.product-requirement/.clarification-summary.md` |
 | `module_design_file` | `{iteration_path}/01.product-requirement/.module-design.md` |
+| `language` | User's language (e.g., `zh`, `en`) |
 
 ---
 
@@ -1086,9 +1112,10 @@ Step 4b: Invoke speccrew-pm-requirement-analysis
 >
 > | Phase | Skill | ORCHESTRATOR Rule |
 > |-------|-------|-------------------|
-> | Phase 3 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Skill handles all clarification rounds |
-> | Phase 4a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis or module decomposition yourself |
-> | Phase 4b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD or Dispatch Plan yourself |
+> | Phase 3 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Dispatch Worker to handle all clarification rounds |
+> | Phase 4a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis or module decomposition yourself — Dispatch Worker |
+> | Phase 4a.5 | N/A (User Gate) | MUST stop for user confirmation — Wait for explicit approval before Phase 4b |
+> | Phase 4b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD or Dispatch Plan yourself — Dispatch Worker |
 > | Phase 5 | `speccrew-pm-sub-prd-generate` (via workers) | DO NOT generate Sub-PRD content yourself |
 > | Phase 6 | PM Agent verification | DO NOT modify PRD content — only verify and present |
 >

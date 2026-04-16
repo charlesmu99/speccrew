@@ -14,6 +14,13 @@
   <!-- ============================================================
        Global Constraints
        ============================================================ -->
+  <block type="rule" id="R-MULTIROUND" level="mandatory" desc="Multi-round clarification is MANDATORY">
+    <field name="text">MANDATORY: Clarification MUST execute multiple rounds until ALL 4 sufficiency checks pass.</field>
+    <field name="text">DO NOT terminate after a single round. Each round generates .clarification-questions-round-{N}.md</field>
+    <field name="text">After user answers, perform sufficiency check. If any check fails, generate next round questions.</field>
+    <field name="text">Maximum 5 rounds allowed. If max reached, proceed with warning.</field>
+  </block>
+
   <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
     <field name="text">Always perform at least 1 clarification round</field>
     <field name="text">Use file-based for complex mode or 4+ questions</field>
@@ -69,7 +76,14 @@
       </branch>
     </block>
 
-    <!-- Step 4: Execute Clarification -->
+    <!-- Step 4: Initialize Loop Variables -->
+    <block type="task" id="B6-init" action="set-var" desc="Initialize loop control variables">
+      <field name="sufficiency_checks_passed" value="false"/>
+      <field name="round_number" value="1"/>
+      <field name="max_rounds" value="5"/>
+    </block>
+
+    <!-- Step 5: Execute Clarification -->
     <block type="gateway" id="G2" mode="exclusive" desc="Execute clarification based on mode">
       <branch test="${complexity} == 'simple'" name="Simple Mode Clarification">
         <block type="task" id="B6" action="analyze" desc="Simple mode: 1-3 key questions">
@@ -84,19 +98,28 @@
       </branch>
       <branch test="${complexity} == 'complex'" name="Complex Mode Clarification">
         <!-- Clarification Loop -->
-        <block type="loop" id="L1" condition="sufficiency_checks_passed == false" desc="Clarification rounds until sufficiency">
-          <block type="task" id="B7" action="generate" desc="Create clarification questions file">
-            <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-questions-round-{round}.md"/>
-            <field name="sections">
-              - Business Background & Goals
-              - Target Users & Scenarios
-              - System Scope & Boundaries
+        <block type="loop" id="L1" condition="sufficiency_checks_passed == false AND round_number <= max_rounds" desc="Clarification rounds until sufficiency">
+          <!-- Load Question Template -->
+          <block type="task" id="B7-load-template" action="read-file" desc="Load clarification questions template">
+            <field name="path" value="${skill_path}/templates/CLARIFICATION-QUESTIONS-TEMPLATE.md"/>
+            <field name="output" var="questions_template"/>
+          </block>
+
+          <block type="task" id="B7" action="generate" desc="Create clarification questions file from template">
+            <field name="template" value="${questions_template}"/>
+            <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-questions-round-${round_number}.md"/>
+            <field name="vars">
+              - round_number: ${round_number}
+              - iteration_name: ${iteration_name}
+              - date: ${current_date}
+              - complexity_level: ${complexity}
+              - requirement_summary: ${requirement_summary}
             </field>
             <field name="output" var="questions_file"/>
           </block>
 
-          <block type="event" id="E1" action="confirm" title="Clarification Round {round}" type="wait" desc="Wait for user to answer questions">
-            <field name="message">Round {round} questions written. Please fill answers and notify me.</field>
+          <block type="event" id="E1" action="confirm" title="Clarification Round ${round_number}" type="wait" desc="Wait for user to answer questions">
+            <field name="message">Round ${round_number} questions written. Please fill answers and notify me.</field>
           </block>
 
           <block type="task" id="B8" action="read-file" desc="Read answered questions">
@@ -106,6 +129,7 @@
 
           <!-- Sufficiency Check -->
           <block type="task" id="B9" action="analyze" desc="Perform sufficiency check">
+            <field name="input" value="${answered_questions}"/>
             <field name="checks">
               1. Scope boundaries are clear - Explicit in/out scope defined
               2. Key business rules are documented - At least 1 rule identified
@@ -114,24 +138,46 @@
             </field>
             <field name="output" var="sufficiency_result"/>
           </block>
+
+          <!-- Update sufficiency variable based on check result -->
+          <block type="task" id="B9-update" action="set-var" desc="Update sufficiency check status">
+            <field name="sufficiency_checks_passed" value="${sufficiency_result.all_passed}"/>
+            <field name="checks_passed_count" value="${sufficiency_result.passed_count}"/>
+          </block>
+
+          <!-- Increment round number for next iteration -->
+          <block type="task" id="B9-increment" action="set-var" desc="Increment round counter">
+            <field name="round_number" value="${round_number + 1}"/>
+          </block>
         </block>
       </branch>
     </block>
 
-    <!-- Step 5: Generate .clarification-summary.md -->
-    <block type="task" id="B10" action="generate" desc="Generate clarification summary">
+    <!-- Step 6: Generate .clarification-summary.md -->
+    <block type="task" id="B10-load-template" action="read-file" desc="Load summary template">
+      <field name="path" value="${skill_path}/templates/CLARIFICATION-SUMMARY-TEMPLATE.md"/>
+      <field name="output" var="summary_template"/>
+    </block>
+
+    <block type="task" id="B10" action="generate" desc="Generate clarification summary from template">
+      <field name="template" value="${summary_template}"/>
       <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
-      <field name="sections">
-        - Complexity level and rationale
-        - Key decisions table
-        - Clarification Q&A (all rounds)
-        - Sufficiency checks results
-        - Notes
+      <field name="vars">
+        - iteration_name: ${iteration_name}
+        - total_rounds: ${round_number - 1}
+        - date: ${current_date}
+        - sufficiency_result: ${sufficiency_result.all_passed ? 'PASSED' : 'PARTIAL'}
+        - checks_passed: ${sufficiency_result.passed_count}
+        - requirement_overview: ${requirement_summary}
+        - business_complexity: ${complexity}
+        - technical_complexity: ${complexity}
+        - integration_complexity: ${complexity}
+        - overall_complexity: ${complexity}
       </field>
       <field name="output" var="summary_path"/>
     </block>
 
-    <!-- Step 6: Initialize .checkpoints.json -->
+    <!-- Step 7: Initialize .checkpoints.json -->
     <block type="task" id="B11" action="run-script" desc="Initialize checkpoints via script">
       <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoint requirement_clarification --passed true</field>
       <field name="output" var="checkpoint_result"/>

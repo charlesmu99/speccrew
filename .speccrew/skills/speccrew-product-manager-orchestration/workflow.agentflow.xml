@@ -221,14 +221,16 @@
       <field name="text">IF clarification skill fails: ABORT - do NOT generate clarification yourself</field>
     </block>
 
-    <!-- Phase 3.1-3.2: Prepare Parameters & Invoke Skill -->
-    <block type="task" id="P3-B1" action="run-skill" status="pending" desc="Invoke clarification skill">
+    <!-- Phase 3.1-3.2: Prepare Parameters & Dispatch Worker -->
+    <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending" desc="Dispatch requirement clarification worker">
+      <field name="agent">speccrew-task-worker</field>
       <field name="skill">speccrew-pm-requirement-clarify</field>
       <field name="context">
         requirement_file: ${user_requirement}
         iteration_path: ${iteration_path}
         complexity_hint: ${complexity}
         knowledge_status: ${knowledge_status.status}
+        language: ${language}
       </field>
       <field name="output" var="clarification_result"/>
     </block>
@@ -279,11 +281,13 @@
       
       <!-- Path A: Simple Requirements -->
       <branch test="${complexity} == 'simple'" name="Simple Path">
-        <block type="task" id="P4-B1" action="run-skill" status="pending" desc="Invoke simple PRD skill">
+        <block type="task" id="P4-B1" action="dispatch-to-worker" status="pending" desc="Dispatch simple PRD worker">
+          <field name="agent">speccrew-task-worker</field>
           <field name="skill">speccrew-pm-requirement-simple</field>
           <field name="context">
             iteration_path: ${iteration_path}
             clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
+            language: ${language}
           </field>
           <field name="output" var="prd_output"/>
         </block>
@@ -302,11 +306,13 @@
       <branch test="${complexity} == 'complex'" name="Complex Path">
         
         <!-- Phase 4a: Module Modeling -->
-        <block type="task" id="P4-B3" action="run-skill" status="pending" desc="Invoke requirement modeling skill">
+        <block type="task" id="P4-B3" action="dispatch-to-worker" status="pending" desc="Dispatch requirement modeling worker">
+          <field name="agent">speccrew-task-worker</field>
           <field name="skill">speccrew-pm-requirement-model</field>
           <field name="context">
             iteration_path: ${iteration_path}
             clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
+            language: ${language}
           </field>
           <field name="output" var="model_output"/>
         </block>
@@ -326,13 +332,30 @@
           <branch default="true" name="Model Passed"/>
         </block>
 
+        <!-- Phase 4a.5: User Confirmation Gate for Module Design -->
+        <block type="checkpoint" id="P4-CP1" name="requirement_modeling" desc="User confirmation gate for module design">
+          <field name="required" value="true"/>
+        </block>
+
+        <block type="event" id="P4-E1-CONFIRM" action="confirm" desc="Present module design for user confirmation">
+          <field name="prompt">📋 ISA-95 Module Design Complete. Please review .module-design.md before proceeding to PRD generation.</field>
+          <field name="template">module-design-summary</field>
+          <field name="data" value="${model_output}"/>
+        </block>
+
+        <block type="task" id="P4-B4-CHK" action="run-script" status="pending" desc="Update modeling confirmation checkpoint">
+          <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint requirement_modeling_confirmed --passed true</field>
+        </block>
+
         <!-- Phase 4b: Master PRD Generation -->
-        <block type="task" id="P4-B5" action="run-skill" status="pending" desc="Invoke requirement analysis skill">
+        <block type="task" id="P4-B5" action="dispatch-to-worker" status="pending" desc="Dispatch requirement analysis worker">
+          <field name="agent">speccrew-task-worker</field>
           <field name="skill">speccrew-pm-requirement-analysis</field>
           <field name="context">
             iteration_path: ${iteration_path}
             clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
             module_design_file: ${iteration_path}/01.product-requirement/.module-design.md
+            language: ${language}
           </field>
           <field name="output" var="prd_output"/>
         </block>

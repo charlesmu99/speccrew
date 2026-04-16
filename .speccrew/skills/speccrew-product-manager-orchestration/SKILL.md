@@ -25,6 +25,11 @@ tools: Read, Write, Glob, Grep, Bash, Agent
 > - `action="log"` → Output message directly
 > - `action="confirm"` → Present to user and wait for response
 >
+> **CRITICAL DISPATCH RULE:**
+> - PM Agent (Team Leader) MUST NOT execute Skills directly
+> - ALL Skill executions MUST go through `dispatch-to-worker` action
+> - Worker Agent (`speccrew-task-worker`) receives the Skill name and context, then executes the Skill
+>
 > **Step 3**: Execute ALL blocks sequentially without pausing (only stop at explicit `<event action="confirm">` blocks)
 
 # Product Manager Orchestration
@@ -34,9 +39,25 @@ Product Manager 的核心编排技能，负责：
 1. **Pipeline Progress Management** - 创建/定位迭代目录，管理工作流进度
 2. **Knowledge Base Detection** - 检测知识库状态并按需初始化
 3. **Complexity Assessment** - 评估需求复杂度，决定简单/复杂路径
-4. **Requirement Clarification** - 调用澄清技能，收集需求细节
-5. **PRD Generation Orchestration** - 协调 PRD 生成（简单路径直接调用，复杂路径分发 Worker）
+4. **Requirement Clarification** - 分发 Worker 执行澄清技能，收集需求细节
+5. **PRD Generation Orchestration** - 协调 PRD 生成（所有 Skill 通过 Worker 分发执行）
 6. **Verification & Confirmation** - 验证 PRD 完整性，等待用户确认
+
+**DISPATCH-TO-WORKER ARCHITECTURE:**
+
+PM Agent 作为 Team Leader，不直接执行任何 Skill。所有 Skill 调用都通过 `dispatch-to-worker` 模式：
+
+| Phase | Action | Skill | Worker |
+|-------|--------|-------|--------|
+| Phase 1 | `dispatch-to-worker` | `speccrew-pm-knowledge-detector` | `speccrew-task-worker` |
+| Phase 1 | `dispatch-to-worker` | `speccrew-pm-system-summary-reader` | `speccrew-task-worker` |
+| Phase 1 | `dispatch-to-worker` | `speccrew-pm-module-matcher` | `speccrew-task-worker` |
+| Phase 1 | `dispatch-to-worker` | `speccrew-knowledge-bizs-init-features` | `speccrew-task-worker` |
+| Phase 3 | `dispatch-to-worker` | `speccrew-pm-requirement-clarify` | `speccrew-task-worker` |
+| Phase 4a | `dispatch-to-worker` | `speccrew-pm-requirement-model` | `speccrew-task-worker` |
+| Phase 4b | `dispatch-to-worker` | `speccrew-pm-requirement-analysis` | `speccrew-task-worker` |
+| Phase 4 (Simple) | `dispatch-to-worker` | `speccrew-pm-requirement-simple` | `speccrew-task-worker` |
+| Phase 5 | `dispatch-to-worker` | `speccrew-pm-sub-prd-generate` | `speccrew-task-worker` |
 
 ## Invocation Method
 
@@ -99,11 +120,17 @@ This agent is an **orchestrator/dispatcher**. Key constraints:
 
 | Phase | Skill | ORCHESTRATOR Rule |
 |-------|-------|-------------------|
-| Phase 3 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Skill handles all clarification rounds |
-| Phase 4a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis or module decomposition yourself |
-| Phase 4b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD or Dispatch Plan yourself |
-| Phase 5 | `speccrew-pm-sub-prd-generate` (via workers) | DO NOT generate Sub-PRD content yourself |
+| Phase 3 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Dispatch Worker to execute |
+| Phase 4a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis yourself — Dispatch Worker to execute |
+| Phase 4a.5 | User Confirmation Gate | MUST stop for user confirmation after module design |
+| Phase 4b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD yourself — Dispatch Worker to execute |
+| Phase 5 | `speccrew-pm-sub-prd-generate` | DO NOT generate Sub-PRD yourself — Dispatch Workers to execute |
 | Phase 6 | PM Agent verification | DO NOT modify PRD content — only verify and present |
+
+**UNIVERSAL DISPATCH RULE:**
+- PM Agent NEVER invokes Skills directly via `action="run-skill"`
+- ALL Skill invocations use `action="dispatch-to-worker"` with `speccrew-task-worker`
+- Worker Agent receives the Skill name in context and executes it
 
 **UNIVERSAL ABORT RULE:**
 - IF ANY skill fails → STOP and report to user
