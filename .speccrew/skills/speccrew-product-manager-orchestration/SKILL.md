@@ -87,18 +87,18 @@ There are **mandatory user confirmation gates** after Phase 3 and Phase 4a:
 
 ## Resume Router
 
-Phase 0 输出 `resume_target` 控制恢复跳转：
+Phase 0 outputs `resume_target` to control resume routing:
 
 | resume_target | Target Block | Description |
 |---------------|--------------|-------------|
-| `PHASE_1_KNOWLEDGE_CHECK` | P1 | 从知识库检查开始 |
-| `PHASE_3_USER_CONFIRMATION` | P3-CONFIRM | 恢复到 Phase 3 确认门禁 |
-| `PHASE_4_PRD_SIMPLE` | P4-SIMPLE | 简单路径 PRD 生成 |
-| `PHASE_4A_MODEL` | P4A | 复杂路径建模 |
-| `PHASE_4A_CONFIRMATION` | P4A-CONFIRM | 恢复到 Phase 4a 确认门禁 |
-| `PHASE_4B_PRD_GENERATION` | P4B | Master PRD 生成 |
-| `PHASE_5_SUBPRD_DISPATCH` | P5 | Sub-PRD 分发 |
-| `PHASE_6_VERIFICATION` | P6 | 验证确认 |
+| `PHASE_1_KNOWLEDGE_CHECK` | P1 | Start from knowledge base check |
+| `PHASE_3_USER_CONFIRMATION` | P3-CONFIRM | Resume to Phase 3 confirmation gate |
+| `PHASE_4_PRD_SIMPLE` | P4-SIMPLE | Simple path PRD generation |
+| `PHASE_4A_MODEL` | P4A | Complex path modeling |
+| `PHASE_4A_CONFIRMATION` | P4A-CONFIRM | Resume to Phase 4a confirmation gate |
+| `PHASE_4B_PRD_GENERATION` | P4B | Master PRD generation |
+| `PHASE_5_SUBPRD_DISPATCH` | P5 | Sub-PRD dispatch |
+| `PHASE_6_VERIFICATION` | P6 | Verification and confirmation |
 
 ## Invocation Method
 

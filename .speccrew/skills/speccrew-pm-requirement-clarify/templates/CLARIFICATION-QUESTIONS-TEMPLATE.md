@@ -1,49 +1,49 @@
-# 需求澄清问卷 - Round {round_number}
+# Requirement Clarification Questionnaire - Round {round_number}
 
 > **Iteration**: {iteration_name}
 > **Date**: {date}
 > **Complexity**: {complexity_level}
 
-## 澄清背景
+## Clarification Context
 
-基于用户需求："{requirement_summary}"，以下问题需要进一步确认。
+Based on the user requirement: "{requirement_summary}", the following items need further clarification.
 
-## 待确认事项
+## Items to Confirm
 
-### 🎯 业务范围与边界
+### 🎯 Business Scope & Boundaries
 
-| # | 问题 | 优先级 | 用户回答 |
+| # | Question | Priority | User Answer |
 |---|------|--------|---------|
-| 1 | {question} | {priority} | _待回答_ |
+| 1 | {question} | {priority} | _To be answered_ |
 
-### 👥 用户角色与权限
+### 👥 User Roles & Permissions
 
-| # | 问题 | 优先级 | 用户回答 |
+| # | Question | Priority | User Answer |
 |---|------|--------|---------|
-| 1 | {question} | {priority} | _待回答_ |
+| 1 | {question} | {priority} | _To be answered_ |
 
-### 🔄 业务规则与流程
+### 🔄 Business Rules & Processes
 
-| # | 问题 | 优先级 | 用户回答 |
+| # | Question | Priority | User Answer |
 |---|------|--------|---------|
-| 1 | {question} | {priority} | _待回答_ |
+| 1 | {question} | {priority} | _To be answered_ |
 
-### 🔗 集成与依赖
+### 🔗 Integration & Dependencies
 
-| # | 问题 | 优先级 | 用户回答 |
+| # | Question | Priority | User Answer |
 |---|------|--------|---------|
-| 1 | {question} | {priority} | _待回答_ |
+| 1 | {question} | {priority} | _To be answered_ |
 
-### ⚡ 性能与约束
+### ⚡ Performance & Constraints
 
-| # | 问题 | 优先级 | 用户回答 |
+| # | Question | Priority | User Answer |
 |---|------|--------|---------|
-| 1 | {question} | {priority} | _待回答_ |
+| 1 | {question} | {priority} | _To be answered_ |
 
 ---
 
-## 填写说明
+## Instructions
 
-1. 请在"用户回答"列直接填写您的回答
-2. 如果某个问题不适用，请填写"N/A"并简要说明原因
-3. 如需补充信息，可在回答后追加说明
+1. Please fill in your answers directly in the "User Answer" column
+2. If a question is not applicable, enter "N/A" with a brief explanation
+3. If additional information is needed, you may append notes after your answer

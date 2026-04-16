@@ -1,52 +1,52 @@
-# 需求澄清总结
+# Requirement Clarification Summary
 
 > **Iteration**: {iteration_name}
 > **Total Rounds**: {total_rounds}
 > **Date**: {date}
 > **Final Sufficiency**: {sufficiency_result} ({checks_passed}/4)
 
-## 1. 需求概述
+## 1. Requirement Overview
 
 {requirement_overview}
 
-## 2. 复杂度评估
+## 2. Complexity Assessment
 
-| 维度 | 评估 | 理由 |
+| Dimension | Assessment | Rationale |
 |------|------|------|
-| 业务复杂度 | {business_complexity} | {reason} |
-| 技术复杂度 | {technical_complexity} | {reason} |
-| 集成复杂度 | {integration_complexity} | {reason} |
-| **综合判定** | **{overall_complexity}** | |
+| Business Complexity | {business_complexity} | {reason} |
+| Technical Complexity | {technical_complexity} | {reason} |
+| Integration Complexity | {integration_complexity} | {reason} |
+| **Overall Assessment** | **{overall_complexity}** | |
 
-## 3. 关键决策记录
+## 3. Key Decision Log
 
-| # | 决策项 | 决策结果 | 确认轮次 |
+| # | Decision Item | Decision Result | Confirmed Round |
 |---|--------|---------|---------|
 | 1 | {decision_item} | {decision_result} | Round {N} |
 
-## 4. 澄清 Q&A 汇总
+## 4. Clarification Q&A Summary
 
 ### Round {N}
 
-| # | 问题 | 回答 | 分类 |
+| # | Question | Answer | Category |
 |---|------|------|------|
 | 1 | {question} | {answer} | {category} |
 
-## 5. 充分性检查结果
+## 5. Sufficiency Check Results
 
-| # | 检查项 | 状态 | 说明 |
+| # | Check Item | Status | Detail |
 |---|--------|------|------|
-| 1 | 范围边界清晰 | {status} | {detail} |
-| 2 | 关键业务规则已文档化 | {status} | {detail} |
-| 3 | 优先级/分期决策已确定 | {status} | {detail} |
-| 4 | 集成边界已识别 | {status} | {detail} |
+| 1 | Scope boundaries are clear | {status} | {detail} |
+| 2 | Key business rules documented | {status} | {detail} |
+| 3 | Priority/phasing decisions made | {status} | {detail} |
+| 4 | Integration boundaries identified | {status} | {detail} |
 
-## 6. 遗留问题与风险
+## 6. Open Issues & Risks
 
-| # | 问题/风险 | 影响 | 建议处理方式 |
+| # | Issue/Risk | Impact | Suggested Resolution |
 |---|----------|------|------------|
 | 1 | {issue} | {impact} | {suggestion} |
 
-## 7. 下一步建议
+## 7. Next Steps
 
 {next_steps}

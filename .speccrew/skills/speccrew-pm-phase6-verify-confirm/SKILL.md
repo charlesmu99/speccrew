@@ -35,7 +35,7 @@ Applies three-stage gated verification:
 
 ## PM Stage Content Boundary
 
-> **DO NOT:** Update checkpoints before user confirmation, skip user review gate, auto-proceed without explicit "确认" or "OK", modify PRD document status before confirmation.
+> **DO NOT:** Update checkpoints before user confirmation, skip user review gate, auto-proceed without explicit "confirm" or "OK", modify PRD document status before confirmation.
 
 ## Templates Used
 
@@ -75,7 +75,7 @@ Applies three-stage gated verification:
 
 **Must do:**
 - Execute all verification steps in order: 6.1 → 6.2 → 6.3
-- Wait for explicit user confirmation ("确认" or "OK") before Phase 6.3
+- Wait for explicit user confirmation ("confirm" or "OK") before Phase 6.3
 - Use `update-progress.js` for all JSON file updates
 - Present complete verification summary to user
 - Report all deliverables with file paths and sizes
