@@ -85,3 +85,12 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 - Use chat for complex requirements
 - Manually write JSON files
 - Auto-proceed to Phase 4 (PRD generation) without PM Agent's user confirmation gate
+- Auto-pass sufficiency checks without actual user answers
+- Write checkpoints in this Skill — checkpoints are managed by orchestration layer
+
+### MANDATORY: User Answer Verification Rule
+
+- Worker MUST NOT auto-pass sufficiency checks without actual user answers
+- Each clarification round MUST wait for user to fill in answers before proceeding
+- Checkpoint writing is FORBIDDEN in this Skill — checkpoints are managed by the orchestration layer
+- The sufficiency check result is ONLY valid when based on real user-provided answers

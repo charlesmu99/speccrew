@@ -118,8 +118,15 @@
             <field name="output" var="questions_file"/>
           </block>
 
-          <block type="event" id="E1" action="confirm" title="Clarification Round ${round_number}" type="wait" desc="Wait for user to answer questions">
-            <field name="message">Round ${round_number} questions written. Please fill answers and notify me.</field>
+          <!-- MANDATORY: Wait for user to answer clarification questions -->
+          <block type="event" id="E-ROUND-CONFIRM" action="user-confirm" desc="Wait for user to answer clarification questions">
+            <field name="prompt">📋 第 ${round_number} 轮澄清问题已生成: ${questions_file}
+
+请：
+1. 查看澄清问题文件
+2. 在文件中填写您的答案
+3. 填写完成后确认继续</field>
+            <field name="skippable" value="false"/>
           </block>
 
           <block type="task" id="B8" action="read-file" desc="Read answered questions">
@@ -127,10 +134,18 @@
             <field name="output" var="answered_questions"/>
           </block>
 
+          <!-- MANDATORY: User answers are required for sufficiency check -->
+          <block type="rule" id="R-ANSWER-REQUIRED" level="mandatory" desc="User answers are required for sufficiency check">
+            <field name="text">MANDATORY: Sufficiency check can ONLY pass when the user has actually provided answers to the clarification questions.</field>
+            <field name="text">If the clarification questions file still contains only the original template without user answers, ALL checks MUST fail.</field>
+            <field name="text">Worker MUST NOT self-evaluate and auto-pass the sufficiency check without real user input.</field>
+          </block>
+
           <!-- Sufficiency Check -->
           <block type="task" id="B9" action="analyze" desc="Perform sufficiency check">
             <field name="input" value="${answered_questions}"/>
             <field name="checks">
+              0. User has actually provided answers - The answered_questions content contains real user responses, not just the original template
               1. Scope boundaries are clear - Explicit in/out scope defined
               2. Key business rules are documented - At least 1 rule identified
               3. Priority/phasing decisions are made - Phase 1 scope is clear
@@ -175,12 +190,6 @@
         - overall_complexity: ${complexity}
       </field>
       <field name="output" var="summary_path"/>
-    </block>
-
-    <!-- Step 7: Initialize .checkpoints.json -->
-    <block type="task" id="B11" action="run-script" desc="Initialize checkpoints via script">
-      <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoint requirement_clarification --passed true</field>
-      <field name="output" var="checkpoint_result"/>
     </block>
 
     <!-- Checkpoint: Clarification complete -->
