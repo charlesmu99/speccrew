@@ -155,6 +155,78 @@ function getBatch(args) {
   }
 }
 
+// Parse featureId to extract platformId, module, and fileName
+// featureId format: {platformId}-{module}-{fileNameWithoutExt}
+function parseFeatureId(featureId) {
+  const parts = featureId.split('-');
+  if (parts.length >= 3) {
+    const platformId = parts[0];
+    const module = parts[1];
+    const fileNameWithoutExt = parts.slice(2).join('-'); // Handle fileName with hyphens
+    return { platformId, module, fileNameWithoutExt };
+  }
+  return null;
+}
+
+// Update features JSON file with analysis results
+function updateFeaturesJson(syncStatePath, featureId, doneData) {
+  const parsed = parseFeatureId(featureId);
+  if (!parsed) {
+    console.error(JSON.stringify({ warning: `Cannot parse featureId: ${featureId}` }));
+    return false;
+  }
+  
+  const { platformId, module, fileNameWithoutExt } = parsed;
+  const featuresFilePath = path.join(syncStatePath, `features-${platformId}.json`);
+  
+  if (!fs.existsSync(featuresFilePath)) {
+    console.error(JSON.stringify({ warning: `Features file not found: ${featuresFilePath}` }));
+    return false;
+  }
+  
+  const featuresData = readJsonSafe(featuresFilePath);
+  if (!featuresData || !Array.isArray(featuresData.features)) {
+    console.error(JSON.stringify({ warning: `Invalid features data in: ${featuresFilePath}` }));
+    return false;
+  }
+  
+  // Find matching feature
+  let found = false;
+  for (const feature of featuresData.features) {
+    const featureFileName = feature.fileName || feature.sourceFile || 'unknown';
+    const featureFileNameWithoutExt = featureFileName.replace(/\.[^.]+$/, '');
+    
+    // Match by module and fileName (platformId already matched by filename)
+    if (feature.module === module && featureFileNameWithoutExt === fileNameWithoutExt) {
+      // Skip if already analyzed (idempotency)
+      if (feature.analyzed === true) {
+        found = true;
+        continue;
+      }
+      
+      // Update feature fields
+      feature.analyzed = true;
+      feature.startedAt = doneData.startedAt || doneData.timestamp || null;
+      feature.completedAt = doneData.completedAt || doneData.timestamp || null;
+      feature.analysisNotes = doneData.notes || 'completed';
+      found = true;
+    }
+  }
+  
+  if (!found) {
+    console.error(JSON.stringify({ warning: `Feature not found in ${featuresFilePath}: ${featureId}` }));
+    return false;
+  }
+  
+  // Update top-level counts
+  featuresData.analyzedCount = featuresData.features.filter(f => f.analyzed).length;
+  featuresData.pendingCount = featuresData.features.filter(f => !f.analyzed).length;
+  
+  // Write back to file (atomic write)
+  fs.writeFileSync(featuresFilePath, JSON.stringify(featuresData, null, 2));
+  return true;
+}
+
 // process-results subcommand
 function processResults(args) {
   const { syncStatePath, graphRoot, completedDir } = args;
@@ -165,9 +237,10 @@ function processResults(args) {
   let success = 0;
   let failed = 0;
   let graphUpdated = false;
+  let featuresUpdated = 0;
   
   if (!fs.existsSync(completedDir)) {
-    console.log(JSON.stringify({ success, failed, graphUpdated }));
+    console.log(JSON.stringify({ success, failed, graphUpdated, featuresUpdated }));
     return;
   }
   
@@ -178,14 +251,26 @@ function processResults(args) {
   for (const file of doneFiles) {
     const filePath = path.join(completedDir, file);
     const data = readJsonSafe(filePath);
+    
+    // Extract featureId from filename: {featureId}.done.json
+    const featureId = file.replace('.done.json', '');
+    
     if (data) {
       if (data.status === 'success' || data.status === 'completed') {
         success++;
+        // Update features JSON for successful analysis
+        if (updateFeaturesJson(syncStatePath, featureId, data)) {
+          featuresUpdated++;
+        }
       } else if (data.status === 'failed' || data.status === 'error') {
         failed++;
       } else {
         // Default to success if no status field
         success++;
+        // Update features JSON for successful analysis
+        if (updateFeaturesJson(syncStatePath, featureId, data)) {
+          featuresUpdated++;
+        }
       }
     } else {
       // Invalid JSON, assume success
@@ -260,7 +345,8 @@ function processResults(args) {
   console.log(JSON.stringify({
     success,
     failed,
-    graphUpdated
+    graphUpdated,
+    featuresUpdated
   }));
 }
 

@@ -63,13 +63,25 @@ function toRelativePath(absolutePath, projectRoot) {
   return normalizedAbs;
 }
 
-// Generate document path for a feature
-// Format: speccrew-workspace/knowledges/bizs/{platformId}/{module}/{subpath}/{filename}.md
-function generateDocumentPath(platformId, module, sourcePath, projectRoot) {
-  // Extract filename without extension
-  const basename = path.basename(sourcePath, path.extname(sourcePath));
+// Generate unique feature ID from source path
+// Converts path separators to hyphens, removes extension
+// e.g., 'src/views/bpm/form/data.ts' -> 'src-views-bpm-form-data'
+// e.g., 'ruoyi-fastapi-app/src/pages/common/agreement/index.vue' -> 'ruoyi-fastapi-app-src-pages-common-agreement-index'
+function generateFeatureId(relativeSourcePath) {
+  // Remove file extension
+  const pathWithoutExt = relativeSourcePath.replace(/\.[^.]+$/, '');
   
-  // Get directory relative to module root
+  // Replace path separators with hyphens
+  const id = pathWithoutExt.replace(/\//g, '-').replace(/\\/g, '-');
+  
+  return id;
+}
+
+// Generate document path for a feature
+// Format: speccrew-workspace/knowledges/bizs/{platformId}/{module}/{subpath}/{uniqueName}.md
+// The documentPath must be unique to avoid overwriting
+function generateDocumentPath(platformId, module, sourcePath, projectRoot) {
+  // Get the relative path from project root
   const relativePath = toRelativePath(sourcePath, projectRoot);
   
   // Parse the source path to extract module and subpath
@@ -92,6 +104,22 @@ function generateDocumentPath(platformId, module, sourcePath, projectRoot) {
     subpath = pathParts.slice(moduleIndex + 1, pathParts.length - 1).join('/');
   }
   
+  // Extract filename without extension
+  const basename = path.basename(sourcePath, path.extname(sourcePath));
+  
+  // Generate unique document name to avoid collisions
+  // Use the path after module to create a unique name
+  let uniqueDocName;
+  if (moduleIndex >= 0 && moduleIndex < pathParts.length - 1) {
+    // Get all path parts after module (excluding extension)
+    const pathAfterModule = pathParts.slice(moduleIndex + 1);
+    // Join with hyphens to create unique name
+    uniqueDocName = pathAfterModule.join('-').replace(/\.[^.]+$/, '');
+  } else {
+    // Fallback: use basename
+    uniqueDocName = basename;
+  }
+  
   // Construct document path using platformId (which follows {platformType}-{techStack} format)
   // e.g., backend-fastapi, web-vue3, mobile-uniapp
   const docPathParts = ['speccrew-workspace', 'knowledges', 'bizs', platformId, module];
@@ -100,7 +128,7 @@ function generateDocumentPath(platformId, module, sourcePath, projectRoot) {
     docPathParts.push(subpath);
   }
   
-  docPathParts.push(`${basename}.md`);
+  docPathParts.push(`${uniqueDocName}.md`);
   
   return docPathParts.join('/');
 }
@@ -203,10 +231,14 @@ function main() {
         const relativeSourcePath = toRelativePath(sourceFile, projectRoot);
         const fileName = path.basename(sourceFile, path.extname(sourceFile));
         
-        // Generate document path using platformId
+        // Generate unique feature ID based on full relative path
+        const featureId = generateFeatureId(relativeSourcePath);
+        
+        // Generate document path using platformId (now with unique filename)
         const documentPath = generateDocumentPath(platformId, moduleName, sourceFile, projectRoot);
         
         features.push({
+          id: featureId,
           fileName: fileName,
           sourcePath: relativeSourcePath,
           documentPath: documentPath,
@@ -227,6 +259,9 @@ function main() {
     });
   }
   
+  // Determine analysis method based on platform type
+  const analysisMethod = platformType === 'backend' ? 'api-based' : 'ui-based';
+  
   // Build output JSON
   const outputData = {
     platformName: platformName,
@@ -235,6 +270,7 @@ function main() {
     platformId: platformId,
     sourcePath: sourceRoot,
     techStack: techStack,
+    analysisMethod: analysisMethod,
     modules: modules,
     totalFiles: features.length,
     analyzedCount: 0,
