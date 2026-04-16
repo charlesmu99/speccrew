@@ -583,56 +583,41 @@ Requirements:
     
     <block type="rule" id="S3-R1" level="mandatory" desc="Stage 3 mandatory rules">
       <field name="text">Worker dispatch is handled by the calling Agent (Team Leader). This Skill only prepares the task plan and parameters.</field>
-      <field name="text">ALL module summary workers MUST be dispatched IN PARALLEL 鈥?sequential execution is FORBIDDEN</field>
-      <field name="text">ALL Worker dispatch calls in S3-L2 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">ALL module summary workers MUST be dispatched IN PARALLEL — sequential execution is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls in S3-L1 MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
       <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker</field>
       <field name="text">Dispatch all ${max_concurrent_workers} workers at once, then wait for ALL to complete</field>
       <field name="text">Sequential one-by-one dispatch is STRICTLY FORBIDDEN</field>
       <field name="text">Workers MUST NOT create any temporary scripts or workaround files</field>
     </block>
 
-    <!-- Step 1: Read all features JSON -->
-    <block type="task" id="S3-B1" action="run-script" status="pending" desc="Read all platform features JSON">
-      <field name="command">node -e "const fs=require('fs'); const files=fs.readdirSync('${sync_state_bizs_dir}').filter(f=>f.startsWith('features-')); console.log(JSON.stringify(files))"</field>
-      <field name="output" var="features_files"/>
+    <!-- Step 1: Collect all module pairs across ALL platforms in ONE batch -->
+    <block type="task" id="S3-B1" action="run-script" status="pending" desc="Collect all platform-module pairs for global parallel dispatch">
+      <field name="command">node -e "const fs=require('fs'); const path=require('path'); const syncDir='${sync_state_bizs_dir}'; const files=fs.readdirSync(syncDir).filter(f=>f.startsWith('features-')&amp;&amp;f.endsWith('.json')); const pairs=[]; files.forEach(f=>{const platformId=f.replace('features-','').replace('.json',''); const data=JSON.parse(fs.readFileSync(path.join(syncDir,f),'utf8')); const modules=[...new Set(data.features.map(x=>x.module))]; modules.forEach(m=>pairs.push({platformId,moduleName:m})); }); console.log(JSON.stringify(pairs));"</field>
+      <field name="output" var="all_module_pairs"/>
     </block>
 
-    <!-- Step 2: Prepare module summary tasks for each platform -->
-    <block type="loop" id="S3-L1" over="${platforms}" as="platform" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Prepare module summary tasks for each platform IN PARALLEL">
-      <!-- Step 2.1: Read platform features -->
-      <block type="task" id="S3-B2" action="run-script" status="pending" desc="Read platform features">
-        <field name="command">node -e "console.log(require('fs').readFileSync('${sync_state_bizs_dir}/features-${platform.platformId}.json', 'utf8'))"</field>
-        <field name="output" var="platform_features"/>
-      </block>
-
-      <!-- Step 2.2: Extract module list -->
-      <block type="task" id="S3-B3" action="run-script" status="pending" desc="Extract module list">
-        <field name="command">node -e "const f=JSON.parse(process.argv[2]); const modules=[...new Set(f.features.map(x=>x.module))]; console.log(JSON.stringify(modules))" "${platform_features}"</field>
-        <field name="output" var="platform_modules"/>
-      </block>
-
-      <!-- Step 2.3: Dispatch Worker for each module -->
-      <!-- PARALLEL EXECUTION MANDATORY: All Module Summary Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
-      <block type="loop" id="S3-L2" over="${platform_modules}" as="module_name" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch summary Worker for each module">
-        <block type="task" id="S3-B4" action="dispatch-to-worker" status="pending" desc="Dispatch module summary Worker">
-          <field name="worker">speccrew-knowledge-module-summarize</field>
-          <field name="instructions">
+    <!-- Step 2: Dispatch ALL module summary Workers in ONE parallel batch across ALL platforms -->
+    <!-- PARALLEL EXECUTION MANDATORY: All Module Summary Workers MUST be dispatched SIMULTANEOUSLY in ONE turn -->
+    <block type="loop" id="S3-L1" over="${all_module_pairs}" as="pair" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch ALL module summary Workers in ONE parallel batch across ALL platforms">
+      <block type="task" id="S3-B2" action="dispatch-to-worker" status="pending" desc="Dispatch module summary Worker">
+        <field name="worker">speccrew-knowledge-module-summarize</field>
+        <field name="instructions">
 Generate complete module overview documentation for the specified module.
 
 Requirements:
 - Read all Feature documents under the module
 - Aggregate and generate module-level overview
 - Output to {module_path}/{module_name}-overview.md
-          </field>
-          <field name="context">{
-  "module_name": "${module_name}",
-  "module_path": "${workspace_path}/knowledges/bizs/${platform.platformId}/${module_name}/",
+        </field>
+        <field name="context">{
+  "module_name": "${pair.moduleName}",
+  "module_path": "${workspace_path}/knowledges/bizs/${pair.platformId}/${pair.moduleName}/",
   "workspace_path": "${workspace_path}",
   "sync_state_bizs_dir": "${sync_state_bizs_dir}",
   "language": "${language}"
 }</field>
-          <field name="output" var="module_result_${platform.platformId}_${module_name}"/>
-        </block>
+        <field name="output" var="module_result_${pair.platformId}_${pair.moduleName}"/>
       </block>
     </block>
 
