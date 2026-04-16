@@ -170,7 +170,7 @@ Before starting system design, verify that Feature Design stage is confirmed:
      node {update_progress_script} update-workflow --file {iterations_dir}/{current}/WORKFLOW-PROGRESS.json --stage 03_system_design --status in_progress
      ```
 
-### Step 0.2: Check Resume State (断点续传)
+### Step 0.2: Check Resume State (Resume from Checkpoint)
 
 Check if there's existing progress to resume:
 
@@ -344,7 +344,7 @@ Platforms: {count} platforms from techs-manifest
 Total Design Tasks: {feature_count} × {platform_count} = {total_tasks}
 Execution Mode: {Direct invocation / Worker dispatch (N batches)}
 
-Proceed with system design? (确认/取消)
+Proceed with system design? (Confirm/Cancel)
 ```
 
 ### 1.5 Preparation Validation (Gate Check)
@@ -397,7 +397,7 @@ After user confirmation, verify resources exist (DO NOT read content):
    Required file missing: knowledges/techs/techs-manifest.json
    
    Please initialize the techs knowledge base first by asking the Team Leader:
-   "Initialize technology knowledge base" or "初始化技术知识库"
+   "Initialize technology knowledge base"
    
    This is required for system design to understand your project's technology stack,
    conventions, and architecture patterns.
@@ -475,9 +475,9 @@ Capability Gaps Identified: {count}
 └── No new frameworks needed (if applicable)
 
 Do you approve these framework decisions?
-- "确认" or "OK" → Proceed to Phase 4 (DESIGN-OVERVIEW generation)
-- "修改" + specific changes → Re-evaluate with adjusted scope
-- "取消" → Abort workflow
+- "Confirm" or "OK" → Proceed to Phase 4 (DESIGN-OVERVIEW generation)
+- "Modify" + specific changes → Re-evaluate with adjusted scope
+- "Cancel" → Abort workflow
 ```
 
 **MANDATORY**: DO NOT proceed to Phase 4 until user explicitly confirms.
@@ -486,7 +486,7 @@ Do you approve these framework decisions?
 If no new frameworks needed, state explicitly:
 ```
 ✅ No capability gaps identified. Current tech stack is sufficient.
-Proceed to Phase 4? (确认/取消)
+Proceed to Phase 4? (Confirm/Cancel)
 ```
 
 ### 3.4 Framework Evaluation Error Recovery
@@ -529,7 +529,7 @@ Create the top-level overview at:
 | F-CRM-02 | customer-detail | [link] | [link] |
 | ... | ... | ... | ... |
 
-> **旧格式兼容**: 如果文件使用旧格式（无 Feature ID），Feature ID 列显示为 `-`，使用模块名作为 Feature Name
+> **Legacy Format Compatibility**: If file uses legacy format (no Feature ID), Feature ID column shows `-`, using module name as Feature Name
 
 ## 2. Technology Decisions
 - Framework evaluation results (from Phase 3)
@@ -544,13 +544,13 @@ Create the top-level overview at:
 | F-CRM-02 | customer-detail | Web Frontend | web-vue | speccrew-sd-frontend | web-vue/F-CRM-02-customer-detail-design.md | pending |
 | ... | ... | ... | ... | ... | ... | ... |
 
-> **说明**: 
-> - 新格式：Design Directory 包含 `{feature-id}-{feature-name}`（如 `F-CRM-01-customer-list-design.md`）
-> - 旧格式：Design Directory 使用 `{module}-design.md`
+> **Notes**:
+> - New Format: Design Directory contains `{feature-id}-{feature-name}` (e.g., `F-CRM-01-customer-list-design.md`)
+> - Legacy Format: Design Directory uses `{module}-design.md`
 
 ## 4. Feature Summary (Optional)
 
-当 Feature 数量较多（>5）时，添加此小节提供汇总视图：
+When Feature count is large (>5), add this subsection to provide a summary view:
 
 ### 4.1 Feature by Module
 | Module | Feature Count | Feature IDs |
@@ -649,10 +649,10 @@ Before dispatching, create or update dispatch tracking:
    [{"id":"sd-web-vue-F-CRM-01","platform":"web-vue","feature_id":"F-CRM-01","feature_name":"customer-list","skill":"speccrew-sd-frontend","status":"pending"}]
    ```
 
-   **Task ID 格式更新**:
-   - 旧格式: `sd-{platform}-{feature}`（如 `sd-web-vue-customer-list`）
-   - **新格式**: `sd-{platform}-{feature-id}`（如 `sd-web-vue-F-CRM-01`）
-   - 旧格式兼容: 如果无 Feature ID，使用 feature_name（如 `sd-web-vue-crm`）
+   **Task ID Format Update**:
+   - Legacy Format: `sd-{platform}-{feature}` (e.g., `sd-web-vue-customer-list`)
+   - **New Format**: `sd-{platform}-{feature-id}` (e.g., `sd-web-vue-F-CRM-01`)
+   - Legacy Compatibility: If no Feature ID, use feature_name (e.g., `sd-web-vue-crm`)
 
 2. **Check existing progress** (from Step 0.3) — skip `completed` tasks
 3. **Update status** to `in_progress` for tasks being dispatched:
@@ -672,12 +672,12 @@ When there is only one Feature Spec and one platform:
 2. Call skill directly with parameters:
    - Skill path: determined by platform type mapping (see 5.1)
    - Pass context:
-     - `task_id`: Task identifier for progress tracking（格式: `sd-{platform_id}-{feature_id}` 或 `sd-{platform_id}-{feature_name}`）
-     - `feature_id`: Feature ID（新格式如 `F-CRM-01`，旧格式为 null）
-     - `feature_name`: Feature Name（如 `customer-list` 或 `crm`）
+     - `task_id`: Task identifier for progress tracking (format: `sd-{platform_id}-{feature_id}` or `sd-{platform_id}-{feature_name}`)
+     - `feature_id`: Feature ID (new format e.g., `F-CRM-01`, legacy format is null)
+     - `feature_name`: Feature Name (e.g., `customer-list` or `crm`)
      - `platform_id`: Platform identifier from techs-manifest
-     - `feature_spec_path`: Path to Feature Spec document（从 Feature Registry 获取的实际路径）
-     - `api_contract_path`: Path to API Contract document（从 Feature Registry 获取的实际路径）
+     - `feature_spec_path`: Path to Feature Spec document (actual path from Feature Registry)
+     - `api_contract_path`: Path to API Contract document (actual path from Feature Registry)
      - `techs_paths`: Relevant techs knowledge paths
      - `framework_decisions`: Framework decisions from Phase 3
 
@@ -707,12 +707,12 @@ When multiple Feature Specs and/or multiple platforms exist, create a matrix of 
 Each worker receives:
 - `skill_path`: {ide_skills_dir}/{skill_name}/SKILL.md (per-platform design skill based on platform type, see 5.1)
 - `context`:
-  - `task_id`: Unique task identifier（格式: `sd-{platform_id}-{feature_id}`，如 `sd-web-vue-F-CRM-01`）
-  - `feature_id`: Feature ID（新格式如 `F-CRM-01`，旧格式为 null）
-  - `feature_name`: Feature Name（如 `customer-list`）
+  - `task_id`: Unique task identifier (format: `sd-{platform_id}-{feature_id}`, e.g., `sd-web-vue-F-CRM-01`)
+  - `feature_id`: Feature ID (new format e.g., `F-CRM-01`, legacy format is null)
+  - `feature_name`: Feature Name (e.g., `customer-list`)
   - `platform_id`: Platform identifier from techs-manifest
-  - `feature_spec_path`: Path to ONE Feature Spec document (not all, 从 Feature Registry 获取)
-  - `api_contract_path`: API Contract document path (从 Feature Registry 获取)
+  - `feature_spec_path`: Path to ONE Feature Spec document (not all, from Feature Registry)
+  - `api_contract_path`: API Contract document path (from Feature Registry)
   - `techs_knowledge_paths`: Techs knowledge paths for this platform
   - `framework_decisions`: Framework decisions from Phase 3
   - `output_base_path`: Path to `03.system-design/` directory
@@ -860,9 +860,9 @@ Design Documents Summary:
 Document Status: 📝 Draft (pending your confirmation)
 
 Please review all design documents above.
-- "确认" or "OK" → Finalize all designs, update workflow status to confirmed
-- "修改" + specific Feature/Platform → Re-dispatch design workers for specified scope
-- "取消" → Abort workflow, save partial results
+- "Confirm" or "OK" → Finalize all designs, update workflow status to confirmed
+- "Modify" + specific Feature/Platform → Re-dispatch design workers for specified scope
+- "Cancel" → Abort workflow, save partial results
 ```
 
 **MANDATORY**: DO NOT proceed to Phase 6.2 (Update Checkpoints) until user explicitly confirms.
@@ -871,7 +871,7 @@ Please review all design documents above.
 
 ### 6.2 DISPATCH-PROGRESS.json Task Entry Format
 
-每个 task entry 包含以下字段:
+Each task entry contains the following fields:
 ```json
 {
   "id": "sd-web-vue-F-CRM-01",
@@ -884,7 +884,7 @@ Please review all design documents above.
 }
 ```
 
-旧格式兼容（无 Feature ID）:
+Legacy Format Compatibility (no Feature ID):
 ```json
 {
   "id": "sd-web-vue-crm",
@@ -923,74 +923,74 @@ After user confirms:
 | Platform Index | `{iterations_dir}/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md` | `speccrew-sd-frontend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-backend/templates/INDEX-TEMPLATE.md`, `speccrew-sd-mobile/templates/INDEX-TEMPLATE.md`, or `speccrew-sd-desktop/templates/INDEX-TEMPLATE.md` |
 | Module Design | `{iterations_dir}/{number}-{type}-{name}/03.system-design/{platform_id}/{feature-id}-{feature-name}-design.md` | `speccrew-sd-frontend/templates/SD-FRONTEND-TEMPLATE.md`, `speccrew-sd-backend/templates/SD-BACKEND-TEMPLATE.md`, `speccrew-sd-mobile/templates/SD-MOBILE-TEMPLATE.md`, or `speccrew-sd-desktop/templates/SD-DESKTOP-TEMPLATE.md` |
 
-**输出文件命名规则**:
+**Output File Naming Rules**:
 
-1. **新格式**（有 Feature ID）:
-   - 格式: `{feature-id}-{feature-name}-design.md`
-   - 示例: `F-CRM-01-customer-list-design.md`
-   - 路径: `03.system-design/web-vue/F-CRM-01-customer-list-design.md`
+1. **New Format** (with Feature ID):
+   - Format: `{feature-id}-{feature-name}-design.md`
+   - Example: `F-CRM-01-customer-list-design.md`
+   - Path: `03.system-design/web-vue/F-CRM-01-customer-list-design.md`
 
-2. **旧格式兼容**（无 Feature ID）:
-   - 格式: `{module}-design.md`
-   - 示例: `crm-design.md`
-   - 路径: `03.system-design/web-vue/crm-design.md`
+2. **Legacy Format Compatibility** (no Feature ID):
+   - Format: `{module}-design.md`
+   - Example: `crm-design.md`
+   - Path: `03.system-design/web-vue/crm-design.md`
 
-**向后兼容逻辑**:
-- 如果 `feature_id` 存在 → 使用 `{feature-id}-{feature-name}-design.md`
-- 如果 `feature_id` 为 null（旧格式）→ 使用 `{module}-design.md`
+**Backward Compatibility Logic**:
+- If `feature_id` exists → use `{feature-id}-{feature-name}-design.md`
+- If `feature_id` is null (legacy format) → use `{module}-design.md`
 
 # Backward Compatibility
 
-本 Agent 支持新旧两种 Feature Spec 文件格式：
+This Agent supports both new and legacy Feature Spec file formats:
 
-## 新格式（细粒度 Feature）
+## New Format (Fine-grained Feature)
 
-**文件名格式**:
+**File Name Format**:
 - Feature Spec: `{feature-id}-{feature-name}-feature-spec.md`
 - API Contract: `{feature-id}-{feature-name}-api-contract.md`
 
-**示例**:
+**Examples**:
 - `F-CRM-01-customer-list-feature-spec.md`
 - `F-CRM-01-customer-list-api-contract.md`
 
-**特征**:
-- 文件名以 `F-` 开头
-- 包含 Feature ID（如 `F-CRM-01`）
-- Feature ID 格式: `F-{MODULE}-{NN}`
+**Characteristics**:
+- File name starts with `F-`
+- Contains Feature ID (e.g., `F-CRM-01`)
+- Feature ID format: `F-{MODULE}-{NN}`
 
-## 旧格式（模块级 Feature）
+## Legacy Format (Module-level Feature)
 
-**文件名格式**:
+**File Name Format**:
 - Feature Spec: `{module-name}-feature-spec.md`
 - API Contract: `{module-name}-api-contract.md`
 
-**示例**:
+**Examples**:
 - `crm-feature-spec.md`
 - `crm-api-contract.md`
 
-**特征**:
-- 文件名不以 `F-` 开头
-- 无 Feature ID
-- 使用模块名作为标识
+**Characteristics**:
+- File name does not start with `F-`
+- No Feature ID
+- Uses module name as identifier
 
-## 格式检测逻辑
+## Format Detection Logic
 
 ```
-文件名以 "F-" 开头 且匹配正则 ^F-[A-Z]+-\d+-
-  → 新格式，提取 Feature ID
-否则
-  → 旧格式，使用模块名
+File name starts with "F-" and matches regex ^F-[A-Z]+-\d+-
+  → New format, extract Feature ID
+Otherwise
+  → Legacy format, use module name
 ```
 
-## 向后兼容处理
+## Backward Compatibility Handling
 
-| 场景 | 处理方式 |
-|------|----------|
-| Feature ID | 新格式: 提取 `F-{MODULE}-{NN}`；旧格式: null |
-| Feature Name | 新格式: 从文件名提取；旧格式: 模块名 |
-| Task ID | 新格式: `sd-{platform}-{feature-id}`；旧格式: `sd-{platform}-{feature_name}` |
-| 输出文件名 | 新格式: `{feature-id}-{feature-name}-design.md`；旧格式: `{module}-design.md` |
-| DESIGN-OVERVIEW | Feature ID 列显示 `-` 或实际 ID |
+| Scenario | Handling |
+|----------|----------|
+| Feature ID | New format: extract `F-{MODULE}-{NN}`; Legacy format: null |
+| Feature Name | New format: extract from filename; Legacy format: module name |
+| Task ID | New format: `sd-{platform}-{feature-id}`; Legacy format: `sd-{platform}-{feature_name}` |
+| Output Filename | New format: `{feature-id}-{feature-name}-design.md`; Legacy format: `{module}-design.md` |
+| DESIGN-OVERVIEW | Feature ID column shows `-` or actual ID |
 
 # Constraints
 

@@ -168,34 +168,53 @@
       </branch>
     </block>
 
-    <!-- Step 6: Generate .clarification-summary.md -->
-    <block type="task" id="B10-load-template" action="read-file" desc="Load summary template">
-      <field name="path" value="${skill_path}/templates/CLARIFICATION-SUMMARY-TEMPLATE.md"/>
-      <field name="output" var="summary_template"/>
+    <!-- ============================================================
+         Summary Generation Guard
+         ============================================================ -->
+    <block type="rule" id="R-SUMMARY-GUARD" level="mandatory" desc="Summary generation guard - only when sufficiency checks pass">
+      <field name="text">MANDATORY: .clarification-summary.md can ONLY be generated when ALL sufficiency checks have passed (sufficiency_checks_passed == true).</field>
+      <field name="text">If sufficiency_checks_passed is false, Worker MUST NOT generate summary. Instead, Worker MUST exit and return control to PM Agent with error status.</field>
+      <field name="text">Generating a summary without completed user answers is a CRITICAL workflow violation.</field>
     </block>
 
-    <block type="task" id="B10" action="generate" desc="Generate clarification summary from template">
-      <field name="template" value="${summary_template}"/>
-      <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
-      <field name="vars">
-        - iteration_name: ${iteration_name}
-        - total_rounds: ${round_number - 1}
-        - date: ${current_date}
-        - sufficiency_result: ${sufficiency_result.all_passed ? 'PASSED' : 'PARTIAL'}
-        - checks_passed: ${sufficiency_result.passed_count}
-        - requirement_overview: ${requirement_summary}
-        - business_complexity: ${complexity}
-        - technical_complexity: ${complexity}
-        - integration_complexity: ${complexity}
-        - overall_complexity: ${complexity}
-      </field>
-      <field name="output" var="summary_path"/>
-    </block>
+    <!-- Step 6: Generate .clarification-summary.md (Guarded by G3) -->
+    <block type="gateway" id="G3" mode="exclusive" desc="Guard: Only generate summary if sufficiency checks passed">
+      <branch test="${sufficiency_checks_passed} == true" name="Sufficiency Passed - Generate Summary">
+        <block type="task" id="B10-load-template" action="read-file" desc="Load summary template">
+          <field name="path" value="${skill_path}/templates/CLARIFICATION-SUMMARY-TEMPLATE.md"/>
+          <field name="output" var="summary_template"/>
+        </block>
 
-    <!-- Checkpoint: Clarification complete -->
-    <block type="checkpoint" id="CP1" name="clarification-complete" desc="Verify clarification completed">
-      <field name="file" value="${summary_path}"/>
-      <field name="verify" value="file_exists(${summary_path})"/>
+        <block type="task" id="B10" action="generate" desc="Generate clarification summary from template">
+          <field name="template" value="${summary_template}"/>
+          <field name="output_path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
+          <field name="vars">
+            - iteration_name: ${iteration_name}
+            - total_rounds: ${round_number - 1}
+            - date: ${current_date}
+            - sufficiency_result: ${sufficiency_result.all_passed ? 'PASSED' : 'PARTIAL'}
+            - checks_passed: ${sufficiency_result.passed_count}
+            - requirement_overview: ${requirement_summary}
+            - business_complexity: ${complexity}
+            - technical_complexity: ${complexity}
+            - integration_complexity: ${complexity}
+            - overall_complexity: ${complexity}
+          </field>
+          <field name="output" var="summary_path"/>
+        </block>
+
+        <!-- Checkpoint: Clarification complete -->
+        <block type="checkpoint" id="CP1" name="clarification-complete" desc="Verify clarification completed">
+          <field name="file" value="${summary_path}"/>
+          <field name="verify" value="file_exists(${summary_path})"/>
+        </block>
+      </branch>
+      <branch default="true" name="Sufficiency Failed - Exit with Error">
+        <block type="task" id="B-INSUFFICIENCY-EXIT" action="set-variable" desc="Set error status for insufficient clarification">
+          <field name="error_type">INSUFFICIENT_CLARIFICATION</field>
+          <field name="message">Requirement clarification did not achieve sufficiency. Worker exits and returns control to PM Agent.</field>
+        </block>
+      </branch>
     </block>
 
   </sequence>

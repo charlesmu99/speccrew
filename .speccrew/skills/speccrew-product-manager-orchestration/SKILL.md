@@ -16,6 +16,8 @@ tools: Read, Write, Glob, Grep, Bash, Agent
 > 🔧 Tool: [which IDE tool to call]
 > ✅ Result: [output or status]
 > ```
+
+> ⚠️ **CRITICAL ENFORCEMENT**: Every orchestration workflow execution MUST include block-by-block announcements. If you find yourself dispatching Workers without announcing each Phase block, STOP and correct your execution. This protocol is mandatory and non-negotiable.
 >
 > Action-to-tool mapping:
 > - `action="run-skill"` → Invoke via **Skill tool** (pass the `<field name="skill">` value EXACTLY)

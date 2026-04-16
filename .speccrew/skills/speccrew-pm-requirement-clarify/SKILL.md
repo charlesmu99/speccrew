@@ -94,3 +94,12 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 - Each clarification round MUST wait for user to fill in answers before proceeding
 - Checkpoint writing is FORBIDDEN in this Skill — checkpoints are managed by the orchestration layer
 - The sufficiency check result is ONLY valid when based on real user-provided answers
+
+### CRITICAL: Summary Generation Guard
+
+Worker MUST strictly enforce the following before generating `.clarification-summary.md`:
+
+1. **Guard Check**: `sufficiency_checks_passed` MUST be `true` before proceeding to summary generation
+2. **Event Block Execution**: When encountering `user-confirm` event blocks (E-ROUND-CONFIRM), Worker MUST pause and wait for user confirmation. Worker MUST NOT auto-confirm or skip.
+3. **Variable State Verification**: After loop L1 exits, verify `sufficiency_checks_passed == true`. If false, do NOT generate summary — report error and exit.
+4. **FORBIDDEN**: Generating `.clarification-summary.md` when user has not answered clarification questions is a CRITICAL workflow violation.

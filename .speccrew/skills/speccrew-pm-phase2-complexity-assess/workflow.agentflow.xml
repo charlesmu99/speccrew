@@ -18,6 +18,8 @@
     <field name="text">This skill is READ-ONLY - do not modify any files</field>
     <field name="text">Phase 2.0 verification is MANDATORY - cannot be skipped</field>
     <field name="text">If knowledge initialization incomplete, report error and STOP</field>
+    <field name="text">FORBIDDEN: DO NOT create evaluation reports, assessment JSON files, or any other output files. All output must be returned as variables in the output block only.</field>
+    <field name="text">Any file created outside of block-defined output paths is considered an error and violates Strict Block Adherence.</field>
   </block>
 
   <!-- ============================================================

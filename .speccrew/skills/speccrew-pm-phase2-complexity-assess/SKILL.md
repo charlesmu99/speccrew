@@ -108,3 +108,4 @@ PM Agent (speccrew-product-manager)
 3. **Read-Only Assessment**: This skill performs assessment only, no file modifications
 4. **Escalation Path**: Simple workflow can escalate to complex if scope expands during execution
 5. **Single Gateway**: Use exclusive gateway for routing decision - only one path selected
+6. **FORBIDDEN File Generation**: Phase 2 MUST NOT create any output files (evaluation reports, assessment JSON, markdown summaries, etc.). All output must be returned as variables only via the output block. Creating files outside of block definitions violates Strict Block Adherence.
