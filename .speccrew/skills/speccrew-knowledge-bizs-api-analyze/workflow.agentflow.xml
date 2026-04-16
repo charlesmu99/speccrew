@@ -489,6 +489,8 @@
     <field name="module" value="${module}"/>
     <field name="sourcePath" value="${sourcePath}"/>
     <field name="documentPath" value="${documentPath}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "api-dept-list", "type": "api-endpoint", "label": "GET /system/dept/list - 获取部门列表", "properties": {"method": "GET", "path": "/system/dept/list"}}</field>
     <field name="output" var="apiNodes"/>
   </block>
 
@@ -497,12 +499,16 @@
     <field name="module" value="${module}"/>
     <field name="sourcePath" value="${sourcePath}"/>
     <field name="documentPath" value="${documentPath}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "svc-dept", "type": "service", "label": "DeptService - 部门服务", "properties": {"className": "DeptService", "methods": ["list", "get", "save", "delete"]}}</field>
     <field name="output" var="serviceNodes"/>
   </block>
 
   <block type="task" id="B32c" action="analyze" desc="Construct table nodes">
     <field name="tables" value="${databaseTables}"/>
     <field name="module" value="${module}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "tbl-sys-dept", "type": "database-table", "label": "sys_dept - 部门表", "properties": {"tableName": "sys_dept", "schema": "public"}}</field>
     <field name="output" var="tableNodes"/>
   </block>
 

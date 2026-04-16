@@ -395,6 +395,8 @@
     <field name="sourcePath" value="${sourcePath}"/>
     <field name="documentPath" value="${documentPath}"/>
     <field name="platform" value="${platform_type}-${platform_subtype}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "page-system-user", "type": "page", "label": "用户管理页面 - User Management", "properties": {"route": "/system/user", "platform": "web-vue"}}</field>
     <field name="output" var="pageNode"/>
   </block>
 
@@ -402,6 +404,8 @@
     <field name="components" value="${analysisResult.components}"/>
     <field name="module" value="${module}"/>
     <field name="documentPath" value="${documentPath}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "comp-user-table", "type": "component", "label": "UserTable - 用户列表组件", "properties": {"componentName": "UserTable", "props": ["data", "loading"]}}</field>
     <field name="output" var="componentNodes"/>
   </block>
 
@@ -409,6 +413,8 @@
     <field name="routes" value="${analysisResult.routes}"/>
     <field name="module" value="${module}"/>
     <field name="sourcePath" value="${sourcePath}"/>
+    <field name="text">Each node MUST have: id (string, unique), type (string), label (string, human-readable name, REQUIRED), properties (object)</field>
+    <field name="text">Example node: {"id": "route-user-edit", "type": "route", "label": "/system/user/edit - 用户编辑路由", "properties": {"path": "/system/user/edit", "name": "UserEdit"}}</field>
     <field name="output" var="routeNodes"/>
   </block>
 
