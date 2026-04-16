@@ -17,9 +17,9 @@
        Global Invocation Rules
        ============================================================ -->
   <block type="rule" id="GLOBAL-R-INVOCATION" level="mandatory" desc="Invocation constraints - NEVER violate">
-    <field name="text">This skill MUST be loaded directly by PM Agent via Skill tool</field>
-    <field name="text">Worker Agents MUST NOT execute this dispatch skill - if loaded by a Worker, report error and abort</field>
-    <field name="text">Sub-PRD generation skill (speccrew-pm-sub-prd-generate) MUST be dispatched via speccrew-task-worker</field>
+    <field name="text">This skill MUST be loaded and executed directly by PM Agent (via run-skill action in orchestration)</field>
+    <field name="text">PM Agent will internally dispatch Workers to execute speccrew-pm-sub-prd-generate via dispatch-to-worker</field>
+    <field name="text">Worker Agents MUST NOT attempt to execute this skill - this is an orchestration-level skill</field>
   </block>
 
   <!-- ============================================================

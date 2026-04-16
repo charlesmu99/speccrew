@@ -2,14 +2,15 @@
 
 ## Description
 
-PM Phase 5 Sub-PRD Batch Dispatch Skill. Responsible for dispatching Sub-PRD generation tasks (split from complex requirements) to Worker Agents in batches.
+PM Phase 5 Sub-PRD Batch Dispatch Skill. Core orchestration component for Master-Sub PRD workflow, executed directly by PM Agent (NOT dispatched to Worker).
 
-This Skill is the core orchestration component of the Master-Sub PRD workflow, implementing:
-- Reading Dispatch Plan from Master PRD (Sub-PRD grouping information)
-- Initializing dispatch progress tracking file DISPATCH-PROGRESS.json
-- Batch parallel dispatch of Workers to generate Sub-PRDs for each module
-- Failure retry mechanism (max 1 retry)
-- Result collection and completeness verification
+PM Agent loads and executes this skill directly to coordinate batch dispatch of Sub-PRD generation tasks to Worker Agents, implementing:
+- Reading Dispatch Plan from Master PRD
+- Initializing dispatch progress tracking
+- Dispatching Workers in parallel batches for Sub-PRD generation per module
+- Failure retry and result verification
+
+**CRITICAL**: This skill contains dispatch-to-worker logic internally. It MUST be executed by PM Agent (who has Agent tool access), NOT by a Worker Agent (who cannot create sub-Workers).
 
 ## Input Parameters
 

@@ -194,15 +194,16 @@
     <branch default="true" name="Execute Phase 5" goto="P5"/>
   </block>
 
-  <block type="task" id="P5" action="dispatch-to-worker" desc="Phase 5: Sub-PRD dispatch">
-    <field name="worker">speccrew-task-worker</field>
+  <block type="task" id="P5" action="run-skill" desc="Phase 5: Sub-PRD dispatch (PM executes directly)">
     <field name="skill">speccrew-pm-phase5-subprd-dispatch</field>
     <field name="context">{
+      "prd_output": {
+        "master_prd_path": "${phase4b_result.master_prd_path}",
+        "dispatch_plan_path": "${phase4b_result.dispatch_plan_path}"
+      },
       "workspace_path": "${phase0_result.workspace_path}",
       "iteration_path": "${phase0_result.iteration_path}",
       "update_progress_script": "${phase0_result.update_progress_script}",
-      "master_prd_path": "${phase4b_result.master_prd_path}",
-      "dispatch_plan_path": "${phase4b_result.dispatch_plan_path}",
       "language": "${language}"
     }</field>
     <field name="output" var="phase5_result"/>
