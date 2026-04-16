@@ -30,10 +30,18 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 ### When to Pause (ONLY these cases)
 
-1. CHECKPOINT gates defined in workflow (user confirmation required by design)
-2. Ambiguous requirements that genuinely need clarification
-3. Unrecoverable errors that prevent further progress
-4. Security-sensitive operations (e.g., deleting existing files)
+1. **Event blocks with user interaction** (HIGHEST PRIORITY):
+   - `<block type="event" action="user-confirm">` — MUST pause and present prompt to user, wait for explicit confirmation
+   - This applies even in automated dispatch scenarios — user-confirm events override Worker autonomy
+   - FORBIDDEN: Skipping, auto-confirming, or bypassing with reasoning like "automated execution scenario"
+
+2. CHECKPOINT gates defined in workflow (user confirmation required by design)
+
+3. Ambiguous requirements that genuinely need clarification
+
+4. Unrecoverable errors that prevent further progress
+
+5. Security-sensitive operations (e.g., deleting existing files)
 
 ### Batch Execution Behavior
 

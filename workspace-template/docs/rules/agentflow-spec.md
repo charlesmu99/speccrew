@@ -184,6 +184,18 @@ Logging, confirmation, and signaling.
 - `action`: `log` | `confirm` | `signal`
 - `level` (for log): `debug` | `info` | `warn` | `error`
 
+#### User-Confirm Event Execution Rules (MANDATORY)
+
+When a Worker encounters `<block type="event" action="user-confirm">`:
+
+1. **MUST pause execution** — Stop all processing and present the prompt to the user
+2. **CANNOT be skipped or auto-confirmed** — Even if Worker considers the scenario "automated"
+3. **Applies to ALL execution modes** — Including dispatch-to-worker, batch processing, and automated scenarios
+4. **`skippable="false"` is absolute** — When set, no bypass mechanism is permitted under any circumstances
+5. **Variable preservation** — Before pausing, ensure all workflow variables are properly set for resumption
+
+`user-confirm` events represent **explicit user interaction gates** in the workflow. They exist to ensure human oversight at critical decision points and MUST NOT be optimized away.
+
 ### error-handler
 
 Try/catch/finally error handling.

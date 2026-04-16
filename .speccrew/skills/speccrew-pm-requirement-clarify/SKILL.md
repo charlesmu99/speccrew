@@ -86,7 +86,10 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 - Manually write JSON files
 - Auto-proceed to Phase 4 (PRD generation) without PM Agent's user confirmation gate
 - Auto-pass sufficiency checks without actual user answers
-- Write checkpoints in this Skill — checkpoints are managed by orchestration layer
+- **Checkpoint management is FORBIDDEN in this Skill**
+  - MUST NOT create, write, or modify `.checkpoints.json` or any checkpoint files
+  - Checkpoint write operations are the responsibility of the orchestration layer (PM Agent)
+  - After this Skill completes, PM Agent writes checkpoints ONLY after user confirmation is received
 
 ### MANDATORY: User Answer Verification Rule
 
@@ -94,6 +97,13 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 - Each clarification round MUST wait for user to fill in answers before proceeding
 - Checkpoint writing is FORBIDDEN in this Skill — checkpoints are managed by the orchestration layer
 - The sufficiency check result is ONLY valid when based on real user-provided answers
+
+### CRITICAL: User Confirmation Event Enforcement
+
+1. **Event Block = Hard Stop**: Each `<block type="event" action="user-confirm">` (E-ROUND-CONFIRM) MUST trigger a pause. Worker MUST NOT proceed until user provides explicit confirmation.
+2. **No "Automated Scenario" Bypass**: Even in automated dispatch mode (speccrew-task-worker), `user-confirm` events override Worker autonomy. These are explicit user interaction gates, NOT internal automation points.
+3. **Template-Based Generation Only**: All clarification question files (`.clarification-questions-round-{N}.md`) MUST be generated using the loaded template (CLARIFICATION-QUESTIONS-TEMPLATE.md) with variable substitution. Freeform generation is FORBIDDEN.
+4. **Template-Based Summary Only**: The `.clarification-summary.md` MUST be generated using CLARIFICATION-SUMMARY-TEMPLATE.md with variable substitution. Freeform generation is FORBIDDEN.
 
 ### CRITICAL: Summary Generation Guard
 
