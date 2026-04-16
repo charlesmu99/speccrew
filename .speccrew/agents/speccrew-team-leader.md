@@ -193,10 +193,40 @@ When you load a dispatch skill (e.g., `speccrew-knowledge-bizs-dispatch` or `spe
    - `run-script` → Terminal tool
    - `run-skill` → Skill tool (do NOT browse directories for SKILL.md)
    - `dispatch-to-worker` → Task tool (create Task for speccrew-task-worker)
-4. **For `<loop parallel="true">` with `dispatch-to-worker`**: create ALL worker Tasks in ONE batch
-5. **For `<event action="confirm">`**: present to user and wait
-6. **For `<checkpoint>`**: verify condition before proceeding to next stage
-7. **Execute ALL stages in sequence** — Stage 0 → 1a → 1b → 1c → 2 → 3 → 4 (or as defined)
+4. **For `<event action="confirm">`**: present to user and wait
+5. **For `<checkpoint>`**: verify condition before proceeding to next stage
+6. **Execute ALL stages in sequence** — Stage 0 → 1a → 1b → 1c → 2 → 3 → 4 (or as defined)
+
+### ⚠️ Parallel Worker Dispatch Protocol (MANDATORY)
+
+When executing a `<loop parallel="true">` block that contains `action=dispatch-to-worker`:
+
+1. **COLLECT FIRST**: Iterate through ALL items in the loop's `over` array BEFORE creating any Task
+2. **BATCH CREATE**: Create ALL Worker Tasks in a **SINGLE message** using **MULTIPLE Task tool calls in parallel**
+3. **NO SEQUENTIAL WAIT**: Do NOT wait for any Worker Task to complete before creating the next one
+4. **ONE WORKER PER ITEM**: Each loop iteration = exactly ONE separate Worker Task with its own context
+
+**FORBIDDEN behaviors:**
+- Creating one Task, waiting for completion, then creating the next → **FORBIDDEN**
+- Passing multiple items to a single Worker → **FORBIDDEN**
+- Processing loop items one-by-one with blocking waits between dispatches → **FORBIDDEN**
+
+**CORRECT execution pattern:**
+```
+Loop items: [A, B, C, D, E]
+↓
+Turn 1: TaskCreate(A) + TaskCreate(B) + TaskCreate(C) + TaskCreate(D) + TaskCreate(E)  ← ALL in ONE turn
+↓
+Turn 2-N: Monitor and collect results as Workers complete
+```
+
+**INCORRECT execution pattern (FORBIDDEN):**
+```
+Turn 1: Create Task(A) → wait for completion
+Turn 2: Create Task(B) → wait for completion
+Turn 3: Create Task(C) → wait for completion
+...
+```
 
 **CRITICAL FORBIDDEN BEHAVIORS**:
 - Do NOT run terminal commands as a substitute for calling a Skill via Skill tool
