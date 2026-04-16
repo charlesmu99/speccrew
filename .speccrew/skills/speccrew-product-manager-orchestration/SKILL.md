@@ -1,7 +1,7 @@
 ---
 name: speccrew-product-manager-orchestration
 version: 2.0.0
-description: Product Manager 核心编排技能（纯路由层 v2.0），负责工作流恢复路由和各 Phase Skill 的 dispatch-to-worker 调度。所有业务逻辑由独立的 Phase Skill 执行。
+description: Product Manager core orchestration skill (pure routing layer v2.0), responsible for workflow resume routing and dispatch-to-worker scheduling for each Phase Skill. All business logic is executed by independent Phase Skills.
 tools: Read, Write, Glob, Grep, Bash, Agent
 ---
 
@@ -34,32 +34,32 @@ tools: Read, Write, Glob, Grep, Bash, Agent
 
 # Product Manager Orchestration (v2.0)
 
-纯路由层编排技能，负责：
+Pure routing layer orchestration skill, responsible for:
 
-1. **Workflow Initialization** - Phase 0 初始化并返回恢复目标
-2. **Resume Routing** - 根据 `resume_target` 跳转到正确的 Phase
-3. **Phase Dispatch** - 每个 Phase 只有一个 `dispatch-to-worker` 调用
-4. **User Confirmation Gates** - Phase 3 和 Phase 4a 的强制性用户确认门禁
+1. **Workflow Initialization** - Phase 0 initialization and returning resume target
+2. **Resume Routing** - Jump to the correct Phase based on `resume_target`
+3. **Phase Dispatch** - Each Phase has only one `dispatch-to-worker` call
+4. **User Confirmation Gates** - Mandatory user confirmation gates for Phase 3 and Phase 4a
 
 ## Architecture: Pure Routing Layer
 
-本 Skill 是**纯路由层**，所有业务逻辑由独立的 Phase Skill 执行：
+This Skill is a **pure routing layer**, all business logic is executed by independent Phase Skills:
 
 | Phase | Block ID | Skill | Purpose |
 |-------|----------|-------|---------|
-| Phase 0 | P0 | `speccrew-pm-phase0-init` | 工作流初始化、迭代目录创建/定位、恢复状态检测 |
-| Phase 1 | P1 | `speccrew-pm-phase1-knowledge-check` | 知识库状态检测、模块匹配、知识初始化 |
-| Phase 2 | P2 | `speccrew-pm-phase2-complexity-assess` | 复杂度评估、简单/复杂路径决策 |
-| Phase 3 | P3 | `speccrew-pm-requirement-clarify` | 需求澄清、问答收集 |
-| Phase 4 Simple | P4-SIMPLE | `speccrew-pm-requirement-simple` | 简单需求：单 PRD 生成 |
-| Phase 4a | P4A | `speccrew-pm-requirement-model` | 复杂需求：ISA-95 建模 |
-| Phase 4b | P4B | `speccrew-pm-requirement-analysis` | 复杂需求：Master PRD 生成 |
-| Phase 5 | P5 | `speccrew-pm-phase5-subprd-dispatch` | Sub-PRD Worker 分发 |
-| Phase 6 | P6 | `speccrew-pm-phase6-verify-confirm` | 验证清单、用户审核、最终确认 |
+| Phase 0 | P0 | `speccrew-pm-phase0-init` | Workflow initialization, iteration directory creation/locating, resume state detection |
+| Phase 1 | P1 | `speccrew-pm-phase1-knowledge-check` | Knowledge base status detection, module matching, knowledge initialization |
+| Phase 2 | P2 | `speccrew-pm-phase2-complexity-assess` | Complexity assessment, simple/complex path decision |
+| Phase 3 | P3 | `speccrew-pm-requirement-clarify` | Requirement clarification, Q&A collection |
+| Phase 4 Simple | P4-SIMPLE | `speccrew-pm-requirement-simple` | Simple requirements: single PRD generation |
+| Phase 4a | P4A | `speccrew-pm-requirement-model` | Complex requirements: ISA-95 modeling |
+| Phase 4b | P4B | `speccrew-pm-requirement-analysis` | Complex requirements: Master PRD generation |
+| Phase 5 | P5 | `speccrew-pm-phase5-subprd-dispatch` | Sub-PRD Worker dispatch |
+| Phase 6 | P6 | `speccrew-pm-phase6-verify-confirm` | Verification checklist, user review, final confirmation |
 
 ## User Confirmation Gates (MANDATORY)
 
-Phase 3 和 Phase 4a 之后有**强制性用户确认门禁**：
+There are **mandatory user confirmation gates** after Phase 3 and Phase 4a:
 
 ### R-CONFIRM Rule Block
 
@@ -81,9 +81,9 @@ Phase 3 和 Phase 4a 之后有**强制性用户确认门禁**：
 ```
 
 **Key Points:**
-- `action="user-confirm"` — 必须等待用户明确确认
-- `skippable="false"` — 不可跳过
-- checkpoint 写入**必须**在用户确认后执行
+- `action="user-confirm"` — Must wait for explicit user confirmation
+- `skippable="false"` — Cannot be skipped
+- Checkpoint write **MUST** be executed after user confirmation
 
 ## Resume Router
 
@@ -114,18 +114,18 @@ Phase 0 输出 `resume_target` 控制恢复跳转：
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `user_requirement` | string | Yes | 用户需求描述或需求文档路径 |
-| `workspace_root` | string | Yes | speccrew-workspace 根目录路径 |
-| `source_path` | string | No | 项目源代码根目录（从 .speccrewrc 读取） |
-| `language` | string | No | 用户语言（默认自动检测） |
+| `user_requirement` | string | Yes | User requirement description or requirement document path |
+| `workspace_root` | string | Yes | speccrew-workspace root directory path |
+| `source_path` | string | No | Project source code root directory (read from .speccrewrc) |
+| `language` | string | No | User language (default auto-detect) |
 
 ## Output
 
-- `status` - 执行状态 (success / partial / failed)
-- `prd_files` - 生成的 PRD 文件列表
-- `feature_list` - 功能清单文件路径
-- `workflow_stage` - 当前工作流阶段状态
-- `next_agent` - 下一步建议的 Agent
+- `status` - Execution status (success / partial / failed)
+- `prd_files` - List of generated PRD files
+- `feature_list` - Feature list file path
+- `workflow_stage` - Current workflow stage status
+- `next_agent` - Recommended next Agent
 
 ---
 

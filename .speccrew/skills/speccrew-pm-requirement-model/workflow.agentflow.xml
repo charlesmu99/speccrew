@@ -27,6 +27,12 @@
     <field name="text">Manually write JSON files</field>
   </block>
 
+  <block type="rule" id="R-MERMAID" level="mandatory" desc="All diagrams must use Mermaid syntax">
+    <field name="text">MANDATORY: All diagrams (domain model, dependency graph, implementation phases) MUST use Mermaid syntax.</field>
+    <field name="text">ASCII art diagrams are FORBIDDEN. Use graph TB, graph TD, graph LR as appropriate.</field>
+    <field name="text">Reference workspace-template/docs/rules/mermaid-rule.md for compatibility guidelines.</field>
+  </block>
+
   <!-- ============================================================
        Main Processing Sequence
        ============================================================ -->
@@ -161,8 +167,15 @@
       </branch>
     </block>
 
+    <!-- Read module design template -->
+    <block type="task" id="B10-TPL" action="read-file" desc="Read module design template">
+      <field name="path">${skill_path}/templates/MODULE-DESIGN-TEMPLATE.md</field>
+      <field name="output" var="template_content"/>
+    </block>
+
     <!-- Step 4: Generate .module-design.md -->
     <block type="task" id="B11" action="generate" desc="Generate module design document">
+      <field name="template" value="${template_content}"/>
       <field name="output_path" value="${iteration_path}/01.product-requirement/.module-design.md"/>
       <field name="sections">
         - ISA-95 Analysis Summary (if complex)

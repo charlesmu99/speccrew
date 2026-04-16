@@ -76,3 +76,13 @@ Applies ISA-95 Stages 1-3 as structured analysis framework:
 - Include technical implementation details
 - Create circular module dependencies
 - Manually write JSON files
+
+### Diagram Format Rule (MANDATORY)
+- All diagrams MUST use Mermaid syntax (graph TB, graph TD, graph LR, etc.)
+- ASCII art diagrams are FORBIDDEN
+- Reference `mermaid-rule.md` for compatibility
+
+### Template
+- Module design document MUST follow `templates/MODULE-DESIGN-TEMPLATE.md` structure
+- All 10 sections are required
+- Fill template with analyzed data from ISA-95 stages
