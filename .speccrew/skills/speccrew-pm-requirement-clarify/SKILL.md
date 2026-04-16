@@ -35,10 +35,37 @@ Applies ISA-95 Stage 1 (Domain Description) for clarification:
 
 ## Templates Used
 
-| Template | Path | Purpose |
-|----------|------|---------|
-| Clarification Questions | `templates/CLARIFICATION-QUESTIONS-TEMPLATE.md` | Round-based questionnaire for user clarification |
-| Clarification Summary | `templates/CLARIFICATION-SUMMARY-TEMPLATE.md` | Final summary document with all Q&A and decisions |
+| Template | Path | When to Load | Purpose |
+|----------|------|-------------|----------|
+| Clarification Questions | `templates/CLARIFICATION-QUESTIONS-TEMPLATE.md` | **Inside Loop L1** (each round) | Round-based questionnaire for user clarification |
+| Clarification Summary | `templates/CLARIFICATION-SUMMARY-TEMPLATE.md` | **After G3 guard passes** (sufficiency_checks_passed == true) | Final summary document with all Q&A and decisions |
+
+> **CRITICAL**: These two templates are used in **separate phases**. NEVER load both templates at the same time.
+> - During the clarification loop: ONLY load `CLARIFICATION-QUESTIONS-TEMPLATE.md`
+> - After ALL sufficiency checks pass: ONLY then load `CLARIFICATION-SUMMARY-TEMPLATE.md`
+
+## Execution Flow (MANDATORY sequence)
+
+```
+Step 1: Read requirement document
+Step 2: Read system knowledge (if exists)
+Step 3: Determine complexity mode (simple/complex/auto-detect)
+Step 4: Initialize loop variables
+Step 5: Clarification Loop (both simple and complex modes):
+  5a. Load CLARIFICATION-QUESTIONS-TEMPLATE.md (ONLY this template)
+  5b. Generate .clarification-questions-round-{N}.md from template
+  5c. *** HARD STOP *** Wait for user to answer questions (user-confirm event)
+  5d. Read user's answered questions file
+  5e. Perform sufficiency checks (MUST have real user answers)
+  5f. If checks fail and rounds remain → back to 5a
+  5g. If checks pass → exit loop
+Step 6: Guard Gateway G3 (sufficiency_checks_passed == true required)
+  6a. Load CLARIFICATION-SUMMARY-TEMPLATE.md (ONLY now)
+  6b. Generate .clarification-summary.md from template
+  6c. Checkpoint: clarification complete
+```
+
+> **FORBIDDEN**: Skipping Step 5c (user-confirm), loading summary template during Step 5, or generating summary without user answers.
 
 ---
 
