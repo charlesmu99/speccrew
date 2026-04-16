@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="pm-phase5-subprd-dispatch" status="pending" version="1.0" desc="PM Phase 5 Sub-PRD Batch Dispatch Pipeline">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="PM Phase 5 Sub-PRD Dispatch Input Parameters">
+    <field name="prd_output" required="true" type="object" desc="Phase 4 PRD generation output containing master_prd_path, dispatch_plan_path, etc."/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory absolute path"/>
+    <field name="language" required="false" type="string" default="zh" desc="User language code"/>
+    <field name="workspace_path" required="true" type="string" desc="speccrew-workspace root directory absolute path"/>
+    <field name="update_progress_script" required="true" type="string" desc="update-progress.js script absolute path"/>
+    <field name="max_concurrent_workers" required="false" type="number" default="5" desc="Maximum parallel Worker count per batch"/>
+  </block>
+
+  <!-- ============================================================
+       Global Invocation Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R-INVOCATION" level="mandatory" desc="Invocation constraints - NEVER violate">
+    <field name="text">This skill MUST be loaded directly by PM Agent via Skill tool</field>
+    <field name="text">Worker Agents MUST NOT execute this dispatch skill - if loaded by a Worker, report error and abort</field>
+    <field name="text">Sub-PRD generation skill (speccrew-pm-sub-prd-generate) MUST be dispatched via speccrew-task-worker</field>
+  </block>
+
+  <!-- ============================================================
+       Global Worker Enforcement Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R1" level="mandatory" desc="Worker dispatch enforcement - NEVER violate">
+    <field name="text">ONE Worker per Module - NO EXCEPTIONS</field>
+    <field name="text">DO NOT generate Sub-PRDs yourself - dispatch speccrew-task-worker</field>
+    <field name="text">DO NOT invoke speccrew-pm-sub-prd-generate skill directly - ONLY via Worker</field>
+    <field name="text">Dispatch in batches of 5, wait for each batch to complete before next batch</field>
+    <field name="text">PM Agent is DISPATCHER, NOT WORKER - never generate Sub-PRD content as fallback</field>
+  </block>
+
+  <!-- ============================================================
+       Global Continuous Execution Rules
+       ============================================================ -->
+  <block type="rule" id="GLOBAL-R2" level="forbidden" desc="Continuous execution constraints - NEVER violate">
+    <field name="text">DO NOT ask user "Should I continue?" between steps</field>
+    <field name="text">DO NOT offer options like "Full execution / Partial execution / Pause"</field>
+    <field name="text">DO NOT pause to list what you plan to do next - just do it</field>
+    <field name="text">DO NOT warn about "large number of modules" or "this may take a while"</field>
+    <field name="text">ONLY pause at explicit event blocks with action="user-confirm"</field>
+  </block>
+
+  <!-- ============================================================
+       Step 5.1: Read Dispatch Plan
+       ============================================================ -->
+  <sequence id="S51" name="Step 5.1: Read Dispatch Plan" status="pending" desc="Read Sub-PRD dispatch plan from Master PRD output">
+
+    <block type="rule" id="S51-R1" level="mandatory" desc="Step 5.1 mandatory rules">
+      <field name="text">Dispatch plan comes from Phase 4 (speccrew-pm-requirement-analysis) Step 12c output</field>
+      <field name="text">Must validate dispatch_plan structure before proceeding</field>
+    </block>
+
+    <!-- Read dispatch plan JSON -->
+    <block type="task" id="S51-B1" action="read-json" status="pending" desc="Read dispatch plan from PRD output">
+      <field name="path" value="${prd_output.dispatch_plan_path}"/>
+      <field name="output" var="dispatch_plan"/>
+    </block>
+
+    <!-- Validate dispatch plan structure -->
+    <block type="gateway" id="S51-G1" mode="guard" test="${dispatch_plan.sub_prd_groups} != null AND ${dispatch_plan.sub_prd_groups.length} > 0" fail-action="stop" desc="Validate dispatch plan has modules">
+      <field name="message">Dispatch plan is empty or missing sub_prd_groups. Cannot proceed with Sub-PRD dispatch.</field>
+    </block>
+
+    <!-- Extract and log module list -->
+    <block type="task" id="S51-B2" action="set-context" status="pending" desc="Extract dispatch context variables">
+      <field name="feature_name" value="${dispatch_plan.feature_name}"/>
+      <field name="template_path" value="${dispatch_plan.template_path}"/>
+      <field name="master_prd_path" value="${dispatch_plan.master_prd_path}"/>
+      <field name="output_dir" value="${dispatch_plan.output_dir}"/>
+      <field name="clarification_file" value="${prd_output.clarification_file}"/>
+      <field name="module_design_file" value="${prd_output.module_design_file}"/>
+      <field name="sub_prd_groups" value="${dispatch_plan.sub_prd_groups}"/>
+    </block>
+
+    <block type="event" id="S51-E1" action="log" level="info" desc="Log dispatch plan summary">
+      <field name="message">📊 Sub-PRD Dispatch Plan Loaded
+├── Feature Name: ${feature_name}
+├── Total Modules: ${sub_prd_groups.length}
+├── Master PRD: ${master_prd_path}
+├── Output Directory: ${output_dir}
+└── Template: ${template_path}</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5.2: Initialize Dispatch Progress Tracking
+       ============================================================ -->
+  <sequence id="S52" name="Step 5.2: Initialize Dispatch Progress Tracking" status="pending" desc="Initialize DISPATCH-PROGRESS.json for tracking">
+
+    <block type="rule" id="S52-R1" level="mandatory" desc="Step 5.2 mandatory rules">
+      <field name="text">DISPATCH-PROGRESS.json MUST be created by update-progress.js script ONLY</field>
+      <field name="text">DO NOT create DISPATCH-PROGRESS.json manually via create_file or PowerShell</field>
+      <field name="text">This step MUST complete before ANY Worker dispatch</field>
+    </block>
+
+    <!-- Prepare tasks array as temp file -->
+    <block type="task" id="S52-B1" action="run-script" status="pending" desc="Create tasks temp file for initialization">
+      <field name="command">node -e "const fs=require('fs'); const tasks=${sub_prd_groups}.map(g=>({id:g.module_key,name:g.module_name,status:'pending',output_file:'${output_dir}/${feature_name}-sub-'+g.module_key+'.md'})); fs.writeFileSync('${iteration_path}/01.product-requirement/.tasks-temp.json', JSON.stringify(tasks,null,2)); console.log('Tasks file created with '+tasks.length+' entries');"</field>
+    </block>
+
+    <!-- Initialize DISPATCH-PROGRESS.json via script -->
+    <block type="task" id="S52-B2" action="run-script" status="pending" desc="Initialize DISPATCH-PROGRESS.json via script">
+      <field name="command">node "${update_progress_script}" init --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --stage sub_prd_dispatch --tasks-file "${iteration_path}/01.product-requirement/.tasks-temp.json"</field>
+      <field name="output" var="init_result"/>
+    </block>
+
+    <!-- Verify initialization -->
+    <block type="task" id="S52-B3" action="run-script" status="pending" desc="Verify DISPATCH-PROGRESS.json initialization">
+      <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --summary</field>
+      <field name="output" var="init_progress"/>
+    </block>
+
+    <!-- Guard: Verify init succeeded -->
+    <block type="gateway" id="S52-G1" mode="guard" test="${init_progress.counts.pending} == ${sub_prd_groups.length}" fail-action="stop" desc="Verify initialization created correct task count">
+      <field name="message">DISPATCH-PROGRESS.json initialization failed. Expected ${sub_prd_groups.length} pending tasks but got ${init_progress.counts.pending}. STOP workflow and investigate.</field>
+    </block>
+
+    <!-- Cleanup temp file -->
+    <block type="task" id="S52-B4" action="run-script" status="pending" desc="Cleanup temp tasks file">
+      <field name="command">Remove-Item "${iteration_path}/01.product-requirement/.tasks-temp.json" -ErrorAction SilentlyContinue</field>
+    </block>
+
+    <block type="event" id="S52-E1" action="log" level="info" desc="Log initialization success">
+      <field name="message">✅ DISPATCH-PROGRESS.json initialized: Total ${init_progress.total} tasks | Pending: ${init_progress.counts.pending}</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5.3: Batch Dispatch Workers
+       ============================================================ -->
+  <sequence id="S53" name="Step 5.3: Batch Dispatch Workers" status="pending" desc="Dispatch Workers for Sub-PRD generation in batches">
+
+    <block type="rule" id="S53-R1" level="mandatory" desc="Step 5.3 mandatory rules">
+      <field name="text">ALL Workers in the same batch MUST be dispatched IN PARALLEL - sequential dispatch is FORBIDDEN</field>
+      <field name="text">ALL Worker dispatch calls MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+      <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker in the same batch</field>
+      <field name="text">Batch size is ${max_concurrent_workers} - DO NOT exceed</field>
+      <field name="text">Each Worker MUST receive complete context parameters</field>
+    </block>
+
+    <!-- Calculate batch plan -->
+    <block type="task" id="S53-B0" action="compute-batches" status="pending" desc="Calculate batch plan from modules">
+      <field name="items" value="${sub_prd_groups}"/>
+      <field name="batch_size" value="${max_concurrent_workers}"/>
+      <field name="output" var="batch_plan"/>
+    </block>
+
+    <block type="event" id="S53-E0" action="log" level="info" desc="Log batch plan">
+      <field name="message">📊 Sub-PRD Dispatch Plan
+├── Total Modules: ${sub_prd_groups.length}
+├── Batch Size: ${max_concurrent_workers}
+├── Batches Required: ${batch_plan.batch_count}
+│   ${batch_plan.summary}
+└── Strategy: Parallel dispatch within batch, sequential between batches</field>
+    </block>
+
+    <!-- Batch Loop: Process all modules in batches -->
+    <block type="loop" id="S53-L-MAIN" over="${batch_plan.batches}" as="batch" desc="Process batches sequentially">
+
+      <block type="event" id="S53-E-BATCH" action="log" level="info" desc="Log batch start">
+        <field name="message">📦 Dispatching Batch ${batch.index} (${batch.modules.length} modules in parallel)
+├── ${batch.module_keys}
+└── Waiting for batch completion...</field>
+      </block>
+
+      <!-- Parallel dispatch for each module in current batch -->
+      <!-- PARALLEL EXECUTION MANDATORY: All Workers MUST be dispatched SIMULTANEOUSLY -->
+      <block type="loop" id="S53-L1" over="${batch.modules}" as="group" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Dispatch Worker for each module IN PARALLEL">
+
+        <block type="task" id="S53-B1" action="dispatch-to-worker" status="pending" desc="Dispatch Sub-PRD generation Worker">
+          <field name="agent">speccrew-task-worker</field>
+          <field name="skill">speccrew-pm-sub-prd-generate</field>
+          <field name="context">
+            module_id: ${group.module_id}
+            module_name: ${group.module_name}
+            module_key: ${group.module_key}
+            module_scope: ${group.module_scope}
+            module_entities: ${group.module_entities}
+            module_user_stories: ${group.module_user_stories}
+            module_requirements: ${group.module_requirements}
+            module_features: ${group.module_features}
+            module_dependencies: ${group.module_dependencies}
+            master_prd_path: ${master_prd_path}
+            clarification_file: ${clarification_file}
+            module_design_file: ${module_design_file}
+            feature_name: ${feature_name}
+            template_path: ${template_path}
+            output_path: ${output_dir}/${feature_name}-sub-${group.module_key}.md
+            language: ${language}
+            iteration_path: ${iteration_path}
+            workspace_path: ${workspace_path}
+          </field>
+          <field name="output" var="worker_result_${group.module_key}"/>
+        </block>
+
+        <!-- Update progress after each worker completes -->
+        <block type="task" id="S53-B2" action="run-script" status="pending" desc="Update task progress after worker completes">
+          <field name="command">node "${update_progress_script}" update-task --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --task-id "${group.module_key}" --status ${worker_result_${group.module_key}.status}</field>
+        </block>
+      </block>
+
+      <!-- Log batch completion -->
+      <block type="task" id="S53-B3" action="run-script" status="pending" desc="Read current progress after batch">
+        <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --summary</field>
+        <field name="output" var="batch_progress"/>
+      </block>
+
+      <block type="event" id="S53-E-BATCH-END" action="log" level="info" desc="Log batch completion">
+        <field name="message">✅ Batch ${batch.index} Complete
+├── Progress: ${batch_progress.counts.completed}/${sub_prd_groups.length} completed
+├── Failed: ${batch_progress.counts.failed}
+└── Remaining: ${batch_progress.counts.pending}</field>
+      </block>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5.4: Handle Failures & Retry
+       ============================================================ -->
+  <sequence id="S54" name="Step 5.4: Handle Failures & Retry" status="pending" desc="Retry failed tasks once">
+
+    <block type="rule" id="S54-R1" level="mandatory" desc="Step 5.4 mandatory rules">
+      <field name="text">Single retry only - DO NOT retry more than once</field>
+      <field name="text">After retry, report remaining failures to user for manual intervention</field>
+    </block>
+
+    <!-- Check for failed tasks -->
+    <block type="task" id="S54-B1" action="run-script" status="pending" desc="Read progress to check for failures">
+      <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json"</field>
+      <field name="output" var="pre_retry_progress"/>
+    </block>
+
+    <block type="gateway" id="S54-G1" mode="exclusive" desc="Check if there are failed tasks">
+
+      <branch test="${pre_retry_progress.counts.failed} > 0" name="Has Failures - Retry">
+
+        <block type="event" id="S54-E1" action="log" level="warn" desc="Report failed modules">
+          <field name="message">⚠️ Failed modules detected: ${pre_retry_progress.failed_tasks}
+├── Retrying ${pre_retry_progress.counts.failed} failed modules...
+└── Max retries: 1</field>
+        </block>
+
+        <!-- Extract failed groups for retry -->
+        <block type="task" id="S54-B2" action="filter-items" status="pending" desc="Get failed module groups for retry">
+          <field name="source" value="${sub_prd_groups}"/>
+          <field name="filter" value="${pre_retry_progress.failed_task_ids}"/>
+          <field name="output" var="retry_groups"/>
+        </block>
+
+        <!-- Retry dispatch for failed modules -->
+        <block type="loop" id="S54-L1" over="${retry_groups}" as="group" parallel="true" max-concurrency="${max_concurrent_workers}" desc="Retry failed modules">
+
+          <block type="task" id="S54-B3" action="dispatch-to-worker" status="pending" desc="Retry Sub-PRD generation Worker">
+            <field name="agent">speccrew-task-worker</field>
+            <field name="skill">speccrew-pm-sub-prd-generate</field>
+            <field name="context">
+              module_id: ${group.module_id}
+              module_name: ${group.module_name}
+              module_key: ${group.module_key}
+              module_scope: ${group.module_scope}
+              module_entities: ${group.module_entities}
+              module_user_stories: ${group.module_user_stories}
+              module_requirements: ${group.module_requirements}
+              module_features: ${group.module_features}
+              module_dependencies: ${group.module_dependencies}
+              master_prd_path: ${master_prd_path}
+              clarification_file: ${clarification_file}
+              module_design_file: ${module_design_file}
+              feature_name: ${feature_name}
+              template_path: ${template_path}
+              output_path: ${output_dir}/${feature_name}-sub-${group.module_key}.md
+              language: ${language}
+              iteration_path: ${iteration_path}
+              workspace_path: ${workspace_path}
+            </field>
+            <field name="output" var="retry_result_${group.module_key}"/>
+          </block>
+
+          <!-- Update progress after retry -->
+          <block type="task" id="S54-B4" action="run-script" status="pending" desc="Update task progress after retry">
+            <field name="command">node "${update_progress_script}" update-task --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --task-id "${group.module_key}" --status ${retry_result_${group.module_key}.status}</field>
+          </block>
+        </block>
+
+        <!-- Log retry results -->
+        <block type="task" id="S54-B5" action="run-script" status="pending" desc="Read progress after retry">
+          <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json"</field>
+          <field name="output" var="post_retry_progress"/>
+        </block>
+
+        <block type="event" id="S54-E2" action="log" level="info" desc="Log retry summary">
+          <field name="message">📊 Retry Summary
+├── Retried: ${pre_retry_progress.counts.failed} modules
+├── Recovered: ${pre_retry_progress.counts.failed - post_retry_progress.counts.failed}
+├── Still Failed: ${post_retry_progress.counts.failed}
+└── Final Status: ${post_retry_progress.counts.completed}/${sub_prd_groups.length} completed</field>
+        </block>
+      </branch>
+
+      <branch default="true" name="All Success - No Retry">
+        <block type="event" id="S54-E3" action="log" level="info" desc="Log no failures">
+          <field name="message">✅ All modules completed successfully - no retry needed</field>
+        </block>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5.5: Collect Results & Verify
+       ============================================================ -->
+  <sequence id="S55" name="Step 5.5: Collect Results & Verify" status="pending" desc="Collect and verify Sub-PRD generation results">
+
+    <block type="rule" id="S55-R1" level="mandatory" desc="Step 5.5 mandatory rules">
+      <field name="text">Must verify all Sub-PRD files exist and have valid size before proceeding to Phase 6</field>
+      <field name="text">Must update checkpoint after verification passes</field>
+      <field name="text">Must verify feature list completeness</field>
+    </block>
+
+    <!-- Step 5.5.1: Read Final Progress -->
+    <block type="task" id="S55-B1" action="run-script" status="pending" desc="Read final DISPATCH-PROGRESS.json">
+      <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json"</field>
+      <field name="output" var="final_progress"/>
+    </block>
+
+    <!-- Step 5.5.2: Verify All Sub-PRD Files Exist -->
+    <block type="task" id="S55-B2" action="run-script" status="pending" desc="List all Sub-PRD files">
+      <field name="command">Get-ChildItem "${output_dir}" -Filter "*-sub-*.md" | Select-Object Name, Length</field>
+      <field name="output" var="sub_prd_files"/>
+    </block>
+
+    <!-- Validate file count and sizes -->
+    <block type="task" id="S55-B3" action="validate-files" status="pending" desc="Validate Sub-PRD files">
+      <field name="files" value="${sub_prd_files}"/>
+      <field name="expected_count" value="${final_progress.counts.completed}"/>
+      <field name="min_size" value="3072"/>
+      <field name="output" var="file_validation"/>
+    </block>
+
+    <!-- Step 5.5.3: Generate Summary Report -->
+    <block type="event" id="S55-E1" action="log" level="info" desc="Generate Sub-PRD generation summary">
+      <field name="message">📊 Sub-PRD Generation Complete:
+├── Total Modules: ${sub_prd_groups.length}
+├── ✅ Completed: ${final_progress.counts.completed}
+├── ❌ Failed: ${final_progress.counts.failed}
+├── Generated Files:
+│   ${sub_prd_files_summary}
+└── All Sub-PRDs ready for Phase 6 Verification</field>
+    </block>
+
+    <!-- Step 5.5.4: Update Checkpoint -->
+    <block type="task" id="S55-B4" action="run-script" status="pending" desc="Update checkpoint for Sub-PRD dispatch">
+      <field name="command">node "${update_progress_script}" write-checkpoint --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoint sub_prd_dispatch --status passed</field>
+    </block>
+
+    <!-- Step 5.5.5: Verify Feature List Completeness -->
+    <block type="task" id="S55-B5" action="run-script" status="pending" desc="Check feature list file exists">
+      <field name="command">Test-Path "${iteration_path}/01.product-requirement/.prd-feature-list.json"</field>
+      <field name="output" var="feature_list_exists"/>
+    </block>
+
+    <block type="gateway" id="S55-G1" mode="exclusive" desc="Check feature list status">
+      <branch test="${feature_list_exists} == true" name="Feature List Exists">
+        <block type="task" id="S55-B6" action="run-script" status="pending" desc="Read and validate feature list">
+          <field name="command">node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('${iteration_path}/01.product-requirement/.prd-feature-list.json','utf8')); console.log('Modules: '+data.modules.length+', Features: '+(data.total_features||'N/A'))"</field>
+          <field name="output" var="feature_list_info"/>
+        </block>
+
+        <block type="event" id="S55-E2" action="log" level="info" desc="Log feature list verification">
+          <field name="message">✅ Feature list verification passed
+├── Modules: ${feature_list_info.modules}
+├── Total features: ${feature_list_info.features}
+└── Ready for Feature Design phase</field>
+        </block>
+      </branch>
+
+      <branch default="true" name="No Feature List">
+        <block type="event" id="S55-E3" action="log" level="warn" desc="Log missing feature list">
+          <field name="message">⚠️ WARNING: Feature list file not found at ${iteration_path}/01.product-requirement/.prd-feature-list.json
+├── Feature list will be needed by FD Agent for Feature Registry initialization
+└── Proceeding without feature list verification</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Verification checklist -->
+    <block type="checkpoint" id="S55-CP1" name="sub_prd_verification" desc="Sub-PRD generation verification checkpoint">
+      <field name="required" value="true"/>
+      <field name="verify">
+- [ ] All workers were dispatched via speccrew-task-worker (one Worker per module)
+- [ ] No Sub-PRD was generated by PM Agent directly
+- [ ] All workers completed (DISPATCH-PROGRESS.json counts.pending == 0)
+- [ ] All Sub-PRD files exist and have valid size
+- [ ] Checkpoint updated
+      </field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Step 5.6: User Confirmation
+       ============================================================ -->
+  <sequence id="S56" name="Step 5.6: User Confirmation" status="pending" desc="Wait for user confirmation before proceeding to Phase 6">
+
+    <block type="rule" id="S56-R1" level="mandatory" desc="Step 5.6 mandatory rules">
+      <field name="text">DO NOT proceed to Phase 6 without explicit user confirmation</field>
+      <field name="text">DO NOT auto-mark this step as confirmed</field>
+      <field name="text">Present complete summary to user for review</field>
+    </block>
+
+    <block type="event" id="S56-E1" action="user-confirm" desc="Present Sub-PRD generation results for user confirmation">
+      <field name="prompt">📋 Sub-PRD Generation Complete
+
+Please review the generated Sub-PRD documents:
+- Total: ${final_progress.counts.completed} Sub-PRDs generated
+- Failed: ${final_progress.counts.failed}
+- Files: ${output_dir}
+
+Reply "确认" or "OK" to proceed to Phase 6 (Verification & Review).</field>
+      <field name="template">subprd-review-summary</field>
+      <field name="data">
+{
+  "total_subprds": ${sub_prd_groups.length},
+  "success_count": ${final_progress.counts.completed},
+  "failure_count": ${final_progress.counts.failed},
+  "output_dir": "${output_dir}",
+  "sub_prd_files": ${sub_prd_files}
+}</field>
+    </block>
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="PM Phase 5 Sub-PRD Dispatch Results">
+    <field name="dispatch_result" from="${final_progress.status}" type="string" desc="success / partial / failed"/>
+    <field name="total_subprds" from="${sub_prd_groups.length}" type="number" desc="Total Sub-PRD count"/>
+    <field name="success_count" from="${final_progress.counts.completed}" type="number" desc="Successfully generated Sub-PRD count"/>
+    <field name="failure_count" from="${final_progress.counts.failed}" type="number" desc="Failed Sub-PRD count"/>
+    <field name="sub_prd_files" from="${sub_prd_files}" type="array" desc="Generated Sub-PRD file list"/>
+    <field name="feature_list_path" from="${iteration_path}/01.product-requirement/.prd-feature-list.json" type="string" desc="Feature list file path"/>
+    <field name="dispatch_progress_path" from="${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" type="string" desc="Dispatch progress file path"/>
+  </block>
+
+</workflow>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="pm-phase0-init" status="pending" version="1.0" desc="PM Phase 0 Initialization - Iteration, Progress, and Path Management">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Phase 0 Input Parameters">
+    <field name="user_requirement" required="true" type="string" desc="User requirement description or document path"/>
+    <field name="workspace_root" required="true" type="string" desc="speccrew-workspace root directory path"/>
+    <field name="source_path" required="false" type="string" desc="Project source root from .speccrewrc"/>
+    <field name="language" required="false" type="string" desc="User language (auto-detected)"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Phase 0 Mandatory Constraints">
+    <field name="text">Iteration directories MUST follow naming convention: {number}-{type}-{name}</field>
+    <field name="text">ALL WORKFLOW-PROGRESS.json operations MUST use update-progress.js script</field>
+    <field name="text">ALL path variables MUST be absolute paths</field>
+    <field name="text">Check for active iteration before creating new one</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Phase 0 Forbidden Actions">
+    <field name="text">Manually create WORKFLOW-PROGRESS.json via Write/Edit tools</field>
+    <field name="text">Skip checkpoint recovery check</field>
+    <field name="text">Use relative paths in context variables</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Phase 0: Workflow Progress Management" status="pending">
+
+    <!-- ========== Step 0.5: IDE Detection ========== -->
+    <block type="task" id="P0-5-B1" action="detect-ide" status="pending" desc="Detect current IDE environment">
+      <!-- Detect IDE from environment or context: Claude Code, Cursor, Qoder, etc. -->
+      <field name="output" var="ide_type"/>
+      <field name="output" var="ide_config_dir">
+        <!-- Mapping: Claude Code -> .claude, Cursor -> .cursor, Qoder -> .qoder -->
+      </field>
+      <field name="output" var="ide_skills_dir"/>
+    </block>
+
+    <!-- ========== Step 0.6: Path Initialization ========== -->
+    <block type="task" id="P0-6-B1" action="compute-paths" status="pending" desc="Compute all workflow paths">
+      <!-- All paths MUST be absolute -->
+      <field name="source_path" value="${source_path}"/>
+      <field name="workspace_path" value="${workspace_root}"/>
+      <field name="output" var="sync_state_bizs_dir" value="${workspace_root}/knowledges/base/sync-state/knowledge-bizs"/>
+      <field name="output" var="iterations_dir" value="${workspace_root}/iterations"/>
+      <field name="output" var="update_progress_script" value="${workspace_root}/scripts/update-progress.js"/>
+      <field name="output" var="configs_dir" value="${workspace_root}/docs/configs"/>
+    </block>
+
+    <!-- ========== Step 0.1: Iteration Directory Management ========== -->
+    
+    <!-- Step 0.1.0: Search for Active Iteration -->
+    <block type="task" id="P0-1-B1" action="glob" status="pending" desc="Search for active iteration">
+      <field name="pattern" value="${iterations_dir}/*/WORKFLOW-PROGRESS.json"/>
+      <field name="output" var="existing_progress_files"/>
+    </block>
+
+    <!-- Gateway: Has Active Iteration? -->
+    <block type="gateway" id="P0-1-G1" mode="exclusive" desc="Check for active iteration">
+      
+      <!-- Branch: Found active iteration with in_progress status -->
+      <branch test="exists(${existing_progress_files}) AND any(${existing_progress_files}/01_prd.status == 'in_progress')" name="Has Active Iteration">
+        <block type="task" id="P0-1-B2" action="read-json" status="pending" desc="Read active iteration progress">
+          <field name="path" value="${active_iteration_progress_file}"/>
+          <field name="output" var="workflow_progress"/>
+        </block>
+        <block type="task" id="P0-1-B3" action="set-var" status="pending" desc="Set iteration path from existing">
+          <field name="iteration_path" value="${active_iteration_path}"/>
+          <field name="iteration_name" value="${active_iteration_name}"/>
+        </block>
+        <!-- Skip to Step 0.2 for checkpoint recovery -->
+        <block type="goto" id="P0-1-GOTO1" target="P0-2-B1"/>
+      </branch>
+      
+      <!-- Branch: All iterations completed or no iteration found -->
+      <branch name="Create New Iteration" default="true">
+        
+        <!-- Step 2.1: Determine next sequence number -->
+        <block type="task" id="P0-1-B4" action="analyze" status="pending" desc="Determine next sequence number">
+          <field name="action" value="list-directories"/>
+          <field name="path" value="${iterations_dir}"/>
+          <field name="output" var="existing_iterations"/>
+          <field name="output" var="next_sequence" value="max(existing_numbers) + 1 OR 001"/>
+        </block>
+        
+        <!-- Step 2.2: Determine iteration type -->
+        <block type="task" id="P0-1-B5" action="analyze" status="pending" desc="Determine iteration type">
+          <field name="input" value="${user_requirement}"/>
+          <!-- Mapping: new feature -> feature, bug fix -> bugfix, refactoring -> refactor -->
+          <field name="output" var="iteration_type"/>
+        </block>
+        
+        <!-- Step 2.3: Extract short name -->
+        <block type="task" id="P0-1-B6" action="analyze" status="pending" desc="Extract short name from requirement">
+          <field name="input" value="${user_requirement}"/>
+          <!-- Derive from filename or main subject, kebab-case, 1-3 words -->
+          <field name="output" var="iteration_short_name"/>
+        </block>
+        
+        <!-- Step 2.4: Compose iteration name -->
+        <block type="task" id="P0-1-B7" action="set-var" status="pending" desc="Set iteration name">
+          <field name="iteration_name" value="${next_sequence}-${iteration_type}-${iteration_short_name}"/>
+          <field name="iteration_path" value="${iterations_dir}/${iteration_name}"/>
+        </block>
+        
+        <!-- Step 2.5: Create directory structure -->
+        <block type="task" id="P0-1-B8" action="run-script" status="pending" desc="Create iteration directory structure">
+          <field name="command">New-Item -ItemType Directory -Path "${iteration_path}/00.docs" -Force; New-Item -ItemType Directory -Path "${iteration_path}/01.product-requirement" -Force</field>
+        </block>
+        
+        <!-- Step 2.6: Copy requirement document -->
+        <block type="task" id="P0-1-B9" action="run-script" status="pending" desc="Copy requirement document to iteration">
+          <field name="command">Copy-Item "${user_requirement}" "${iteration_path}/00.docs/" -ErrorAction SilentlyContinue</field>
+        </block>
+        
+        <!-- Step 0.1.1: Initialize WORKFLOW-PROGRESS.json -->
+        <block type="task" id="P0-1-B10" action="run-script" status="pending" desc="Initialize WORKFLOW-PROGRESS.json via script">
+          <!-- MANDATORY: Use update-progress.js script -->
+          <field name="command">node "${update_progress_script}" update-workflow --file "${iteration_path}/WORKFLOW-PROGRESS.json" --stage 01_prd --status in_progress</field>
+          <field name="output" var="init_result"/>
+        </block>
+        
+      </branch>
+    </block>
+
+    <!-- ========== Step 0.2: Check Resume State (Checkpoint Recovery) ========== -->
+    
+    <!-- Step 0.2.1: Read Checkpoints -->
+    <block type="task" id="P0-2-B1" action="run-script" status="pending" desc="Read checkpoints if exists">
+      <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/.checkpoints.json" --checkpoints</field>
+      <field name="on_error" value="continue"/>
+      <field name="output" var="checkpoints"/>
+    </block>
+
+    <!-- Step 0.2.2: Check Intermediate Artifacts -->
+    <block type="task" id="P0-2-B2" action="check-files" status="pending" desc="Check intermediate artifact files">
+      <field name="files">
+        - ${iteration_path}/01.product-requirement/.clarification-summary.md
+        - ${iteration_path}/01.product-requirement/.module-design.md
+        - ${iteration_path}/01.product-requirement/*-prd.md
+        - ${iteration_path}/01.product-requirement/*-sub-*.md
+      </field>
+      <field name="output" var="artifact_status"/>
+    </block>
+
+    <!-- Gateway: Resume Decision Tree -->
+    <block type="gateway" id="P0-2-G1" mode="exclusive" desc="Determine resume point based on checkpoints and artifacts">
+      
+      <!-- Branch: PRD already confirmed -->
+      <branch test="${checkpoints.prd_review.passed} == true" name="PRD Confirmed">
+        <block type="event" id="P0-2-E1" action="confirm" desc="Ask user if redo needed">
+          <field name="prompt">PRD stage already confirmed. Would you like to redo the PRD process?</field>
+        </block>
+        <block type="task" id="P0-2-B3" action="set-var" desc="Set resume target">
+          <field name="resume_target" value="PHASE_REVIEW"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Sub-PRD dispatch complete -->
+      <branch test="${checkpoints.sub_prd_dispatch.passed} == true" name="Sub-PRD Complete">
+        <block type="task" id="P0-2-B4" action="set-var" desc="Set resume target">
+          <field name="resume_target" value="PHASE_6_VERIFICATION"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Modeling complete (complex path) -->
+      <branch test="${checkpoints.requirement_modeling.passed} == true AND ${artifact_status.module_design} == true" name="Modeling Complete">
+        <block type="task" id="P0-2-B5" action="set-var" desc="Set resume target">
+          <field name="resume_target" value="PHASE_4B_PRD_GENERATION"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Clarification confirmed -->
+      <branch test="${checkpoints.requirement_clarification_confirmed.passed} == true" name="Clarification Confirmed">
+        <block type="task" id="P0-2-B6" action="set-var" desc="Set resume target">
+          <field name="resume_target" value="PHASE_4_PRD_SKILL"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Clarification done, needs confirmation -->
+      <branch test="${checkpoints.requirement_clarification.passed} == true" name="Clarification Done">
+        <block type="task" id="P0-2-B7" action="set-var" desc="Set resume target">
+          <field name="resume_target" value="PHASE_3_7_USER_CONFIRMATION"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Artifacts exist but no checkpoint -->
+      <branch test="${artifact_status.clarification_summary} == true" name="Has Artifacts">
+        <!-- Check complexity from clarification summary -->
+        <block type="task" id="P0-2-B8" action="analyze" desc="Determine resume based on artifacts">
+          <field name="input" value="${artifact_status}"/>
+          <!-- 
+            Resume Mapping (from agent.md lines 136-150):
+            IF .clarification-summary.md exists AND complexity == simple:
+              IF Single PRD exists → Phase 6
+              ELSE → Phase 4 (Simple Path)
+            IF .clarification-summary.md exists AND complexity == complex:
+              IF .module-design.md missing → Phase 4a (Modeling)
+              IF Master PRD missing → Phase 4b (PRD Generation)
+              IF Sub-PRDs incomplete → Phase 5 (Worker Dispatch)
+              IF all files exist → Phase 6
+          -->
+          <field name="output" var="complexity"/>
+          <field name="output" var="resume_target"/>
+        </block>
+      </branch>
+      
+      <!-- Branch: Fresh start -->
+      <branch name="Fresh Start" default="true">
+        <block type="task" id="P0-2-B9" action="set-var" desc="Set resume target to Phase 1">
+          <field name="resume_target" value="PHASE_1_KNOWLEDGE_CHECK"/>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Step 0.2.3: Check Sub-PRD Dispatch Progress -->
+    <block type="gateway" id="P0-2-G2" mode="exclusive" desc="Check Sub-PRD dispatch progress if applicable">
+      <branch test="${resume_target} == 'PHASE_5_WORKER_DISPATCH' OR exists(${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json)" name="Has Dispatch Progress">
+        <block type="task" id="P0-2-B10" action="run-script" status="pending" desc="Read dispatch progress">
+          <field name="command">node "${update_progress_script}" read --file "${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json" --summary</field>
+          <field name="output" var="dispatch_progress"/>
+        </block>
+        <!-- 
+          Resume Logic:
+          - Skip tasks with status == "completed"
+          - Re-execute tasks with status == "failed"
+          - Execute tasks with status == "pending"
+        -->
+      </branch>
+      <branch name="No Dispatch Progress" default="true"/>
+    </block>
+
+    <!-- Step 0.2.4: Display Resume Summary -->
+    <block type="event" id="P0-2-E2" action="log" desc="Display resume summary">
+      <field name="template">resume-summary</field>
+      <field name="data">
+        iteration_name: ${iteration_name}
+        artifact_status: ${artifact_status}
+        resume_target: ${resume_target}
+        dispatch_progress: ${dispatch_progress}
+      </field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Phase 0 Initialization Output">
+    <field name="resume_target" from="${resume_target}" type="string" desc="Target phase to resume or start"/>
+    <field name="iteration_path" from="${iteration_path}" type="string" desc="Path to iteration directory"/>
+    <field name="iteration_name" from="${iteration_name}" type="string" desc="Iteration name"/>
+    <field name="workspace_path" from="${workspace_path}" type="string" desc="Workspace root path"/>
+    <field name="sync_state_bizs_dir" from="${sync_state_bizs_dir}" type="string" desc="Knowledge sync state directory"/>
+    <field name="iterations_dir" from="${iterations_dir}" type="string" desc="Iterations directory"/>
+    <field name="update_progress_script" from="${update_progress_script}" type="string" desc="Path to update-progress.js"/>
+    <field name="ide_type" from="${ide_type}" type="string" desc="Detected IDE type"/>
+    <field name="ide_skills_dir" from="${ide_skills_dir}" type="string" desc="IDE skills directory"/>
+    <field name="configs_dir" from="${configs_dir}" type="string" desc="Configs directory"/>
+    <field name="workflow_progress" from="${workflow_progress}" type="object" desc="Current workflow progress state"/>
+    <field name="checkpoints" from="${checkpoints}" type="object" desc="Checkpoint state"/>
+    <field name="message" value="Phase 0 initialization completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

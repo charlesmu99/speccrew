@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="pm-phase2-complexity-assess" status="pending" version="1.0" desc="Complexity assessment and skill routing for PM Phase 2">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="user_requirement" required="true" type="string" desc="User requirement description or document path"/>
+    <field name="workspace_path" required="true" type="string" desc="Absolute path to speccrew-workspace root"/>
+    <field name="knowledge_status" required="true" type="object" desc="Knowledge status from Phase 1 detection"/>
+    <field name="language" required="false" type="string" desc="Target language for output (auto-detected)"/>
+  </block>
+
+  <!-- ============================================================
+       Global Constraints
+       ============================================================ -->
+  <block type="rule" id="R1" level="mandatory" desc="Execution constraints">
+    <field name="text">This skill is READ-ONLY - do not modify any files</field>
+    <field name="text">Phase 2.0 verification is MANDATORY - cannot be skipped</field>
+    <field name="text">If knowledge initialization incomplete, report error and STOP</field>
+  </block>
+
+  <!-- ============================================================
+       Phase 2.0: Knowledge Initialization Verification
+       ============================================================ -->
+  <sequence id="S1" name="Phase 2.0: Knowledge Verification" status="pending" desc="Verify knowledge initialization is complete">
+
+    <!-- Step 2.0.1: Check DISPATCH-PROGRESS.json exists -->
+    <block type="task" id="B1" action="read-file" desc="Check DISPATCH-PROGRESS.json">
+      <field name="path" value="${workspace_path}/knowledges/bizs/DISPATCH-PROGRESS.json"/>
+      <field name="on_error">fail</field>
+      <field name="output" var="dispatch_progress"/>
+      <!-- If file does not exist, Path B Step 1.5 was not executed -->
+    </block>
+
+    <!-- Step 2.0.2: Evaluate dispatch progress content -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Verify knowledge initialization status">
+      
+      <!-- Case: File does not exist (checked by on_error above, handled here) -->
+      <branch test="${dispatch_progress} == null" name="No Progress File">
+        <block type="event" id="E1" action="log" desc="Report missing progress file">
+          <field name="message">ERROR: DISPATCH-PROGRESS.json not found. Phase 1 Path B was not executed. Please complete knowledge initialization first.</field>
+        </block>
+        <block type="output" id="O-ERR1" desc="Error output">
+          <field name="status" value="error"/>
+          <field name="error_code" value="KNOWLEDGE_INIT_REQUIRED"/>
+          <field name="message" value="Knowledge initialization not started. Return to Phase 1 Path B Step 1."/>
+          <field name="next_action" value="Dispatch speccrew-pm-module-initializer skill"/>
+        </block>
+      </branch>
+
+      <!-- Case: Pending tasks remain -->
+      <branch test="${dispatch_progress.counts.pending} > 0" name="Knowledge Incomplete">
+        <block type="event" id="E2" action="log" desc="Report incomplete initialization">
+          <field name="message">ERROR: Knowledge initialization INCOMPLETE. ${dispatch_progress.counts.pending} tasks pending. Cannot proceed to complexity assessment.</field>
+        </block>
+        <block type="output" id="O-ERR2" desc="Error output">
+          <field name="status" value="error"/>
+          <field name="error_code" value="KNOWLEDGE_INIT_INCOMPLETE"/>
+          <field name="message" value="Knowledge initialization incomplete. Return to Phase 1 Path B Step 3."/>
+          <field name="pending_count" from="${dispatch_progress.counts.pending}"/>
+          <field name="pending_modules" from="${dispatch_progress.pending_tasks}"/>
+          <field name="next_action" value="Complete pending knowledge tasks before complexity assessment"/>
+        </block>
+      </branch>
+
+      <!-- Case: No features to analyze (all already done) -->
+      <branch test="${dispatch_progress.counts.total} == 0" name="No Features">
+        <block type="event" id="E3" action="log" desc="Report no pending features">
+          <field name="message">No features pending analysis. All features already processed. Proceeding to complexity assessment.</field>
+        </block>
+        <!-- Continue to Phase 2.1 -->
+      </branch>
+
+      <!-- Case: Knowledge initialization complete -->
+      <branch test="${dispatch_progress.counts.pending} == 0 AND ${dispatch_progress.counts.completed} > 0" name="Knowledge Complete">
+        <block type="event" id="E4" action="log" desc="Report verification passed">
+          <field name="message">Knowledge initialization VERIFIED: ${dispatch_progress.counts.completed} features analyzed. Proceeding to complexity assessment.</field>
+        </block>
+        <!-- Continue to Phase 2.1 -->
+      </branch>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Phase 2.1: Complexity Assessment
+       ============================================================ -->
+  <sequence id="S2" name="Phase 2.1: Complexity Assessment" status="pending" desc="Assess requirement complexity across 5 dimensions">
+
+    <!-- Load knowledge context if available -->
+    <block type="task" id="B2" action="read-file" desc="Read system overview if available">
+      <field name="path" value="${knowledge_status.system_overview_path}"/>
+      <field name="on_error">continue</field>
+      <field name="output" var="system_context"/>
+    </block>
+
+    <!-- Analyze user requirement for initial scope estimation -->
+    <block type="task" id="B3" action="analyze" desc="Analyze requirement for scope indicators">
+      <field name="input" value="${user_requirement}"/>
+      <field name="extract">
+        - Business problem being solved
+        - Entities and processes mentioned
+        - Integration requirements
+        - Explicit scope indicators (modules, features mentioned)
+      </field>
+      <field name="output" var="requirement_analysis"/>
+    </block>
+
+    <!-- Dimension 1: Functional Scope Assessment -->
+    <block type="task" id="B4" action="analyze" desc="Assess functional scope">
+      <field name="input">
+        requirement: ${requirement_analysis}
+        system_context: ${system_context}
+      </field>
+      <!-- Functional scope scoring:
+           - Count modules mentioned/affected
+           - Estimate feature count based on requirement breakdown
+           - Simple: 1-2 modules, 1-5 features
+           - Moderate: 2-3 modules, 5-10 features
+           - Complex: 3+ modules, 6+ features
+      -->
+      <field name="assess">
+        <dimension name="functional_scope">
+          <metric var="module_count">Number of modules affected</metric>
+          <metric var="feature_count">Estimated number of features</metric>
+          <score var="functional_score">simple=1, moderate=2, complex=3</score>
+        </dimension>
+      </field>
+      <field name="output" var="functional_assessment"/>
+    </block>
+
+    <!-- Dimension 2: Technical Complexity Assessment -->
+    <block type="task" id="B5" action="analyze" desc="Assess technical complexity">
+      <field name="input" value="${requirement_analysis}"/>
+      <!-- Technical complexity scoring:
+           - New technologies/frameworks introduced
+           - Integration points (external APIs, services)
+           - Simple: No new tech, 0-2 integrations
+           - Moderate: 1 new tech, 2-4 integrations
+           - Complex: 2+ new techs, 5+ integrations
+      -->
+      <field name="assess">
+        <dimension name="technical_complexity">
+          <metric var="new_tech_count">New technologies to introduce</metric>
+          <metric var="integration_count">Integration points required</metric>
+          <score var="technical_score">simple=1, moderate=2, complex=3</score>
+        </dimension>
+      </field>
+      <field name="output" var="technical_assessment"/>
+    </block>
+
+    <!-- Dimension 3: Business Rules Complexity Assessment -->
+    <block type="task" id="B6" action="analyze" desc="Assess business rules complexity">
+      <field name="input" value="${requirement_analysis}"/>
+      <!-- Business rules scoring:
+           - Conditional branches complexity
+           - State machine requirements
+           - Simple: Simple conditions, no state machine
+           - Moderate: Moderate branching, basic state machine
+           - Complex: Complex branching, full state machine
+      -->
+      <field name="assess">
+        <dimension name="business_rules">
+          <metric var="condition_branches">Complexity of conditional logic</metric>
+          <metric var="state_machine">State machine requirements</metric>
+          <score var="business_score">simple=1, moderate=2, complex=3</score>
+        </dimension>
+      </field>
+      <field name="output" var="business_assessment"/>
+    </block>
+
+    <!-- Dimension 4: Data Complexity Assessment -->
+    <block type="task" id="B7" action="analyze" desc="Assess data complexity">
+      <field name="input">
+        requirement: ${requirement_analysis}
+        system_context: ${system_context}
+      </field>
+      <!-- Data complexity scoring:
+           - Entity count
+           - Relationship complexity
+           - Simple: 1-3 entities, simple relationships
+           - Moderate: 4-6 entities, moderate relationships
+           - Complex: 7+ entities, complex relationships
+      -->
+      <field name="assess">
+        <dimension name="data_complexity">
+          <metric var="entity_count">Number of data entities</metric>
+          <metric var="relationship_complexity">Relationship complexity level</metric>
+          <score var="data_score">simple=1, moderate=2, complex=3</score>
+        </dimension>
+      </field>
+      <field name="output" var="data_assessment"/>
+    </block>
+
+    <!-- Dimension 5: Team/Time Constraints Assessment -->
+    <block type="task" id="B8" action="analyze" desc="Assess team and time constraints">
+      <field name="input" value="${user_requirement}"/>
+      <!-- Team/time scoring:
+           - Timeline pressure
+           - Team coordination needs
+           - Simple: Standard timeline, single team
+           - Moderate: Moderate constraints
+           - Complex: Tight deadline, multiple teams
+      -->
+      <field name="assess">
+        <dimension name="constraints">
+          <metric var="timeline">Timeline constraints</metric>
+          <metric var="team_coordination">Team coordination needs</metric>
+          <score var="constraint_score">simple=1, moderate=2, complex=3</score>
+        </dimension>
+      </field>
+      <field name="output" var="constraint_assessment"/>
+    </block>
+
+    <!-- Aggregate complexity score and determine level -->
+    <block type="task" id="B9" action="compute" desc="Calculate overall complexity level">
+      <field name="input">
+        functional_score: ${functional_assessment.functional_score}
+        technical_score: ${technical_assessment.technical_score}
+        business_score: ${business_assessment.business_score}
+        data_score: ${data_assessment.data_score}
+        constraint_score: ${constraint_assessment.constraint_score}
+      </field>
+      <!-- Aggregation logic:
+           - Sum all dimension scores (min=5, max=15)
+           - Simple: total_score <= 7 (mostly 1s, at most one 2)
+           - Moderate: total_score 8-11 (mix of 2s)
+           - Complex: total_score >= 12 (mostly 2s and 3s)
+      -->
+      <field name="formula">
+        total_score = functional_score + technical_score + business_score + data_score + constraint_score
+        IF total_score <= 7: complexity_level = "simple"
+        ELSE IF total_score <= 11: complexity_level = "moderate"
+        ELSE: complexity_level = "complex"
+      </field>
+      <field name="output" var="complexity_level"/>
+    </block>
+
+    <!-- Build complexity details object -->
+    <block type="task" id="B10" action="assemble" desc="Assemble complexity details">
+      <field name="output" var="complexity_details">
+        dimensions:
+          functional_scope: ${functional_assessment}
+          technical_complexity: ${technical_assessment}
+          business_rules: ${business_assessment}
+          data_complexity: ${data_assessment}
+          constraints: ${constraint_assessment}
+        total_score: ${total_score}
+        decision_factors:
+          module_count: ${functional_assessment.module_count}
+          feature_count: ${functional_assessment.feature_count}
+          new_technologies: ${technical_assessment.new_tech_count}
+          integrations: ${technical_assessment.integration_count}
+      </field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Phase 2.2: Skill Routing
+       ============================================================ -->
+  <sequence id="S3" name="Phase 2.2: Skill Routing" status="pending" desc="Route to appropriate PRD workflow">
+
+    <block type="gateway" id="G2" mode="exclusive" desc="Route based on complexity level">
+
+      <!-- Simple: Route to simple PRD workflow -->
+      <branch test="${complexity_level} == 'simple'" name="Simple Requirement">
+        <block type="event" id="E5" action="log" desc="Log simple path selection">
+          <field name="message">Assessment: SIMPLE requirement (${functional_assessment.module_count} modules, ${functional_assessment.feature_count} features) → Single PRD workflow</field>
+        </block>
+        <block type="set-variable" id="V1" name="route" value="speccrew-pm-requirement-simple"/>
+      </branch>
+
+      <!-- Moderate: Route to full pipeline -->
+      <branch test="${complexity_level} == 'moderate'" name="Moderate Requirement">
+        <block type="event" id="E6" action="log" desc="Log moderate path selection">
+          <field name="message">Assessment: MODERATE requirement (${functional_assessment.module_count} modules, ${functional_assessment.feature_count} features) → Full pipeline workflow (clarify → model → analysis)</field>
+        </block>
+        <block type="set-variable" id="V2" name="route" value="full-pipeline"/>
+      </branch>
+
+      <!-- Complex: Route to full pipeline -->
+      <branch test="${complexity_level} == 'complex'" name="Complex Requirement">
+        <block type="event" id="E7" action="log" desc="Log complex path selection">
+          <field name="message">Assessment: COMPLEX requirement (${functional_assessment.module_count} modules, ${functional_assessment.feature_count} features) → Full pipeline workflow (clarify → model → analysis)</field>
+        </block>
+        <block type="set-variable" id="V3" name="route" value="full-pipeline"/>
+      </branch>
+
+    </block>
+
+    <!-- Routing summary for user confirmation if uncertain -->
+    <block type="task" id="B11" action="analyze" desc="Check if user confirmation needed">
+      <field name="input">
+        complexity_level: ${complexity_level}
+        module_count: ${functional_assessment.module_count}
+        feature_count: ${functional_assessment.feature_count}
+      </field>
+      <!-- If uncertain about complexity (edge case), set flag for user confirmation -->
+      <field name="condition">
+        IF complexity_level is borderline OR user_requirement is ambiguous:
+          needs_confirmation = true
+        ELSE:
+          needs_confirmation = false
+      </field>
+      <field name="output" var="confirmation_needed"/>
+    </block>
+
+    <block type="gateway" id="G3" mode="exclusive" desc="Optional user confirmation">
+      <branch test="${confirmation_needed} == true" name="Ask User">
+        <block type="event" id="E8" action="confirm" desc="Ask user for routing confirmation">
+          <field name="prompt">This requirement seems to involve ${functional_assessment.module_count} modules / ${functional_assessment.feature_count} features. Should I use the streamlined process (single PRD) or the comprehensive process (Master + Sub-PRDs)?</field>
+          <field name="options">
+            - Streamlined (single PRD)
+            - Comprehensive (Master + Sub-PRDs)
+          </field>
+        </block>
+      </branch>
+      <branch default="true" name="Auto-proceed"/>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Complexity assessment output">
+    <field name="status" value="success" type="string" desc="Assessment status"/>
+    <field name="complexity_level" from="${complexity_level}" type="string" desc="Overall complexity: simple, moderate, or complex"/>
+    <field name="route" from="${route}" type="string" desc="Skill route: speccrew-pm-requirement-simple or full-pipeline"/>
+    <field name="complexity_details" from="${complexity_details}" type="object" desc="Detailed 5-dimension assessment"/>
+    <field name="verification_status" from="verified" type="string" desc="Knowledge initialization verification status"/>
+    <field name="next_steps" type="array" desc="Recommended next steps">
+      <item>IF route == 'speccrew-pm-requirement-simple': Invoke speccrew-pm-requirement-simple skill</item>
+      <item>IF route == 'full-pipeline': Proceed to Phase 3 (Requirement Clarification) with speccrew-pm-requirement-clarify</item>
+    </field>
+    <field name="message" value="Phase 2 complexity assessment completed" type="string" desc="Status message"/>
+  </block>
+
+</workflow>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workflow id="pm-orchestration-main" status="pending">
+<workflow name="speccrew-product-manager-orchestration" version="2.0">
 
   <!-- ========== Input Parameters ========== -->
   <block type="input" id="I1" desc="PM Orchestration Input">
@@ -9,549 +9,227 @@
     <field name="language" required="false" type="string" desc="User language (auto-detected)"/>
   </block>
 
-  <!-- ========== Phase 0: Workflow Progress Management ========== -->
-  <sequence name="Phase 0: Workflow Progress Management">
-    
-    <!-- Phase 0.5: IDE Detection -->
-    <block type="task" id="P0-B1" action="detect-ide" status="pending" desc="Detect current IDE environment">
-      <field name="output" var="ide_type"/>
-      <field name="output" var="ide_skills_dir"/>
-    </block>
+  <!-- ========== Phase 0: Initialize Workflow ========== -->
+  <block type="task" id="P0" action="dispatch-to-worker" desc="Phase 0: Initialize workflow">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-phase0-init</field>
+    <field name="context">{
+      "workspace_root": "${workspace_root}",
+      "source_path": "${source_path}",
+      "user_requirement": "${user_requirement}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase0_result"/>
+  </block>
 
-    <!-- Phase 0.6: Path Initialization -->
-    <block type="task" id="P0-B2" action="compute-paths" status="pending" desc="Compute all workflow paths">
-      <field name="workspace_root" value="${workspace_root}"/>
-      <field name="source_path" value="${source_path}"/>
-      <field name="output" var="sync_state_bizs_dir"/>
-      <field name="output" var="iterations_dir"/>
-      <field name="output" var="update_progress_script"/>
-      <field name="output" var="configs_dir"/>
-    </block>
+  <!-- ========== Phase 0 Resume Router ========== -->
+  <block type="gateway" id="P0-RESUME" mode="exclusive" desc="Route based on resume target">
+    <branch test="${phase0_result.resume_target} == 'PHASE_1_KNOWLEDGE_CHECK'" goto="P1"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_3_USER_CONFIRMATION'" goto="P3-CONFIRM"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_4_PRD_SIMPLE'" goto="P4-SIMPLE"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_4A_MODEL'" goto="P4A"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_4A_CONFIRMATION'" goto="P4A-CONFIRM"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_4B_PRD_GENERATION'" goto="P4B"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_5_SUBPRD_DISPATCH'" goto="P5"/>
+    <branch test="${phase0_result.resume_target} == 'PHASE_6_VERIFICATION'" goto="P6"/>
+    <branch default="true" name="Fresh Start" goto="P1"/>
+  </block>
 
-    <!-- Phase 0.1: Create or Locate Iteration Directory -->
-    <block type="gateway" id="P0-G1" mode="exclusive" desc="Check for active iteration">
-      <branch test="exists(${iterations_dir}/*/WORKFLOW-PROGRESS.json with 01_prd.status=in_progress)" name="Has Active Iteration">
-        <block type="task" id="P0-B3" action="read-file" status="pending" desc="Read active iteration progress">
-          <field name="path" value="${iterations_dir}/${active_iter}/WORKFLOW-PROGRESS.json"/>
-          <field name="output" var="workflow_progress"/>
-        </block>
-      </branch>
-      <branch default="true" name="Create New Iteration">
-        <block type="task" id="P0-B4" action="run-script" status="pending" desc="Create new iteration directory">
-          <field name="command">mkdir -p ${iterations_dir}/${iteration_name}/00.docs ${iterations_dir}/${iteration_name}/01.product-requirement</field>
-        </block>
-        <block type="task" id="P0-B5" action="run-script" status="pending" desc="Initialize WORKFLOW-PROGRESS.json">
-          <field name="command">node ${update_progress_script} update-workflow --file ${iterations_dir}/${iteration_name}/WORKFLOW-PROGRESS.json --stage 01_prd --status in_progress</field>
-        </block>
-      </branch>
-    </block>
+  <!-- ========== Phase 1: Knowledge Base Check ========== -->
+  <block type="task" id="P1" action="dispatch-to-worker" desc="Phase 1: Knowledge base check">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-phase1-knowledge-check</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "sync_state_bizs_dir": "${phase0_result.sync_state_bizs_dir}",
+      "configs_dir": "${phase0_result.configs_dir}",
+      "ide_skills_dir": "${phase0_result.ide_skills_dir}",
+      "user_requirement": "${user_requirement}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase1_result"/>
+  </block>
 
-    <!-- Phase 0.2: Check Resume State -->
-    <block type="gateway" id="P0-G2" mode="exclusive" desc="Check resume state from checkpoint">
-      <branch test="exists(${iteration_path}/01.product-requirement/.checkpoints.json)" name="Has Checkpoint">
-        <block type="task" id="P0-B6" action="run-script" status="pending" desc="Read checkpoints">
-          <field name="command">node ${update_progress_script} read --file ${iteration_path}/01.product-requirement/.checkpoints.json --checkpoints</field>
-          <field name="output" var="checkpoints"/>
-        </block>
-        <block type="event" id="P0-E1" action="log" desc="Display resume summary">
-          <field name="template">resume-summary</field>
-          <field name="data" value="${checkpoints}"/>
-        </block>
-      </branch>
-      <branch default="true" name="No Checkpoint - Fresh Start"/>
-    </block>
-  </sequence>
+  <!-- ========== Phase 2: Complexity Assessment ========== -->
+  <block type="task" id="P2" action="dispatch-to-worker" desc="Phase 2: Complexity assessment">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-phase2-complexity-assess</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "update_progress_script": "${phase0_result.update_progress_script}",
+      "user_requirement": "${user_requirement}",
+      "knowledge_status": "${phase1_result.knowledge_status}",
+      "system_context": "${phase1_result.system_context}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase2_result"/>
+  </block>
 
-  <!-- ========== Phase 1: Knowledge Base Availability Check ========== -->
-  <sequence name="Phase 1: Knowledge Base Availability Check">
-    
-    <block type="rule" id="P1-R1" level="mandatory" desc="Phase 1 Mandatory Constraints">
-      <field name="text">DO NOT manually search directories or construct status reports yourself - MUST dispatch Worker with speccrew-pm-knowledge-detector skill</field>
-      <field name="text">DO NOT create features-*.json files manually - ALL features files MUST be generated by scripts via Worker</field>
-      <field name="text">DO NOT execute knowledge-base scripts via Bash - ALL script execution MUST happen inside Worker Agents</field>
-    </block>
-
-    <!-- Phase 1.1: Detect Knowledge Base Status -->
-    <block type="task" id="P1-B1" action="dispatch-to-worker" status="pending" desc="Dispatch knowledge detector worker">
-      <field name="agent">speccrew-task-worker</field>
-      <field name="skill">speccrew-pm-knowledge-detector</field>
-      <field name="context">
-        workspace_path: ${workspace_root}
-        sync_state_bizs_dir: ${sync_state_bizs_dir}
-        configs_dir: ${configs_dir}
-      </field>
-      <field name="output" var="knowledge_status"/>
-    </block>
-
-    <!-- Phase 1.2: Branch on Knowledge Status -->
-    <block type="gateway" id="P1-G1" mode="exclusive" desc="Route based on knowledge status">
-      
-      <!-- Path A: Full Knowledge -->
-      <branch test="${knowledge_status.status} == 'full'" name="Full Knowledge">
-        <block type="task" id="P1-B2" action="dispatch-to-worker" status="pending" desc="Read system-overview.md summary">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-system-summary-reader</field>
-          <field name="context">
-            system_overview_path: ${knowledge_status.system_overview_path}
-          </field>
-          <field name="output" var="system_context"/>
-        </block>
-      </branch>
-
-      <!-- Path B: Lite Knowledge -->
-      <branch test="${knowledge_status.status} == 'lite'" name="Lite Knowledge">
-        <block type="task" id="P1-B3" action="dispatch-to-worker" status="pending" desc="Dispatch module matcher worker">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-module-matcher</field>
-          <field name="context">
-            sync_state_bizs_dir: ${sync_state_bizs_dir}
-            requirement_text: ${user_requirement}
-            language: ${language}
-          </field>
-          <field name="output" var="matched_modules"/>
-        </block>
-        <block type="event" id="P1-E1" action="confirm" desc="Ask user to confirm module initialization">
-          <field name="prompt">Based on your requirement, the following modules appear to be related. Would you like to initialize detailed knowledge for these modules?</field>
-          <field name="data" value="${matched_modules}"/>
-        </block>
-      </branch>
-
-      <!-- Path C: No Knowledge -->
-      <branch test="${knowledge_status.status} == 'none'" name="No Knowledge">
-        <block type="rule" id="P1-R2" level="mandatory" desc="Path C Mandatory Rules">
-          <field name="text">DO NOT skip to Phase 2 without running feature inventory - this is AUTOMATIC</field>
-          <field name="text">DO NOT ask user whether to run feature inventory - automatic initialization is MANDATORY</field>
-          <field name="text">DO NOT run module-initializer here - deep init is scoped by requirement in Path B</field>
-        </block>
-        
-        <block type="event" id="P1-E2" action="log" desc="Inform user about initialization">
-          <field name="message">No business knowledge base detected. Scanning project structure to discover available modules...</field>
-        </block>
-        
-        <block type="task" id="P1-B4" action="dispatch-to-worker" status="pending" desc="Generate feature inventory">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-knowledge-bizs-init-features</field>
-          <field name="context">
-            workspace_path: ${workspace_root}
-            language: ${language}
-            sync_state_bizs_dir: ${sync_state_bizs_dir}
-            configs_dir: ${configs_dir}
-            ide_skills_dir: ${ide_skills_dir}
-          </field>
-        </block>
-
-        <!-- After init-features, re-run detector and proceed to Path B -->
-        <block type="task" id="P1-B5" action="dispatch-to-worker" status="pending" desc="Re-run knowledge detector">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-knowledge-detector</field>
-          <field name="context">
-            workspace_path: ${workspace_root}
-            sync_state_bizs_dir: ${sync_state_bizs_dir}
-            configs_dir: ${configs_dir}
-          </field>
-          <field name="output" var="knowledge_status"/>
-        </block>
-      </branch>
-    </block>
-
-    <!-- Phase 1.3: Store Knowledge Context -->
-    <block type="task" id="P1-B6" action="set-context" status="pending" desc="Store knowledge context for subsequent phases">
-      <field name="knowledge_status" value="${knowledge_status.status}"/>
-      <field name="system_context" value="${system_context}"/>
-      <field name="matched_modules" value="${matched_modules}"/>
-    </block>
-  </sequence>
-
-  <!-- ========== Phase 2: Complexity Assessment & Skill Routing ========== -->
-  <sequence name="Phase 2: Complexity Assessment & Skill Routing">
-    
-    <!-- Phase 2.0: Knowledge Initialization Verification -->
-    <block type="rule" id="P2-R1" level="mandatory" desc="Phase 2.0 Mandatory Verification">
-      <field name="text">THIS STEP IS MANDATORY AND CANNOT BE SKIPPED - MUST execute verification before complexity assessment</field>
-    </block>
-    
-    <block type="task" id="P2-B1" action="run-script" status="pending" desc="Check DISPATCH-PROGRESS.json">
-      <field name="command">node ${update_progress_script} read --file ${workspace_root}/knowledges/bizs/DISPATCH-PROGRESS.json --summary</field>
-      <field name="output" var="dispatch_progress"/>
-    </block>
-
-    <block type="gateway" id="P2-G1" mode="exclusive" desc="Verify knowledge initialization complete">
-      <branch test="${dispatch_progress.counts.pending} > 0" name="Knowledge Incomplete">
-        <block type="event" id="P2-E1" action="log" desc="Report incomplete initialization">
-          <field name="message">Knowledge initialization is INCOMPLETE. Returning to Path B Step 3 to complete pending tasks.</field>
-        </block>
-        <!-- Return to Phase 1 Path B Step 3 -->
-        <block type="goto" id="P2-GOTO1" target="P1-B3"/>
-      </branch>
-      <branch default="true" name="Knowledge Complete - Proceed"/>
-    </block>
-
-    <!-- Phase 2.1-2.2: Complexity Indicators & Decision -->
-    <block type="task" id="P2-B2" action="assess-complexity" status="pending" desc="Assess requirement complexity">
-      <field name="user_requirement" value="${user_requirement}"/>
-      <field name="knowledge_status" value="${knowledge_status}"/>
-      <field name="output" var="complexity"/>
-      <field name="output" var="module_count"/>
-      <field name="output" var="feature_count"/>
-    </block>
-
-    <!-- Phase 2.3: Skill Routing -->
-    <block type="gateway" id="P2-G2" mode="exclusive" desc="Route based on complexity">
-      <branch test="${complexity} == 'simple'" name="Simple Requirement">
-        <block type="event" id="P2-E2" action="log" desc="Log simple path selection">
-          <field name="message">Assessment: SIMPLE requirement (${module_count} modules, ${feature_count} features) → Single PRD workflow</field>
-        </block>
-        <block type="set-variable" id="P2-V1" name="prd_skill" value="speccrew-pm-requirement-simple"/>
-      </branch>
-      <branch test="${complexity} == 'complex'" name="Complex Requirement">
-        <block type="event" id="P2-E3" action="log" desc="Log complex path selection">
-          <field name="message">Assessment: COMPLEX requirement (${module_count} modules, ${feature_count} features) → Master-Sub PRD workflow</field>
-        </block>
-        <block type="set-variable" id="P2-V2" name="prd_skill" value="speccrew-pm-requirement-analysis"/>
-      </branch>
-    </block>
-  </sequence>
+  <!-- ========== Phase 2 Router: Simple vs Complex ========== -->
+  <block type="gateway" id="P2-ROUTE" mode="exclusive" desc="Route based on complexity">
+    <branch test="${phase2_result.route} == 'speccrew-pm-requirement-simple'" name="Simple Requirement" goto="P4-SIMPLE"/>
+    <branch test="${phase2_result.route} == 'full-pipeline'" name="Complex Requirement" goto="P3"/>
+  </block>
 
   <!-- ========== Phase 3: Requirement Clarification ========== -->
-  <sequence name="Phase 3: Requirement Clarification">
-    
-    <block type="rule" id="P3-R1" level="mandatory" desc="Phase 3 Mandatory Constraints">
-      <field name="text">DO NOT perform requirement clarification yourself - MUST use speccrew-pm-requirement-clarify skill</field>
-      <field name="text">DO NOT proceed to PRD generation without .clarification-summary.md</field>
-      <field name="text">IF clarification skill fails: ABORT - do NOT generate clarification yourself</field>
-    </block>
+  <block type="task" id="P3" action="dispatch-to-worker" desc="Phase 3: Requirement clarification">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-requirement-clarify</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "user_requirement": "${user_requirement}",
+      "complexity": "${phase2_result.complexity}",
+      "knowledge_status": "${phase1_result.knowledge_status}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase3_result"/>
+  </block>
 
-    <!-- Phase 3.1-3.2: Prepare Parameters & Dispatch Worker -->
-    <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending" desc="Dispatch requirement clarification worker">
-      <field name="agent">speccrew-task-worker</field>
-      <field name="skill">speccrew-pm-requirement-clarify</field>
-      <field name="context">
-        requirement_file: ${user_requirement}
-        iteration_path: ${iteration_path}
-        complexity_hint: ${complexity}
-        knowledge_status: ${knowledge_status.status}
-        language: ${language}
-      </field>
-      <field name="output" var="clarification_result"/>
-    </block>
+  <!-- R-CONFIRM: Mandatory User Confirmation Rule for Phase 3 -->
+  <block type="rule" id="R-CONFIRM-P3" level="mandatory" desc="User confirmation is MANDATORY and CANNOT be skipped">
+    <field name="text">MANDATORY: After Phase 3 (Requirement Clarification) completes, you MUST wait for EXPLICIT user confirmation before proceeding.</field>
+    <field name="text">DO NOT mark checkpoint as passed by yourself. DO NOT skip user confirmation for ANY reason.</field>
+    <field name="text">Even if the user provided complete requirements, they MUST explicitly confirm the clarification results.</field>
+    <field name="text">The checkpoint write-checkpoint command MUST ONLY be executed AFTER the user explicitly confirms.</field>
+  </block>
 
-    <!-- Phase 3.4: Validate Output -->
-    <block type="task" id="P3-B2" action="validate-file" status="pending" desc="Validate clarification output">
-      <field name="path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
-      <field name="min_size" value="500"/>
-      <field name="output" var="clarification_valid"/>
-    </block>
+  <!-- Phase 3 Checkpoint -->
+  <block type="checkpoint" id="P3-CP1" name="requirement_clarification" desc="User confirmation gate for Phase 3">
+    <field name="required" value="true"/>
+  </block>
 
-    <block type="gateway" id="P3-G1" mode="exclusive" desc="Check validation result">
-      <branch test="${clarification_valid} == false" name="Validation Failed">
-        <block type="event" id="P3-E1" action="confirm" desc="Ask user for retry or abort">
-          <field name="prompt">Phase 3 FAILED: Requirement Clarification Skill failed. Retry with additional context or Abort?</field>
-        </block>
-      </branch>
-      <branch default="true" name="Validation Passed"/>
-    </block>
+  <!-- Phase 3 User Confirmation Event -->
+  <block type="event" id="P3-CONFIRM" action="user-confirm" desc="Present clarification results for user confirmation">
+    <field name="prompt">📋 Phase 3: Requirement Clarification Complete. Please review the clarification summary and confirm before proceeding to PRD generation.</field>
+    <field name="template">clarification-summary</field>
+    <field name="data" value="${phase3_result}"/>
+    <field name="skippable" value="false"/>
+  </block>
 
-    <!-- Phase 3.7: User Confirmation Gate -->
-    <block type="checkpoint" id="P3-CP1" name="requirement_clarification" desc="User confirmation gate">
-      <field name="required" value="true"/>
-    </block>
+  <!-- Phase 3 Checkpoint Write -->
+  <block type="task" id="P3-CHK-WRITE" action="run-script" desc="Update Phase 3 confirmation checkpoint">
+    <field name="command">node ${phase0_result.update_progress_script} write-checkpoint --file ${phase0_result.iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint requirement_clarification_confirmed --passed true</field>
+  </block>
 
-    <block type="event" id="P3-E2" action="confirm" desc="Present clarification results for user confirmation">
-      <field name="prompt">📋 Requirement Clarification Complete. Please review and confirm before proceeding to PRD generation.</field>
-      <field name="template">clarification-summary</field>
-      <field name="data" value="${clarification_result}"/>
-    </block>
+  <!-- ========== Phase 4 Simple: Single PRD Generation ========== -->
+  <block type="task" id="P4-SIMPLE" action="dispatch-to-worker" desc="Phase 4 Simple: Generate single PRD">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-requirement-simple</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "clarification_file": "${phase0_result.iteration_path}/01.product-requirement/.clarification-summary.md",
+      "knowledge_status": "${phase1_result.knowledge_status}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase4_result"/>
+  </block>
 
-    <block type="task" id="P3-B3" action="run-script" status="pending" desc="Update confirmation checkpoint">
-      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint requirement_clarification_confirmed --passed true</field>
-    </block>
-  </sequence>
+  <!-- Skip Phase 5 for simple path -->
+  <block type="set-variable" id="P4-SIMPLE-SKIP" name="skip_phase_5" value="true"/>
 
-  <!-- ========== Phase 4: Invoke PRD Skill ========== -->
-  <sequence name="Phase 4: Invoke PRD Skill">
-    
-    <block type="rule" id="P4-R1" level="mandatory" desc="Phase 4 Orchestrator Principle">
-      <field name="text">You are the ORCHESTRATOR, NOT the WRITER</field>
-      <field name="text">Phase 4a (Model): DO NOT do ISA-95 analysis yourself - Skill does it</field>
-      <field name="text">Phase 4b (Generate): DO NOT generate Master PRD yourself - Skill generates it</field>
-      <field name="text">If ANY Skill fails: STOP and report error to user. DO NOT generate content as fallback.</field>
-    </block>
+  <!-- Phase 4 Simple goto Phase 6 -->
+  <block type="goto" id="P4-SIMPLE-GOTO" target="P6"/>
 
-    <block type="gateway" id="P4-G1" mode="exclusive" desc="Route to simple or complex path">
-      
-      <!-- Path A: Simple Requirements -->
-      <branch test="${complexity} == 'simple'" name="Simple Path">
-        <block type="task" id="P4-B1" action="dispatch-to-worker" status="pending" desc="Dispatch simple PRD worker">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-requirement-simple</field>
-          <field name="context">
-            iteration_path: ${iteration_path}
-            clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
-            language: ${language}
-          </field>
-          <field name="output" var="prd_output"/>
-        </block>
-        
-        <block type="task" id="P4-B2" action="validate-file" status="pending" desc="Validate single PRD">
-          <field name="path" value="${prd_output.prd_path}"/>
-          <field name="min_size" value="2048"/>
-          <field name="output" var="prd_valid"/>
-        </block>
-        
-        <!-- Skip Phase 5 for simple path -->
-        <block type="set-variable" id="P4-V1" name="skip_phase_5" value="true"/>
-      </branch>
+  <!-- ========== Phase 4a: Requirement Modeling (Complex Path) ========== -->
+  <block type="task" id="P4A" action="dispatch-to-worker" desc="Phase 4a: ISA-95 Requirement modeling">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-requirement-model</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "clarification_file": "${phase0_result.iteration_path}/01.product-requirement/.clarification-summary.md",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase4a_result"/>
+  </block>
 
-      <!-- Path B: Complex Requirements -->
-      <branch test="${complexity} == 'complex'" name="Complex Path">
-        
-        <!-- Phase 4a: Module Modeling -->
-        <block type="task" id="P4-B3" action="dispatch-to-worker" status="pending" desc="Dispatch requirement modeling worker">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-requirement-model</field>
-          <field name="context">
-            iteration_path: ${iteration_path}
-            clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
-            language: ${language}
-          </field>
-          <field name="output" var="model_output"/>
-        </block>
+  <!-- R-CONFIRM: Mandatory User Confirmation Rule for Phase 4a -->
+  <block type="rule" id="R-CONFIRM-P4A" level="mandatory" desc="User confirmation is MANDATORY and CANNOT be skipped">
+    <field name="text">MANDATORY: After Phase 4a (Requirement Modeling) completes, you MUST wait for EXPLICIT user confirmation before proceeding.</field>
+    <field name="text">DO NOT mark checkpoint as passed by yourself. DO NOT skip user confirmation for ANY reason.</field>
+    <field name="text">Even if the module design appears complete, the user MUST explicitly confirm before PRD generation.</field>
+    <field name="text">The checkpoint write-checkpoint command MUST ONLY be executed AFTER the user explicitly confirms.</field>
+  </block>
 
-        <block type="task" id="P4-B4" action="validate-file" status="pending" desc="Validate module design">
-          <field name="path" value="${iteration_path}/01.product-requirement/.module-design.md"/>
-          <field name="min_size" value="1024"/>
-          <field name="output" var="model_valid"/>
-        </block>
+  <!-- Phase 4a Checkpoint -->
+  <block type="checkpoint" id="P4A-CP1" name="requirement_modeling" desc="User confirmation gate for Phase 4a">
+    <field name="required" value="true"/>
+  </block>
 
-        <block type="gateway" id="P4-G2" mode="exclusive" desc="Check model validation">
-          <branch test="${model_valid} == false" name="Model Failed">
-            <block type="event" id="P4-E1" action="confirm" desc="Ask user for retry or abort">
-              <field name="prompt">Phase 4a FAILED: Modeling skill failed. Retry with additional context or Abort?</field>
-            </block>
-          </branch>
-          <branch default="true" name="Model Passed"/>
-        </block>
+  <!-- Phase 4a User Confirmation Event -->
+  <block type="event" id="P4A-CONFIRM" action="user-confirm" desc="Present module design for user confirmation">
+    <field name="prompt">📋 Phase 4a: ISA-95 Module Design Complete. Please review .module-design.md before proceeding to PRD generation.</field>
+    <field name="template">module-design-summary</field>
+    <field name="data" value="${phase4a_result}"/>
+    <field name="skippable" value="false"/>
+  </block>
 
-        <!-- Phase 4a.5: User Confirmation Gate for Module Design -->
-        <block type="checkpoint" id="P4-CP1" name="requirement_modeling" desc="User confirmation gate for module design">
-          <field name="required" value="true"/>
-        </block>
+  <!-- Phase 4a Checkpoint Write -->
+  <block type="task" id="P4A-CHK-WRITE" action="run-script" desc="Update Phase 4a confirmation checkpoint">
+    <field name="command">node ${phase0_result.update_progress_script} write-checkpoint --file ${phase0_result.iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint requirement_modeling_confirmed --passed true</field>
+  </block>
 
-        <block type="event" id="P4-E1-CONFIRM" action="confirm" desc="Present module design for user confirmation">
-          <field name="prompt">📋 ISA-95 Module Design Complete. Please review .module-design.md before proceeding to PRD generation.</field>
-          <field name="template">module-design-summary</field>
-          <field name="data" value="${model_output}"/>
-        </block>
+  <!-- ========== Phase 4b: Master PRD Generation (Complex Path) ========== -->
+  <block type="task" id="P4B" action="dispatch-to-worker" desc="Phase 4b: Generate Master PRD">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-requirement-analysis</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "clarification_file": "${phase0_result.iteration_path}/01.product-requirement/.clarification-summary.md",
+      "module_design_file": "${phase0_result.iteration_path}/01.product-requirement/.module-design.md",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase4b_result"/>
+  </block>
 
-        <block type="task" id="P4-B4-CHK" action="run-script" status="pending" desc="Update modeling confirmation checkpoint">
-          <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint requirement_modeling_confirmed --passed true</field>
-        </block>
+  <block type="set-variable" id="P4B-NOSKIP" name="skip_phase_5" value="false"/>
 
-        <!-- Phase 4b: Master PRD Generation -->
-        <block type="task" id="P4-B5" action="dispatch-to-worker" status="pending" desc="Dispatch requirement analysis worker">
-          <field name="agent">speccrew-task-worker</field>
-          <field name="skill">speccrew-pm-requirement-analysis</field>
-          <field name="context">
-            iteration_path: ${iteration_path}
-            clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
-            module_design_file: ${iteration_path}/01.product-requirement/.module-design.md
-            language: ${language}
-          </field>
-          <field name="output" var="prd_output"/>
-        </block>
+  <!-- ========== Phase 5: Sub-PRD Dispatch (Complex Only) ========== -->
+  <block type="gateway" id="P5-GATE" mode="exclusive" desc="Check if Phase 5 needed">
+    <branch test="${skip_phase_5} == true" name="Skip Phase 5" goto="P6"/>
+    <branch default="true" name="Execute Phase 5" goto="P5"/>
+  </block>
 
-        <block type="task" id="P4-B6" action="validate-file" status="pending" desc="Validate Master PRD">
-          <field name="path" value="${prd_output.master_prd_path}"/>
-          <field name="min_size" value="2048"/>
-          <field name="output" var="prd_valid"/>
-        </block>
-
-        <block type="gateway" id="P4-G3" mode="exclusive" desc="Check PRD validation">
-          <branch test="${prd_valid} == false" name="PRD Failed">
-            <block type="event" id="P4-E2" action="confirm" desc="Ask user for retry or abort">
-              <field name="prompt">Phase 4b FAILED: PRD generation skill failed. Retry with additional context or Abort?</field>
-            </block>
-          </branch>
-          <branch default="true" name="PRD Passed">
-            <block type="set-variable" id="P4-V2" name="skip_phase_5" value="false"/>
-          </branch>
-        </block>
-      </branch>
-    </block>
-  </sequence>
-
-  <!-- ========== Phase 5: Sub-PRD Worker Dispatch (Complex Only) ========== -->
-  <sequence name="Phase 5: Sub-PRD Worker Dispatch">
-    
-    <block type="gateway" id="P5-G1" mode="exclusive" desc="Check if Phase 5 needed">
-      <branch test="${skip_phase_5} == true" name="Skip Phase 5">
-        <block type="event" id="P5-E1" action="log" desc="Skip Sub-PRD dispatch for simple path">
-          <field name="message">Simple requirement - skipping Sub-PRD dispatch phase</field>
-        </block>
-      </branch>
-      <branch default="true" name="Execute Phase 5">
-        
-        <block type="rule" id="P5-R1" level="mandatory" desc="Phase 5 Worker Enforcement">
-          <field name="text">ONE Worker per Module - NO EXCEPTIONS</field>
-          <field name="text">DO NOT generate Sub-PRDs yourself - dispatch speccrew-task-worker</field>
-          <field name="text">DO NOT invoke speccrew-pm-sub-prd-generate skill directly - ONLY via Worker</field>
-          <field name="text">Dispatch in batches of 5, wait for each batch to complete</field>
-        </block>
-
-        <!-- Phase 5.1: Read Dispatch Plan -->
-        <block type="task" id="P5-B1" action="read-json" status="pending" desc="Read dispatch plan from PRD output">
-          <field name="path" value="${prd_output.dispatch_plan_path}"/>
-          <field name="output" var="dispatch_plan"/>
-        </block>
-
-        <!-- Phase 5.2: Initialize Dispatch Progress -->
-        <block type="task" id="P5-B2" action="run-script" status="pending" desc="Initialize DISPATCH-PROGRESS.json">
-          <field name="command">node ${update_progress_script} init --file ${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json --stage sub_prd_dispatch --tasks-file ${iteration_path}/01.product-requirement/.tasks-temp.json</field>
-        </block>
-
-        <!-- Phase 5.3: Dispatch Workers in Batches -->
-        <block type="loop" id="P5-L1" mode="batch" batch_size="5" desc="Dispatch workers for each module">
-          <field name="items" value="${dispatch_plan.modules}"/>
-          
-          <block type="task" id="P5-B3" action="dispatch-to-worker" status="pending" desc="Dispatch Sub-PRD worker">
-            <field name="agent">speccrew-task-worker</field>
-            <field name="skill">speccrew-pm-sub-prd-generate</field>
-            <field name="context">
-              module_id: ${item.module_id}
-              module_name: ${item.module_name}
-              module_key: ${item.module_key}
-              module_scope: ${item.module_scope}
-              module_entities: ${item.module_entities}
-              module_user_stories: ${item.module_user_stories}
-              module_requirements: ${item.module_requirements}
-              module_features: ${item.module_features}
-              module_dependencies: ${item.module_dependencies}
-              master_prd_path: ${prd_output.master_prd_path}
-              clarification_file: ${iteration_path}/01.product-requirement/.clarification-summary.md
-              module_design_file: ${iteration_path}/01.product-requirement/.module-design.md
-              feature_name: ${dispatch_plan.feature_name}
-              template_path: ${dispatch_plan.template_path}
-              output_path: ${dispatch_plan.output_dir}/${dispatch_plan.feature_name}-sub-${item.module_key}.md
-              language: ${language}
-            </field>
-          </block>
-
-          <block type="task" id="P5-B4" action="run-script" status="pending" desc="Update worker progress">
-            <field name="command">node ${update_progress_script} update-task --file ${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json --task-id ${item.module_key} --status ${worker_status}</field>
-          </block>
-        </block>
-
-        <!-- Phase 5.4: Handle Failures & Retry -->
-        <block type="task" id="P5-B5" action="run-script" status="pending" desc="Check for failed tasks">
-          <field name="command">node ${update_progress_script} read --file ${iteration_path}/01.product-requirement/DISPATCH-PROGRESS.json</field>
-          <field name="output" var="final_progress"/>
-        </block>
-
-        <block type="gateway" id="P5-G2" mode="exclusive" desc="Check for failures">
-          <branch test="${final_progress.failed_count} > 0" name="Has Failures">
-            <block type="event" id="P5-E2" action="log" desc="Report failed modules">
-              <field name="template">failed-modules</field>
-              <field name="data" value="${final_progress.failed_tasks}"/>
-            </block>
-            <!-- Single retry for failed modules -->
-            <block type="event" id="P5-E3" action="confirm" desc="Ask user for retry or skip">
-              <field name="prompt">Some modules failed. Retry failed modules, Skip and continue, or Abort?</field>
-            </block>
-          </branch>
-          <branch default="true" name="All Success"/>
-        </block>
-
-        <!-- Phase 5.5: Collect Results & Verify -->
-        <block type="task" id="P5-B6" action="run-script" status="pending" desc="Update checkpoint">
-          <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --checkpoint sub_prd_dispatch --status passed</field>
-        </block>
-      </branch>
-    </block>
-  </sequence>
+  <block type="task" id="P5" action="dispatch-to-worker" desc="Phase 5: Sub-PRD dispatch">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-phase5-subprd-dispatch</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "update_progress_script": "${phase0_result.update_progress_script}",
+      "master_prd_path": "${phase4b_result.master_prd_path}",
+      "dispatch_plan_path": "${phase4b_result.dispatch_plan_path}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase5_result"/>
+  </block>
 
   <!-- ========== Phase 6: Verification & Confirmation ========== -->
-  <sequence name="Phase 6: Verification & Confirmation">
-    
-    <block type="rule" id="P6-R1" level="mandatory" desc="Phase 6 Structure Rules">
-      <field name="text">Phase 6 MUST execute in order: 6.1 (Verification) → 6.2 (User Review) → 6.3 (Finalize)</field>
-      <field name="text">Gate 6.1→6.2: Automatic after checklist passes</field>
-      <field name="text">Gate 6.2→6.3: REQUIRES EXPLICIT USER CONFIRMATION - no auto-proceed</field>
-      <field name="text">DO NOT update checkpoints (verification_checklist, prd_review) before user confirmation</field>
-      <field name="text">DO NOT update WORKFLOW-PROGRESS.json to completed before user confirmation</field>
-    </block>
-
-    <!-- Phase 6.1: Verification Checklist -->
-    <block type="task" id="P6-B1" action="verify-checklist" status="pending" desc="Run verification checklist">
-      <field name="iteration_path" value="${iteration_path}"/>
-      <field name="complexity" value="${complexity}"/>
-      <field name="output" var="verification_result"/>
-    </block>
-
-    <block type="gateway" id="P6-G1" mode="exclusive" desc="Check verification result">
-      <branch test="${verification_result.passed} == false" name="Verification Failed">
-        <block type="event" id="P6-E1" action="confirm" desc="Report violations">
-          <field name="prompt">Verification failed. Issues found: ${verification_result.issues}. Proceed anyway, Regenerate, or Abort?</field>
-        </block>
-      </branch>
-      <branch default="true" name="Verification Passed"/>
-    </block>
-
-    <!-- Phase 6.2: Present for User Review (HARD STOP) -->
-    <block type="checkpoint" id="P6-CP1" name="user_review" desc="User review gate">
-      <field name="required" value="true"/>
-    </block>
-
-    <block type="event" id="P6-E2" action="confirm" desc="Present PRD documents for user review">
-      <field name="prompt">📋 PRD Documents Ready for Review. Please review and confirm. Reply "确认" or "OK" to proceed.</field>
-      <field name="template">prd-review-summary</field>
-      <field name="data" value="${prd_output}"/>
-    </block>
-
-    <!-- Phase 6.3: Finalize (ONLY after user confirms) -->
-    <block type="rule" id="P6-R2" level="mandatory" desc="Phase 6.3 Prerequisite">
-      <field name="text">Phase 6.3 can ONLY execute AFTER user has explicitly confirmed in Phase 6.2</field>
-      <field name="text">IF user has NOT confirmed → DO NOT execute any step below</field>
-    </block>
-
-    <block type="task" id="P6-B2" action="run-script" status="pending" desc="Update verification checkpoint">
-      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint verification_checklist --passed true</field>
-    </block>
-
-    <block type="task" id="P6-B3" action="run-script" status="pending" desc="Update PRD review checkpoint">
-      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint prd_review --passed true</field>
-    </block>
-
-    <block type="task" id="P6-B4" action="run-script" status="pending" desc="Update workflow status to completed">
-      <field name="command">node ${update_progress_script} update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 01_prd --status completed</field>
-    </block>
-
-    <block type="task" id="P6-B5" action="run-script" status="pending" desc="Update workflow status to confirmed">
-      <field name="command">node ${update_progress_script} update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 01_prd --status confirmed</field>
-    </block>
-
-    <block type="task" id="P6-B6" action="update-status" status="pending" desc="Update PRD document status">
-      <field name="files" value="${prd_output.all_prd_files}"/>
-      <field name="from" value="📝 Draft"/>
-      <field name="to" value="✅ Confirmed"/>
-    </block>
-
-    <!-- Phase 6 Cleanup -->
-    <block type="task" id="P6-B7" action="run-script" status="pending" desc="Cleanup intermediate files">
-      <field name="command">Remove-Item ${iteration_path}/01.product-requirement/.checkpoints.json -ErrorAction SilentlyContinue; Remove-Item ${iteration_path}/01.product-requirement/.prd-generation-report.md -ErrorAction SilentlyContinue; Remove-Item ${iteration_path}/01.product-requirement/.sub-prd-dispatch-plan.json -ErrorAction SilentlyContinue</field>
-    </block>
-
-    <block type="event" id="P6-E3" action="log" desc="Output completion message">
-      <field name="template">prd-completion</field>
-      <field name="message">✅ PRD Stage Complete. All documents confirmed. Ready for Feature Design phase.</field>
-    </block>
-  </sequence>
+  <block type="task" id="P6" action="dispatch-to-worker" desc="Phase 6: Verify and confirm">
+    <field name="worker">speccrew-task-worker</field>
+    <field name="skill">speccrew-pm-phase6-verify-confirm</field>
+    <field name="context">{
+      "workspace_path": "${phase0_result.workspace_path}",
+      "iteration_path": "${phase0_result.iteration_path}",
+      "update_progress_script": "${phase0_result.update_progress_script}",
+      "complexity": "${phase2_result.complexity}",
+      "prd_output": "${phase4_result}",
+      "language": "${language}"
+    }</field>
+    <field name="output" var="phase6_result"/>
+  </block>
 
   <!-- ========== Output ========== -->
   <block type="output" id="O1" desc="PM Orchestration execution result">
-    <field name="status" from="${execution.status}" type="string" desc="success / partial / failed"/>
-    <field name="prd_files" from="${prd_output.all_prd_files}" type="array" desc="Generated PRD file list"/>
-    <field name="feature_list" from="${iteration_path}/01.product-requirement/.prd-feature-list.json" type="string" desc="Feature list file path"/>
+    <field name="status" from="${phase6_result.status}" type="string" desc="success / partial / failed"/>
+    <field name="prd_files" from="${phase6_result.prd_files}" type="array" desc="Generated PRD file list"/>
+    <field name="feature_list" from="${phase6_result.feature_list}" type="string" desc="Feature list file path"/>
     <field name="workflow_stage" from="01_prd" type="string" desc="Current workflow stage"/>
     <field name="next_agent" value="speccrew-feature-designer" type="string" desc="Suggested next agent"/>
   </block>
+
 </workflow>

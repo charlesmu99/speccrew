@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="pm-phase6-verify-confirm" status="pending">
+
+  <!-- ========== Input Parameters ========== -->
+  <block type="input" id="I1" desc="Phase 6 Verification Input">
+    <field name="iteration_path" required="true" type="string" desc="Path to iteration directory"/>
+    <field name="complexity" required="true" type="string" desc="simple or complex"/>
+    <field name="prd_output" required="true" type="object" desc="PRD generation output with file paths"/>
+    <field name="dispatch_plan" required="false" type="object" desc="Dispatch plan for complex path"/>
+    <field name="update_progress_script" required="true" type="string" desc="Path to update-progress.js"/>
+    <field name="language" required="false" type="string" desc="User language"/>
+  </block>
+
+  <!-- ========== Phase 6 Mandatory Rules ========== -->
+  <block type="rule" id="P6-R0" level="mandatory" desc="Phase 6 Structure Rules">
+    <field name="text">Phase 6 MUST execute in order: 6.1 (Verification) → 6.2 (User Review) → 6.3 (Finalize)</field>
+    <field name="text">Gate 6.1→6.2: Automatic after checklist passes</field>
+    <field name="text">Gate 6.2→6.3: REQUIRES EXPLICIT USER CONFIRMATION - no auto-proceed</field>
+    <field name="text">DO NOT update checkpoints before user confirmation</field>
+    <field name="text">DO NOT update WORKFLOW-PROGRESS.json to completed before user confirmation</field>
+    <field name="text">DO NOT assume user silence means confirmation</field>
+  </block>
+
+  <!-- ========== Step 6.1: File Integrity Verification ========== -->
+  <sequence name="Step 6.1: File Integrity Verification">
+    
+    <!-- 6.1.1: Verify Master PRD -->
+    <block type="task" id="P6-1-B1" action="validate-file" status="pending" desc="Verify Master PRD exists and size > 1KB">
+      <field name="path" value="${prd_output.master_prd_path}"/>
+      <field name="min_size" value="1024"/>
+      <field name="output" var="master_prd_valid"/>
+      <!-- HTML Comment: Check Master PRD file existence and minimum size threshold -->
+    </block>
+
+    <!-- 6.1.2: Verify Sub-PRD Files (Complex Path) -->
+    <block type="gateway" id="P6-1-G1" mode="exclusive" desc="Check complexity for Sub-PRD verification">
+      <branch test="${complexity} == 'complex'" name="Complex Path - Verify Sub-PRDs">
+        
+        <block type="task" id="P6-1-B2" action="read-json" status="pending" desc="Read dispatch plan for module count">
+          <field name="path" value="${prd_output.dispatch_plan_path}"/>
+          <field name="output" var="dispatch_plan_data"/>
+          <!-- HTML Comment: Load dispatch plan to get expected module count -->
+        </block>
+
+        <block type="task" id="P6-1-B3" action="glob-files" status="pending" desc="Scan all Sub-PRD files">
+          <field name="pattern" value="${iteration_path}/01.product-requirement/*-sub-*.md"/>
+          <field name="output" var="sub_prd_files"/>
+          <!-- HTML Comment: Find all Sub-PRD files matching pattern -->
+        </block>
+
+        <block type="task" id="P6-1-B4" action="compare-counts" status="pending" desc="Verify Sub-PRD count matches dispatch plan">
+          <field name="expected_count" value="${dispatch_plan_data.module_count}"/>
+          <field name="actual_count" value="${sub_prd_files.length}"/>
+          <field name="output" var="sub_prd_count_match"/>
+          <!-- HTML Comment: Ensure no modules were skipped during dispatch -->
+        </block>
+
+        <block type="task" id="P6-1-B5" action="validate-files" status="pending" desc="Verify each Sub-PRD exists">
+          <field name="files" value="${sub_prd_files}"/>
+          <field name="output" var="sub_prd_validation"/>
+          <!-- HTML Comment: Confirm each Sub-PRD file exists and is readable -->
+        </block>
+
+      </branch>
+      <branch test="${complexity} == 'simple'" name="Simple Path - Skip Sub-PRD Check">
+        <block type="set-variable" id="P6-1-V1" name="sub_prd_count_match" value="true"/>
+        <block type="set-variable" id="P6-1-V2" name="sub_prd_validation" value="{passed: true}"/>
+      </branch>
+    </block>
+
+    <!-- 6.1.3: Verify Clarification Summary -->
+    <block type="task" id="P6-1-B6" action="validate-file" status="pending" desc="Verify .clarification-summary.md exists">
+      <field name="path" value="${iteration_path}/01.product-requirement/.clarification-summary.md"/>
+      <field name="min_size" value="100"/>
+      <field name="output" var="clarification_summary_valid"/>
+      <!-- HTML Comment: Ensure clarification output exists for traceability -->
+    </block>
+
+    <!-- 6.1.4: Verify Module Design (Complex Path) -->
+    <block type="gateway" id="P6-1-G2" mode="exclusive" desc="Check if module design required">
+      <branch test="${complexity} == 'complex'" name="Complex Path - Verify Module Design">
+        <block type="task" id="P6-1-B7" action="validate-file" status="pending" desc="Verify .module-design.md exists">
+          <field name="path" value="${iteration_path}/01.product-requirement/.module-design.md"/>
+          <field name="min_size" value="512"/>
+          <field name="output" var="module_design_valid"/>
+          <!-- HTML Comment: Module design is required for complex path traceability -->
+        </block>
+      </branch>
+      <branch test="${complexity} == 'simple'" name="Simple Path - Skip Module Design">
+        <block type="set-variable" id="P6-1-V3" name="module_design_valid" value="true"/>
+      </branch>
+    </block>
+
+    <!-- 6.1.5: Gateway - Report Missing Items -->
+    <block type="gateway" id="P6-1-G3" mode="exclusive" desc="Check file verification results">
+      <branch test="${master_prd_valid} == false OR ${sub_prd_count_match} == false OR ${clarification_summary_valid} == false" name="File Verification Failed">
+        <block type="event" id="P6-1-E1" action="log" desc="Report missing items">
+          <field name="template">file-verification-failed</field>
+          <field name="data">
+            master_prd_valid: ${master_prd_valid}
+            sub_prd_count_match: ${sub_prd_count_match}
+            clarification_summary_valid: ${clarification_summary_valid}
+            module_design_valid: ${module_design_valid}
+          </field>
+          <!-- HTML Comment: Report all missing files before proceeding -->
+        </block>
+        <block type="output" id="P6-1-O1" desc="Return failure">
+          <field name="status" value="failed"/>
+          <field name="reason" value="file_verification_failed"/>
+          <field name="missing_items" value="${verification_missing_items}"/>
+        </block>
+      </branch>
+      <branch default="true" name="File Verification Passed">
+        <block type="event" id="P6-1-E2" action="log" desc="Log verification success">
+          <field name="message">✅ File integrity verification passed</field>
+        </block>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 6.2: Feature List Completeness Verification ========== -->
+  <sequence name="Step 6.2: Feature List Completeness Verification">
+    
+    <!-- 6.2.1: Read Master PRD Feature List -->
+    <block type="task" id="P6-2-B1" action="read-section" status="pending" desc="Read Master PRD feature list">
+      <field name="path" value="${prd_output.master_prd_path}"/>
+      <field name="section" value="3.4"/>
+      <field name="output" var="master_feature_list"/>
+      <!-- HTML Comment: Extract feature breakdown section from Master PRD -->
+    </block>
+
+    <!-- 6.2.2: Scan Sub-PRD Features (Complex Path) -->
+    <block type="gateway" id="P6-2-G1" mode="exclusive" desc="Check complexity for feature scan">
+      <branch test="${complexity} == 'complex'" name="Complex Path - Scan Sub-PRDs">
+        
+        <block type="task" id="P6-2-B2" action="scan-features" status="pending" desc="Scan all Sub-PRD features">
+          <field name="files" value="${sub_prd_files}"/>
+          <field name="output" var="sub_prd_features"/>
+          <!-- HTML Comment: Collect all features from Sub-PRD Section 3.4 -->
+        </block>
+
+        <!-- 6.2.3: Compare Features -->
+        <block type="task" id="P6-2-B3" action="compare-features" status="pending" desc="Compare features for completeness">
+          <field name="master_features" value="${master_feature_list}"/>
+          <field name="sub_features" value="${sub_prd_features}"/>
+          <field name="output" var="feature_comparison"/>
+          <!-- HTML Comment: Verify no missing or duplicate features -->
+        </block>
+
+      </branch>
+      <branch test="${complexity} == 'simple'" name="Simple Path - Skip Feature Comparison">
+        <block type="set-variable" id="P6-2-V1" name="feature_comparison" value="{complete: true, missing: [], duplicates: []}"/>
+      </branch>
+    </block>
+
+    <!-- 6.2.4: Gateway - Report Feature Discrepancies -->
+    <block type="gateway" id="P6-2-G2" mode="exclusive" desc="Check feature completeness">
+      <branch test="${feature_comparison.complete} == false" name="Feature Incomplete">
+        <block type="event" id="P6-2-E1" action="log" desc="Report feature discrepancies">
+          <field name="template">feature-discrepancy</field>
+          <field name="data" value="${feature_comparison}"/>
+          <!-- HTML Comment: Report missing or duplicate features -->
+        </block>
+        <block type="event" id="P6-2-E2" action="confirm" desc="Ask user to proceed or regenerate">
+          <field name="prompt">Feature list incomplete. Missing: ${feature_comparison.missing}. Duplicates: ${feature_comparison.duplicates}. Proceed anyway, Regenerate affected PRD, or Abort?</field>
+        </block>
+      </branch>
+      <branch default="true" name="Feature Complete">
+        <block type="event" id="P6-2-E3" action="log" desc="Log feature verification success">
+          <field name="message">✅ Feature list completeness verified</field>
+        </block>
+      </branch>
+    </block>
+
+    <!-- Aggregate verification result -->
+    <block type="task" id="P6-2-B4" action="aggregate-result" status="pending" desc="Aggregate all verification results">
+      <field name="output" var="verification_result"/>
+      <field name="data">
+        file_integrity: passed
+        feature_completeness: passed
+        master_prd_path: ${prd_output.master_prd_path}
+        sub_prd_count: ${sub_prd_files.length}
+        total_features: ${feature_comparison.total_count}
+      </field>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 6.3: User Review (MANDATORY) ========== -->
+  <sequence name="Step 6.3: User Review">
+    
+    <!-- MANDATORY Rule: No auto-confirmation -->
+    <block type="rule" id="P6-3-R1" level="mandatory" desc="User Confirmation MANDATORY">
+      <field name="text">🛑 FORBIDDEN: DO NOT mark user confirmation yourself</field>
+      <field name="text">🛑 FORBIDDEN: DO NOT proceed without explicit user "确认" or "OK"</field>
+      <field name="text">🛑 FORBIDDEN: DO NOT assume user silence means confirmation</field>
+      <field name="text">🛑 FORBIDDEN: DO NOT auto-proceed to Phase 6.4</field>
+    </block>
+
+    <!-- Present Verification Summary -->
+    <block type="task" id="P6-3-B1" action="prepare-summary" status="pending" desc="Prepare verification summary for user">
+      <field name="output" var="review_summary"/>
+      <field name="data">
+        verification_result: ${verification_result}
+        prd_files: ${prd_output.all_prd_files}
+        sub_prd_files: ${sub_prd_files}
+        total_size: ${prd_output.total_size}
+      </field>
+      <!-- HTML Comment: Prepare comprehensive summary for user review -->
+    </block>
+
+    <!-- MANDATORY User Confirmation Event -->
+    <block type="checkpoint" id="P6-3-CP1" name="user_review" desc="User review gate - MANDATORY">
+      <field name="required" value="true"/>
+    </block>
+
+    <block type="event" id="P6-3-E1" action="user-confirm" desc="Present summary and await user confirmation">
+      <field name="prompt">
+📋 PRD Documents Ready for Review
+
+Generated Files:
+├── Master PRD: ${prd_output.master_prd_path} (${prd_output.master_prd_size} KB)
+├── Sub-PRD Files: ${sub_prd_files.length} files
+└── Total Size: ${prd_output.total_size} KB
+
+Verification Results:
+├── File existence: ✅ All files present
+├── Size validation: ✅ All files valid
+├── Feature Breakdown: ✅ All sections present
+└── Content Boundary: ✅ No violations detected
+
+Document Status: 📝 Draft (pending your confirmation)
+
+🛑 AWAITING USER CONFIRMATION
+
+请审查以上PRD文档。确认无误后我将更新状态为 Confirmed。是否确认？
+
+您可以回复：
+- "确认" 或 "OK" → 进入 Step 6.4 完成最终状态更新
+- "需要修改" + 具体内容 → 返回相应阶段重新生成
+- "取消" → 终止当前工作流
+
+**I will NOT proceed until you explicitly confirm.**
+      </field>
+      <field name="template">prd-review-summary</field>
+      <field name="data" value="${review_summary}"/>
+      <!-- HTML Comment: MANDATORY - Must wait for explicit user confirmation -->
+    </block>
+
+    <!-- Gateway: Handle User Response -->
+    <block type="gateway" id="P6-3-G1" mode="exclusive" desc="Process user response">
+      <branch test="${user_response} == 'confirm'" name="User Confirmed">
+        <block type="set-variable" id="P6-3-V1" name="user_confirmed" value="true"/>
+        <block type="event" id="P6-3-E2" action="log" desc="Log user confirmation">
+          <field name="message">✅ User confirmed - proceeding to finalization</field>
+        </block>
+      </branch>
+      <branch test="${user_response} == 'modify'" name="User Requests Modification">
+        <block type="event" id="P6-3-E3" action="log" desc="Log modification request">
+          <field name="message">📝 User requested modifications: ${modification_details}</field>
+        </block>
+        <block type="output" id="P6-3-O1" desc="Return modification request">
+          <field name="status" value="modification_required"/>
+          <field name="modification_details" value="${modification_details}"/>
+          <field name="suggested_phase" value="${suggested_return_phase}"/>
+        </block>
+      </branch>
+      <branch test="${user_response} == 'cancel'" name="User Cancelled">
+        <block type="output" id="P6-3-O2" desc="Return cancelled">
+          <field name="status" value="cancelled"/>
+          <field name="reason" value="user_cancelled"/>
+        </block>
+      </branch>
+    </block>
+  </sequence>
+
+  <!-- ========== Step 6.4: Finalization ========== -->
+  <sequence name="Step 6.4: Finalization">
+    
+    <!-- Prerequisite Check -->
+    <block type="rule" id="P6-4-R1" level="mandatory" desc="Phase 6.4 Prerequisite">
+      <field name="text">⚠️ Phase 6.4 can ONLY execute AFTER user has explicitly confirmed in Step 6.3</field>
+      <field name="text">IF user has NOT confirmed → DO NOT execute any step below</field>
+      <field name="text">IF you are unsure whether user confirmed → DO NOT execute any step below</field>
+    </block>
+
+    <block type="gateway" id="P6-4-G0" mode="exclusive" desc="Verify user confirmation">
+      <branch test="${user_confirmed} != true" name="No User Confirmation">
+        <block type="event" id="P6-4-E0" action="log" desc="Block execution">
+          <field name="message">🛑 BLOCKED: User has not explicitly confirmed. Return to Step 6.3.</field>
+        </block>
+        <block type="goto" id="P6-4-GOTO1" target="P6-3-E1"/>
+      </branch>
+      <branch default="true" name="User Confirmed - Proceed"/>
+    </block>
+
+    <!-- 6.4.1: Update verification_checklist checkpoint -->
+    <block type="task" id="P6-4-B1" action="run-script" status="pending" desc="Update verification_checklist checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint verification_checklist --passed true</field>
+      <!-- HTML Comment: Mark verification checklist as passed via script -->
+    </block>
+
+    <!-- 6.4.2: Update prd_review checkpoint -->
+    <block type="task" id="P6-4-B2" action="run-script" status="pending" desc="Update prd_review checkpoint">
+      <field name="command">node ${update_progress_script} write-checkpoint --file ${iteration_path}/01.product-requirement/.checkpoints.json --stage 01_prd --checkpoint prd_review --passed true</field>
+      <!-- HTML Comment: Mark PRD review as passed via script -->
+    </block>
+
+    <!-- 6.4.3: Update WORKFLOW-PROGRESS.json to completed -->
+    <block type="task" id="P6-4-B3" action="run-script" status="pending" desc="Update workflow status to completed">
+      <field name="command">node ${update_progress_script} update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 01_prd --status completed</field>
+      <!-- HTML Comment: Set workflow stage to completed via script -->
+    </block>
+
+    <!-- 6.4.4: Update WORKFLOW-PROGRESS.json to confirmed -->
+    <block type="task" id="P6-4-B4" action="run-script" status="pending" desc="Update workflow status to confirmed">
+      <field name="command">node ${update_progress_script} update-workflow --file ${iteration_path}/WORKFLOW-PROGRESS.json --stage 01_prd --status confirmed</field>
+      <!-- HTML Comment: Set workflow stage to confirmed via script -->
+    </block>
+
+    <!-- 6.4.5: Update PRD document status -->
+    <block type="task" id="P6-4-B5" action="update-status" status="pending" desc="Update PRD document status to Confirmed">
+      <field name="files" value="${prd_output.all_prd_files}"/>
+      <field name="from" value="📝 Draft"/>
+      <field name="to" value="✅ Confirmed"/>
+      <!-- HTML Comment: Change document status marker in all PRD files -->
+    </block>
+
+    <!-- 6.4.6: Cleanup intermediate files -->
+    <block type="task" id="P6-4-B6" action="run-script" status="pending" desc="Cleanup intermediate files">
+      <field name="command">Remove-Item ${iteration_path}/01.product-requirement/.checkpoints.json -ErrorAction SilentlyContinue; Remove-Item ${iteration_path}/01.product-requirement/.prd-generation-report.md -ErrorAction SilentlyContinue; Remove-Item ${iteration_path}/01.product-requirement/.prd-completion-report.md -ErrorAction SilentlyContinue; Remove-Item ${iteration_path}/01.product-requirement/.sub-prd-dispatch-plan.json -ErrorAction SilentlyContinue</field>
+      <!-- HTML Comment: Delete intermediate process files, keep PRD documents and clarification files -->
+    </block>
+
+    <!-- Files to KEEP (documented for reference):
+      - Master PRD and all Sub-PRD documents (*-prd.md, *-sub-*.md)
+      - .clarification-summary.md
+      - .module-design.md (complex path)
+      - .prd-feature-list.json (for Feature Design phase)
+    -->
+
+    <!-- 6.4.7: Output completion report -->
+    <block type="event" id="P6-4-E1" action="log" desc="Output final completion report">
+      <field name="message">
+✅ PRD Stage Complete
+
+All documents confirmed:
+├── Master PRD: ✅ Confirmed
+├── Sub-PRD Files: ${sub_prd_files.length} confirmed
+└── Feature Count: ${feature_comparison.total_count}
+
+Files Kept:
+├── Master PRD: ${prd_output.master_prd_path}
+├── Sub-PRDs: ${sub_prd_files.length} files in 01.product-requirement/
+├── Clarification Summary: .clarification-summary.md
+└── Feature List: .prd-feature-list.json
+
+Intermediate files cleaned up.
+
+Next Steps:
+When you are ready to proceed with Feature Design, start a new conversation
+and invoke the Feature Designer Agent (speccrew-feature-designer).
+
+DO NOT proceed to Feature Design in this conversation.
+      </field>
+      <field name="template">prd-completion</field>
+    </block>
+  </sequence>
+
+  <!-- ========== Output ========== -->
+  <block type="output" id="O1" desc="Phase 6 Verification & Confirmation Result">
+    <field name="verification_result" from="${verification_result}" type="object" desc="File and feature verification results"/>
+    <field name="user_confirmed" from="${user_confirmed}" type="boolean" desc="Whether user explicitly confirmed"/>
+    <field name="deliverables_summary" from="${review_summary}" type="object" desc="Summary of all delivered documents"/>
+    <field name="status" value="success" type="string" desc="Workflow execution status"/>
+    <field name="prd_files" from="${prd_output.all_prd_files}" type="array" desc="All PRD file paths"/>
+    <field name="feature_list_path" from="${iteration_path}/01.product-requirement/.prd-feature-list.json" type="string" desc="Feature list file for downstream phases"/>
+  </block>
+
+</workflow>

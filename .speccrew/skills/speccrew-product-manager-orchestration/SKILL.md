@@ -1,7 +1,7 @@
 ---
 name: speccrew-product-manager-orchestration
-version: 1.0.0
-description: Product Manager 的核心编排技能，负责需求澄清、复杂度评估、PRD 生成协调与验证。处理简单需求（单 PRD）和复杂需求（Master-Sub PRD）两种工作流路径。
+version: 2.0.0
+description: Product Manager 核心编排技能（纯路由层 v2.0），负责工作流恢复路由和各 Phase Skill 的 dispatch-to-worker 调度。所有业务逻辑由独立的 Phase Skill 执行。
 tools: Read, Write, Glob, Grep, Bash, Agent
 ---
 
@@ -23,41 +23,82 @@ tools: Read, Write, Glob, Grep, Bash, Agent
 > - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker`
 > - `action="read-file"` → Read via **Read tool**
 > - `action="log"` → Output message directly
-> - `action="confirm"` → Present to user and wait for response
+> - `action="user-confirm"` → Present to user and wait for EXPLICIT confirmation (NON-SKIPPABLE)
 >
 > **CRITICAL DISPATCH RULE:**
 > - PM Agent (Team Leader) MUST NOT execute Skills directly
 > - ALL Skill executions MUST go through `dispatch-to-worker` action
 > - Worker Agent (`speccrew-task-worker`) receives the Skill name and context, then executes the Skill
 >
-> **Step 3**: Execute ALL blocks sequentially without pausing (only stop at explicit `<event action="confirm">` blocks)
+> **Step 3**: Execute ALL blocks sequentially without pausing (only stop at explicit `<event action="user-confirm">` blocks)
 
-# Product Manager Orchestration
+# Product Manager Orchestration (v2.0)
 
-Product Manager 的核心编排技能，负责：
+纯路由层编排技能，负责：
 
-1. **Pipeline Progress Management** - 创建/定位迭代目录，管理工作流进度
-2. **Knowledge Base Detection** - 检测知识库状态并按需初始化
-3. **Complexity Assessment** - 评估需求复杂度，决定简单/复杂路径
-4. **Requirement Clarification** - 分发 Worker 执行澄清技能，收集需求细节
-5. **PRD Generation Orchestration** - 协调 PRD 生成（所有 Skill 通过 Worker 分发执行）
-6. **Verification & Confirmation** - 验证 PRD 完整性，等待用户确认
+1. **Workflow Initialization** - Phase 0 初始化并返回恢复目标
+2. **Resume Routing** - 根据 `resume_target` 跳转到正确的 Phase
+3. **Phase Dispatch** - 每个 Phase 只有一个 `dispatch-to-worker` 调用
+4. **User Confirmation Gates** - Phase 3 和 Phase 4a 的强制性用户确认门禁
 
-**DISPATCH-TO-WORKER ARCHITECTURE:**
+## Architecture: Pure Routing Layer
 
-PM Agent 作为 Team Leader，不直接执行任何 Skill。所有 Skill 调用都通过 `dispatch-to-worker` 模式：
+本 Skill 是**纯路由层**，所有业务逻辑由独立的 Phase Skill 执行：
 
-| Phase | Action | Skill | Worker |
-|-------|--------|-------|--------|
-| Phase 1 | `dispatch-to-worker` | `speccrew-pm-knowledge-detector` | `speccrew-task-worker` |
-| Phase 1 | `dispatch-to-worker` | `speccrew-pm-system-summary-reader` | `speccrew-task-worker` |
-| Phase 1 | `dispatch-to-worker` | `speccrew-pm-module-matcher` | `speccrew-task-worker` |
-| Phase 1 | `dispatch-to-worker` | `speccrew-knowledge-bizs-init-features` | `speccrew-task-worker` |
-| Phase 3 | `dispatch-to-worker` | `speccrew-pm-requirement-clarify` | `speccrew-task-worker` |
-| Phase 4a | `dispatch-to-worker` | `speccrew-pm-requirement-model` | `speccrew-task-worker` |
-| Phase 4b | `dispatch-to-worker` | `speccrew-pm-requirement-analysis` | `speccrew-task-worker` |
-| Phase 4 (Simple) | `dispatch-to-worker` | `speccrew-pm-requirement-simple` | `speccrew-task-worker` |
-| Phase 5 | `dispatch-to-worker` | `speccrew-pm-sub-prd-generate` | `speccrew-task-worker` |
+| Phase | Block ID | Skill | Purpose |
+|-------|----------|-------|---------|
+| Phase 0 | P0 | `speccrew-pm-phase0-init` | 工作流初始化、迭代目录创建/定位、恢复状态检测 |
+| Phase 1 | P1 | `speccrew-pm-phase1-knowledge-check` | 知识库状态检测、模块匹配、知识初始化 |
+| Phase 2 | P2 | `speccrew-pm-phase2-complexity-assess` | 复杂度评估、简单/复杂路径决策 |
+| Phase 3 | P3 | `speccrew-pm-requirement-clarify` | 需求澄清、问答收集 |
+| Phase 4 Simple | P4-SIMPLE | `speccrew-pm-requirement-simple` | 简单需求：单 PRD 生成 |
+| Phase 4a | P4A | `speccrew-pm-requirement-model` | 复杂需求：ISA-95 建模 |
+| Phase 4b | P4B | `speccrew-pm-requirement-analysis` | 复杂需求：Master PRD 生成 |
+| Phase 5 | P5 | `speccrew-pm-phase5-subprd-dispatch` | Sub-PRD Worker 分发 |
+| Phase 6 | P6 | `speccrew-pm-phase6-verify-confirm` | 验证清单、用户审核、最终确认 |
+
+## User Confirmation Gates (MANDATORY)
+
+Phase 3 和 Phase 4a 之后有**强制性用户确认门禁**：
+
+### R-CONFIRM Rule Block
+
+```xml
+<block type="rule" id="R-CONFIRM" level="mandatory" desc="User confirmation is MANDATORY">
+  <field name="text">MANDATORY: After each phase completes, you MUST wait for EXPLICIT user confirmation.</field>
+  <field name="text">DO NOT mark checkpoint as passed by yourself. DO NOT skip user confirmation.</field>
+  <field name="text">The checkpoint write-checkpoint command MUST ONLY be executed AFTER user confirms.</field>
+</block>
+```
+
+### user-confirm Event Block
+
+```xml
+<block type="event" id="P3-CONFIRM" action="user-confirm" desc="User confirmation required">
+  <field name="prompt">📋 Phase Complete. Please review and confirm.</field>
+  <field name="skippable" value="false"/>
+</block>
+```
+
+**Key Points:**
+- `action="user-confirm"` — 必须等待用户明确确认
+- `skippable="false"` — 不可跳过
+- checkpoint 写入**必须**在用户确认后执行
+
+## Resume Router
+
+Phase 0 输出 `resume_target` 控制恢复跳转：
+
+| resume_target | Target Block | Description |
+|---------------|--------------|-------------|
+| `PHASE_1_KNOWLEDGE_CHECK` | P1 | 从知识库检查开始 |
+| `PHASE_3_USER_CONFIRMATION` | P3-CONFIRM | 恢复到 Phase 3 确认门禁 |
+| `PHASE_4_PRD_SIMPLE` | P4-SIMPLE | 简单路径 PRD 生成 |
+| `PHASE_4A_MODEL` | P4A | 复杂路径建模 |
+| `PHASE_4A_CONFIRMATION` | P4A-CONFIRM | 恢复到 Phase 4a 确认门禁 |
+| `PHASE_4B_PRD_GENERATION` | P4B | Master PRD 生成 |
+| `PHASE_5_SUBPRD_DISPATCH` | P5 | Sub-PRD 分发 |
+| `PHASE_6_VERIFICATION` | P6 | 验证确认 |
 
 ## Invocation Method
 
@@ -109,23 +150,19 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 
 ### When to Pause (ONLY these cases)
 
-1. CHECKPOINT gates defined in workflow (user confirmation required by design)
+1. **User Confirmation Gates** — `action="user-confirm"` blocks (Phase 3, Phase 4a)
 2. Ambiguous requirements that genuinely need clarification
 3. Unrecoverable errors that prevent further progress
 4. Security-sensitive operations (e.g., deleting existing files)
 
-### Orchestrator Principle
+### Orchestrator Principle (v2.0)
 
-This agent is an **orchestrator/dispatcher**. Key constraints:
+This agent is a **pure router/dispatcher**. Key constraints:
 
 | Phase | Skill | ORCHESTRATOR Rule |
 |-------|-------|-------------------|
-| Phase 3 | `speccrew-pm-requirement-clarify` | DO NOT clarify requirements yourself — Dispatch Worker to execute |
-| Phase 4a | `speccrew-pm-requirement-model` | DO NOT perform ISA-95 analysis yourself — Dispatch Worker to execute |
-| Phase 4a.5 | User Confirmation Gate | MUST stop for user confirmation after module design |
-| Phase 4b | `speccrew-pm-requirement-analysis` | DO NOT generate Master PRD yourself — Dispatch Worker to execute |
-| Phase 5 | `speccrew-pm-sub-prd-generate` | DO NOT generate Sub-PRD yourself — Dispatch Workers to execute |
-| Phase 6 | PM Agent verification | DO NOT modify PRD content — only verify and present |
+| Phase 0 | `speccrew-pm-phase0-init` | Route to correct Phase based on resume_target |
+| Phase 1-6 | All Phase Skills | DO NOT execute logic yourself — Dispatch Worker |
 
 **UNIVERSAL DISPATCH RULE:**
 - PM Agent NEVER invokes Skills directly via `action="run-skill"`
