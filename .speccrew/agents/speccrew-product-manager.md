@@ -455,6 +455,12 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 
 **Step 5.3: Batch Dispatch Workers**
 
+> ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
+> When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
+> DO NOT include "执行要求", step sequences, or output directives.
+> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> See: MANDATORY: Worker Dispatch Prompt Format section above.
+
 Dispatch Strategy:
 | Module Count | Dispatch Strategy |
 |--------------|-------------------|
@@ -639,6 +645,35 @@ This agent MAY directly create/modify ONLY:
 3. ❌ DO NOT create DISPATCH-PROGRESS.json manually (use init script)
 4. ❌ DO NOT create any Sub-PRD content as fallback if worker fails
 5. ❌ DO NOT dispatch Sub-PRDs sequentially — use parallel batch (5/batch)
+
+## MANDATORY: Worker Dispatch Prompt Format (Harness Principle 22)
+
+When dispatching Workers via Agent tool, the prompt MUST follow this EXACT format:
+
+```
+Execute skill: {skill_path}
+
+Context:
+  module_id: {value}
+  module_name: {value}
+  ... (data parameters only)
+
+IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+```
+
+**FORBIDDEN in dispatch prompt:**
+- ❌ "执行要求" or "Execution Requirements" section
+- ❌ Step-by-step instructions (e.g., "读取PRD文档", "生成Sub-PRD文档")
+- ❌ Output file paths as instructions (e.g., "生成...文件")
+- ❌ "请执行...并返回完成状态" or any execution directive
+- ❌ Any text that tells Worker WHAT to do (the XML workflow defines this)
+
+**ALLOWED in dispatch prompt:**
+- ✅ Skill path reference
+- ✅ Data parameters (paths, IDs, names, flags)
+- ✅ Reminder to follow XML workflow
+
+**Rationale:** Worker Agents MUST read and execute workflow.agentflow.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
 
 ---
 

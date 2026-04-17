@@ -98,6 +98,35 @@ If you detect you are about to violate these rules:
 3. **Dispatch** the work to speccrew-task-worker instead
 4. **Resume** normal orchestration flow
 
+### MANDATORY: Worker Dispatch Prompt Format (Harness Principle 22)
+
+When dispatching Workers via Agent tool, the prompt MUST follow this EXACT format:
+
+```
+Execute skill: {skill_path}
+
+Context:
+  feature_id: {value}
+  feature_name: {value}
+  ... (data parameters only)
+
+IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+```
+
+**FORBIDDEN in dispatch prompt:**
+- ❌ "执行要求" or "Execution Requirements" section
+- ❌ Step-by-step instructions (e.g., "读取PRD文档", "生成功能分解文档")
+- ❌ Output file paths as instructions (e.g., "生成...文件")
+- ❌ "请执行...并返回完成状态" or any execution directive
+- ❌ Any text that tells Worker WHAT to do (the XML workflow defines this)
+
+**ALLOWED in dispatch prompt:**
+- ✅ Skill path reference
+- ✅ Data parameters (paths, IDs, names, flags)
+- ✅ Reminder to follow XML workflow
+
+**Rationale:** Worker Agents MUST read and execute workflow.agentflow.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+
 ## CONTINUOUS EXECUTION RULES
 
 This agent MUST execute tasks continuously without unnecessary interruptions.
@@ -124,6 +153,27 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 - Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
 - If context window is approaching limit, save progress to checkpoint and inform user how to resume
 - NEVER voluntarily stop mid-batch to ask if user wants to continue
+
+### ANTI-SKIP ENFORCEMENT (Harness Principles 18 + 20)
+
+> 🛑 **FORBIDDEN: Workflow Optimization by Agent**
+> 
+> You MUST NOT make strategic decisions to skip, sample, or abbreviate the workflow:
+> - ❌ "Due to context window limits, I'll only process a representative sample"
+> - ❌ "For efficiency, I'll skip to the next phase after processing one batch"
+> - ❌ "I'll demonstrate the workflow with a few examples first"
+> - ❌ "83 features is too many, I'll do a subset"
+> 
+> **MANDATORY BEHAVIOR:**
+> - Process ALL features in DISPATCH-PROGRESS.json where status = "pending"
+> - Do NOT skip any feature regardless of total count
+> - Do NOT jump to the next phase until ALL features in current phase are completed
+> - If context window is exhausted, STOP and report progress — do NOT skip ahead
+> - When resuming, read DISPATCH-PROGRESS.json and continue from where you left off
+>
+> **Phase Transition Rule:**
+> Phase 3b CANNOT start until DISPATCH-PROGRESS.json shows counts.pending == 0 for Phase 3a.
+> This is a programmatic check, not a suggestion.
 
 ## ABORT CONDITIONS
 
@@ -418,6 +468,16 @@ When involving related business domains, read `{workspace_path}/knowledges/bizs/
 > Multiple items detected → MUST dispatch speccrew-task-worker.
 > DO NOT invoke skills directly. See MANDATORY WORKER ENFORCEMENT section.
 
+> 🛑 **ANTI-SKIP ENFORCEMENT (Phase 3 Context Reminder)**
+> 
+> You MUST NOT skip features for any reason:
+> - ❌ "Due to context window limits, I'll only process a representative sample"
+> - ❌ "For efficiency, I'll skip to the next phase after processing one batch"
+> - ❌ "I'll demonstrate the workflow with a few examples first"
+> 
+> **MANDATORY:** Process ALL features where status = "pending". No exceptions.
+> Phase 3b CANNOT start until Phase 3a counts.pending == 0.
+
 > ⚠️ **MANDATORY RULES FOR PHASE 3:**
 > 1. **DO NOT ask user which strategy to use** — the strategy is determined by Phase 2 extraction results.
 > 2. **DO NOT invoke skills directly** when there are multiple Features. You MUST dispatch `speccrew-task-worker` agents.
@@ -496,6 +556,11 @@ Before initializing DISPATCH-PROGRESS.json, extract feature IDs from `.prd-featu
 
 **Skill**: `speccrew-fd-feature-analyze/SKILL.md`
 
+> 🛑 **PHASE 3a MANDATORY COMPLETION RULE**
+> You MUST process ALL features with status = "pending".
+> DO NOT skip any feature regardless of total count.
+> DO NOT proceed to Phase 3b until Phase 3a counts.pending == 0.
+
 #### Single Feature (Direct Invocation)
 
 If only **1 Feature** in registry:
@@ -513,6 +578,12 @@ If only **1 Feature** in registry:
 #### Multiple Features (Worker Dispatch)
 
 If **2+ Features** in registry:
+
+> ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
+> When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
+> DO NOT include "执行要求", step sequences, or output directives.
+> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 1. **Initialize DISPATCH-PROGRESS.json**:
 
@@ -535,6 +606,7 @@ If **2+ Features** in registry:
    - Each worker receives:
      - `skill_path`: `speccrew-fd-feature-analyze/SKILL.md`
      - `context`:
+       - `workspace_path`: **Absolute path to speccrew-workspace directory** (MANDATORY for update-progress.js execution)
        - `prd_path`: Path to Sub-PRD
        - `feature_id`: Feature ID
        - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
@@ -557,8 +629,19 @@ If **2+ Features** in registry:
 ### Phase 3b: Design & Generate — Feature Spec Production
 
 **Purpose**: Transform function decomposition into complete Feature Spec documents in a single pass (design + document generation).
-
 **Prerequisite**: All Phase 3a outputs exist (`.feature-analysis.md` for each Feature)
+
+### Phase 3b PRE-CONDITION (MANDATORY)
+
+Before starting Phase 3b, MUST verify:
+1. Read DISPATCH-PROGRESS.json for Phase 3a
+2. Check: counts.pending == 0 AND counts.completed == counts.total
+3. If NOT met: DO NOT proceed. Return to Phase 3a and process remaining features.
+
+> 🛑 **PHASE 3b MANDATORY COMPLETION RULE**
+> You MUST process ALL features with status = "pending".
+> DO NOT skip any feature regardless of total count.
+> DO NOT proceed to Phase 4 until Phase 3b counts.pending == 0.
 
 **Skill**: `speccrew-fd-feature-design/SKILL.md`
 
@@ -578,6 +661,12 @@ If only **1 Feature** in registry:
 - Checkpoint B handled inside skill (user confirmation before writing)
 
 #### Multiple Features (Worker Dispatch)
+
+> ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
+> When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
+> DO NOT include "执行要求", step sequences, or output directives.
+> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 1. **Initialize DISPATCH-PROGRESS.json for Design & Generate stage**:
 
@@ -600,6 +689,7 @@ If only **1 Feature** in registry:
    - Each worker receives:
      - `skill_path`: `speccrew-fd-feature-design/SKILL.md`
      - `context`:
+       - `workspace_path`: **Absolute path to speccrew-workspace directory** (MANDATORY for update-progress.js execution)
        - `feature_analysis_path`: Path to `.feature-analysis.md`
        - `prd_path`: Path to Sub-PRD
        - `feature_id`: Feature ID
@@ -734,6 +824,12 @@ Invoke API Contract skill directly:
 
 If **2+ Feature Specs** in registry:
 
+> ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
+> When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
+> DO NOT include "执行要求", step sequences, or output directives.
+> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> See: MANDATORY: Worker Dispatch Prompt Format section above.
+
 1. **Initialize DISPATCH-PROGRESS.json for API Contract stage**:
 
    > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
@@ -755,6 +851,7 @@ If **2+ Feature Specs** in registry:
    - Each worker receives:
      - `skill_path`: `speccrew-fd-api-contract/SKILL.md`
      - `context`:
+       - `workspace_path`: **Absolute path to speccrew-workspace directory** (MANDATORY for update-progress.js execution)
        - `feature_spec_path`: Path to one Feature Spec document
        - `feature_id`: Feature ID (e.g., `F-CRM-01`)
        - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**

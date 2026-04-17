@@ -228,6 +228,9 @@
           <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
         </block>
 
+        <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
+             DO NOT include execution instructions, step sequences, or output directives.
+             Worker will read skill's workflow.agentflow.xml for execution plan. -->
         <!-- Dispatch Workers in batches of 6 -->
         <block type="loop" id="P3-L1" mode="batch" batch_size="6" desc="Dispatch analyze workers">
           <field name="items" value="${all_features}"/>
@@ -236,6 +239,7 @@
             <field name="agent">speccrew-task-worker</field>
             <field name="skill">speccrew-fd-feature-analyze</field>
             <field name="context">
+              workspace_path: ${workspace_root}
               prd_path: ${item.prd_path}
               feature_id: ${item.feature_id}
               feature_name: ${item.feature_name}
@@ -295,6 +299,9 @@
           <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
         </block>
 
+        <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
+             DO NOT include execution instructions, step sequences, or output directives.
+             Worker will read skill's workflow.agentflow.xml for execution plan. -->
         <!-- Dispatch Workers in batches of 6 -->
         <block type="loop" id="P3-L2" mode="batch" batch_size="6" desc="Dispatch design workers">
           <field name="items" value="${all_features}"/>
@@ -303,6 +310,7 @@
             <field name="agent">speccrew-task-worker</field>
             <field name="skill">speccrew-fd-feature-design</field>
             <field name="context">
+              workspace_path: ${workspace_root}
               feature_analysis_path: ${item.analysis_path}
               prd_path: ${item.prd_path}
               feature_id: ${item.feature_id}
@@ -404,6 +412,9 @@
           <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
         </block>
 
+        <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
+             DO NOT include execution instructions, step sequences, or output directives.
+             Worker will read skill's workflow.agentflow.xml for execution plan. -->
         <!-- Dispatch Workers in batches of 6 -->
         <block type="loop" id="P4-L1" mode="batch" batch_size="6" desc="Dispatch API contract workers">
           <field name="items" value="${all_features}"/>
@@ -412,6 +423,7 @@
             <field name="agent">speccrew-task-worker</field>
             <field name="skill">speccrew-fd-api-contract</field>
             <field name="context">
+              workspace_path: ${workspace_root}
               feature_spec_path: ${item.spec_path}
               feature_id: ${item.feature_id}
               feature_name: ${item.feature_name}
