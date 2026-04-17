@@ -2,15 +2,32 @@
 
 ## Description
 
-PM Phase 5 Sub-PRD Batch Dispatch Skill. Core orchestration component for Master-Sub PRD workflow, executed directly by PM Agent (NOT dispatched to Worker).
+PM Phase 5 Sub-PRD Batch Dispatch Skill. **Orchestration-layer skill** executed directly by PM Agent (NOT dispatched to Worker).
 
-PM Agent loads and executes this skill directly to coordinate batch dispatch of Sub-PRD generation tasks to Worker Agents, implementing:
-- Reading Dispatch Plan from Master PRD
-- Initializing dispatch progress tracking
-- Dispatching Workers in parallel batches for Sub-PRD generation per module
-- Failure retry and result verification
+This is an **orchestration skill** that PM Agent must execute directly:
+- PM Agent reads `workflow.agentflow.xml` and executes each block step-by-step
+- PM Agent uses Agent tool to dispatch Workers for Sub-PRD generation
+- Workers generate Sub-PRD files; PM Agent only coordinates
 
-**CRITICAL**: This skill contains dispatch-to-worker logic internally. It MUST be executed by PM Agent (who has Agent tool access), NOT by a Worker Agent (who cannot create sub-Workers).
+**CRITICAL ARCHITECTURE RULE (Harness Principle 17: Orchestration Layer Separation)**:
+- This skill contains internal `dispatch-to-worker` blocks
+- Workers CANNOT dispatch Workers (execution hierarchy constraint)
+- Therefore, this skill MUST be executed by PM Agent directly
+- PM Agent MUST NOT dispatch this skill to a Worker
+
+**Execution Method**: PM Agent reads `workflow.agentflow.xml` and follows the workflow steps.
+
+## MANDATORY: PM Must Read workflow.agentflow.xml
+
+> 🛑 **BEFORE executing this skill, PM Agent MUST:**
+> 1. Read the `workflow.agentflow.xml` file in this skill directory
+> 2. Parse each block and execute in order
+> 3. Follow the exact workflow steps defined in the XML
+>
+> **FORBIDDEN:**
+> - DO NOT execute this skill without reading the XML workflow
+> - DO NOT skip blocks defined in the XML
+> - DO NOT dispatch this skill to a Worker Agent
 
 ## Input Parameters
 
@@ -69,27 +86,22 @@ PM Agent loads and executes this skill directly to coordinate batch dispatch of 
 ### Step 5.6: User Confirmation
 - [ ] Wait for user confirmation of Sub-PRD generation results
 
-## Key Rules
+## Must Do
 
-### MANDATORY - Worker Dispatch Rules
-- **ONE Worker per Module** - Dispatch one independent Worker per Sub-PRD module
-- **PM Must Not Generate Directly** - PM Agent must NOT directly generate Sub-PRD content
-- **Must Use dispatch-to-worker** - All Workers must be executed via `dispatch-to-worker` action
-- **Direct Skill Invocation Forbidden** - Must NOT directly invoke `speccrew-pm-sub-prd-generate` skill
+- **READ workflow.agentflow.xml FIRST** — PM Agent must parse the XML workflow before any execution
+- **Initialize DISPATCH-PROGRESS.json BEFORE any Worker dispatch** — Use update-progress.js init command
+- **Dispatch one Worker per module** — Use Agent tool to create speccrew-task-worker with speccrew-pm-sub-prd-generate skill
+- **Update progress after each Worker completes** — Use update-progress.js update-task command
+- **Verify all Sub-PRD files exist** — Check file existence and size > 3KB
+- **Update checkpoint via script** — Use update-progress.js write-checkpoint command
 
-### MANDATORY - Batch Processing Rules
-- **Batch Size = 5** - Maximum 5 parallel Workers per batch
-- **Parallel Dispatch** - Workers in the same batch must be dispatched simultaneously
-- **Sequential Wait** - Wait for current batch to complete before dispatching next batch
-- **Progress Update** - Immediately update DISPATCH-PROGRESS.json after each Worker completes
+## Must Not Do
 
-### MANDATORY - Progress Tracking Rules
-- **Script Initialization** - DISPATCH-PROGRESS.json must be created via update-progress.js
-- **Manual Creation Forbidden** - Must NOT create progress files directly via create_file or PowerShell
-- **Idempotent Update** - Use `update-task` command to update individual task status
-
-### FORBIDDEN - Prohibited Actions
-- PM Agent directly generating Sub-PRD files is forbidden
-- Dispatching one Worker to handle multiple modules is forbidden
-- Skipping Worker dispatch as a fallback after failure is forbidden
-- Marking checkpoint as passed before user confirmation is forbidden
+- **DO NOT dispatch this skill to a Worker** — Phase 5 is PM direct execution
+- **DO NOT skip reading workflow.agentflow.xml** — XML workflow is the execution guide
+- **DO NOT dispatch Workers before DISPATCH-PROGRESS.json is initialized** — Progress tracking is mandatory
+- **DO NOT create DISPATCH-PROGRESS.json manually** — Must use update-progress.js script
+- **DO NOT generate Sub-PRD content directly** — Only Workers generate Sub-PRDs
+- **DO NOT skip progress update after Worker completes** — Must call update-task for each completed Worker
+- **DO NOT dispatch one Worker for multiple modules** — One Worker per module
+- **DO NOT proceed to Phase 6 without verifying all Sub-PRDs** — Completion verification is mandatory

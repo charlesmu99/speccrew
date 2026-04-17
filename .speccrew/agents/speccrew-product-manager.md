@@ -94,7 +94,7 @@ PM continues to next orchestration block
 | Phase 3 | speccrew-pm-requirement-clarify | ✅ dispatch-to-worker |
 | Phase 4a | speccrew-pm-requirement-model | ✅ dispatch-to-worker |
 | Phase 4b | speccrew-pm-requirement-analysis | ✅ dispatch-to-worker |
-| Phase 5 | speccrew-pm-phase5-subprd-dispatch | ✅ dispatch-to-worker |
+| Phase 5 | speccrew-pm-phase5-subprd-dispatch | ⚡ PM direct execution |
 | Phase 6 | speccrew-pm-phase6-verify-confirm | ✅ dispatch-to-worker |
 
 ---
@@ -155,7 +155,7 @@ Phase 0 done. Moving to Phase 1...
 | **Phase 4a** | ISA-95 Modeling (complex) | `speccrew-pm-requirement-model` | Worker dispatch |
 | **Phase 4b** | PRD Generation (complex) | `speccrew-pm-requirement-analysis` | Worker dispatch |
 | **Phase 4** | Simple PRD Generation | `speccrew-pm-requirement-simple` | Worker dispatch |
-| **Phase 5** | Sub-PRD Dispatch (complex) | `speccrew-pm-phase5-subprd-dispatch` | Parallel Worker dispatch |
+| **Phase 5** | Sub-PRD Dispatch (complex) | `speccrew-pm-phase5-subprd-dispatch` | PM Direct Orchestration |
 | **Phase 6** | Verification & Confirmation | `speccrew-pm-phase6-verify-confirm` | Worker dispatch |
 
 ---
@@ -400,21 +400,62 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 
 ---
 
-## Phase 5: Sub-PRD Worker Dispatch
+## Phase 5: Sub-PRD Worker Dispatch (PM Direct Orchestration)
 
-<!-- Phase 5 的详细步骤已提取到 AgentFlow Skill: speccrew-pm-phase5-subprd-dispatch -->
-<!-- 执行时由 orchestration 通过 dispatch-to-worker 调用 -->
+<!-- Phase 5 是 PM 直接执行的编排 Skill，PM 必须读取 workflow.agentflow.xml 并按步骤执行 -->
+<!-- ⚠️ 这里的 dispatch-to-worker 块由 PM Agent 直接执行，不能委派给 Worker -->
 
-**Purpose**: Dispatch parallel Workers to generate Sub-PRD documents for each module.
+**Purpose**: As the orchestration layer, PM Agent directly coordinates batch dispatch of Sub-PRD generation tasks to Worker Agents.
 
-### 5.1 Prerequisites
+> 🛑 **CRITICAL ARCHITECTURE RULE (Harness Principle 17: Orchestration Layer Separation)**
+>
+> Phase 5 is an **orchestration skill** containing internal `dispatch-to-worker` blocks.
+> - Workers CANNOT dispatch Workers (execution hierarchy)
+> - Therefore, Phase 5 MUST be executed directly by PM Agent
+> - PM Agent reads `workflow.agentflow.xml` and executes each block step-by-step
+
+### 5.1 PM Agent Execution Protocol
+
+**PM Agent MUST:**
+1. Read the skill's `workflow.agentflow.xml` to understand execution steps
+2. Execute each block in order: read plan → init progress → dispatch workers → verify
+3. Use Agent tool to create `speccrew-task-worker` for EACH module
+4. Pass `speccrew-pm-sub-prd-generate` skill name to each Worker
+
+**PM Agent MUST NOT:**
+- Dispatch Phase 5 to a Worker (Worker cannot dispatch sub-Workers)
+- Skip reading the workflow.agentflow.xml
+- Generate Sub-PRD content directly
+
+### 5.2 Prerequisites
 
 - Phase 4b completed with valid Dispatch Plan
 - Master PRD exists
 - Dispatch Plan contains module list (count ≥ 2)
+- `.sub-prd-dispatch-plan.json` exists in iteration directory
 
-### 5.2 Dispatch Strategy
+### 5.3 Workflow Steps (from workflow.agentflow.xml)
 
+**Step 5.1: Read Dispatch Plan**
+- Read `.sub-prd-dispatch-plan.json` from iteration directory
+- Parse module list and verify required fields
+
+**Step 5.2: Initialize Progress Tracking**
+
+> 🛑 **MANDATORY: Initialize DISPATCH-PROGRESS.json BEFORE any Worker dispatch**
+>
+> PM Agent MUST:
+> 1. Create temp task file: `.tasks-temp.json`
+> 2. Run: `node {update_progress_script} init --file DISPATCH-PROGRESS.json --stage sub_prd_dispatch --tasks-file .tasks-temp.json`
+> 3. Verify initialization (Total: N | Pending: N | Completed: 0)
+>
+> **FORBIDDEN:**
+> - DO NOT dispatch ANY Worker before DISPATCH-PROGRESS.json is initialized
+> - DO NOT create DISPATCH-PROGRESS.json manually via create_file
+
+**Step 5.3: Batch Dispatch Workers**
+
+Dispatch Strategy:
 | Module Count | Dispatch Strategy |
 |--------------|-------------------|
 | 1-5 modules | Single batch, all parallel |
@@ -424,24 +465,25 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 
 **BATCH SIZE = 5 (maximum parallel Workers per batch)**
 
-### 5.3 Worker Dispatch Rules
+> 🛑 **MANDATORY: Update Progress After Each Worker Completes**
+>
+> After each Worker returns:
+> 1. Run: `node {update_progress_script} update-task --file DISPATCH-PROGRESS.json --task-id {module_id} --status {completed|failed}`
+> 2. Verify the update succeeded
+>
+> **FORBIDDEN:**
+> - DO NOT skip progress update
+> - DO NOT proceed to next batch until current batch is verified
 
-> 🛑 **CRITICAL: ONE Worker per Module — NO EXCEPTIONS**
+**Step 5.4: Failure Retry**
+- Check for tasks with `failed` status
+- Retry once if failures exist
+- Log persistent failures and continue
 
-**PM Agent MUST:**
-1. Read the Dispatch Plan from generate skill output
-2. Initialize DISPATCH-PROGRESS.json via update-progress.js script
-3. For EACH module: invoke ONE `speccrew-task-worker` with `speccrew-pm-sub-prd-generate`
-4. Pass ALL required context parameters to each worker
-5. Dispatch in batches of 5, wait for each batch to complete
-6. After each Worker completes, update DISPATCH-PROGRESS.json via script
-
-**PM Agent MUST NOT:**
-- Generate Sub-PRD files directly (via create_file, write, or any file creation)
-- Invoke speccrew-pm-sub-prd-generate skill directly
-- Dispatch ONE Worker to handle MULTIPLE modules
-- Create or edit any Sub-PRD content as fallback
-- Skip worker dispatch and generate Sub-PRDs inline
+**Step 5.5: Result Verification**
+- Read final DISPATCH-PROGRESS.json
+- Verify all Sub-PRD files exist and size > 3KB
+- Update checkpoint via script
 
 ### 5.4 Worker Context Parameters
 
@@ -458,21 +500,18 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 | `output_path` | Computed | `{output_dir}/{feature_name}-sub-{module_key}.md` |
 | `language` | Detected | User's language |
 
-### 5.5 Progress Tracking
-
-- Track progress in `DISPATCH-PROGRESS.json` via `update-progress.js` script
-- After ALL workers complete, verify Sub-PRD files exist
-- Update checkpoint `sub_prd_dispatch` to `passed`
-
-### 5.6 Completion Verification
+### 5.5 Completion Verification
 
 Before proceeding to Phase 6, verify:
-- [ ] All workers were dispatched via speccrew-task-worker (one Worker per module)
+- [ ] PM Agent executed Phase 5 directly (NOT dispatched to Worker)
+- [ ] DISPATCH-PROGRESS.json was initialized BEFORE any dispatch
+- [ ] All workers were dispatched via Agent tool (one Worker per module)
+- [ ] Progress was updated after each Worker completed
 - [ ] No Sub-PRD was generated by PM Agent directly
 - [ ] All workers completed (DISPATCH-PROGRESS.json counts.pending == 0)
 - [ ] All Sub-PRD files exist and have valid size
 - [ ] `.prd-feature-list.json` contains complete feature data
-- [ ] Checkpoint updated
+- [ ] Checkpoint updated via script
 
 ---
 
