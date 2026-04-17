@@ -1,26 +1,29 @@
 ---
 name: speccrew-fd-feature-design
-description: Feature Design & Spec Generation SOP. Reads .feature-analysis.md and PRD documents, performs frontend/backend/data design, and generates complete Feature Spec document using template-first workflow. Combines design thinking with document generation in a single pass, without producing any intermediate design-data artifacts. Use when Feature Designer needs to produce Feature Spec from completed analysis.
+description: Unified Feature Analysis & Design SOP. Performs complete feature analysis (read PRD, load system knowledge, function breakdown with [NEW]/[MODIFIED]/[EXISTING] markers) followed by detailed design (frontend/backend/data) and generates complete Feature Spec document using template-first workflow. Combines analysis and design in a single unified workflow without producing intermediate analysis artifacts. Use when Feature Designer needs to analyze PRD requirements and produce Feature Spec in one pass.
 tools: Read, Write, Glob, Grep, search_replace
 ---
 
 # Methodology Foundation
 
-ISA-95 Stages 4-6 as internal thinking framework:
+This skill applies ISA-95 Stages 1-6 as an internal thinking framework:
 
-| Stage | Integrated Into | Purpose |
-|-------|-----------------|---------|
-| Stage 4: Information Flows | Interaction Flow | Map cross-module data flows, identify API endpoints |
-| Stage 5: Categories of Information | Data Model | Classify data entities, build data dictionary |
-| Stage 6: Information Descriptions | Business Rules | Define validation rules, output standards, traceability |
+| ISA-95 Stage | Phase | Purpose |
+|--------------|-------|---------|
+| Stage 1: Domain Description | Analysis | Understand business context, scope boundaries, glossary |
+| Stage 2: Information Flows | Analysis | Identify data sources, destinations, and cross-module exchanges |
+| Stage 3: Categories of Information | Analysis | Classify data entities and establish information hierarchy |
+| Stage 4: Information Flows | Design | Map cross-module data flows, identify API endpoints |
+| Stage 5: Categories of Information | Design | Classify data entities, build data dictionary |
+| Stage 6: Information Descriptions | Design | Define validation rules, output standards, traceability |
 
 > No separate modeling documents. Methodology guides thinking quality.
 
 # Trigger Scenarios
 
-- Function decomposition completed (`.feature-analysis.md` exists)
-- Checkpoint A passed (function breakdown confirmed)
-- Feature Spec document generation needed
+- PRD has been confirmed, user requests to start feature analysis and design
+- Feature Designer Agent needs to analyze PRD and produce Feature Spec in one pass
+- User asks "Design this feature" or "Analyze and design this requirement"
 
 ## AgentFlow Definition
 
@@ -30,11 +33,24 @@ ISA-95 Stages 4-6 as internal thinking framework:
 
 ## Workflow
 
+**MANDATORY:**
+- **Business Perspective Only** — Feature Analysis is a PURE BUSINESS document. It describes WHAT the system does from a business/user perspective, NOT HOW it's technically implemented.
+- **Mermaid for all diagrams** — ALL business flows, interaction sequences, and cross-function flows MUST use Mermaid syntax (`flowchart TB`, `sequenceDiagram`). Plain text ASCII flowcharts are FORBIDDEN.
+
 ## Absolute Constraints
 
+> **Violation = task failure**
+
 **ABORT CONDITIONS:**
-- `.feature-analysis.md` missing OR Checkpoint A not passed → HARD STOP
+- PRD document missing → HARD STOP
 - Template file missing → HARD STOP
+- System overview missing → HARD STOP
+
+1. **FORBIDDEN: Script execution failure** — If `update-progress.js` fails, HARD STOP and report error
+2. **FORBIDDEN: Hand-written `.checkpoints.json`** — ALWAYS use `update-progress.js` script
+3. **FORBIDDEN: Skip Checkpoint A** — User confirmation required before proceeding to design phase (unless `skip_analysis_checkpoint=true`)
+4. **FORBIDDEN: Skip Checkpoint B** — User confirmation required before generating documents (unless `skip_checkpoint=true`)
+5. **FORBIDDEN: Rename features** — Output filename MUST use the exact `feature_name` parameter value. DO NOT translate, abbreviate, paraphrase, or substitute with alternative names found in PRD content. The `feature_name` parameter is the SINGLE SOURCE OF TRUTH for file naming.
 
 ⛔ **ABSOLUTE PROHIBITION — Phase B Content Filling:**
 - NEVER use `create_file` to rewrite or recreate the document after Step 5 skeleton creation
@@ -46,45 +62,130 @@ ISA-95 Stages 4-6 as internal thinking framework:
 - Template-first workflow — Step 5 (copy template) MUST precede Step 6 (fill content)
 - **Mermaid for all diagrams** — ALL interaction flows, processing logic flows, and cross-function sequences MUST use Mermaid syntax (`sequenceDiagram`, `flowchart TD`). Plain text ASCII flowcharts are FORBIDDEN for these sections. Reference: `speccrew-workspace/docs/rules/mermaid-rule.md`.
 
-**NOTE:** Design process is internal — no intermediate design-data files are produced.
+**NOTE:** Analysis and design process is internal — no intermediate analysis or design-data files are produced.
 
 **FORBIDDEN: Rename features** — Output filename MUST use the exact `feature_name` parameter value. DO NOT translate, abbreviate, paraphrase, or substitute with names derived from analysis content. The `feature_name` parameter is the SINGLE SOURCE OF TRUTH for file naming.
 
-## Step 0: Precondition Check
-
-### Step 0 Input Parameters
+## Step 0: Input Parameters
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `feature_analysis_path` | Yes | Path to `.feature-analysis.md` |
 | `prd_path` | Yes | Path to the Sub-PRD document |
 | `feature_id` | No | Feature identifier (e.g., `F-CRM-01`) |
-| `feature_name` | No | Feature name in English |
+| `feature_name` | No | Feature name in English (e.g., `customer-list`) |
 | `feature_type` | No | `Page+API` or `API-only` |
-| `frontend_platforms` | No | List of frontend platforms |
-| `output_path` | No | Custom output path for Feature Spec (auto-generated if not provided) |
+| `iteration_id` | No | Current iteration identifier |
+| `frontend_platforms` | No | List of frontend platforms (auto-discover if not provided) |
+| `skip_analysis_checkpoint` | No | Boolean, default `false`. Skip Checkpoint A if `true` (batch mode) |
 | `skip_checkpoint` | No | Boolean, default `false`. Skip Checkpoint B if `true` (batch mode) |
+| `output_path` | No | Custom output path for Feature Spec (auto-generated if not provided) |
 
-### Step 0 Actions
+## Step 0.1: Read PRD Input
 
-1. Read `.feature-analysis.md` at `feature_analysis_path`
-2. Verify Checkpoint A: `function_decomposition.passed == true`
-3. IF not passed → ABORT: `ERROR: Checkpoint A not passed. Run speccrew-fd-feature-analysis first.`
-4. Extract key data:
-   - `feature_id`: From analysis file or parameter
-   - `feature_name`: From analysis file or parameter
-   - `feature_type`: From analysis file or parameter (`Page+API` or `API-only`)
-   - `functions[]`: Function breakdown list
-   - `platforms[]`: Frontend platforms list
+### 0.1.1 Read PRD
 
-### 0.3 Verify Feature Name Consistency
+Read the PRD document at `{prd_path}` (typically `speccrew-workspace/iterations/{number}-{type}-{name}/01.product-requirement/[module-name]-prd.md`)
 
-1. Read the `Feature Name` field from `.feature-analysis.md` header
-2. Compare with `feature_name` parameter
-3. If different:
-   - Log: "⚠️ Name discrepancy: parameter='{feature_name}', analysis='{analysis_name}'"
-   - Continue with `feature_name` parameter value for all file naming
-   - Use the analysis file's actual content (not its filename) for design work
+### 0.1.2 Focus on Specific Feature (when feature_id provided)
+
+If `feature_id` is provided:
+- Locate the specific Feature in PRD Section 3.4 "Feature Breakdown"
+- Extract only the user stories and requirements related to this Feature
+- Ignore other Features in the same PRD
+
+### 0.1.3 Backward Compatibility (when feature_id not provided)
+
+If `feature_id` is NOT provided, process entire PRD using legacy mode.
+
+## Step 0.2: Load System Knowledge
+
+### 0.2.1 Read System Overview
+
+Read: `speccrew-workspace/knowledges/bizs/system-overview.md`
+
+### 0.2.2 Load Related Module Overviews
+
+Based on PRD content, identify related modules and read:
+```
+speccrew-workspace/knowledges/bizs/{module-name}/{module-name}-overview.md
+```
+
+### 0.2.3 Discover Frontend Platforms
+
+Read `speccrew-workspace/knowledges/techs/techs-manifest.json` to identify frontend platforms:
+
+| Platform Type | Examples |
+|---------------|----------|
+| `web-*` | web-vue, web-react |
+| `mobile-*` | mobile-uniapp, mobile-flutter |
+
+- If `frontend_platforms` parameter provided, use that list
+- Otherwise, read techs-manifest.json directly
+
+### 0.2.4 Query Knowledge Graph (Optional)
+
+If cross-module relationships need analysis, use `speccrew-knowledge-graph-query` skill.
+
+## Step 0.3: Function Breakdown
+
+Break down PRD functional requirements into implementable system functions.
+
+### 0.3.1 Feature-Based Decomposition (when feature_id provided)
+
+When processing a single Feature:
+
+1. **Extract Feature Scope**: From PRD Section 3.4, locate the specific Feature by `feature_id`
+2. **Identify Related User Stories**: Extract only user stories mapped to this Feature
+3. **Decompose into Functions**: Break down into 3-8 focused Functions
+4. **Check feature_type**: Mark `API-only` for backend-only design
+
+### 0.3.2 Full PRD Decomposition (backward compatibility)
+
+When `feature_id` is NOT provided (legacy mode):
+- Decompose entire PRD into all required Functions
+- May result in 10-20 Functions for complex modules
+
+### 0.3.3 Function Analysis
+
+For each function, identify:
+
+| Aspect | Analysis Content |
+|--------|------------------|
+| **Frontend Changes** | New pages, components, or modifications to existing UI |
+| **Backend Changes** | New interfaces or modifications to existing logic |
+| **Data Changes** | New data structures or modifications to existing data |
+| **System Relationship** | How this relates to existing system capabilities |
+
+### Mark Relationship to Existing System
+
+| Marker | Meaning | Example |
+|--------|---------|---------|
+| `[EXISTING]` | Reuse current system capability | `[EXISTING] User authentication system` |
+| `[MODIFIED]` | Enhance/change existing feature | `[MODIFIED] Add validation to user profile form` |
+| `[NEW]` | Create brand new functionality | `[NEW] Order management module` |
+
+## Step 0.4: Checkpoint A — Function Breakdown Confirmation
+
+**Conditional Execution:** If `skip_analysis_checkpoint=true`, skip user confirmation and proceed to Step 1.
+
+If `skip_analysis_checkpoint=false` (default):
+1. Present function breakdown with [EXISTING]/[MODIFIED]/[NEW] markers to user
+2. Ask: "Does this function breakdown align with your understanding of the requirements?"
+3. **HARD STOP** — Wait for user confirmation before proceeding
+
+### Checkpoint A Progress Update
+
+After user confirms (or if skipped):
+
+```bash
+node speccrew-workspace/scripts/update-progress.js write-checkpoint \
+  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+  --stage 02_feature_design \
+  --checkpoint function_decomposition \
+  --passed true
+```
+
+Log: "✅ Checkpoint A (function_decomposition) passed and recorded"
 
 ## Step 1: Frontend Design
 
@@ -379,7 +480,7 @@ Log: "✅ Checkpoint B (feature_design_review) passed and recorded"
 ### Phase A: Skeleton Construction (BEFORE any content filling)
 
 1. Read FEATURE-SPEC-TEMPLATE.md to identify the complete section structure
-2. Count the number of functions from `.feature-analysis.md` input
+2. Count the number of functions from Step 0.3 function breakdown results
 3. For Section 2 Function Details, replicate the template's Function block structure for EACH function:
    - Copy the EXACT template structure (all 4 sub-sections) from FEATURE-SPEC-TEMPLATE.md
    - Create `### 2.1 Function: {function_name}` through `### 2.N Function: {function_name}`
@@ -467,8 +568,9 @@ This rule has ZERO exceptions. "Document too long" is NOT a valid reason to swit
 
 | Template Section | Data Source |
 |------------------|-------------|
-| 1. Overview (Basic Information, Feature Scope) | `.feature-analysis.md` Feature Information + summary |
-| 1.3 Relationship to Existing System | `.feature-analysis.md` System Relationships |
+| 0. Feature Analysis Summary | Step 0.3 Function Breakdown results (internal memory) |
+| 1. Overview (Basic Information, Feature Scope) | PRD Feature Information + Step 0 analysis summary |
+| 1.3 Relationship to Existing System | Step 0.3 System Relationship markers |
 | 2. Function Details | Step 1 Frontend Design + Step 2 Backend Design results (internal) |
 | 2.1.x Frontend Prototype | Step 1.1 UI Prototype results |
 | 2.1.x Interaction Flow | Step 1.3 Interaction Flow results |
@@ -556,9 +658,17 @@ Where:
 
 | Rule | Description |
 |------|-------------|
+| **Business Perspective Only (Analysis)** | Feature Analysis describes business capabilities and functional requirements. Every section must describe WHAT from user/business perspective |
 | No Technology Decisions | Do NOT specify frameworks, databases, technologies |
 | Focus on WHAT not HOW | Describe what system does, not how it's implemented |
 | ASCII Wireframes Only | Use ASCII art for UI prototypes |
+| **FORBIDDEN: Analysis File Paths** | Do NOT include any file paths, code paths, or directory structures (e.g., views/appointment/AppointmentIndex.vue, yudao-module-appointment/...) |
+| **FORBIDDEN: Framework Code in Analysis** | Do NOT include code snippets in any language — no Java classes, SQL DDL/DML, Vue templates, TypeScript API code, HTML markup, annotations (@PreAuthorize, @OperateLog, @TableLogic, @TableName) |
+| **FORBIDDEN: Framework/Library Names in Analysis** | Do NOT reference specific framework/library names as implementation details (MyBatis-Plus, MapStruct, Element Plus, wot-design-uni, ElDatePicker, wd-cell, BaseMapperX, etc.) |
+| **FORBIDDEN: Database Artifacts in Analysis** | Do NOT include database table names (appointment_info), column names (customer_id, staff_id), SQL types (BIGINT, VARCHAR), indexes, or any SQL statements |
+| **FORBIDDEN: Technical Types in Analysis** | Do NOT use programming language types (Long, String, Integer). Use business types: Text, Number, Date, Boolean, Enum, Identifier |
+| **FORBIDDEN: ASCII Diagrams in Analysis** | Do NOT use plain text or ASCII art flowcharts. ALL diagrams MUST use Mermaid syntax |
+| **Mermaid Required** | Use `flowchart TB` for business process flows, `sequenceDiagram` for interaction flows. Reference mermaid-rule.md for syntax compliance |
 | **FORBIDDEN: File Paths** | Do NOT include any file paths, code paths, or directory structures (e.g., src/views/..., yudao-module-base/..., pages/...) |
 | **FORBIDDEN: Framework Code** | Do NOT include actual code snippets in any language — no Java classes, SQL DDL/DML, Vue templates, TypeScript API code, HTML markup |
 | **FORBIDDEN: Framework Names as Implementation** | Do NOT reference specific framework/library names as implementation choices (MyBatis-Plus, Flyway, Element Plus component names like el-button, wot-design-uni widget names like wd-cell) |
@@ -570,13 +680,23 @@ Where:
 | Clear Markers | Use [EXISTING]/[MODIFIED]/[NEW] consistently |
 | Template-First | Copy template before filling content |
 | search_replace Only | Never use create_file for section updates after template copy |
+| Checkpoint A | Get user confirmation on function breakdown before design (unless skipped) |
 | Checkpoint B | Get user confirmation before writing files (unless skipped) |
-| No Intermediate Files | Design process is internal — do NOT output any intermediate design-data artifacts |
+| No Intermediate Files | Analysis and design process is internal — do NOT output any intermediate analysis or design-data artifacts |
 
 # Checklist
 
-- [ ] `.feature-analysis.md` verified and exists
-- [ ] Checkpoint A passed (`function_decomposition.passed == true`)
+- [ ] PRD has been read, all P0 requirements covered
+- [ ] **[Single Feature Mode]** Feature ID and name parameters received
+- [ ] **[Single Feature Mode]** Only related Feature content extracted from PRD
+- [ ] **[Legacy Mode]** All sub PRDs have been read (if master-sub structure)
+- [ ] System overview loaded for context
+- [ ] Related module overviews loaded
+- [ ] **[Cross-module]** Knowledge graph queried for relationship analysis
+- [ ] Function breakdown completed with [EXISTING]/[MODIFIED]/[NEW] markers
+- [ ] **[Single Feature Mode]** 3-8 focused Functions defined
+- [ ] Checkpoint A passed: function breakdown confirmed with user (or skipped)
+- [ ] `.checkpoints.json` updated via script for Checkpoint A
 - [ ] All input parameters resolved (feature_id, feature_name, feature_type)
 - [ ] Template file `templates/FEATURE-SPEC-TEMPLATE.md` exists
 - [ ] **[API-only]** Frontend design skipped

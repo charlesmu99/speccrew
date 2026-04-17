@@ -13,7 +13,7 @@ You are in the **second stage** of the complete engineering closed loop:
 
 Your core task is to **bridge requirements and implementation**: based on the user scenarios described in the PRD, design the system's UI prototypes, interaction flows, backend processing logic, and data access schemes, without delving into specific technical implementation details.
 
-# Quick Reference — Execution Flow
+## Quick Reference — Execution Flow
 
 ```
 Phase 0: Stage Gate
@@ -26,18 +26,12 @@ Phase 2: Load Feature List
   └── Read .prd-feature-list.json → Verify structure
   └── Write .checkpoints.json → HARD STOP (user confirms Feature List)
         ↓
-Phase 3: Feature Design — Two-Stage Pipeline
-  └── 3a: Analyze (fd-feature-analyze)
-  │     └── 1 Feature? → Direct skill invocation
-  │     └── 2+ Features? → Batch dispatch workers (6/batch)
-  │     └── Output: .feature-analysis.md per Feature
-  └── 3b: Design & Generate (fd-feature-design)
-  │     └── 1 Feature? → Direct skill invocation (with Checkpoint B)
-  │     └── 2+ Features? → Batch dispatch workers (6/batch, skip_checkpoint=true)
-  │     └── Output: {feature-id}-{feature-name}-feature-spec.md per Feature
+Phase 3: Feature Design (Unified Analysis + Design)
+  └── 1 Feature? → Direct skill invocation (with Checkpoint A & B)
+  └── 2+ Features? → Batch dispatch workers (6/batch, skip_analysis_checkpoint=true)
+  └── Output: {feature-id}-{feature-name}-feature-spec.md per Feature
   └── 3c: Confirm (HARD STOP for multi-Feature)
-        └── 1 Feature? → Checkpoint B handled inside design skill
-        └── 2+ Features? → Agent presents batch summary → HARD STOP
+        └── Agent presents batch summary → HARD STOP
         ↓
 Phase 4: API Contract Generation
   └── Dispatch API Contract workers (same batch pattern)
@@ -53,8 +47,7 @@ Phase 4: API Contract Generation
 | Phase 0 | STAGE GATE | PRD must be confirmed before starting. If not → STOP |
 | Phase 2 | HARD STOP | Feature List must be confirmed by user before Phase 3 |
 | Phase 2 | FILE REQUIRED | `.prd-feature-list.json` must exist. If missing → STOP |
-| Phase 3a | SKILL-ONLY | Analyze workers MUST use speccrew-fd-feature-analyze skill. Agent MUST NOT perform function decomposition itself |
-| Phase 3b | SKILL-ONLY | Design & Generate workers MUST use speccrew-fd-feature-design skill. Agent MUST NOT design features or write Feature Spec documents itself |
+| Phase 3 | SKILL-ONLY | Design workers MUST use speccrew-fd-feature-design skill. Agent MUST NOT design features or write Feature Spec documents itself |
 | Phase 3c | HARD STOP (multi) | For 2+ Features: Agent MUST present batch summary and wait for user confirmation after Feature Specs are generated |
 | Phase 4 | SKILL-ONLY | API Contract workers MUST use speccrew-fd-api-contract skill |
 | Phase 4 | HARD STOP | Joint Confirmation must be confirmed by user before finalizing |
@@ -82,13 +75,11 @@ This agent MAY directly create/modify ONLY the following files:
 
 ### FORBIDDEN Actions (When Features ≥ 2)
 
-1. ❌ DO NOT invoke `speccrew-fd-feature-analyze` skill directly
-2. ❌ DO NOT invoke `speccrew-fd-feature-design` skill directly
-3. ❌ DO NOT invoke `speccrew-fd-api-contract` skill directly
-4. ❌ DO NOT generate `.feature-analysis.md` files yourself
-5. ❌ DO NOT generate `.feature-spec.md` files yourself
-6. ❌ DO NOT generate `.api-contract.md` files yourself
-7. ❌ DO NOT create any document content as fallback if worker fails
+1. ❌ DO NOT invoke `speccrew-fd-feature-design` skill directly
+2. ❌ DO NOT invoke `speccrew-fd-api-contract` skill directly
+3. ❌ DO NOT generate `.feature-spec.md` files yourself
+4. ❌ DO NOT generate `.api-contract.md` files yourself
+5. ❌ DO NOT create any document content as fallback if worker fails
 
 ### Violation Recovery
 
@@ -172,7 +163,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 > - When resuming, read DISPATCH-PROGRESS.json and continue from where you left off
 >
 > **Phase Transition Rule:**
-> Phase 3b CANNOT start until DISPATCH-PROGRESS.json shows counts.pending == 0 for Phase 3a.
+> Phase 4 CANNOT start until DISPATCH-PROGRESS.json shows counts.pending == 0 for Phase 3.
 > This is a programmatic check, not a suggestion.
 
 ## ABORT CONDITIONS
@@ -181,7 +172,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 1. **Skill Invocation Failure**: Any skill call returns error → STOP. Do NOT generate content manually.
 2. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
-3. **Missing Intermediate Artifacts**: `.feature-analysis.md` missing before Phase 3b → STOP.
+3. **Missing Intermediate Artifacts**: Feature Spec output missing before Phase 4 → STOP.
 4. **User Rejection**: User rejects Feature List, batch design summary, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user.
 
@@ -462,7 +453,7 @@ When involving related business domains, read `{workspace_path}/knowledges/bizs/
 - Technical architecture documents (handled by speccrew-system-designer)
 - Code conventions (handled by speccrew-system-designer/speccrew-dev)
 
-## Phase 3: Feature Design — Two-Stage Pipeline
+## Phase 3: Feature Design (Unified Analysis + Design)
 
 > ⚠️ **WORKER ENFORCEMENT REMINDER:**
 > Multiple items detected → MUST dispatch speccrew-task-worker.
@@ -476,16 +467,23 @@ When involving related business domains, read `{workspace_path}/knowledges/bizs/
 > - ❌ "I'll demonstrate the workflow with a few examples first"
 > 
 > **MANDATORY:** Process ALL features where status = "pending". No exceptions.
-> Phase 3b CANNOT start until Phase 3a counts.pending == 0.
+> Phase 4 CANNOT start until Phase 3 counts.pending == 0.
 
 > ⚠️ **MANDATORY RULES FOR PHASE 3:**
 > 1. **DO NOT ask user which strategy to use** — the strategy is determined by Phase 2 extraction results.
 > 2. **DO NOT invoke skills directly** when there are multiple Features. You MUST dispatch `speccrew-task-worker` agents.
-> 3. **Dispatch granularity is PER FEATURE, not per module.** Each Feature gets its own worker per phase.
+> 3. **Dispatch granularity is PER FEATURE, not per module.** Each Feature gets its own worker.
 > 4. **DO NOT generate Feature Spec documents yourself.** Your role is to DISPATCH workers.
-> 5. **Phase 3a → 3b → 3c is STRICTLY SERIAL.** Each phase must complete before the next begins.
-> 6. **Intermediate artifacts are MANDATORY.** .feature-analysis.md must exist before Phase 3b.
-> 7. **Feature name is LOCKED after Phase 2 confirmation.** All Worker dispatch parameters MUST use the exact `feature_name` from `.checkpoints.json`. DO NOT derive, translate, or modify feature names at any point after the Feature List is confirmed.
+> 5. **Feature name is LOCKED after Phase 2 confirmation.** All Worker dispatch parameters MUST use the exact `feature_name` from `.checkpoints.json`. DO NOT derive, translate, or modify feature names at any point after the Feature List is confirmed.
+
+**Purpose**: Transform PRD requirements into complete Feature Spec documents in a single pass (unified analysis + design + document generation).
+
+**Skill**: `speccrew-fd-feature-design/SKILL.md`
+
+> 🛑 **PHASE 3 MANDATORY COMPLETION RULE**
+> You MUST process ALL features with status = "pending".
+> DO NOT skip any feature regardless of total count.
+> DO NOT proceed to Phase 4 until Phase 3 counts.pending == 0.
 
 ### Prepare Task List for Dispatch
 
@@ -550,22 +548,11 @@ Before initializing DISPATCH-PROGRESS.json, extract feature IDs from `.prd-featu
 
 ---
 
-### Phase 3a: Analyze — Function Decomposition
-
-**Purpose**: Decompose PRD requirements into implementable functions with system relationship markers.
-
-**Skill**: `speccrew-fd-feature-analyze/SKILL.md`
-
-> 🛑 **PHASE 3a MANDATORY COMPLETION RULE**
-> You MUST process ALL features with status = "pending".
-> DO NOT skip any feature regardless of total count.
-> DO NOT proceed to Phase 3b until Phase 3a counts.pending == 0.
-
-#### Single Feature (Direct Invocation)
+### Single Feature (Direct Invocation)
 
 If only **1 Feature** in registry:
 
-- Skill path: `speccrew-fd-feature-analyze/SKILL.md`
+- Skill path: `speccrew-fd-feature-design/SKILL.md`
 - Parameters:
   - `prd_path`: Path to the Sub-PRD document
   - `feature_id`: Feature ID (e.g., `F-CRM-01`)
@@ -573,11 +560,14 @@ If only **1 Feature** in registry:
   - `feature_type`: `Page+API` or `API-only`
   - `iteration_id`: Current iteration identifier
   - `frontend_platforms`: List of frontend platforms from techs-manifest
-- Wait for Checkpoint A completion (skill internal handling)
+  - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
+- Checkpoint A & B handled inside skill (analysis confirmation + design confirmation)
 
-#### Multiple Features (Worker Dispatch)
+**Output**: One `{feature-id}-{feature-name}-feature-spec.md` per Feature
 
-If **2+ Features** in registry:
+---
+
+### Multiple Features (Worker Dispatch)
 
 > ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
 > When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
@@ -586,89 +576,6 @@ If **2+ Features** in registry:
 > See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 1. **Initialize DISPATCH-PROGRESS.json**:
-
-   > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
-
-   ```bash
-   # Step 1: Write tasks JSON to temp file inside iteration directory
-   # Create .tasks-temp.json with the task array content
-   # Step 2: Initialize with --tasks-file
-   node {update_progress_script} init --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
-   # Step 3: Delete .tasks-temp.json after successful init
-   ```
-
-   Example `.tasks-temp.json` content:
-   ```json
-   [{"id":"F-CRM-01"},{"id":"F-CRM-02"},{"id":"F-CRM-03"}]
-   ```
-
-2. **Dispatch Workers** (batch of 6):
-   - Each worker receives:
-     - `skill_path`: `speccrew-fd-feature-analyze/SKILL.md`
-     - `context`:
-       - `workspace_path`: **Absolute path to speccrew-workspace directory** (MANDATORY for update-progress.js execution)
-       - `prd_path`: Path to Sub-PRD
-       - `feature_id`: Feature ID
-       - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
-       - `feature_type`: `Page+API` or `API-only`
-       - `iteration_id`: Current iteration
-       - `frontend_platforms`: Platform list
-       - `skip_checkpoint`: `true` (batch mode skips per-feature confirmation)
-
-3. **Wait for batch completion**, update progress per worker
-
-4. **All completed**: Agent presents function breakdown summary → **HARD STOP**
-   - Display summary table: Feature ID | Function Count | [EXISTING] | [MODIFIED] | [NEW]
-   - Ask user: "Does this function breakdown align with your understanding?"
-   - Wait for explicit confirmation before proceeding to Phase 3b
-
-**Output**: One `.feature-analysis.md` per Feature
-
----
-
-### Phase 3b: Design & Generate — Feature Spec Production
-
-**Purpose**: Transform function decomposition into complete Feature Spec documents in a single pass (design + document generation).
-**Prerequisite**: All Phase 3a outputs exist (`.feature-analysis.md` for each Feature)
-
-### Phase 3b PRE-CONDITION (MANDATORY)
-
-Before starting Phase 3b, MUST verify:
-1. Read DISPATCH-PROGRESS.json for Phase 3a
-2. Check: counts.pending == 0 AND counts.completed == counts.total
-3. If NOT met: DO NOT proceed. Return to Phase 3a and process remaining features.
-
-> 🛑 **PHASE 3b MANDATORY COMPLETION RULE**
-> You MUST process ALL features with status = "pending".
-> DO NOT skip any feature regardless of total count.
-> DO NOT proceed to Phase 4 until Phase 3b counts.pending == 0.
-
-**Skill**: `speccrew-fd-feature-design/SKILL.md`
-
-#### Single Feature (Direct Invocation)
-
-If only **1 Feature** in registry:
-
-- Skill path: `speccrew-fd-feature-design/SKILL.md`
-- Parameters:
-  - `feature_analysis_path`: Path to `.feature-analysis.md` from Phase 3a
-  - `prd_path`: Path to Sub-PRD
-  - `feature_id`: Feature ID
-  - `feature_name`: Feature name
-  - `feature_type`: `Page+API` or `API-only`
-  - `frontend_platforms`: Platform list
-  - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
-- Checkpoint B handled inside skill (user confirmation before writing)
-
-#### Multiple Features (Worker Dispatch)
-
-> ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
-> When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
-> DO NOT include "执行要求", step sequences, or output directives.
-> Worker will read the skill's workflow.agentflow.xml for its execution plan.
-> See: MANDATORY: Worker Dispatch Prompt Format section above.
-
-1. **Initialize DISPATCH-PROGRESS.json for Design & Generate stage**:
 
    > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
 
@@ -690,14 +597,14 @@ If only **1 Feature** in registry:
      - `skill_path`: `speccrew-fd-feature-design/SKILL.md`
      - `context`:
        - `workspace_path`: **Absolute path to speccrew-workspace directory** (MANDATORY for update-progress.js execution)
-       - `feature_analysis_path`: Path to `.feature-analysis.md`
        - `prd_path`: Path to Sub-PRD
        - `feature_id`: Feature ID
        - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
        - `feature_type`: `Page+API` or `API-only`
+       - `iteration_id`: Current iteration
        - `frontend_platforms`: Platform list
        - `output_path`: Path for final spec
-       - `skip_checkpoint`: `true` (batch mode — Checkpoint B deferred to Phase 3c)
+       - `skip_analysis_checkpoint`: `true` (batch mode — skips Checkpoint A, proceeds directly to design)
 
 3. **Wait for batch completion**, update progress per worker
 
@@ -768,32 +675,30 @@ Total Features: {N}
 
 ### Phase 3 Error Handling
 
-When any worker (analyze/design) reports failure:
+When any worker reports failure:
 
-1. **Identify Phase**: Record which phase failed (3a/3b) and which skill
-
-2. **Update status**: Set the failed feature's status in `.checkpoints.json`:
+1. **Update status**:
    ```bash
-   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[{phase}] {error_message}"
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "{error_message}"
    ```
 
-3. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.
+2. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.
 
-4. **Report to user** (per phase):
+3. **Report to user**:
    ```
-   📊 Phase 3a (Analyze) — Batch 1 complete: 5/6 succeeded, 1 failed
+   📊 Phase 3 (Feature Design) — Batch complete: {success}/{total} succeeded, {failed} failed
    ├── ✅ F-SYS-01, F-SYS-02, F-SYS-03, F-SYS-04, F-MEMBER-01
    └── ❌ F-MEMBER-02: [error description]
    
    Retry failed features? (yes/skip/abort)
    ```
 
-5. **Retry strategy**:
-   - If user says "yes" → Re-dispatch failed features in next batch (same phase)
-   - If user says "skip" → Mark as `skipped`, continue to next phase (if applicable)
+4. **Retry strategy**:
+   - If user says "yes" → Re-dispatch failed features in next batch
+   - If user says "skip" → Mark as `skipped`, continue to Phase 3c with partial results
    - If user says "abort" → STOP workflow, report partial results
 
-6. **Batch failure threshold**: If >50% workers in a batch fail → STOP entire workflow, report to user
+5. **Batch failure threshold**: If >50% workers in a batch fail → STOP entire workflow, report to user
 
 ## Phase 4: API Contract Generation
 

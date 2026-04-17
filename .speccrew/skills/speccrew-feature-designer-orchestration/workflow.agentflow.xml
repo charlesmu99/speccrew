@@ -49,8 +49,8 @@
           <branch test="${checkpoints.feature_spec_review.passed} == true" name="Resume from Phase 4">
             <block type="set-variable" id="P0-V1" name="resume_phase" value="4"/>
           </branch>
-          <branch test="${checkpoints.function_decomposition.passed} == true" name="Resume from Phase 3b">
-            <block type="set-variable" id="P0-V2" name="resume_phase" value="3b"/>
+          <branch test="${checkpoints.function_decomposition.passed} == true" name="Resume from Phase 3">
+            <block type="set-variable" id="P0-V2" name="resume_phase" value="3"/>
           </branch>
           <branch default="true" name="Resume from Phase 1"/>
         </block>
@@ -179,29 +179,28 @@
     </block>
   </sequence>
 
-  <!-- ========== Phase 3: Feature Design — Two-Stage Pipeline ========== -->
-  <sequence name="Phase 3: Feature Design — Two-Stage Pipeline">
+  <!-- ========== Phase 3: Feature Design (Unified Analysis + Design) ========== -->
+  <sequence name="Phase 3: Feature Design (Unified Analysis + Design)">
     
     <block type="rule" id="P3-R1" level="mandatory" desc="Phase 3 Mandatory Rules">
       <field name="text">DO NOT ask user which strategy to use - strategy determined by Phase 2 extraction</field>
       <field name="text">DO NOT invoke skills directly when 2+ Features - MUST dispatch speccrew-task-worker</field>
       <field name="text">Dispatch granularity is PER FEATURE, not per module</field>
       <field name="text">DO NOT generate Feature Spec documents yourself - role is to DISPATCH workers</field>
-      <field name="text">Phase 3a → 3b → 3c is STRICTLY SERIAL</field>
       <field name="text">Feature name is LOCKED after Phase 2 confirmation</field>
     </block>
 
-    <!-- ========== Phase 3a: Analyze — Function Decomposition ========== -->
-    <block type="event" id="P3-E1" action="log" desc="Start Phase 3a">
-      <field name="message">📊 Phase 3a: Analyze — Function Decomposition</field>
+    <!-- ========== Unified Feature Design Dispatch ========== -->
+    <block type="event" id="P3-E1" action="log" desc="Start Phase 3">
+      <field name="message">📊 Phase 3: Feature Design (Unified Analysis + Design)</field>
     </block>
 
-    <block type="gateway" id="P3-G1" mode="exclusive" desc="Dispatch mode for Phase 3a">
+    <block type="gateway" id="P3-G1" mode="exclusive" desc="Dispatch mode for Phase 3">
       
       <!-- Single Feature: Direct Invocation -->
       <branch test="${dispatch_mode} == 'direct'" name="Direct Invocation">
-        <block type="task" id="P3-B1" action="run-skill" status="pending" desc="Invoke feature analyze skill">
-          <field name="skill">speccrew-fd-feature-analyze</field>
+        <block type="task" id="P3-B1" action="run-skill" status="pending" desc="Invoke feature design skill">
+          <field name="skill">speccrew-fd-feature-design</field>
           <field name="context">
             prd_path: ${prd_files[0]}
             feature_id: ${feature_list.modules[0].features[0].feature_id}
@@ -209,8 +208,9 @@
             feature_type: ${feature_list.modules[0].features[0].feature_type}
             iteration_id: ${iteration_path}
             frontend_platforms: ${frontend_platforms}
+            output_path: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
           </field>
-          <field name="output" var="analyze_result"/>
+          <field name="output" var="design_result"/>
         </block>
       </branch>
 
@@ -225,19 +225,19 @@
 
         <!-- Initialize DISPATCH-PROGRESS.json -->
         <block type="task" id="P3-B2" action="run-script" status="pending" desc="Initialize dispatch progress">
-          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_analyze --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
         </block>
 
         <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
              DO NOT include execution instructions, step sequences, or output directives.
              Worker will read skill's workflow.agentflow.xml for execution plan. -->
         <!-- Dispatch Workers in batches of 6 -->
-        <block type="loop" id="P3-L1" mode="batch" batch_size="6" desc="Dispatch analyze workers">
+        <block type="loop" id="P3-L1" mode="batch" batch_size="6" desc="Dispatch design workers">
           <field name="items" value="${all_features}"/>
           
-          <block type="task" id="P3-B3" action="dispatch-to-worker" status="pending" desc="Dispatch analyze worker">
+          <block type="task" id="P3-B3" action="dispatch-to-worker" status="pending" desc="Dispatch design worker">
             <field name="agent">speccrew-task-worker</field>
-            <field name="skill">speccrew-fd-feature-analyze</field>
+            <field name="skill">speccrew-fd-feature-design</field>
             <field name="context">
               workspace_path: ${workspace_root}
               prd_path: ${item.prd_path}
@@ -246,83 +246,12 @@
               feature_type: ${item.feature_type}
               iteration_id: ${iteration_path}
               frontend_platforms: ${frontend_platforms}
-              skip_checkpoint: true
+              output_path: ${iteration_path}/02.feature-design/${item.feature_id}-${item.feature_name}-feature-spec.md
+              skip_analysis_checkpoint: true
             </field>
           </block>
 
           <block type="task" id="P3-B4" action="run-script" status="pending" desc="Update worker progress">
-            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
-          </block>
-        </block>
-
-        <!-- All completed: Present summary -->
-        <block type="event" id="P3-E2" action="log" desc="Display analyze summary">
-          <field name="template">analyze-summary</field>
-          <field name="data" value="${analyze_results}"/>
-        </block>
-
-        <block type="event" id="P3-E3" action="confirm" desc="HARD STOP for analyze confirmation">
-          <field name="prompt">📊 Phase 3a (Analyze) complete. Does this function breakdown align with your understanding?</field>
-        </block>
-      </branch>
-    </block>
-
-    <!-- ========== Phase 3b: Design & Generate — Feature Spec Production ========== -->
-    <block type="event" id="P3-E4" action="log" desc="Start Phase 3b">
-      <field name="message">📊 Phase 3b: Design & Generate — Feature Spec Production</field>
-    </block>
-
-    <block type="gateway" id="P3-G2" mode="exclusive" desc="Dispatch mode for Phase 3b">
-      
-      <!-- Single Feature: Direct Invocation -->
-      <branch test="${dispatch_mode} == 'direct'" name="Direct Invocation">
-        <block type="task" id="P3-B5" action="run-skill" status="pending" desc="Invoke feature design skill">
-          <field name="skill">speccrew-fd-feature-design</field>
-          <field name="context">
-            feature_analysis_path: ${analyze_result.output_path}
-            prd_path: ${prd_files[0]}
-            feature_id: ${feature_list.modules[0].features[0].feature_id}
-            feature_name: ${feature_list.modules[0].features[0].feature_name}
-            feature_type: ${feature_list.modules[0].features[0].feature_type}
-            frontend_platforms: ${frontend_platforms}
-            output_path: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
-          </field>
-          <field name="output" var="design_result"/>
-        </block>
-      </branch>
-
-      <!-- Multiple Features: Worker Dispatch -->
-      <branch test="${dispatch_mode} == 'worker'" name="Worker Dispatch">
-        
-        <!-- Initialize DISPATCH-PROGRESS.json for Design stage -->
-        <block type="task" id="P3-B6" action="run-script" status="pending" desc="Initialize design dispatch progress">
-          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_spec --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
-        </block>
-
-        <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
-             DO NOT include execution instructions, step sequences, or output directives.
-             Worker will read skill's workflow.agentflow.xml for execution plan. -->
-        <!-- Dispatch Workers in batches of 6 -->
-        <block type="loop" id="P3-L2" mode="batch" batch_size="6" desc="Dispatch design workers">
-          <field name="items" value="${all_features}"/>
-          
-          <block type="task" id="P3-B7" action="dispatch-to-worker" status="pending" desc="Dispatch design worker">
-            <field name="agent">speccrew-task-worker</field>
-            <field name="skill">speccrew-fd-feature-design</field>
-            <field name="context">
-              workspace_path: ${workspace_root}
-              feature_analysis_path: ${item.analysis_path}
-              prd_path: ${item.prd_path}
-              feature_id: ${item.feature_id}
-              feature_name: ${item.feature_name}
-              feature_type: ${item.feature_type}
-              frontend_platforms: ${frontend_platforms}
-              output_path: ${iteration_path}/02.feature-design/${item.feature_id}-${item.feature_name}-feature-spec.md
-              skip_checkpoint: true
-            </field>
-          </block>
-
-          <block type="task" id="P3-B8" action="run-script" status="pending" desc="Update worker progress">
             <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
           </block>
         </block>

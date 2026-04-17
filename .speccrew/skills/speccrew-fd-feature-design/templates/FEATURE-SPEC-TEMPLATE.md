@@ -38,11 +38,32 @@ This Feature Spec is a PURE BUSINESS document describing WHAT the system does, N
 
 ✅ CORRECT (Business):
 Shop List Page — displays all shops with search/filter, includes "Add Shop" button (visible to Admin role only)
--->
+---
 
 > **Applicable Scenario**: System feature specification for a single feature or module
 > **Target Audience**: speccrew-feature-designer, speccrew-designer, speccrew-dev
 > **Source PRD**: [Link to PRD document]
+
+---
+
+## 0. Feature Analysis Summary
+
+<!-- AI-NOTE: Auto-populated during unified analyze+design workflow.
+Serves as audit trail for the analysis phase. Can be removed in final delivery.
+DO NOT use this section as substitute for Sections 1-6. -->
+
+### 0.1 Function Breakdown
+
+| # | Function Name | Type | System Relationship | Related User Stories |
+|---|--------------|------|-------------------|---------------------|
+| 1 | {function_name} | {Page+API/API-only} | {[NEW]/[MODIFIED]/[EXISTING]} | {stories} |
+
+### 0.2 Summary Statistics
+
+- **Total Functions**: {count}
+- **[NEW]**: {count}
+- **[MODIFIED]**: {count}  
+- **[EXISTING]**: {count}
 
 ---
 
