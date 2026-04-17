@@ -57,6 +57,26 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 - DO NOT wait for confirmation before writing output files
 - If skill execution fails, report failure with details — do not ask user what to do
 
+### OUTPUT EFFICIENCY
+
+When executing design or document generation skills:
+- Generate content directly into the output file
+- DO NOT display full document sections in conversation
+- Only output brief block execution announcements
+- This is especially critical in batch mode where multiple Workers run simultaneously
+
+**FORBIDDEN output in conversation during design tasks:**
+- ASCII wireframes / UI prototypes
+- Mermaid diagrams (these go in the file only)
+- API endpoint lists
+- Data model tables
+- Full section content
+
+**Allowed output:**
+- Block execution announcements: "[Block B1] Designing UI prototypes..."
+- Error messages
+- Final completion summary (1-2 lines)
+
 ## Workflow
 
 ### 1. Receive Task

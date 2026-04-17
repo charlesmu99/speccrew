@@ -202,6 +202,14 @@ Does this function breakdown align with your understanding of the requirements?<
        ============================================================ -->
   <sequence id="S1" name="Feature Design" status="pending" desc="Generate Feature Spec from analysis results">
 
+    <!-- Output Efficiency Rule -->
+    <block type="rule" id="R-OUTPUT-EFFICIENCY" level="mandatory" desc="Direct-to-file output only">
+      <field name="text">DO NOT display design content in conversation</field>
+      <field name="text">Think internally, write directly to output file</field>
+      <field name="text">Only output brief status messages and block announcements</field>
+      <field name="text">FORBIDDEN: wireframes, API lists, data tables in chat</field>
+    </block>
+
     <!-- Step 1.0: Prepare analysis results for design -->
     <block type="task" id="B1_0" action="analyze" desc="Prepare analysis data for design phase">
       <field name="input" value="${analyzed_functions}">${prd_content}${feature_id}${feature_name}${feature_type}${frontend_platforms}</field>

@@ -187,7 +187,34 @@ node speccrew-workspace/scripts/update-progress.js write-checkpoint \
 
 Log: "✅ Checkpoint A (function_decomposition) passed and recorded"
 
+### OUTPUT EFFICIENCY RULES
+
+> **MANDATORY: Direct-to-File Output**
+> 
+> When generating Feature Spec content:
+> - **DO NOT** display design content (wireframes, interaction flows, API specs, data models) in the conversation
+> - **DO NOT** output intermediate design results as chat messages
+> - **DO** think through the design internally, then write directly to the output file
+> - **DO** only report brief status messages: "[Block X] Designing frontend for Function N..." 
+> 
+> **Rationale**: In batch mode, multiple Workers run simultaneously. Displaying full design content in chat wastes context window and creates confusion.
+>
+> **Allowed output in conversation**:
+> - Block execution announcements (1 line each)
+> - Error messages
+> - Checkpoint confirmation requests (when not skipped)
+> - Final completion summary (1-2 lines)
+>
+> **FORBIDDEN output in conversation**:
+> - ASCII wireframes / UI prototypes
+> - Mermaid diagrams (these go in the file only)
+> - API endpoint lists
+> - Data model tables
+> - Full section content
+
 ## Step 1: Frontend Design
+
+> ⚠️ **OUTPUT REMINDER**: Design content goes directly into the output file. DO NOT display wireframes or UI elements in conversation.
 
 ### 1.0 Conditional Execution
 
@@ -296,6 +323,8 @@ Document: `User Action → Frontend Response → Backend API Call`
 
 ## Step 2: Backend Design
 
+> ⚠️ **OUTPUT REMINDER**: Backend API designs go directly into the output file. DO NOT display API lists or processing logic in conversation.
+
 > **CRITICAL CONSTRAINT**: Backend design in Feature Spec must remain at the BUSINESS API level:
 > - Describe API endpoints as business operations (e.g., "Create Shop" operation with business parameters)
 > - Describe business validation rules in plain language (e.g., "Shop name must be unique within tenant")
@@ -333,6 +362,8 @@ Document: `User Action → Frontend Response → Backend API Call`
 | {module} | {other module} | {API/Event} | {what data} |
 
 ## Step 3: Data Model & Business Rules
+
+> ⚠️ **OUTPUT REMINDER**: Data models and business rules go directly into the output file. DO NOT display tables or validation rules in conversation.
 
 ### 3.1 New Data Structures
 
