@@ -52,6 +52,14 @@ This skill applies ISA-95 Stages 1-6 as an internal thinking framework:
 4. **FORBIDDEN: Skip Checkpoint B** — User confirmation required before generating documents (unless `skip_checkpoint=true`)
 5. **FORBIDDEN: Rename features** — Output filename MUST use the exact `feature_name` parameter value. DO NOT translate, abbreviate, paraphrase, or substitute with alternative names found in PRD content. The `feature_name` parameter is the SINGLE SOURCE OF TRUTH for file naming.
 
+> **CRITICAL: Script Path Rule**
+> ALL update-progress.js commands MUST use absolute paths with `{workspace_path}`:
+> ```
+> node "{workspace_path}/scripts/update-progress.js" update-task --file "{workspace_path}/iterations/..." ...
+> ```
+> NEVER use relative paths like `node scripts/update-progress.js` or `cd ... ; node scripts/...`
+> The Worker may execute from project root directory, NOT from speccrew-workspace directory.
+
 ⛔ **ABSOLUTE PROHIBITION — Phase B Content Filling:**
 - NEVER use `create_file` to rewrite or recreate the document after Step 5 skeleton creation
 - NEVER abandon `search_replace` mid-way and switch to `create_file`
@@ -178,8 +186,8 @@ If `skip_analysis_checkpoint=false` (default):
 After user confirms (or if skipped):
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
-  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+node "{workspace_path}/scripts/update-progress.js" write-checkpoint \
+  --file "{workspace_path}/iterations/{iteration_id}/02.feature-design/.checkpoints.json" \
   --stage 02_feature_design \
   --checkpoint function_decomposition \
   --passed true
@@ -493,8 +501,8 @@ Document: `User Action → Frontend Response → Backend API Call`
 After user confirms (or if skipped):
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
-  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+node "{workspace_path}/scripts/update-progress.js" write-checkpoint \
+  --file "{workspace_path}/iterations/{iteration_id}/02.feature-design/.checkpoints.json" \
   --stage 02_feature_design \
   --checkpoint feature_design_review \
   --passed true
@@ -654,8 +662,8 @@ Verify all Mermaid diagrams follow compliance rules:
 Set final checkpoint status:
 
 ```bash
-node speccrew-workspace/scripts/update-progress.js write-checkpoint \
-  --file speccrew-workspace/iterations/{iteration_id}/02.feature-design/.checkpoints.json \
+node "{workspace_path}/scripts/update-progress.js" write-checkpoint \
+  --file "{workspace_path}/iterations/{iteration_id}/02.feature-design/.checkpoints.json" \
   --stage 02_feature_design \
   --checkpoint feature_spec_review \
   --passed true

@@ -35,6 +35,7 @@
  *      --output <text>         Task output (used when completed)
  *      --error <text>          Error message (used when failed)
  *      --error-category <cat>  Error category (used when failed)
+ *      --metadata <json>       Metadata JSON string to merge into task
  *
  * 4. update-counts - Force recalculate counts
  *    node update-progress.js update-counts --file <path>
@@ -252,7 +253,8 @@ function parseArgs() {
         confirmedAt: null,
         featuresDir: null,
         platforms: null,
-        force: false
+        force: false,
+        metadata: null
     };
 
     // First argument is the command
@@ -356,6 +358,10 @@ function parseArgs() {
             case '--matcher-result':
             case '-Matcher-Result':
                 result.matcherResult = args[++i];
+                break;
+            case '--metadata':
+            case '-Metadata':
+                result.metadata = args[++i];
                 break;
         }
     }
@@ -616,6 +622,16 @@ function cmdUpdateTask(args) {
             }
             if (args.errorCategory) {
                 task.error_category = args.errorCategory;
+            }
+        }
+
+        // Handle metadata (merge into task)
+        if (args.metadata) {
+            try {
+                const metadataObj = JSON.parse(args.metadata);
+                task.metadata = { ...task.metadata, ...metadataObj };
+            } catch (e) {
+                outputError(`Failed to parse metadata JSON: ${e.message}`);
             }
         }
 

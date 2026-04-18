@@ -171,10 +171,21 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 > **If ANY of the following conditions occur, the Feature Designer Agent MUST immediately STOP the workflow and report to user.**
 
 1. **Skill Invocation Failure**: Any skill call returns error → STOP. Do NOT generate content manually.
-2. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
+2. **Script Execution Failure**: `node ... update-progress.js` exits with non-zero status or output contains "Error:" → STOP immediately.
+   - Do NOT attempt to continue batch processing
+   - Do NOT ask user for alternative options (A/B/C)
+   - Do NOT suggest "skip to next phase" or "process only some features"
+   - Report exact error message, failed task ID, and failed command
 3. **Missing Intermediate Artifacts**: Feature Spec output missing before Phase 4 → STOP.
 4. **User Rejection**: User rejects Feature List, batch design summary, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user.
+6. **Progress File Read Failure**: Cannot read DISPATCH-PROGRESS.json → STOP.
+
+> 🛑 **FORBIDDEN ON SCRIPT FAILURE**:
+> - ❌ "Due to script errors, I suggest we..."
+> - ❌ "Let me offer you options: 1. Continue 2. Skip 3. ..."
+> - ❌ "进度更新脚本频繁失败，建议..."
+> - ✅ ONLY correct response: "STOP: update-progress.js failed with [error]. Task: [id]. Command: [cmd]."
 
 ## TIMESTAMP INTEGRITY
 
@@ -208,7 +219,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 ## Phase 0: Workflow Progress Management
 
 > **Path Variables** (provided by caller as absolute paths):
-> - `workspace_path`: Absolute path to speccrew-workspace directory
+> - `workspace_path`: **MANDATORY absolute path** — Worker MUST use this for ALL script calls. Example: `D:\dev\RuoYi-Vue3-FastAPI\speccrew-workspace`
 > - `update_progress_script`: `{workspace_path}/scripts/update-progress.js`
 > - `iterations_dir`: `{workspace_path}/iterations`
 
