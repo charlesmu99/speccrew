@@ -32,6 +32,15 @@ tools: Read, Write, Glob, Grep
    - API Contract template file does not exist → STOP
    - `node ... update-progress.js` script execution fails → **HARD STOP**: Do NOT manually create or edit JSON progress files. Report the script error and wait for user resolution.
 
+### Error Categories
+
+| Category | Condition | Recovery |
+|----------|-----------|----------|
+| `DEPENDENCY_MISSING` | Feature Spec document not found or empty | Ensure feature design phase completed for this feature |
+| `DEPENDENCY_MISSING` | API Contract template not found | Verify skill installation integrity |
+| `VALIDATION_ERROR` | Feature Spec missing required API sections | Review and fix feature spec content |
+| `RUNTIME_ERROR` | update-progress.js script execution failed | Check script errors; do NOT manually edit JSON |
+
 > **NOTE**: This skill does NOT include user confirmation. Confirmation is handled at the orchestrator/dispatcher level after all features are processed. This enables continuous batch execution.
 
 ## Step 1: Read Input

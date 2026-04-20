@@ -44,7 +44,7 @@
 
     <!-- Gateway: Validate Feature Spec exists -->
     <block type="gateway" id="G1" mode="guard" desc="Verify Feature Spec exists"
-           test="${feature_spec} != null" fail-action="stop">
+           test="${feature_spec} != null" fail-action="goto:E1">
       <field name="message">Feature Spec document not found. Check path: ${iteration_path}/02.feature-design/</field>
     </block>
 
@@ -56,7 +56,7 @@
 
     <!-- Gateway: Validate template exists -->
     <block type="gateway" id="G2" mode="guard" desc="Verify template exists"
-           test="${template_content} != null" fail-action="stop">
+           test="${template_content} != null" fail-action="goto:E2">
       <field name="message">API Contract template not found at speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md</field>
     </block>
 
@@ -171,6 +171,19 @@ ${api_list.error_codes}</field>
     </block>
 
   </sequence>
+
+  <!-- ============================================================
+       Error Handling Blocks
+       ============================================================ -->
+  <block type="task" id="E1" action="run-script" desc="Record error for missing Feature Spec">
+    <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${dispatch_progress_path}" --task-id "${feature_id}" --status failed --error "Feature Spec document not found at: ${feature_spec_path}" --error-category "DEPENDENCY_MISSING"</field>
+    <field name="on-complete">abort</field>
+  </block>
+
+  <block type="task" id="E2" action="run-script" desc="Record error for missing API Contract template">
+    <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${dispatch_progress_path}" --task-id "${feature_id}" --status failed --error "API Contract template not found at: speccrew-fd-api-contract/templates/API-CONTRACT-TEMPLATE.md" --error-category "DEPENDENCY_MISSING"</field>
+    <field name="on-complete">abort</field>
+  </block>
 
   <!-- ============================================================
        Output Results
