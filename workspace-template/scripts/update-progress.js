@@ -727,15 +727,20 @@ function cmdUpdateTask(args) {
             }
         }
 
-        // Update task
-        taskArray[taskIndex] = task;
+        // Update task (only needed for array mode; object mode is updated by reference)
+        if (taskArray && taskIndex >= 0) {
+            taskArray[taskIndex] = task;
+        }
         data.updated_at = now;
 
         // Recalculate counts
         if (isStageMode && targetStage.counts) {
             // Update stage-level counts
-            targetStage.counts = calculateCounts(taskArray);
-        } else {
+            const countSource = Array.isArray(targetStage.features)
+                ? targetStage.features
+                : Object.values(targetStage.features);
+            targetStage.counts = calculateCounts(countSource);
+        } else if (data.tasks) {
             // Update global counts
             data.counts = calculateCounts(data.tasks);
         }
