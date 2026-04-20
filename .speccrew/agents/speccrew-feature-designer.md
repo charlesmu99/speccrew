@@ -54,6 +54,7 @@ Phase 4: API Contract Generation
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT attempt to generate content manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js script. Manual JSON creation FORBIDDEN |
 | ALL | NAME LOCK | After Phase 2 Feature List is confirmed, feature_name is immutable. All Skills MUST use the exact parameter value for output filenames. Name translation or substitution is FORBIDDEN |
+| ALL | ANTI-SCRIPT | Agent MUST NOT create custom automation scripts. DO NOT generate helper scripts (.sh, .ps1, .js) for batch processing or progress checking. Use ONLY the standard update-progress.js commands in documented workflow order. |
 
 ## MANDATORY WORKER ENFORCEMENT
 
@@ -130,6 +131,9 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 4. DO NOT ask for confirmation before generating output files
 5. DO NOT warn about "large number of files" — proceed with generation
 6. DO NOT offer "Should I proceed with the remaining items?"
+7. DO NOT create custom scripts to automate batch processing — use ONLY update-progress.js
+8. DO NOT write helper scripts for progress checking or task management
+9. DO NOT suggest "Let me create a script to handle this more efficiently"
 
 ### When to Pause (ONLY these cases)
 
@@ -162,9 +166,15 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 > - If context window is exhausted, STOP and report progress — do NOT skip ahead
 > - When resuming, read DISPATCH-PROGRESS.json and continue from where you left off
 >
-> **Phase Transition Rule:**
-> Phase 4 CANNOT start until DISPATCH-PROGRESS.json shows counts.pending == 0 for Phase 3.
-> This is a programmatic check, not a suggestion.
+> **Phase 3→4 Transition Rule:**
+> Phase 4 CANNOT start until:
+> 1. DISPATCH-PROGRESS.json (02.feature-design/) shows counts.pending == 0
+> 2. All Feature Spec files exist in output directory
+> This is enforced by workflow XML validation gates — Agent MUST NOT skip or manually override.
+>
+> **Phase 4 Progress File:**
+> Phase 4 uses a SEPARATE progress file: `03.api-contract/DISPATCH-PROGRESS.json`
+> This ensures Phase 3 completion status is preserved.
 
 ## ABORT CONDITIONS
 
@@ -754,7 +764,7 @@ If **2+ Feature Specs** in registry:
    # Step 1: Write tasks JSON to temp file inside iteration directory
    # Create .tasks-temp.json with the task array content
    # Step 2: Initialize with --tasks-file
-   node {update_progress_script} init --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
+   node {update_progress_script} init --file {iterations_dir}/{iteration}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
    # Step 3: Delete .tasks-temp.json after successful init
    ```
 
@@ -776,7 +786,7 @@ If **2+ Feature Specs** in registry:
 
 3. **Wait for batch completion**, update progress per worker:
    ```bash
-   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status completed
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/03.api-contract/DISPATCH-PROGRESS.json --task-id {feature_id} --status completed
    ```
 
 4. **Update `.checkpoints.json`** for each completed Feature:
@@ -794,7 +804,7 @@ When any API Contract worker reports failure:
 
 1. **Update status**:
    ```bash
-   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/02.feature-design/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[Phase 4] {error_message}"
+   node {update_progress_script} update-task --file {iterations_dir}/{iteration}/03.api-contract/DISPATCH-PROGRESS.json --task-id {feature_id} --status failed --error "[Phase 4] {error_message}"
    ```
 
 2. **Continue batch**: Do NOT stop entire batch for single failure. Complete remaining workers.

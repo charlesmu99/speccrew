@@ -310,6 +310,25 @@
       <field name="message">📊 Phase 4: API Contract Generation</field>
     </block>
 
+    <!-- Read Phase 3 completion status -->
+    <block type="task" id="P4-V1" action="run-script" status="pending" desc="Read Feature Design completion status">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --overview</field>
+      <field name="output" var="phase3_progress"/>
+    </block>
+
+    <block type="gateway" id="P4-V2" mode="exclusive" desc="Verify Phase 3 completed before Phase 4">
+      <branch test="${phase3_progress.counts.pending} > 0" name="Phase 3 Incomplete">
+        <block type="event" id="P4-V3" action="abort" desc="Phase 3 not complete">
+          <field name="message">ABORT: Phase 3 (Feature Design) has ${phase3_progress.counts.pending} pending tasks. Cannot start Phase 4.</field>
+        </block>
+      </branch>
+      <branch default="true" name="Phase 3 Complete">
+        <block type="event" id="P4-V4" action="log" desc="Phase 3 verified">
+          <field name="message">✅ Phase 3 complete. Proceeding to Phase 4 (API Contract).</field>
+        </block>
+      </branch>
+    </block>
+
     <!-- Phase 4.1: Dispatch Mode Decision -->
     <block type="gateway" id="P4-G1" mode="exclusive" desc="Dispatch mode for API Contract">
       
@@ -338,7 +357,7 @@
 
         <!-- Initialize DISPATCH-PROGRESS.json for API Contract stage -->
         <block type="task" id="P4-B2" action="run-script" status="pending" desc="Initialize API contract dispatch">
-          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
         </block>
 
         <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.
@@ -362,10 +381,25 @@
           </block>
 
           <block type="task" id="P4-B4" action="run-script" status="pending" desc="Update worker progress">
-            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
+            <field name="command">node ${workspace_root}/scripts/update-progress.js update-task --file ${iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --task-id ${item.feature_id} --status ${worker_status}</field>
           </block>
         </block>
       </branch>
+    </block>
+
+    <!-- Read Phase 4 completion summary -->
+    <block type="task" id="P4-B5a" action="run-script" status="pending" desc="Read API Contract completion summary">
+      <field name="command">node ${workspace_root}/scripts/update-progress.js read --file ${iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --overview</field>
+      <field name="output" var="api_contract_progress"/>
+    </block>
+
+    <block type="gateway" id="P4-G2" mode="exclusive" desc="Check API Contract dispatch status">
+      <branch test="${api_contract_progress.counts.failed} > ${api_contract_progress.counts.total} / 2" name="Majority Failed">
+        <block type="event" id="P4-E-ABORT" action="abort" desc="API Contract batch failure threshold exceeded">
+          <field name="message">ABORT: More than 50% of API Contract tasks failed (${api_contract_progress.counts.failed}/${api_contract_progress.counts.total}).</field>
+        </block>
+      </branch>
+      <branch default="true" name="Acceptable"/>
     </block>
 
     <!-- Phase 4.4: Joint Confirmation -->
