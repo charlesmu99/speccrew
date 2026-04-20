@@ -616,13 +616,38 @@ function cmdUpdateTask(args) {
         lockPath = acquireLock(filePath);
         const data = readJsonFile(filePath);
 
-        // Find task
-        const taskIndex = data.tasks?.findIndex(t => t.id === args.taskId);
-        if (taskIndex === -1 || taskIndex === undefined) {
-            outputError(`Task not found: ${args.taskId}`);
+        // Find task (support both flat structure and nested stages structure)
+        let task = null;
+        let taskIndex = -1;
+        let taskArray = null;
+        let isStageMode = false;
+        let targetStage = null;
+
+        if (args.stage) {
+            // Nested structure: stages.{stage}.features
+            isStageMode = true;
+            if (!data.stages || !data.stages[args.stage]) {
+                outputError(`Stage not found: ${args.stage}`);
+            }
+            targetStage = data.stages[args.stage];
+            if (!targetStage.features || !Array.isArray(targetStage.features)) {
+                outputError(`Stage has no features array: ${args.stage}`);
+            }
+            taskArray = targetStage.features;
+            taskIndex = taskArray.findIndex(t => t.id === args.taskId);
+            if (taskIndex === -1) {
+                outputError(`Task not found in stage ${args.stage}: ${args.taskId}`);
+            }
+        } else {
+            // Flat structure: data.tasks
+            taskArray = data.tasks;
+            taskIndex = taskArray?.findIndex(t => t.id === args.taskId);
+            if (taskIndex === -1 || taskIndex === undefined) {
+                outputError(`Task not found: ${args.taskId}`);
+            }
         }
 
-        const task = data.tasks[taskIndex];
+        task = taskArray[taskIndex];
         const now = getTimestamp();
 
         // Update status
@@ -668,11 +693,17 @@ function cmdUpdateTask(args) {
         }
 
         // Update task
-        data.tasks[taskIndex] = task;
+        taskArray[taskIndex] = task;
         data.updated_at = now;
 
         // Recalculate counts
-        data.counts = calculateCounts(data.tasks);
+        if (isStageMode && targetStage.counts) {
+            // Update stage-level counts
+            targetStage.counts = calculateCounts(taskArray);
+        } else {
+            // Update global counts
+            data.counts = calculateCounts(data.tasks);
+        }
 
         // Atomic write
         atomicWriteJson(filePath, data);
