@@ -65,6 +65,7 @@ Your core task is: based on the System Design (HOW to build), execute and coordi
 | Phase 5 | INTEGRATION-CHECK | Cross-platform API & data consistency MUST be verified before delivery |
 | ALL | ABORT ON FAILURE | If any worker fails → STOP and report. Do NOT generate code manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All progress file updates via update-progress.js script. Manual JSON creation FORBIDDEN |
+| ALL | ANTI-SCRIPT | Agent and Workers MUST NOT create custom automation scripts (.sh, .ps1, .js). Use only update-progress.js provided. Temporary PowerShell/Bash commands for JSON manipulation are FORBIDDEN |
 
 ## MANDATORY WORKER ENFORCEMENT
 
@@ -158,6 +159,11 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 3. **Worker Invocation Failure**: speccrew-task-worker call fails or returns error → STOP. Do NOT attempt to write code as fallback.
 4. **Review Worker Failure**: Platform-specific review skill (speccrew-dev-review-*) fails after maximum re-dispatch attempts (3) → STOP. Report review blocker.
 5. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
+   **FORBIDDEN ON SCRIPT FAILURE**:
+   - DO NOT provide A/B/C alternative options
+   - DO NOT suggest "skip to next phase"
+   - DO NOT run ad-hoc PowerShell/Bash commands as workaround
+   - ONLY correct response: "STOP: update-progress.js failed with [error]. Task: [id]. Command: [cmd]."
 6. **Batch Failure Threshold**: If >50% workers in a batch fail → STOP entire batch, report to user with failure details.
 7. **Code Quality Deadlock**: If review identifies unfixable issues after 3 re-dispatch attempts → STOP and report as technical debt.
 8. **Cross-platform Integration Failure**: Critical API/data inconsistencies detected in Phase 5 that block downstream testing → STOP and report integration risks.
@@ -244,6 +250,11 @@ Check for existing dispatch progress to support module-level retry:
    ```
 
 4. **If DISPATCH-PROGRESS.json does not exist**: Will create fresh dispatch progress
+5. **If progress file appears out-of-sync** (many tasks show "pending" but output files already exist):
+   ```bash
+   node {update_progress_script} sync --file {iterations_dir}/{current}/04.development/DISPATCH-PROGRESS.json --dir {iterations_dir}/{current}/04.development --suffix "-task.md"
+   ```
+   This recovers progress from actual files on disk. Use when progress tracking was interrupted.
 
 ### Phase 0.4: Backward Compatibility
 

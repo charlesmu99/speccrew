@@ -150,50 +150,13 @@ ${api_contract_details.content}</field>
 ${api_list.error_codes}</field>
     </block>
 
-    <!-- Step 7: Joint Confirmation -->
-    <block type="gateway" id="G3" mode="exclusive" desc="Select confirmation mode">
-      <branch test="${feature_id} != null" name="Feature-granular confirmation">
-        <block type="event" id="E1" action="confirm" title="Feature Design Confirmation" type="yesno" desc="Request user confirmation for feature">
-          <field name="preview">Feature design phase deliverables ready:
-
-Feature ID: ${feature_id}
-Feature Name: ${feature_name}
-
-Documents:
-- Feature Spec: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
-- API Contract: ${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md
-
-Please confirm:
-1. Is the technical solution feasible?
-2. Does the API definition meet frontend requirements?
-3. Is the data model reasonable?
-
-After confirmation, API Contract becomes the sole baseline for frontend-backend collaboration.</field>
-        </block>
-      </branch>
-      <branch default="true" name="Module-level confirmation">
-        <block type="event" id="E2" action="confirm" title="Feature Design Confirmation" type="yesno" desc="Request user confirmation">
-          <field name="preview">Feature design phase deliverables ready:
-- Feature Spec: ${iteration_path}/02.feature-design/${feature_name}-feature-spec.md
-- API Contract: ${iteration_path}/03.api-contract/${feature_name}-api-contract.md
-
-Please confirm:
-1. Is the overall technical solution feasible?
-2. Does the API definition meet frontend requirements?
-3. Is the data model reasonable?
-
-After confirmation, API Contract becomes the sole baseline for frontend-backend collaboration.</field>
-        </block>
-      </branch>
-    </block>
-
-    <!-- Step 8a: Update Checkpoints File -->
+    <!-- Step 7a: Update Checkpoints File -->
     <block type="task" id="B9" action="run-script" desc="Update checkpoints via script">
       <field name="command">node "${workspace_path}/scripts/update-progress.js" write-checkpoint --file "${iteration_path}/02.feature-design/.checkpoints.json" --stage 02_feature_design --checkpoint api_contract_joint --passed true</field>
       <field name="output" var="checkpoint_result"/>
     </block>
 
-    <!-- Step 8b: Update Workflow Progress -->
+    <!-- Step 7b: Update Workflow Progress -->
     <block type="gateway" id="G4" mode="exclusive" desc="Update progress based on mode">
       <branch test="${feature_id} != null" name="Feature mode">
         <block type="task" id="B10" action="run-script" desc="Update workflow progress for feature">

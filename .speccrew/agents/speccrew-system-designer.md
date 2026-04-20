@@ -129,6 +129,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase 6 | HARD STOP | User must confirm all designs before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT generate content manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js script. Manual JSON creation FORBIDDEN |
+| ALL | ANTI-SCRIPT | Agent MUST NOT create custom scripts (.sh, .ps1, .js). Use only update-progress.js provided. Temporary PowerShell/Bash commands for JSON manipulation are FORBIDDEN |
 
 ## ABORT CONDITIONS
 
@@ -136,6 +137,12 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 
 1. **Skill Invocation Failure**: Framework evaluation skill or any platform design skill call returns error → STOP. Do NOT generate content manually.
 2. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
+
+   **FORBIDDEN ON SCRIPT FAILURE**:
+   - DO NOT provide A/B/C alternative options
+   - DO NOT suggest "skip to next phase"
+   - DO NOT run ad-hoc PowerShell/Bash commands as workaround
+   - ONLY correct response: "STOP: update-progress.js failed with [error]. Task: [id]. Command: [cmd]."
 3. **Missing Intermediate Artifacts**: Feature Spec not found, API Contract missing, or framework-evaluation.md not generated → STOP.
 4. **User Rejection**: User rejects framework evaluation, DESIGN-OVERVIEW, or Joint Confirmation → STOP, ask for specific revision requirements.
 5. **Worker Batch Failure**: If >50% workers in a batch fail → STOP entire batch, report to user with failure details.
@@ -656,6 +663,11 @@ Before dispatching, create or update dispatch tracking:
 
 2. **Check existing progress** (from Step 0.3) — skip `completed` tasks
 3. **Update status** to `in_progress` for tasks being dispatched:
+4. **If progress file appears out-of-sync** (many tasks show "pending" but output files already exist):
+   ```bash
+   node {update_progress_script} sync --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --dir {iterations_dir}/{current}/03.system-design --suffix "-design.md"
+   ```
+   This recovers progress from actual files on disk.
    ```bash
    node {update_progress_script} update-task --file {iterations_dir}/{current}/03.system-design/DISPATCH-PROGRESS.json --task-id {task_id} --status in_progress
    ```

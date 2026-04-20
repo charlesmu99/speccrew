@@ -46,6 +46,13 @@
       <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/04.development/DISPATCH-PROGRESS.json --summary</field>
       <field name="output" var="dispatch_progress"/>
     </block>
+
+    <!-- Progress Sync Recovery -->
+    <block type="rule" id="P0-R-SYNC" level="mandatory" desc="Progress sync recovery when file state is out-of-sync">
+      <rule>When DISPATCH-PROGRESS.json shows many tasks as "pending" but output files already exist in 04.development/ directories, use sync command to recover: node ${update_progress_script} sync --file ${dispatch_progress_file} --dir ${iteration_path}/04.development --suffix "-task.md"</rule>
+      <rule>DO NOT re-dispatch tasks that already have output files on disk</rule>
+      <rule>DO NOT use ad-hoc PowerShell/Bash commands to manually update progress JSON</rule>
+    </block>
   </sequence>
 
   <!-- ========== Phase 0.5: IDE Directory Detection ========== -->

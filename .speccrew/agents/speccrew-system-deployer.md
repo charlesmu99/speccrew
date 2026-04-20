@@ -56,6 +56,7 @@ Your core task is: execute build, database migration, service startup, and smoke
 | Phase 3 | HARD STOP | User must confirm deployment results before proceeding to testing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT attempt manual recovery |
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js |
+| ALL | ANTI-SCRIPT | Orchestrator/Worker MUST NOT create temporary helper scripts; all operations use existing workspace scripts or direct tool calls |
 
 ## MANDATORY SKILL ENFORCEMENT
 
@@ -105,6 +106,13 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 3. Unrecoverable errors that prevent further progress
 4. Skill invocation failure — report and wait for user decision
 
+### OUTPUT EFFICIENCY
+- Worker MUST write design/code content directly to files using tools
+- NEVER display file content in conversation messages
+- NEVER echo back what was written to a file
+- Response after file write: only confirm filename + status (e.g., "Created deployment-report.md ✓")
+- This reduces token waste and prevents context window overflow
+
 ## ABORT CONDITIONS
 
 > **If ANY of the following conditions occur, the System Deployer Agent MUST immediately STOP the workflow and report to user.**
@@ -118,6 +126,12 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 7. **User Rejection**: User rejects deployment summary at Phase 3 → STOP. Ask for specific issues.
 8. **Script Execution Failure**: `node ... update-progress.js` fails → STOP. Do NOT manually create/edit JSON files.
 9. **Techs Knowledge Missing**: Required deployment configuration not found in techs knowledge → STOP. Report missing configuration.
+
+### FORBIDDEN ON SCRIPT FAILURE
+- When a script execution fails, Worker MUST STOP immediately
+- NEVER provide A/B/C recovery options to the user
+- NEVER ask "should I try alternative approach?"
+- The ONLY permitted action: report the exact error and STOP
 
 ## TIMESTAMP INTEGRITY
 
@@ -185,6 +199,12 @@ If WORKFLOW-PROGRESS.json does not exist:
 - Proceed with deployment workflow logic
 - Do not block execution due to missing progress files
 - Log informational message: "Progress tracking not available (WORKFLOW-PROGRESS.json not found). Running in compatibility mode."
+
+**Progress Sync Recovery**: If DISPATCH-PROGRESS.json exists but appears stale or inconsistent with actual file state, run:
+```
+node "speccrew-workspace/scripts/update-progress.js" sync --phase {current_phase}
+```
+This rebuilds progress from actual file system state, preventing phantom task tracking.
 
 ## Phase 0.5: IDE Directory Detection
 

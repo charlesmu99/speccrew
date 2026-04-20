@@ -46,6 +46,15 @@
       <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --summary</field>
       <field name="output" var="dispatch_progress"/>
     </block>
+
+    <!-- Step 0.4: Sync Recovery — Fix out-of-sync dispatch progress -->
+    <!-- When dispatch progress shows many "pending" tasks but output files already exist on disk,
+         use sync subcommand to recover progress from actual files instead of re-dispatching. -->
+    <block type="rule" id="P0-R1" level="mandatory" desc="Sync recovery rule for out-of-sync dispatch progress">
+      <field name="text">If DISPATCH-PROGRESS.json shows many tasks as "pending" but corresponding output files already exist on disk, use sync subcommand to recover progress</field>
+      <field name="text">DO NOT re-dispatch tasks that already have output files — sync first to update progress from disk</field>
+      <field name="text">Sync command: node ${update_progress_script} sync --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --dir ${iterations_dir}/${current_iteration}/03.system-design --suffix "-design.md"</field>
+    </block>
   </sequence>
 
   <!-- ========== Phase 0.5: IDE Directory Detection ========== -->

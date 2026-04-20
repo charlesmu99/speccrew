@@ -104,6 +104,7 @@
     <block type="task" id="B12" action="create-file" desc="Copy template to Task Record path">
       <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/04.development/${platform_id}/{feature-name}-tasks.md</field>
       <field name="content">${task_template} with top-level placeholders replaced</field>
+      <field name="encoding">utf8</field>
       <field name="output" var="task_record_path"/>
     </block>
 
@@ -221,6 +222,7 @@
         <block type="task" id="B24" action="create-file" desc="Write tech debt document">
           <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/tech-debt/{debt-id}.md</field>
           <field name="content">${tech_debt}</field>
+          <field name="encoding">utf8</field>
           <field name="output" var="tech_debt_path"/>
         </block>
       </branch>

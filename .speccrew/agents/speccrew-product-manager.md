@@ -175,6 +175,12 @@ Phase 0 done. Moving to Phase 1...
 - Iteration directory naming: `{number}-{type}-{name}` (e.g., `001-feature-litemes`)
 - DO NOT manually create WORKFLOW-PROGRESS.json — MUST use `update-progress.js` script
 
+**Progress Sync Recovery**: If WORKFLOW-PROGRESS.json or DISPATCH-PROGRESS.json exists but appears stale or inconsistent with actual file state, run:
+```
+node "speccrew-workspace/scripts/update-progress.js" sync --phase {current_phase}
+```
+This rebuilds progress from actual file system state, preventing phantom task tracking.
+
 ---
 
 ## Phase 1: Knowledge Base Availability Check
@@ -645,6 +651,7 @@ This agent MAY directly create/modify ONLY:
 3. ❌ DO NOT create DISPATCH-PROGRESS.json manually (use init script)
 4. ❌ DO NOT create any Sub-PRD content as fallback if worker fails
 5. ❌ DO NOT dispatch Sub-PRDs sequentially — use parallel batch (5/batch)
+6. ❌ DO NOT create temporary helper scripts (bash/powershell/node) for one-off operations — use existing workspace scripts or direct tool calls
 
 ## MANDATORY: Worker Dispatch Prompt Format (Harness Principle 22)
 
@@ -696,6 +703,19 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 2. Ambiguous requirements that genuinely need clarification
 3. Unrecoverable errors that prevent further progress
 4. Security-sensitive operations (e.g., deleting existing files)
+
+### FORBIDDEN ON SCRIPT FAILURE
+- When a script execution fails, MUST STOP immediately
+- NEVER provide A/B/C recovery options to the user
+- NEVER ask "should I try alternative approach?"
+- The ONLY permitted action: report the exact error and STOP
+
+### OUTPUT EFFICIENCY
+- Worker MUST write design/code content directly to files using tools
+- NEVER display file content in conversation messages
+- NEVER echo back what was written to a file
+- Response after file write: only confirm filename + status (e.g., "Created PRD.md ✓")
+- This reduces token waste and prevents context window overflow
 
 ---
 

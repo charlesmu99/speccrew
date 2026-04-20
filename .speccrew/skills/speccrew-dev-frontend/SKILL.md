@@ -269,6 +269,35 @@ If the skill fails at any step:
 - `RUNTIME_ERROR`: Runtime exception in browser/dev server
 - `BLOCKED`: Blocked by external dependency or unresolved design issue
 
+## OUTPUT EFFICIENCY RULES
+
+When executing this skill:
+
+1. **Direct-to-File Output**: All implementation code, task records, and helper scripts MUST be written directly to output files
+2. **Minimal Conversation Output**: Only output:
+   - Block execution announcements (1 line each): `"[Block XX] Implementing..."`
+   - Error messages requiring attention
+   - Task Completion Report (final summary)
+3. **FORBIDDEN in conversation**:
+   - ❌ Full source code blocks or file contents
+   - ❌ Complete implementation listings
+   - ❌ Large configuration file dumps
+   - ❌ Architecture diagrams displayed in chat
+   - ❌ API endpoint listings longer than 3 lines
+4. **Rationale**: Workers run in batch mode (up to 6 concurrent). Displaying code content in conversation wastes context window and provides no value since content goes to files anyway.
+
+## ABORT CONDITIONS
+
+When script execution or build/compile fails:
+
+1. **STOP immediately** — Report: Task ID, error message, failed command
+2. **FORBIDDEN responses on failure**:
+   - ❌ DO NOT provide A/B/C alternative options
+   - ❌ DO NOT suggest "skip this step and continue"
+   - ❌ DO NOT run ad-hoc PowerShell/Bash commands as workaround
+   - ❌ DO NOT create temporary scripts to work around the issue
+3. **ONLY correct response**: Report the failure in Task Completion Report with status FAILED and error details
+
 # Key Rules
 
 | Rule | Description |

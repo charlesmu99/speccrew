@@ -252,6 +252,23 @@ After completing all steps, output a structured completion report for the System
 - `VALIDATION_ERROR`: Input validation failed (e.g., invalid Feature Spec format)
 - `BLOCKED`: Blocked by external dependency or prerequisite not met
 
+## OUTPUT EFFICIENCY RULES
+
+When executing this skill:
+
+1. **Direct-to-File Output**: All design content (architecture diagrams, API mappings, component specifications, data models) MUST be written directly to the output file
+2. **Minimal Conversation Output**: Only output:
+   - Block execution announcements (1 line each): `"[Block XX] Designing..."`
+   - Error messages requiring attention
+   - Task Completion Report (final summary)
+3. **FORBIDDEN in conversation**:
+   - ❌ Full document sections or drafts
+   - ❌ Mermaid diagrams displayed in chat
+   - ❌ API endpoint listings
+   - ❌ Data model tables
+   - ❌ Architecture descriptions longer than 2 lines
+4. **Rationale**: Workers run in batch mode. Displaying design content in conversation wastes context window and provides no value since content goes to file anyway.
+
 # Key Rules
 
 | Rule | Description |

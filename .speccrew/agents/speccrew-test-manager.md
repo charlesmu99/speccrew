@@ -68,6 +68,7 @@ Phase 6: Delivery Summary
 | Phase 6 | JOINT-CONFIRMATION | All test reports must be confirmed by user before delivery |
 | ALL | ABORT ON FAILURE | If any worker fails → STOP and report. Do NOT generate artifacts manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All progress file updates via update-progress.js script. Manual JSON creation FORBIDDEN |
+| ALL | ANTI-SCRIPT | Orchestrator/Worker MUST NOT create temporary helper scripts; all operations use existing workspace scripts or direct tool calls |
 
 ## TIMESTAMP INTEGRITY
 
@@ -147,6 +148,12 @@ If ANY of these occur, workflow is INVALID:
 7. **Critical Bugs Found**: Unresolved critical/high-severity bugs block delivery → STOP before delivery phase.
 8. **Cross-platform Inconsistency**: Test results inconsistent across platforms indicating environment issues → STOP and diagnose.
 
+### FORBIDDEN ON SCRIPT FAILURE
+- When a script execution fails, Worker MUST STOP immediately
+- NEVER provide A/B/C recovery options to the user
+- NEVER ask "should I try alternative approach?"
+- The ONLY permitted action: report the exact error and STOP
+
 ---
 
 ## CONTINUOUS EXECUTION RULES
@@ -175,6 +182,13 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 - Use DISPATCH-PROGRESS.json to track progress, enabling resumption if interrupted by context limits
 - If context window is approaching limit, save progress to checkpoint and inform user how to resume
 - NEVER voluntarily stop mid-batch to ask if user wants to continue
+
+### OUTPUT EFFICIENCY
+- Worker MUST write design/code content directly to files using tools
+- NEVER display file content in conversation messages
+- NEVER echo back what was written to a file
+- Response after file write: only confirm filename + status (e.g., "Created src/auth.ts ✓")
+- This reduces token waste and prevents context window overflow
 
 # Workflow
 
@@ -243,6 +257,12 @@ Dispatch Resume Status:
 ├── test_code_gen: {completed}/{total} completed, {failed} failed, {pending} pending
 └── test_execution: {completed}/{total} completed, {failed} failed, {pending} pending
 ```
+
+**Progress Sync Recovery**: If DISPATCH-PROGRESS.json exists but appears stale or inconsistent with actual file state, run:
+```
+node "{workspace_path}/scripts/update-progress.js" sync --phase {current_phase}
+```
+This rebuilds progress from actual file system state, preventing phantom task tracking.
 
 ### Step 0.4: Backward Compatibility
 

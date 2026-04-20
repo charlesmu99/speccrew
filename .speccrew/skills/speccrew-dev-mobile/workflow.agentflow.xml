@@ -92,6 +92,7 @@
     <block type="task" id="B9" action="create-file" desc="Copy template to Task Record path">
       <field name="path">speccrew-workspace/iterations/{iteration}/04.development/${platform_id}/{module}-task.md</field>
       <field name="content">${task_template} with top-level placeholders replaced</field>
+      <field name="encoding">utf8</field>
       <field name="output" var="task_record_path"/>
     </block>
 
@@ -199,6 +200,7 @@
         <block type="task" id="B22" action="create-file" desc="Write technical debt document">
           <field name="path">speccrew-workspace/iterations/{iteration}/tech-debt/{feature-name}-tech-debt.md</field>
           <field name="content">${tech_debt} with categories: Platform-specific workarounds, Offline sync, Error handling, Accessibility, Test coverage</field>
+          <field name="encoding">utf8</field>
           <field name="output" var="tech_debt_path"/>
         </block>
       </branch>

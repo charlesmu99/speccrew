@@ -233,6 +233,7 @@ Turn 3: Create Task(C) → wait for completion
 - Do NOT manually create JSON files when a Skill should generate them
 - Do NOT execute analysis work that should be dispatched to a Worker via Task tool
 - Do NOT stop between stages to ask the user for direction
+- Do NOT create temporary helper scripts (bash/powershell/node scripts) for one-off operations — use existing workspace scripts or direct tool calls
 
 ## CONTINUOUS EXECUTION RULES
 
@@ -253,6 +254,21 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 2. Ambiguous requirements that genuinely need clarification
 3. Unrecoverable errors that prevent further progress
 4. Security-sensitive operations (e.g., deleting existing files)
+
+### FORBIDDEN ON SCRIPT FAILURE
+
+- When a script execution fails, MUST STOP immediately
+- NEVER provide A/B/C recovery options to the user
+- NEVER ask "should I try alternative approach?"
+- The ONLY permitted action: report the exact error and STOP
+
+### OUTPUT EFFICIENCY
+
+- Worker MUST write design/code content directly to files using tools
+- NEVER display file content in conversation messages
+- NEVER echo back what was written to a file
+- Response after file write: only confirm filename + status (e.g., "Created config.json ✓")
+- This reduces token waste and prevents context window overflow
 
 ### Batch Execution Behavior
 

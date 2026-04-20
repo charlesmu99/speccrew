@@ -31,7 +31,8 @@ tools: Read, Write, Glob, Grep
    - Feature Spec document (`feature_spec_path`) does not exist or is empty → STOP
    - API Contract template file does not exist → STOP
    - `node ... update-progress.js` script execution fails → **HARD STOP**: Do NOT manually create or edit JSON progress files. Report the script error and wait for user resolution.
-   - User rejects Joint Confirmation → STOP, ask user for specific revision requirements
+
+> **NOTE**: This skill does NOT include user confirmation. Confirmation is handled at the orchestrator/dispatcher level after all features are processed. This enables continuous batch execution.
 
 ## Step 1: Read Input
 
@@ -105,68 +106,11 @@ Fill each section with API contract details from Step 2 and Step 3.
 
 For each API, locate its section anchor in the template and use `search_replace` to fill request parameters, response structure, success example, and error codes.
 
-## Step 5: Joint Confirmation
-
-After both documents (Feature Spec + API Contract) are ready, request user confirmation:
-
-**Conditional Confirmation Logic:**
-```
-IF feature_id is provided THEN
-  → Execute Feature-granular confirmation (情况 A)
-ELSE
-  → Execute Module-level confirmation (情况 B)
-```
-
-**情况 A：提供了 feature_id（Feature 粒度确认）**
-```
-Feature 设计阶段交付物已准备就绪：
-
-📋 Feature 信息：
-   - Feature ID: {feature_id}
-   - Feature 名称: {feature_name}
-
-📄 文档清单：
-   - Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md
-   - API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/{feature-id}-{feature-name}-api-contract.md
-
-请确认以下关键点：
-1. 当前 Feature 的技术方案是否可行？
-2. API 定义是否满足前端需求？
-3. 数据模型设计是否合理？
-
-⚠️ 确认后，API Contract 将成为前后端协作的唯一基准。
-   在设计/开发阶段只读引用，不允许修改。
-   如需变更，必须返回此阶段重新确认。
-
-✅ 当前仅确认单个 Feature 的交付物。
-   全局阶段状态（02_feature_design）将在所有 Feature 完成后由 Feature Designer Agent 统一更新。
-```
-
-**情况 B：未提供 feature_id（向后兼容，模块级确认）**
-```
-Feature design phase deliverables are ready:
-- Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
-- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/[feature-name]-api-contract.md
-
-Please confirm the following key points:
-1. Is the overall technical solution feasible?
-2. Does the API definition meet frontend requirements?
-3. Is the data model reasonable?
-
-⚠️ After confirmation, the API contract will be the sole baseline for frontend-backend collaboration.
-   Read-only reference in design/development phase, no modifications allowed.
-   If changes are needed, must return to this phase for re-confirmation.
-
-After confirmation, you can start frontend and backend Designer Agents separately.
-```
-
-## Step 6: Update Progress Files
-
-After user confirms Joint Confirmation:
+## Step 5: Update Progress Files
 
 > **SCRIPT ENFORCEMENT RULE**: All `.checkpoints.json` and `WORKFLOW-PROGRESS.json` updates MUST be performed via `node speccrew-workspace/scripts/update-progress.js` commands. Manually creating or editing these JSON files is FORBIDDEN. If the script fails, STOP and report the error — do NOT attempt manual JSON construction.
 
-### 6a: Update Checkpoints File
+### 5a: Update Checkpoints File
 
 Update the `.checkpoints.json` file to record confirmation status.
 
@@ -229,7 +173,7 @@ Write/Update `.checkpoints.json`：
 - Preserve existing checkpoint statuses when updating
 - Log: "✅ Checkpoint (api_contract_joint) passed and recorded"
 
-### 6b: Update Workflow Progress
+### 5b: Update Workflow Progress
 
 Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
 
@@ -292,7 +236,7 @@ Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
 > Feature 粒度的 API Contract 完成后，全局阶段状态（`02_feature_design.status` 和 `current_stage`）**不由本 Skill 更新**。
 > 全局状态由 **Feature Designer Agent** 统一管理，当检测到所有 Feature 都完成时，统一更新为 `confirmed` 并推进到下一阶段。
 
-### 6.3 Backward Compatibility
+### 5.3 Backward Compatibility
 
 If `WORKFLOW-PROGRESS.json` does not exist:
 - Log: "⚠️ No workflow progress file found. Skipping workflow update."
@@ -307,4 +251,4 @@ If `WORKFLOW-PROGRESS.json` does not exist:
 - [ ] URL naming conforms to backend architecture specifications
 - [ ] Error code list is complete
 - [ ] File has been written to correct path (with proper naming convention based on feature_id)
-- [ ] Summary of both documents has been shown to user and confirmation requested (including Feature ID if applicable)
+- [ ] API Contract document has been generated at the correct path
