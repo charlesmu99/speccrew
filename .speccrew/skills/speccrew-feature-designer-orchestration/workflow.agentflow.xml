@@ -355,9 +355,15 @@
           <field name="text">DO NOT invoke speccrew-fd-api-contract directly</field>
         </block>
 
+        <!-- Phase 4.1a: Regenerate tasks file from Phase 3 completed features -->
+        <block type="task" id="P4-B1c" action="analyze" status="pending" desc="Build API Contract task list from Phase 3 DISPATCH-PROGRESS.json">
+          <field name="text">Read ${iteration_path}/02.feature-design/DISPATCH-PROGRESS.json. Extract all task IDs (regardless of status). Build a flat JSON array: [{"id":"F-M01-01"},{"id":"F-M01-02"},...]. Write this array to ${iteration_path}/03.api-contract/.tasks-temp.json</field>
+          <field name="output" var="api_contract_tasks_file"/>
+        </block>
+
         <!-- Initialize DISPATCH-PROGRESS.json for API Contract stage -->
         <block type="task" id="P4-B2" action="run-script" status="pending" desc="Initialize API contract dispatch">
-          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/02.feature-design/.tasks-temp.json</field>
+          <field name="command">node ${workspace_root}/scripts/update-progress.js init --file ${iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file ${iteration_path}/03.api-contract/.tasks-temp.json</field>
         </block>
 
         <!-- MANDATORY: Dispatch prompt must contain ONLY skill path + context data parameters.

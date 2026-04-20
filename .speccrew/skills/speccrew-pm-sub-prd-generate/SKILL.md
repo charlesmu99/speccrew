@@ -201,6 +201,14 @@ IF verification fails:
 > **Purpose:** Separate feature data from dispatch plan into dedicated `.prd-feature-list.json` file.
 > Each Sub-PRD Worker writes its module's features upon completion.
 
+> **CRITICAL: UTF-8 Encoding**
+> 
+> When writing ANY file (JSON, Markdown, or other text files), you MUST ensure UTF-8 encoding:
+> - Use `create_file` tool (which defaults to UTF-8) for file creation
+> - If using Node.js scripts: `fs.writeFileSync(path, content, 'utf8')`
+> - NEVER rely on system default encoding (may be GBK on Chinese Windows)
+> - This applies to ALL output files including `.prd-feature-list.json`
+
 ### 5.1 Determine Feature List File Path
 
 ```

@@ -190,6 +190,7 @@
 
     <block type="task" id="B17" action="write-file" desc="Update feature list file">
       <field name="path" value="${feature_list_path}"/>
+      <field name="encoding">utf8</field>
       <field name="merge">true</field>
       <field name="entry" value="${feature_list_entry}"/>
       <field name="output" var="feature_list_updated"/>

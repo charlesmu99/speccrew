@@ -54,7 +54,7 @@ Phase 4: API Contract Generation
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT attempt to generate content manually as fallback |
 | ALL | SCRIPT ENFORCEMENT | All .checkpoints.json and WORKFLOW-PROGRESS.json updates via update-progress.js script. Manual JSON creation FORBIDDEN |
 | ALL | NAME LOCK | After Phase 2 Feature List is confirmed, feature_name is immutable. All Skills MUST use the exact parameter value for output filenames. Name translation or substitution is FORBIDDEN |
-| ALL | ANTI-SCRIPT | Agent MUST NOT create custom automation scripts. DO NOT generate helper scripts (.sh, .ps1, .js) for batch processing or progress checking. Use ONLY the standard update-progress.js commands in documented workflow order. |
+| ALL | ANTI-SCRIPT | Agent MUST NOT create custom automation scripts. DO NOT generate helper scripts (.sh, .ps1, .js) for batch processing or progress checking. Use ONLY the standard update-progress.js commands in documented workflow order. If a required temp file (.tasks-temp.json) is missing, this indicates a workflow orchestration gap — follow the XML workflow's regeneration step, do NOT implement workarounds with ad-hoc commands. |
 
 ## MANDATORY WORKER ENFORCEMENT
 
@@ -756,15 +756,33 @@ If **2+ Feature Specs** in registry:
 > Worker will read the skill's workflow.agentflow.xml for its execution plan.
 > See: MANDATORY: Worker Dispatch Prompt Format section above.
 
+### Phase 4: API Contract — Task File Management
+
+⚠️ **CRITICAL: .tasks-temp.json Regeneration**
+
+Phase 3 deletes `.tasks-temp.json` after init. Phase 4 MUST regenerate it before init:
+
+1. Read `{iteration_path}/02.feature-design/DISPATCH-PROGRESS.json` (Phase 3 results)
+2. Extract ALL task IDs from the tasks array
+3. Build flat JSON array: `[{"id":"F-M01-01"},{"id":"F-M01-02"},...]`
+4. Write to `{iteration_path}/03.api-contract/.tasks-temp.json`
+5. Run init: `node {workspace_path}/scripts/update-progress.js init --file {iteration_path}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iteration_path}/03.api-contract/.tasks-temp.json`
+6. Delete `.tasks-temp.json` after successful init
+
+**DO NOT**:
+- Run ad-hoc PowerShell/Bash commands to parse `.prd-feature-list.json`
+- Create custom scripts to build task lists
+- Skip the init step and manually edit DISPATCH-PROGRESS.json
+
 1. **Initialize DISPATCH-PROGRESS.json for API Contract stage**:
 
    > ⚠️ Use `--tasks-file` instead of `--tasks` to avoid PowerShell JSON parsing issues.
 
    ```bash
-   # Step 1: Write tasks JSON to temp file inside iteration directory
-   # Create .tasks-temp.json with the task array content
+   # Step 1: Read Phase 3 DISPATCH-PROGRESS.json and extract all task IDs
+   # Build flat JSON array: [{"id":"F-XXX"},...] and write to .tasks-temp.json
    # Step 2: Initialize with --tasks-file
-   node {update_progress_script} init --file {iterations_dir}/{iteration}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iterations_dir}/{iteration}/02.feature-design/.tasks-temp.json
+   node {update_progress_script} init --file {iterations_dir}/{iteration}/03.api-contract/DISPATCH-PROGRESS.json --stage 02_feature_design_api_contract --tasks-file {iterations_dir}/{iteration}/03.api-contract/.tasks-temp.json
    # Step 3: Delete .tasks-temp.json after successful init
    ```
 

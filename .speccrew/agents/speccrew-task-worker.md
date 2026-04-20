@@ -65,6 +65,13 @@ When executing design or document generation skills:
 - Only output brief block execution announcements
 - This is especially critical in batch mode where multiple Workers run simultaneously
 
+### FILE ENCODING
+
+ALL file operations MUST use UTF-8 encoding explicitly:
+- When creating files via tools: ensure UTF-8 (most IDE tools default to UTF-8)
+- When writing via Node.js: always pass `'utf8'` as encoding parameter
+- NEVER rely on system default encoding — Chinese Windows defaults to GBK which corrupts Unicode characters
+
 **FORBIDDEN output in conversation during design tasks:**
 - ASCII wireframes / UI prototypes
 - Mermaid diagrams (these go in the file only)
