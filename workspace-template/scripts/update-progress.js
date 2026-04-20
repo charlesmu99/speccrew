@@ -653,15 +653,26 @@ function cmdUpdateTask(args) {
             }
             targetStage = data.stages[args.stage];
             if (!targetStage.features) {
-                targetStage.features = [];
+                targetStage.features = {};
             }
-            taskArray = targetStage.features;
-            taskIndex = taskArray.findIndex(t => t.id === args.taskId);
-            if (taskIndex === -1) {
-                // UPSERT: Task not found, create new entry
-                console.error(`Info: Task ${args.taskId} not found in stage ${args.stage}, creating new entry`);
-                taskArray.push({ id: args.taskId, status: 'pending' });
-                taskIndex = taskArray.length - 1;
+            const features = targetStage.features;
+            if (Array.isArray(features)) {
+                // Array form: [{id: "F-M08-03", ...}, ...]
+                taskArray = features;
+                taskIndex = taskArray.findIndex(t => t.id === args.taskId);
+                if (taskIndex === -1) {
+                    console.error(`Info: Task ${args.taskId} not found in stage ${args.stage}, creating new entry`);
+                    taskArray.push({ id: args.taskId, status: 'pending' });
+                    taskIndex = taskArray.length - 1;
+                }
+                task = taskArray[taskIndex];
+            } else {
+                // Object form: { "F-M08-03": { status: ... }, ... }
+                if (!features[args.taskId]) {
+                    console.error(`Info: Task ${args.taskId} not found in stage ${args.stage}, creating new entry`);
+                    features[args.taskId] = { status: 'pending' };
+                }
+                task = features[args.taskId];
             }
         } else {
             // Flat structure: data.tasks
@@ -670,9 +681,8 @@ function cmdUpdateTask(args) {
             if (taskIndex === -1 || taskIndex === undefined) {
                 outputError(`Task not found: ${args.taskId}`);
             }
+            task = taskArray[taskIndex];
         }
-
-        task = taskArray[taskIndex];
         const now = getTimestamp();
 
         // Update status
