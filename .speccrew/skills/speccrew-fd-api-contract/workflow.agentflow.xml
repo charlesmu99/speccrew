@@ -81,21 +81,21 @@
         - {Feature ID} → ${feature_id}
         - {Date} → current date
       </field>
-      <field name="output_path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
-      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="output_path">${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/03.api-contract/${feature_name}-api-contract.md</field>
       <field name="output" var="document_created"/>
     </block>
 
     <!-- Checkpoint: Verify document created -->
     <block type="checkpoint" id="CP1" name="document-created" desc="Verify API contract document created">
-      <field name="file" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md"/>
-      <field name="verify" value="file_exists(${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md)"/>
+      <field name="file" value="${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md"/>
+      <field name="verify" value="file_exists(${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md)"/>
     </block>
 
     <!-- Step 4b: Fill API List Overview Section -->
     <block type="task" id="B5" action="edit-file" desc="Fill API List Overview section">
-      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
-      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="path">${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/03.api-contract/${feature_name}-api-contract.md</field>
       <field name="operation">search_replace</field>
       <field name="search">## API List Overview
 
@@ -123,8 +123,8 @@ ${api_list.table}</field>
       </block>
 
       <block type="task" id="B7" action="edit-file" desc="Fill API contract section">
-        <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
-        <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+        <field name="path">${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md</field>
+        <field name="fallback_path">${iteration_path}/03.api-contract/${feature_name}-api-contract.md</field>
         <field name="operation">search_replace</field>
         <field name="search">### ${api.name}
 
@@ -137,8 +137,8 @@ ${api_contract_details.content}</field>
 
     <!-- Step 6: Fill Error Code Summary -->
     <block type="task" id="B8" action="edit-file" desc="Fill Error Code Summary section">
-      <field name="path">${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md</field>
-      <field name="fallback_path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="path">${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md</field>
+      <field name="fallback_path">${iteration_path}/03.api-contract/${feature_name}-api-contract.md</field>
       <field name="operation">search_replace</field>
       <field name="search">## Error Code Summary
 
@@ -161,7 +161,7 @@ Feature Name: ${feature_name}
 
 Documents:
 - Feature Spec: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md
-- API Contract: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md
+- API Contract: ${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md
 
 Please confirm:
 1. Is the technical solution feasible?
@@ -175,7 +175,7 @@ After confirmation, API Contract becomes the sole baseline for frontend-backend 
         <block type="event" id="E2" action="confirm" title="Feature Design Confirmation" type="yesno" desc="Request user confirmation">
           <field name="preview">Feature design phase deliverables ready:
 - Feature Spec: ${iteration_path}/02.feature-design/${feature_name}-feature-spec.md
-- API Contract: ${iteration_path}/02.feature-design/${feature_name}-api-contract.md
+- API Contract: ${iteration_path}/03.api-contract/${feature_name}-api-contract.md
 
 Please confirm:
 1. Is the overall technical solution feasible?
@@ -197,12 +197,12 @@ After confirmation, API Contract becomes the sole baseline for frontend-backend 
     <block type="gateway" id="G4" mode="exclusive" desc="Update progress based on mode">
       <branch test="${feature_id} != null" name="Feature mode">
         <block type="task" id="B10" action="run-script" desc="Update workflow progress for feature">
-          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${iteration_path}/WORKFLOW-PROGRESS.json" --task-id "${feature_id}" --status confirmed --outputs '["02.feature-design/${feature_id}-${feature_name}-feature-spec.md","02.feature-design/${feature_id}-${feature_name}-api-contract.md"]'</field>
+          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${iteration_path}/WORKFLOW-PROGRESS.json" --task-id "${feature_id}" --status confirmed --outputs '["02.feature-design/${feature_id}-${feature_name}-feature-spec.md","03.api-contract/${feature_id}-${feature_name}-api-contract.md"]'</field>
         </block>
       </branch>
       <branch default="true" name="Module mode">
         <block type="task" id="B11" action="run-script" desc="Update workflow progress for module">
-          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-stage --file "${iteration_path}/WORKFLOW-PROGRESS.json" --stage 02_feature_design --status confirmed --outputs '["02.feature-design/${feature_name}-feature-spec.md","02.feature-design/${feature_name}-api-contract.md"]'</field>
+          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-stage --file "${iteration_path}/WORKFLOW-PROGRESS.json" --stage 02_feature_design --status confirmed --outputs '["02.feature-design/${feature_name}-feature-spec.md","03.api-contract/${feature_name}-api-contract.md"]'</field>
         </block>
       </branch>
     </block>
@@ -213,7 +213,7 @@ After confirmation, API Contract becomes the sole baseline for frontend-backend 
        Output Results
        ============================================================ -->
   <block type="output" id="O1" desc="Workflow output results">
-    <field name="api_contract_path" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md" type="string" desc="Path to generated API contract"/>
+    <field name="api_contract_path" value="${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md" type="string" desc="Path to generated API contract"/>
     <field name="feature_spec_path" value="${iteration_path}/02.feature-design/${feature_id}-${feature_name}-feature-spec.md" type="string" desc="Path to Feature Spec"/>
     <field name="api_count" from="${api_list.count}" type="number" desc="Number of APIs documented"/>
     <field name="confirmation_status" value="confirmed" type="string" desc="User confirmation status"/>

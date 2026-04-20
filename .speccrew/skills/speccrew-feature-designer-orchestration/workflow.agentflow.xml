@@ -341,7 +341,7 @@
             feature_id: ${feature_list.modules[0].features[0].feature_id}
             feature_name: ${feature_list.modules[0].features[0].feature_name}
             feature_type: ${feature_list.modules[0].features[0].feature_type}
-            output_path: ${iteration_path}/02.feature-design/${feature_id}-${feature_name}-api-contract.md
+            output_path: ${iteration_path}/03.api-contract/${feature_id}-${feature_name}-api-contract.md
           </field>
           <field name="output" var="api_contract_result"/>
         </block>
@@ -382,7 +382,7 @@
               feature_id: ${item.feature_id}
               feature_name: ${item.feature_name}
               feature_type: ${item.feature_type}
-              output_path: ${iteration_path}/02.feature-design/${item.feature_id}-${item.feature_name}-api-contract.md
+              output_path: ${iteration_path}/03.api-contract/${item.feature_id}-${item.feature_name}-api-contract.md
             </field>
           </block>
 

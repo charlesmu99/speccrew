@@ -65,6 +65,14 @@
  *      --features-dir <dir>    Directory containing features-*.json files (required)
  *      --force                 Overwrite existing file
  *
+ * 8. sync - Sync task status with actual output files
+ *    node update-progress.js sync --file <path> --dir <dir> --suffix <suffix> [--strict]
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --dir <path>            Output directory absolute path (required)
+ *      --suffix <suffix>       File suffix to match, e.g., -api-contract.md (required)
+ *      --strict                Also mark completed tasks as pending if file is missing
+ *
  * Output Format:
  *   Success: {"success": true, "message": "...", "data": {...}}
  *   Failure: {"success": false, "error": "..."} (output to stderr, exit code 1)
@@ -254,7 +262,10 @@ function parseArgs() {
         featuresDir: null,
         platforms: null,
         force: false,
-        metadata: null
+        metadata: null,
+        dir: null,
+        suffix: null,
+        strict: false
     };
 
     // First argument is the command
@@ -362,6 +373,18 @@ function parseArgs() {
             case '--metadata':
             case '-Metadata':
                 result.metadata = args[++i];
+                break;
+            case '--dir':
+            case '-Dir':
+                result.dir = args[++i];
+                break;
+            case '--suffix':
+            case '-Suffix':
+                result.suffix = args[++i];
+                break;
+            case '--strict':
+            case '-Strict':
+                result.strict = true;
                 break;
         }
     }
@@ -1040,6 +1063,186 @@ function cmdInitKnowledgeTasks(args) {
 }
 
 /**
+ * Command: sync - Sync task status with actual output files
+ * Scans directory for files matching suffix, extracts task IDs from filenames,
+ * and updates task status accordingly.
+ */
+function cmdSync(args) {
+    if (!args.file) { outputError('--file is required'); process.exit(1); }
+    if (!args.dir) { outputError('--dir is required'); process.exit(1); }
+    if (!args.suffix) { outputError('--suffix is required'); process.exit(1); }
+
+    const filePath = path.resolve(args.file);
+    const dirPath = path.resolve(args.dir);
+    
+    let lockPath = null;
+
+    try {
+        lockPath = acquireLock(filePath);
+        
+        const data = readJsonFile(filePath);
+        if (!data || !data.tasks) { outputError('Invalid progress file'); process.exit(1); }
+
+        // Check if directory exists
+        if (!fs.existsSync(dirPath)) {
+            outputError(`Directory not found: ${dirPath}`);
+        }
+
+        // Scan directory for matching files
+        const files = fs.readdirSync(dirPath).filter(f => f.endsWith(args.suffix));
+
+        // Extract task IDs from filenames
+        // Format: {task-id}-{feature-name}{suffix}
+        // task-id pattern: F-Mxx-xx (starts with F-, contains module and feature number)
+        const fileTaskIds = new Set();
+        const fileMap = {};
+        for (const file of files) {
+            // Extract task ID: match F-M followed by digits, dash, digits
+            const match = file.match(/^(F-M\d+-\d+)/);
+            if (match) {
+                fileTaskIds.add(match[1]);
+                fileMap[match[1]] = file;
+            }
+        }
+
+        let synced = 0;
+        let alreadyCorrect = 0;
+        let missing = 0;
+        const now = getTimestamp();
+
+        for (const task of data.tasks) {
+            const taskId = task.id;
+            if (fileTaskIds.has(taskId)) {
+                if (task.status !== 'completed') {
+                    task.status = 'completed';
+                    task.output = fileMap[taskId];
+                    task.completed_at = now;
+                    task.updated_at = now;
+                    synced++;
+                } else {
+                    alreadyCorrect++;
+                }
+            } else {
+                if (task.status === 'completed' && args.strict) {
+                    task.status = 'pending';
+                    delete task.output;
+                    delete task.completed_at;
+                    task.updated_at = now;
+                    missing++;
+                }
+            }
+        }
+
+        // Recalculate counts
+        data.counts = calculateCounts(data.tasks);
+        data.updated_at = now;
+
+        // Atomic write
+        atomicWriteJson(filePath, data);
+
+        outputSuccess('Sync completed', {
+            scanned_files: files.length,
+            synced: synced,
+            already_correct: alreadyCorrect,
+            missing_files: missing,
+            counts: data.counts
+        });
+    } finally {
+        if (lockPath) releaseLock(lockPath);
+    }
+}
+
+/**
+ * Command: sync - Sync task status with actual output files
+ * Scans directory for files matching suffix, extracts task IDs from filenames,
+ * and updates task status accordingly.
+ */
+function cmdSync(args) {
+    if (!args.file) { outputError('--file is required'); process.exit(1); }
+    if (!args.dir) { outputError('--dir is required'); process.exit(1); }
+    if (!args.suffix) { outputError('--suffix is required'); process.exit(1); }
+
+    const filePath = path.resolve(args.file);
+    const dirPath = path.resolve(args.dir);
+    
+    let lockPath = null;
+
+    try {
+        lockPath = acquireLock(filePath);
+        
+        const data = readJsonFile(filePath);
+        if (!data || !data.tasks) { outputError('Invalid progress file'); process.exit(1); }
+
+        // Check if directory exists
+        if (!fs.existsSync(dirPath)) {
+            outputError(`Directory not found: ${dirPath}`);
+        }
+
+        // Scan directory for matching files
+        const files = fs.readdirSync(dirPath).filter(f => f.endsWith(args.suffix));
+
+        // Extract task IDs from filenames
+        // Format: {task-id}-{feature-name}{suffix}
+        // task-id pattern: F-Mxx-xx (starts with F-, contains module and feature number)
+        const fileTaskIds = new Set();
+        const fileMap = {};
+        for (const file of files) {
+            // Extract task ID: match F-M followed by digits, dash, digits
+            const match = file.match(/^(F-M\d+-\d+)/);
+            if (match) {
+                fileTaskIds.add(match[1]);
+                fileMap[match[1]] = file;
+            }
+        }
+
+        let synced = 0;
+        let alreadyCorrect = 0;
+        let missing = 0;
+        const now = getTimestamp();
+
+        for (const task of data.tasks) {
+            const taskId = task.id;
+            if (fileTaskIds.has(taskId)) {
+                if (task.status !== 'completed') {
+                    task.status = 'completed';
+                    task.output = fileMap[taskId];
+                    task.completed_at = now;
+                    task.updated_at = now;
+                    synced++;
+                } else {
+                    alreadyCorrect++;
+                }
+            } else {
+                if (task.status === 'completed' && args.strict) {
+                    task.status = 'pending';
+                    delete task.output;
+                    delete task.completed_at;
+                    task.updated_at = now;
+                    missing++;
+                }
+            }
+        }
+
+        // Recalculate counts
+        data.counts = calculateCounts(data.tasks);
+        data.updated_at = now;
+
+        // Atomic write
+        atomicWriteJson(filePath, data);
+
+        outputSuccess('Sync completed', {
+            scanned_files: files.length,
+            synced: synced,
+            already_correct: alreadyCorrect,
+            missing_files: missing,
+            counts: data.counts
+        });
+    } finally {
+        if (lockPath) releaseLock(lockPath);
+    }
+}
+
+/**
  * Command: init-tasks - Scan feature-design directory to generate task list
  */
 function cmdInitTasks(args) {
@@ -1207,6 +1410,7 @@ function main() {
         console.error('  update-workflow  Update a workflow stage status');
         console.error('  init-tasks       Generate tasks from feature-spec files');
         console.error('  init-knowledge-tasks  Generate knowledge initialization tasks from matcher results');
+        console.error('  sync             Sync task status with actual output files');
         console.error('');
         console.error('Run "node update-progress.js <command> --help" for more information.');
         process.exit(1);
@@ -1238,6 +1442,9 @@ function main() {
                 break;
             case 'init-knowledge-tasks':
                 cmdInitKnowledgeTasks(args);
+                break;
+            case 'sync':
+                cmdSync(args);
                 break;
             default:
                 outputError(`Unknown command: ${args.command}`);

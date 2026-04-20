@@ -742,7 +742,7 @@ Invoke API Contract skill directly:
   - `feature_spec_path`: Path to the Feature Spec document
   - `feature_id`: Feature ID (e.g., `F-CRM-01`)
   - `feature_type`: `Page+API` or `API-only`
-  - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+  - `output_path`: `{iterations_dir}/{iteration}/03.api-contract/{feature_id}-{feature-name-slug}-api-contract.md`
 
 **Note**: Both `Page+API` and `API-only` Features require API Contract documents.
 
@@ -800,7 +800,7 @@ Phase 3 deletes `.tasks-temp.json` after init. Phase 4 MUST regenerate it before
        - `feature_id`: Feature ID (e.g., `F-CRM-01`)
        - `feature_name`: Feature name — **MUST be the exact value from .checkpoints.json, used verbatim for output filename**
        - `feature_type`: `Page+API` or `API-only`
-       - `output_path`: `{iterations_dir}/{iteration}/02.feature-design/{feature_id}-{feature-name-slug}-api-contract.md`
+       - `output_path`: `{iterations_dir}/{iteration}/03.api-contract/{feature_id}-{feature-name-slug}-api-contract.md`
 
 3. **Wait for batch completion**, update progress per worker:
    ```bash
@@ -864,7 +864,7 @@ After user confirms Joint Confirmation:
    node {update_progress_script} update-workflow \
      --file {iterations_dir}/{iteration}/WORKFLOW-PROGRESS.json \
      --stage 02_feature_design --status confirmed \
-     --output "02.feature-design/F-CRM-01-customer-list-feature-spec.md,02.feature-design/F-CRM-01-customer-list-api-contract.md,..."
+     --output "02.feature-design/F-CRM-01-customer-list-feature-spec.md,03.api-contract/F-CRM-01-customer-list-api-contract.md,..."
    ```
 
 2. **Confirm Transition**:
@@ -876,7 +876,7 @@ After user confirms Joint Confirmation:
 | Deliverable | Path | Notes |
 |-------------|------|-------|
 | Feature Spec | `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md` | One document per Feature |
-| API Contract | `{iterations_dir}/{iteration}/02.feature-design/{feature-id}-{feature-name}-api-contract.md` | One document per Feature |
+| API Contract | `{iterations_dir}/{iteration}/03.api-contract/{feature-id}-{feature-name}-api-contract.md` | One document per Feature |
 
 ## Naming Convention
 

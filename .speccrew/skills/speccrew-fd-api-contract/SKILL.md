@@ -80,9 +80,9 @@ Complete definition for each API:
 1. **Read the template file**: `templates/API-CONTRACT-TEMPLATE.md`
 2. **Replace top-level placeholders** (feature name, date, feature_id if provided, etc.)
 3. **Create the document** using `create_file`:
-   - **新格式（当提供了 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md`
+   - **新格式（当提供了 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/{feature-id}-{feature-name}-api-contract.md`
      - 示例：`F-CRM-01-customer-list-api-contract.md`
-   - **旧格式（向后兼容，未提供 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+   - **旧格式（向后兼容，未提供 feature_id 时）**：`speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/[feature-name]-api-contract.md`
    - Content: Template with top-level placeholders replaced
 4. **Verify**: Document has complete section structure ready for filling
 
@@ -127,7 +127,7 @@ Feature 设计阶段交付物已准备就绪：
 
 📄 文档清单：
    - Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md
-   - API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md
+   - API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/{feature-id}-{feature-name}-api-contract.md
 
 请确认以下关键点：
 1. 当前 Feature 的技术方案是否可行？
@@ -146,7 +146,7 @@ Feature 设计阶段交付物已准备就绪：
 ```
 Feature design phase deliverables are ready:
 - Feature Spec: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-feature-spec.md
-- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md
+- API Contract: speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/[feature-name]-api-contract.md
 
 Please confirm the following key points:
 1. Is the overall technical solution feasible?
@@ -249,7 +249,7 @@ Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
           "confirmed_at": "{current_timestamp}",
           "outputs": [
             "02.feature-design/{feature-id}-{feature-name}-feature-spec.md",
-            "02.feature-design/{feature-id}-{feature-name}-api-contract.md"
+            "03.api-contract/${feature_id}-${feature_name}-api-contract.md"
           ]
         }
       }
@@ -274,7 +274,7 @@ Update `WORKFLOW-PROGRESS.json` to reflect current feature/module status.
       "confirmed_at": "{current_timestamp}",
       "outputs": [
         "02.feature-design/[feature-name]-feature-spec.md",
-        "02.feature-design/[feature-name]-api-contract.md"
+        "03.api-contract/${feature_name}-api-contract.md"
       ]
     }
   }
