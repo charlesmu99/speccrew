@@ -137,7 +137,7 @@ function outputError(error) {
  */
 function acquireLock(filePath) {
     const lockPath = `${filePath}.lock`;
-    const maxRetries = 30;
+    const maxRetries = 50;
     let retryCount = 0;
 
     while (retryCount < maxRetries) {
@@ -152,7 +152,7 @@ function acquireLock(filePath) {
                 try {
                     const lockStat = fs.statSync(lockPath);
                     const ageSeconds = (Date.now() - lockStat.mtimeMs) / 1000;
-                    if (ageSeconds > 60) {
+                    if (ageSeconds > 120) {
                         console.error(`Warning: Stale lock file detected (age: ${Math.round(ageSeconds)}s), removing: ${lockPath}`);
                         fs.unlinkSync(lockPath);
                         // Do not consume retry count, continue to next loop attempt to acquire lock
@@ -166,9 +166,10 @@ function acquireLock(filePath) {
             if (retryCount >= maxRetries) {
                 throw new Error(`Failed to acquire file lock for '${filePath}' after ${maxRetries} attempts`);
             }
-            // Wait 1 second before retry
+            // Retry with jitter to avoid thundering herd
+            const delay = 200 + Math.floor(Math.random() * 300);
             const start = Date.now();
-            while (Date.now() - start < 1000) {
+            while (Date.now() - start < delay) {
                 // Busy wait
             }
         }
@@ -209,7 +210,13 @@ function readJsonFile(filePath) {
     if (!fs.existsSync(filePath)) {
         throw new Error(`File not found: ${filePath}`);
     }
-    const content = fs.readFileSync(filePath, 'utf8');
+    let content = fs.readFileSync(filePath, 'utf8');
+    
+    // Remove UTF-8 BOM if present
+    if (content.charCodeAt(0) === 0xFEFF) {
+        content = content.slice(1);
+    }
+    
     try {
         return JSON.parse(content);
     } catch (e) {
@@ -569,7 +576,7 @@ function cmdRead(args) {
 
         // 5. --status mode: filter tasks by status
         if (args.status) {
-            const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed'];
+            const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed', 'confirmed'];
             if (!validStatuses.includes(args.status)) {
                 outputError(`Invalid status filter: ${args.status}. Must be one of: ${validStatuses.join(', ')}`);
             }
@@ -597,7 +604,7 @@ function cmdUpdateTask(args) {
         outputError('Usage: update-task --file <path> --task-id <id> --status <status> [options]');
     }
 
-    const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed'];
+    const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed', 'confirmed'];
     if (!validStatuses.includes(args.status)) {
         outputError(`Invalid status: ${args.status}. Must be one of: ${validStatuses.join(', ')}`);
     }
@@ -638,6 +645,8 @@ function cmdUpdateTask(args) {
             if (args.output) {
                 task.output = args.output;
             }
+        } else if (args.status === 'confirmed') {
+            task.confirmed_at = now;
         } else if (args.status === 'failed') {
             task.completed_at = now;
             if (args.error) {
