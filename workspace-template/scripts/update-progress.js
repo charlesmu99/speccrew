@@ -152,7 +152,7 @@ function acquireLock(filePath) {
                 try {
                     const lockStat = fs.statSync(lockPath);
                     const ageSeconds = (Date.now() - lockStat.mtimeMs) / 1000;
-                    if (ageSeconds > 120) {
+                    if (ageSeconds > 30) {
                         console.error(`Warning: Stale lock file detected (age: ${Math.round(ageSeconds)}s), removing: ${lockPath}`);
                         fs.unlinkSync(lockPath);
                         // Do not consume retry count, continue to next loop attempt to acquire lock
@@ -161,10 +161,32 @@ function acquireLock(filePath) {
                 } catch (statErr) {
                     // Lock file was deleted during stat, continue retrying
                 }
+            } else {
+                // Non-EEXIST error (EACCES, EPERM, etc.) - log for debugging
+                if (retryCount === 0) {
+                    console.error(`Warning: Lock creation failed with ${error.code} for: ${lockPath}`);
+                }
             }
             retryCount++;
             if (retryCount >= maxRetries) {
-                throw new Error(`Failed to acquire file lock for '${filePath}' after ${maxRetries} attempts`);
+                // Force acquire as last resort
+                try {
+                    // Remove any existing lock file regardless of age
+                    if (fs.existsSync(lockPath)) {
+                        fs.unlinkSync(lockPath);
+                    }
+                    // Brief random delay to avoid thundering herd on force acquire
+                    const forceDelay = Math.floor(Math.random() * 500);
+                    const forceStart = Date.now();
+                    while (Date.now() - forceStart < forceDelay) {}
+
+                    const fd = fs.openSync(lockPath, 'wx');
+                    fs.closeSync(fd);
+                    console.error(`Warning: Lock acquired by force after ${maxRetries} retries for: ${filePath}`);
+                    return lockPath;
+                } catch (forceErr) {
+                    throw new Error(`Failed to acquire file lock for '${filePath}' after ${maxRetries} attempts (force acquire also failed: ${forceErr.code})`);
+                }
             }
             // Retry with jitter to avoid thundering herd
             const delay = 200 + Math.floor(Math.random() * 300);
