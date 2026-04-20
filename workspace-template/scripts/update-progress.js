@@ -439,7 +439,11 @@ function cmdInit(args) {
     // Read task list from argument or file
     if (args.tasksFile) {
         // Read from file
-        const tasksContent = fs.readFileSync(path.resolve(args.tasksFile), 'utf8');
+        let tasksContent = fs.readFileSync(path.resolve(args.tasksFile), 'utf8');
+        // Strip UTF-8 BOM if present
+        if (tasksContent.charCodeAt(0) === 0xFEFF) {
+            tasksContent = tasksContent.slice(1);
+        }
         try {
             tasks = JSON.parse(tasksContent);
         } catch (e) {
