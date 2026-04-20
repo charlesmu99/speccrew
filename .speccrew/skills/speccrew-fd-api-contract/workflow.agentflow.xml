@@ -160,7 +160,7 @@ ${api_list.error_codes}</field>
     <block type="gateway" id="G4" mode="exclusive" desc="Update progress based on mode">
       <branch test="${feature_id} != null" name="Feature mode">
         <block type="task" id="B10" action="run-script" desc="Update workflow progress for feature">
-          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${iteration_path}/WORKFLOW-PROGRESS.json" --task-id "${feature_id}" --status confirmed --outputs '["02.feature-design/${feature_id}-${feature_name}-feature-spec.md","03.api-contract/${feature_id}-${feature_name}-api-contract.md"]'</field>
+          <field name="command">node "${workspace_path}/scripts/update-progress.js" update-task --file "${iteration_path}/WORKFLOW-PROGRESS.json" --stage 03_api_contract --task-id "${feature_id}" --status confirmed --outputs '["02.feature-design/${feature_id}-${feature_name}-feature-spec.md","03.api-contract/${feature_id}-${feature_name}-api-contract.md"]'</field>
         </block>
       </branch>
       <branch default="true" name="Module mode">

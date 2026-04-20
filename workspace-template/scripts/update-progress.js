@@ -652,13 +652,16 @@ function cmdUpdateTask(args) {
                 outputError(`Stage not found: ${args.stage}`);
             }
             targetStage = data.stages[args.stage];
-            if (!targetStage.features || !Array.isArray(targetStage.features)) {
-                outputError(`Stage has no features array: ${args.stage}`);
+            if (!targetStage.features) {
+                targetStage.features = [];
             }
             taskArray = targetStage.features;
             taskIndex = taskArray.findIndex(t => t.id === args.taskId);
             if (taskIndex === -1) {
-                outputError(`Task not found in stage ${args.stage}: ${args.taskId}`);
+                // UPSERT: Task not found, create new entry
+                console.error(`Info: Task ${args.taskId} not found in stage ${args.stage}, creating new entry`);
+                taskArray.push({ id: args.taskId, status: 'pending' });
+                taskIndex = taskArray.length - 1;
             }
         } else {
             // Flat structure: data.tasks
