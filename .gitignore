@@ -27,6 +27,10 @@ OpenSpec
 spec-kit
 OpenSpec/
 spec-kit/
+ai-xml-flow/
+
+# Dependencies
+node_modules/
 
 # Target projects (runtime only, not tracked)
 ruoyi-vue-pro/
