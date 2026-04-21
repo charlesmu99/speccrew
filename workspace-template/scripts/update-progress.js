@@ -65,7 +65,14 @@
  *      --features-dir <dir>    Directory containing features-*.json files (required)
  *      --force                 Overwrite existing file
  *
- * 8. sync - Sync task status with actual output files
+ * 8. batch-update - Batch update multiple task statuses from a JSON file
+ *    node update-progress.js batch-update --file <path> --tasks-file <path>
+ *    Options:
+ *      --file <path>           Progress file path (required)
+ *      --tasks-file <path>     JSON file with task updates (required)
+ *                               Format: [{"id": "task-id", "status": "completed", ...}]
+ *
+ * 9. sync - Sync task status with actual output files
  *    node update-progress.js sync --file <path> --dir <dir> --suffix <suffix> [--strict]
  *    Options:
  *      --file <path>           Progress file path (required)
@@ -1147,6 +1154,152 @@ function cmdInitKnowledgeTasks(args) {
 }
 
 /**
+ * Command: batch-update - Batch update multiple task statuses from a JSON file
+ *
+ * Reads a list of task updates from a JSON file and applies them to the progress file.
+ * This avoids long command lines that can crash PSReadLine.
+ *
+ * Tasks file format:
+ * [
+ *   {"id": "task-1", "status": "completed"},
+ *   {"id": "task-2", "status": "failed", "error": "error message"},
+ *   {"id": "task-3", "status": "completed", "output": "result info"}
+ * ]
+ */
+function cmdBatchUpdate(args) {
+    if (!args.file || !args.tasksFile) {
+        outputError('Usage: batch-update --file <path> --tasks-file <path>');
+    }
+
+    const filePath = path.resolve(args.file);
+    const tasksFilePath = path.resolve(args.tasksFile);
+
+    // Read tasks file
+    let updates;
+    try {
+        updates = readJsonFile(tasksFilePath);
+    } catch (e) {
+        outputError(`Failed to read tasks file: ${e.message}`);
+    }
+
+    // Validate updates is an array
+    if (!Array.isArray(updates)) {
+        outputError('Tasks file must contain a JSON array of task updates');
+    }
+
+    if (updates.length === 0) {
+        outputError('Tasks file is empty — no updates to apply');
+    }
+
+    // Validate each update entry
+    const validStatuses = ['pending', 'in_progress', 'partial', 'completed', 'failed', 'confirmed'];
+    for (let i = 0; i < updates.length; i++) {
+        if (!updates[i].id) {
+            outputError(`Update entry at index ${i} is missing required "id" field`);
+        }
+        if (!updates[i].status) {
+            outputError(`Update entry at index ${i} (id: ${updates[i].id}) is missing required "status" field`);
+        }
+        if (!validStatuses.includes(updates[i].status)) {
+            outputError(`Invalid status "${updates[i].status}" for task ${updates[i].id}. Must be one of: ${validStatuses.join(', ')}`);
+        }
+    }
+
+    let lockPath = null;
+    try {
+        lockPath = acquireLock(filePath);
+        const data = readJsonFile(filePath);
+
+        const now = getTimestamp();
+        let updated = 0;
+        let notFound = 0;
+        let skipped = 0;
+        const notFoundIds = [];
+
+        // Build a lookup map for tasks (support both flat and nested structures)
+        // Flat structure: data.tasks array
+        if (data.tasks && Array.isArray(data.tasks)) {
+            for (const update of updates) {
+                const taskIndex = data.tasks.findIndex(t => t.id === update.id);
+                if (taskIndex === -1) {
+                    notFound++;
+                    notFoundIds.push(update.id);
+                    continue;
+                }
+
+                const task = data.tasks[taskIndex];
+
+                // Skip if already in target status
+                if (task.status === update.status) {
+                    skipped++;
+                    continue;
+                }
+
+                // Apply status update
+                task.status = update.status;
+                task.updated_at = now;
+
+                // Set timestamps based on status
+                if (update.status === 'in_progress') {
+                    task.started_at = now;
+                } else if (update.status === 'completed') {
+                    task.completed_at = now;
+                    if (update.output) {
+                        task.output = update.output;
+                    }
+                } else if (update.status === 'confirmed') {
+                    task.confirmed_at = now;
+                } else if (update.status === 'failed') {
+                    task.completed_at = now;
+                    if (update.error) {
+                        task.error = update.error;
+                    }
+                    if (update.error_category) {
+                        task.error_category = update.error_category;
+                    }
+                } else if (update.status === 'partial') {
+                    if (!task.started_at) {
+                        task.started_at = now;
+                    }
+                    if (update.output) {
+                        task.output = update.output;
+                    }
+                }
+
+                updated++;
+            }
+
+            // Recalculate counts
+            data.counts = calculateCounts(data.tasks);
+        } else {
+            // No flat tasks array — cannot batch update
+            outputError('Progress file does not contain a tasks array — batch-update only supports flat task structure');
+        }
+
+        data.updated_at = now;
+
+        // Atomic write
+        atomicWriteJson(filePath, data);
+
+        const result = {
+            total_updates_requested: updates.length,
+            updated: updated,
+            skipped_already_current: skipped,
+            not_found: notFound,
+            counts: data.counts
+        };
+
+        if (notFoundIds.length > 0) {
+            result.not_found_ids = notFoundIds;
+        }
+
+        outputSuccess(`Batch update completed: ${updated} tasks updated, ${skipped} skipped, ${notFound} not found`, result);
+    } finally {
+        if (lockPath) releaseLock(lockPath);
+    }
+}
+
+/**
  * Command: sync - Sync task status with actual output files
  * Scans directory for files matching suffix, extracts task IDs from filenames,
  * and updates task status accordingly.
@@ -1494,6 +1647,7 @@ function main() {
         console.error('  update-workflow  Update a workflow stage status');
         console.error('  init-tasks       Generate tasks from feature-spec files');
         console.error('  init-knowledge-tasks  Generate knowledge initialization tasks from matcher results');
+        console.error('  batch-update     Batch update multiple task statuses from a JSON file');
         console.error('  sync             Sync task status with actual output files');
         console.error('');
         console.error('Run "node update-progress.js <command> --help" for more information.');
@@ -1526,6 +1680,9 @@ function main() {
                 break;
             case 'init-knowledge-tasks':
                 cmdInitKnowledgeTasks(args);
+                break;
+            case 'batch-update':
+                cmdBatchUpdate(args);
                 break;
             case 'sync':
                 cmdSync(args);

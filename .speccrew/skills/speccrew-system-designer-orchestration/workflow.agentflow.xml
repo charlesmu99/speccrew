@@ -389,7 +389,9 @@
                 api_contract_path: ${task.api_contract_path},
                 techs_knowledge_paths: ${task.techs_knowledge_paths},
                 framework_decisions: ${framework_result.decisions},
-                output_base_path: ${iterations_dir}/${current_iteration}/03.system-design
+                output_base_path: ${iterations_dir}/${current_iteration}/03.system-design,
+                skip_confirmation: true,
+                skip_index_generation: true
               </field>
               <field name="output" var="worker_result_${task.id}"/>
             </block>
@@ -419,6 +421,34 @@
 
         </block>
       </branch>
+    </block>
+
+    <!-- batch-update is available via: node update-progress.js batch-update --file <progress.json> --tasks-file <tasks.json> -->
+    <!-- Use when orchestrator needs to batch-update multiple task statuses at once -->
+
+    <!-- Phase 5.5: Generate Platform INDEX.md (AGENT-OWNED) -->
+    <block type="rule" id="P5-IDX-R1" level="mandatory" desc="INDEX.md Generation - Agent Owned">
+      <field name="text">
+        After all workers complete, the orchestrator generates INDEX.md for each platform.
+        Steps per platform:
+        1. Read INDEX-TEMPLATE.md from techs knowledge templates
+        2. Copy template to {output_dir}/{platform_id}/INDEX.md
+        3. Fill sections using search_replace with actual content from:
+           - Tech stack summary from techs knowledge
+           - Module list table from completed design documents
+           - Shared design decisions from architecture knowledge
+        4. Verify all placeholders are replaced
+        FORBIDDEN: Dispatching a worker for INDEX.md generation.
+      </field>
+    </block>
+    <block type="loop" id="P5-IDX-L1" over="${platforms}" as="platform">
+      <block type="task" id="P5-IDX-B1" action="write-file" status="pending"
+             desc="Generate INDEX.md for ${platform.id}">
+        <field name="template_source">${techs_knowledge_dir}/${platform.id}/templates/INDEX-TEMPLATE.md</field>
+        <field name="output">${iterations_dir}/${current_iteration}/03.system-design/${platform.id}/INDEX.md</field>
+        <field name="fill_method">search_replace per section</field>
+        <field name="module_list_source">${platform.completed_documents}</field>
+      </block>
     </block>
 
     <!-- Step 5.5: Read final dispatch progress -->
