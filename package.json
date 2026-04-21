@@ -1,6 +1,6 @@
 {
   "name": "speccrew",
-  "version": "0.7.46",
+  "version": "0.7.47",
   "description": "Spec-Driven Development toolkit for AI-powered IDEs",
   "author": "charlesmu99",
   "repository": {
@@ -32,5 +32,5 @@
     "agents",
     "skills"
   ],
-  "license": "MIT"
+  "license": "Apache-2.0"
 }
