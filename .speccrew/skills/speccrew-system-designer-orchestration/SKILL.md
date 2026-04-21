@@ -119,6 +119,30 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 
 **CRITICAL**: The `Agent tool` creates a NEW agent session — this is completely different from the `Skill tool` which executes inline.
 
+### Phase 5 Execution Method — Feature×Platform Worker Dispatch
+
+**DISPATCH GRANULARITY**: ONE Worker per Feature×Platform combination — NO EXCEPTIONS.
+
+**HOW TO DISPATCH**: When executing Phase 5 dispatch blocks (action="dispatch-to-worker"):
+1. Build Feature×Platform matrix from DESIGN-OVERVIEW.md Platform Design Index
+2. Create `.tasks-temp.json` with one entry per Feature×Platform combination
+3. Initialize DISPATCH-PROGRESS.json via `update-progress.js init`
+4. Compute batch plan (batch size = 6)
+5. For each batch:
+   a. Use **Agent tool** to create `speccrew-task-worker` agents for ALL tasks in the batch **SIMULTANEOUSLY**
+   b. Each Worker receives: `skill_path` (platform-specific skill), `task_id`, `feature_id`, `feature_name`, `platform_id`, `feature_spec_path`, `api_contract_path`, `techs_knowledge_paths`, `framework_decisions`, `output_base_path`
+   c. **Wait** for ALL Workers in the batch to complete
+   d. Update DISPATCH-PROGRESS.json for each completed Worker
+   e. Log batch progress
+6. After all batches complete, read final progress summary
+
+**CRITICAL**: Each Worker handles exactly ONE feature on ONE platform. DO NOT group multiple features or platforms into a single Worker.
+
+**Example** (5 features × 3 platforms = 15 workers, 3 batches of 6/6/3):
+- Batch 1: Workers 1-6 (parallel)
+- Batch 2: Workers 7-12 (parallel, after batch 1 completes)
+- Batch 3: Workers 13-15 (parallel, after batch 2 completes)
+
 ### HARD STOP Checkpoints
 
 This workflow has **mandatory HARD STOP** checkpoints at:
@@ -147,3 +171,5 @@ DO NOT proceed past these checkpoints without explicit user confirmation.
 - **DO NOT skip reading workflow.agentflow.xml** — XML is the execution authority
 - **DO NOT generate DESIGN-OVERVIEW.md yourself** — Dispatch speccrew-task-worker with speccrew-sd-design-overview-generate skill
 - **DO NOT use Skill tool for Phase 4 design overview generation** — Skill tool executes inline, Agent tool creates a worker
+- **DO NOT group multiple features into a single Worker** — Each Worker handles exactly ONE feature on ONE platform
+- **DO NOT dispatch Workers sequentially** — ALL Workers in the same batch MUST be dispatched simultaneously

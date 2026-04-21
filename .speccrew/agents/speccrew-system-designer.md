@@ -786,6 +786,20 @@ node {update_progress_script} update-task --file {iterations_dir}/{current}/03.s
 
 All workers execute simultaneously to maximize efficiency.
 
+> 🛑 **CRITICAL: Phase 5 dispatch-to-worker Protocol**
+> 1. **ONE Worker per Feature×Platform combination** — DO NOT group
+> 2. Use **Agent tool** to create `speccrew-task-worker` for each task
+> 3. Pass `skill_path`: `${ide_skills_dir}/${skill_name}/SKILL.md` (platform-specific skill)
+> 4. Pass context: task_id, feature_id, feature_name, platform_id, feature_spec_path, api_contract_path, techs_knowledge_paths, framework_decisions, output_base_path
+> 5. Dispatch ALL Workers in the same batch **SIMULTANEOUSLY** in a single turn
+> 6. **Wait** for ALL Workers in the batch to complete before dispatching next batch
+> 7. Update DISPATCH-PROGRESS.json after each Worker completes
+> **FORBIDDEN**:
+> - ❌ DO NOT group multiple features into one Worker
+> - ❌ DO NOT use Skill tool to invoke platform skills (when Features ≥ 2 OR Platforms ≥ 2)
+> - ❌ DO NOT dispatch Workers sequentially — ALL in same batch must be simultaneous
+> - ❌ DO NOT generate *-design.md files yourself as fallback
+
 ### 5.5 Update DISPATCH-PROGRESS.json
 
 After each worker completes, parse its **Task Completion Report** and update:

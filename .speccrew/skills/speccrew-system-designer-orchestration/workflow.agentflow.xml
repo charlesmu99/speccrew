@@ -341,25 +341,91 @@
         </block>
       </branch>
       <branch default="true" name="Multi Feature/Platform - Worker Dispatch Required">
-        <!-- Parallel Worker Dispatch -->
-        <block type="rule" id="P5-R2" level="mandatory" desc="Parallel dispatch rule">
-          <field name="text">Dispatch ALL platform workers IN PARALLEL — DO NOT execute sequentially</field>
-          <field name="text">Each Worker runs independently — dispatch all at once, then monitor completion</field>
+        <!-- Parallel Worker Dispatch with Batch Loop -->
+        <block type="rule" id="P5-R2" level="mandatory" desc="Feature×Platform dispatch rules">
+          <field name="text">ONE Worker per Feature×Platform combination — NO EXCEPTIONS</field>
+          <field name="text">DO NOT group multiple features or platforms into a single Worker</field>
+          <field name="text">ALL Workers in the same batch MUST be dispatched IN PARALLEL — sequential dispatch is FORBIDDEN</field>
+          <field name="text">ALL Worker dispatch calls MUST be issued SIMULTANEOUSLY in a SINGLE orchestration turn</field>
+          <field name="text">DO NOT wait for any Worker to complete before dispatching the next Worker in the same batch</field>
+          <field name="text">Batch size is 6 — DO NOT exceed</field>
+          <field name="text">Each Worker MUST receive a single feature_spec_path and single platform_id — NOT arrays</field>
         </block>
-        <block type="task" id="P5-B4" action="dispatch-to-worker" status="pending"
-               desc="Dispatch workers for Feature×Platform matrix">
-          <field name="worker">speccrew-task-worker</field>
-          <field name="max_concurrent">6</field>
-          <field name="tasks">${dispatch_tasks_matrix}</field>
-          <field name="note">Each worker receives: skill_path, task_id, feature_id, feature_name, platform_id, feature_spec_path, api_contract_path, techs_knowledge_paths, framework_decisions, output_base_path</field>
+
+        <!-- Compute batch plan from dispatch_tasks_matrix -->
+        <block type="task" id="P5-B4-BATCH" action="compute-batches" status="pending"
+               desc="Calculate batch plan from Feature×Platform matrix">
+          <field name="items" value="${dispatch_tasks_matrix}"/>
+          <field name="batch_size" value="6"/>
+          <field name="output" var="batch_plan"/>
+        </block>
+
+        <!-- Batch Loop: Process all Feature×Platform tasks in batches of 6 -->
+        <block type="loop" id="P5-L-MAIN" over="${batch_plan.batches}" as="batch"
+               desc="Process batches sequentially — wait for each batch to complete before next">
+
+          <!-- Parallel dispatch for each task in current batch -->
+          <block type="loop" id="P5-L-INNER" over="${batch.tasks}" as="task" parallel="true" max-concurrency="6"
+                 desc="Dispatch Worker for each Feature×Platform combination IN PARALLEL">
+
+            <!-- Update task status to in_progress -->
+            <block type="task" id="P5-B4-PRE" action="run-script" status="pending"
+                   desc="Update task status to in_progress before dispatch">
+              <field name="command">node "${update_progress_script}" update-task --file "${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json" --task-id "${task.id}" --status in_progress</field>
+            </block>
+
+            <!-- Dispatch single Worker for ONE Feature × ONE Platform -->
+            <block type="task" id="P5-B4-DISPATCH" action="dispatch-to-worker" status="pending"
+                   desc="Dispatch Worker: ${task.feature_id} on ${task.platform_id}">
+              <field name="agent">speccrew-task-worker</field>
+              <field name="skill">${task.skill}</field>
+              <field name="skill_path">${ide_skills_dir}/${task.skill}/SKILL.md</field>
+              <field name="context">
+                task_id: ${task.id},
+                feature_id: ${task.feature_id},
+                feature_name: ${task.feature_name},
+                platform_id: ${task.platform_id},
+                feature_spec_path: ${task.feature_spec_path},
+                api_contract_path: ${task.api_contract_path},
+                techs_knowledge_paths: ${task.techs_knowledge_paths},
+                framework_decisions: ${framework_result.decisions},
+                output_base_path: ${iterations_dir}/${current_iteration}/03.system-design
+              </field>
+              <field name="output" var="worker_result_${task.id}"/>
+            </block>
+
+            <!-- Update progress after worker completes -->
+            <block type="task" id="P5-B4-POST" action="run-script" status="pending"
+                   desc="Update task progress after worker completes">
+              <field name="command">node "${update_progress_script}" update-task --file "${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json" --task-id "${task.id}" --status ${worker_result_${task.id}.status}</field>
+            </block>
+
+          </block>
+
+          <!-- Log batch completion -->
+          <block type="task" id="P5-B4-BATCH-READ" action="run-script" status="pending"
+                 desc="Read current progress after batch">
+            <field name="command">node "${update_progress_script}" read --file "${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json" --summary</field>
+            <field name="output" var="batch_progress"/>
+          </block>
+
+          <block type="event" id="P5-E-BATCH-END" action="log" level="info"
+                 desc="Log batch completion">
+            <field name="message">✅ Batch ${batch.index} Complete
+├── Progress: ${batch_progress.counts.completed}/${dispatch_tasks_matrix.length} completed
+├── Failed: ${batch_progress.counts.failed}
+└── Remaining: ${batch_progress.counts.pending}</field>
+          </block>
+
         </block>
       </branch>
     </block>
 
-    <!-- Step 5.5: Update DISPATCH-PROGRESS.json after completion -->
+    <!-- Step 5.5: Read final dispatch progress -->
     <block type="task" id="P5-B5" action="run-script" status="pending"
-           desc="Update task status based on completion">
-      <field name="command">node ${update_progress_script} update-task --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --task-id ${task_id} --status ${completion_status} --output "${output_path}"</field>
+           desc="Read final dispatch progress summary">
+      <field name="command">node "${update_progress_script}" read --file "${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json" --summary</field>
+      <field name="output" var="final_dispatch_progress"/>
     </block>
 
     <!-- Step 5.6: Error Handling -->
