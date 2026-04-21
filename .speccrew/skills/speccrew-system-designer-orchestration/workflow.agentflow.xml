@@ -391,7 +391,9 @@
                 framework_decisions: ${framework_result.decisions},
                 output_base_path: ${iterations_dir}/${current_iteration}/03.system-design,
                 skip_confirmation: true,
-                skip_index_generation: true
+                skip_index_generation: true,
+                dispatch_progress_file: ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json,
+                update_progress_script: ${update_progress_script}
               </field>
               <field name="output" var="worker_result_${task.id}"/>
             </block>
@@ -449,6 +451,9 @@
           completed_documents: ${platform.completed_documents}
           techs_knowledge_dir: ${techs_knowledge_dir}
           workspace_path: ${workspace_path}
+          task_id: idx-${platform.id}
+          dispatch_progress_file: ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json
+          update_progress_script: ${update_progress_script}
         </field>
       </block>
     </block>

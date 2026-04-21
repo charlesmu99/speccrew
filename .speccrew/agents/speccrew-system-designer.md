@@ -133,6 +133,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase 4 | WORKER-DISPATCH + HARD STOP | DESIGN-OVERVIEW.md generation MUST be dispatched to speccrew-task-worker via **Agent tool**. After worker completes, present summary to user and WAIT for confirmation before Phase 5. |
 | Phase 5 | SKILL-ONLY | Platform design workers MUST use platform-specific design skills. Agent MUST NOT write design documents itself |
 | Phase 5 | SKIP-CONFIRMATION | Batch dispatch MUST include `skip_confirmation: true` and `skip_index_generation: true` in worker context. Workers skip Checkpoint A and Step 5 in batch mode |
+| Phase 5 | WORKER-SELF-UPDATE | Batch dispatch MUST include `dispatch_progress_file` and `update_progress_script` in worker context. Workers self-update task status in DISPATCH-PROGRESS.json upon completion (Step 7 of platform skills). Orchestrator's P5-B4-POST serves as fallback |
 | Phase 5.5 | WORKER-DISPATCH-INDEX | After all workers complete, dispatch ONE worker per platform with `index_only: true` to generate INDEX.md. Orchestrator MUST NOT generate INDEX.md directly |
 | Phase 6 | HARD STOP | User must confirm all designs before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT generate content manually as fallback |
@@ -776,6 +777,8 @@ Each worker receives:
   - `techs_knowledge_paths`: Techs knowledge paths for this platform
   - `framework_decisions`: Framework decisions from Phase 3
   - `output_base_path`: Path to `03.system-design/` directory
+  - `dispatch_progress_file`: Path to DISPATCH-PROGRESS.json (enables Worker to self-update task status on completion)
+  - `update_progress_script`: Path to update-progress.js script
 
 **Before dispatch**: Update each task status to `in_progress`:
 ```bash
@@ -796,7 +799,7 @@ All workers execute simultaneously to maximize efficiency.
 > 1. **ONE Worker per Feature×Platform combination** — DO NOT group
 > 2. Use **Agent tool** to create `speccrew-task-worker` for each task
 > 3. Pass `skill_path`: `${ide_skills_dir}/${skill_name}/SKILL.md` (platform-specific skill)
-> 4. Pass context: task_id, feature_id, feature_name, platform_id, feature_spec_path, api_contract_path, techs_knowledge_paths, framework_decisions, output_base_path, **skip_confirmation: true**, **skip_index_generation: true**
+> 4. Pass context: task_id, feature_id, feature_name, platform_id, feature_spec_path, api_contract_path, techs_knowledge_paths, framework_decisions, output_base_path, **skip_confirmation: true**, **skip_index_generation: true**, **dispatch_progress_file**, **update_progress_script**
 > 5. Dispatch ALL Workers in the same batch **SIMULTANEOUSLY** in a single turn
 > 6. **Wait** for ALL Workers in the batch to complete before dispatching next batch
 > 7. Update DISPATCH-PROGRESS.json after each Worker completes
