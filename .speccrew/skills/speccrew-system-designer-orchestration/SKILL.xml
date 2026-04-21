@@ -8,10 +8,99 @@
     <field name="current_iteration" required="false" type="string" desc="Current active iteration identifier"/>
   </block>
 
+  <!-- ========== Workflow Loading Announcement ========== -->
+  <sequence name="工作流加载播报">
+    <block type="event" id="LOAD-ANNOUNCE" action="log" desc="Workflow loading announcement">
+      <field name="message">🔄 正在加载系统设计工作流...
+
+阶段流程图:
+Phase 0: Stage Gate &amp; Resume (阶段门控与恢复)
+  ├── Step 0.1: 验证上游阶段完成状态
+  ├── Step 0.2: 检查恢复状态
+  ├── Step 0.3: 检查调度进度恢复
+  └── Step 0.4: 同步恢复(如有需要)
+Phase 0.5: IDE Directory Detection (IDE目录检测)
+  └── Step 0.5.1: 检测IDE目录和技能可用性
+Phase 1: Preparation (准备阶段)
+  ├── Step 1.1: 加载Feature Registry
+  ├── Step 1.2: 验证文件存在性
+  ├── Step 1.4: 展示设计范围摘要
+  └── Step 1.5: 验证准备完成
+Phase 2: Resource Verification (资源验证)
+  ├── Step 2.1: 验证技术知识库
+  └── Step 2.2: 准备调度参数
+Phase 3: Framework Evaluation (框架评估) ⛔ HARD STOP
+  ├── Step 3.1: 派发Worker执行框架评估
+  ├── Step 3.2: 等待Worker完成
+  ├── Step 3.3: 验证输出
+  └── Step 3.5: 用户确认 ⛔
+Phase 4: Design Overview (设计概览) ⛔ HARD STOP
+  ├── Step 4.1: 派发Worker生成DESIGN-OVERVIEW.md
+  ├── Step 4.2: 等待Worker完成
+  ├── Step 4.3: 验证输出
+  └── Step 4.5: 用户确认 ⛔
+Phase 5: Platform Dispatch (平台调度)
+  ├── Step 5.1: 确定平台类型
+  ├── Step 5.2: 初始化调度进度
+  ├── Step 5.3-5.4: 批量派发Worker
+  ├── Step 5.5: 生成平台INDEX.md
+  └── Step 5.6: 错误处理
+Phase 6: Joint Confirmation (联合确认) ⛔ HARD STOP
+  ├── Step 6.1: 展示设计文档摘要
+  ├── Step 6.2: 用户确认 ⛔
+  └── Step 6.3: 更新检查点</field>
+    </block>
+
+    <block type="rule" id="R-EXEC-PROTOCOL" level="mandatory" desc="Mandatory Execution Protocol">
+      <field name="text">Execute ALL blocks in document order sequentially without unnecessary pausing</field>
+      <field name="text">ONLY stop at explicit confirm blocks (HARD STOP checkpoints) — no other interruptions</field>
+      <field name="text">Action-to-tool mapping: run-skill → Skill tool | run-script → Terminal tool | dispatch-to-worker → Agent tool (create speccrew-task-worker) | read-file → Read tool | log → Output directly | confirm → Present and wait</field>
+    </block>
+
+    <block type="rule" id="R-CONTINUOUS" level="forbidden" desc="Continuous Execution Enforcement">
+      <field name="text">FORBIDDEN: Asking "Should I continue?" or "Should I proceed?" after completing a subtask</field>
+      <field name="text">FORBIDDEN: Suggesting "Let me split this into batches" or "Let's do this in parts"</field>
+      <field name="text">FORBIDDEN: Pausing to list what you plan to do next — just do it</field>
+      <field name="text">FORBIDDEN: Asking for confirmation before generating output files</field>
+      <field name="text">FORBIDDEN: Warning about "large number of files" — proceed with generation</field>
+      <field name="text">FORBIDDEN: Offering "Should I proceed with the remaining items?"</field>
+    </block>
+
+    <block type="rule" id="R-PAUSE-CASES" level="mandatory" desc="When to Pause (ONLY these cases)">
+      <field name="text">CHECKPOINT gates defined in workflow (user confirmation required by design)</field>
+      <field name="text">Ambiguous requirements that genuinely need clarification</field>
+      <field name="text">Unrecoverable errors that prevent further progress</field>
+      <field name="text">Security-sensitive operations (e.g., deleting existing files)</field>
+    </block>
+
+    <block type="rule" id="R-HARD-STOPS" level="mandatory" desc="Consolidated HARD STOP Checkpoints">
+      <field name="text">⛔ Phase 3.5: Framework evaluation confirmation — user MUST approve framework decisions before Phase 4</field>
+      <field name="text">⛔ Phase 4.5: Design overview confirmation — user MUST approve DESIGN-OVERVIEW.md before Phase 5 dispatch</field>
+      <field name="text">⛔ Phase 6.1: Joint design confirmation — user MUST approve all designs</field>
+      <field name="text">DO NOT proceed past these checkpoints without explicit user confirmation</field>
+    </block>
+
+    <block type="rule" id="R-ORCHESTRATOR" level="mandatory" desc="Orchestrator Execution Rules">
+      <field name="text">This Agent is an orchestrator ONLY — MUST NOT write design documents directly</field>
+      <field name="text">Wait for worker completion before verifying output — do not proceed until worker returns</field>
+      <field name="text">If worker dispatch fails, ABORT — do NOT fallback to inline execution</field>
+      <field name="text">Pass skill_path explicitly to worker — worker cannot find skills via glob on first run</field>
+      <field name="text">DO NOT create scripts for batch analysis — Workers handle this via their own skill</field>
+    </block>
+  </sequence>
+
   <!-- ========== Phase 0: Stage Gate & Resume ========== -->
   <sequence name="Phase 0: Stage Gate &amp; Resume">
-    
+    <block type="event" id="P0-ANNOUNCE" action="log" desc="Phase 0 announcement">
+      <field name="message">📍 Phase 0: Stage Gate &amp; Resume (阶段门控与恢复)
+├── Step 0.1: 验证上游阶段完成状态
+├── Step 0.2: 检查恢复状态
+├── Step 0.3: 检查调度进度恢复
+└── Step 0.4: 同步恢复(如有需要)</field>
+    </block>
+
     <!-- Step 0.1: Verify Upstream Completion -->
+    <block type="event" id="P0-S1-LOG" action="log" desc="Step 0.1: 验证上游阶段完成状态"/>
     <block type="task" id="P0-B1" action="run-script" status="pending"
            desc="Read WORKFLOW-PROGRESS.json overview">
       <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/WORKFLOW-PROGRESS.json --overview</field>
@@ -34,6 +123,7 @@
     </block>
 
     <!-- Step 0.2: Check Resume State -->
+    <block type="event" id="P0-S2-LOG" action="log" desc="Step 0.2: 检查恢复状态"/>
     <block type="task" id="P0-B3" action="run-script" status="pending"
            desc="Read checkpoints for resume state">
       <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --checkpoints</field>
@@ -41,6 +131,7 @@
     </block>
 
     <!-- Step 0.3: Check Dispatch Resume -->
+    <block type="event" id="P0-S3-LOG" action="log" desc="Step 0.3: 检查调度进度恢复"/>
     <block type="task" id="P0-B4" action="run-script" status="pending"
            desc="Read dispatch progress summary">
       <field name="command">node ${update_progress_script} read --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --summary</field>
@@ -59,6 +150,12 @@
 
   <!-- ========== Phase 0.5: IDE Directory Detection ========== -->
   <sequence name="Phase 0.5: IDE Directory Detection">
+    <block type="event" id="P05-ANNOUNCE" action="log" desc="Phase 0.5 announcement">
+      <field name="message">📍 Phase 0.5: IDE Directory Detection (IDE目录检测)
+└── Step 0.5.1: 检测IDE目录和技能可用性</field>
+    </block>
+
+    <block type="event" id="P05-S1-LOG" action="log" desc="Step 0.5.1: 检测IDE目录和技能"/>
     <block type="task" id="P05-B1" action="read-file" status="pending"
            desc="Detect IDE directory and skills">
       <field name="path">${workspace_path}/.qoder/skills</field>
@@ -88,6 +185,14 @@
 
   <!-- ========== Phase 1: Preparation ========== -->
   <sequence name="Phase 1: Preparation">
+    <block type="event" id="P1-ANNOUNCE" action="log" desc="Phase 1 announcement">
+      <field name="message">📍 Phase 1: Preparation (准备阶段)
+├── Step 1.1: 加载Feature Registry
+├── Step 1.2: 验证文件存在性
+├── Step 1.4: 展示设计范围摘要
+└── Step 1.5: 验证准备完成</field>
+    </block>
+
     <block type="rule" id="P1-R1" level="forbidden" desc="Phase 1 Mandatory Constraints">
       <field name="text">DO NOT use Glob to explore file system</field>
       <field name="text">DO NOT parse filenames to discover Features</field>
@@ -95,6 +200,7 @@
     </block>
 
     <!-- Step 1.1: Load Feature Registry -->
+    <block type="event" id="P1-S1-LOG" action="log" desc="Step 1.1: 加载Feature Registry"/>
     <block type="task" id="P1-B1" action="read-file" status="pending"
            desc="Load Feature Registry from .prd-feature-list.json">
       <field name="path">${iterations_dir}/${current_iteration}/01.product-requirement/.prd-feature-list.json</field>
@@ -102,6 +208,7 @@
     </block>
 
     <!-- Step 1.2: Verify File Existence -->
+    <block type="event" id="P1-S2-LOG" action="log" desc="Step 1.2: 验证文件存在性"/>
     <block type="gateway" id="P1-G1" mode="exclusive" desc="Verify Feature Spec and API Contract files exist">
       <branch test="${feature_registry.files} all_exist" name="All Files Exist">
         <block type="event" id="P1-E1" action="log" desc="Report files verified"/>
@@ -115,12 +222,14 @@
     </block>
 
     <!-- Step 1.4: Present Design Scope -->
+    <block type="event" id="P1-S4-LOG" action="log" desc="Step 1.4: 展示设计范围摘要"/>
     <block type="event" id="P1-E4" action="log" desc="Display Design Scope Summary">
       <field name="template">design-scope-summary</field>
       <field name="data" value="${feature_registry}"/>
     </block>
 
     <!-- Step 1.5: Preparation Validation -->
+    <block type="event" id="P1-S5-LOG" action="log" desc="Step 1.5: 验证准备完成"/>
     <block type="checkpoint" id="P1-CP1" name="preparation_validated" desc="Preparation validation gate">
       <field name="conditions">feature_registry_exists, files_verified, scope_presented</field>
     </block>
@@ -128,6 +237,12 @@
 
   <!-- ========== Phase 2: Resource Verification ========== -->
   <sequence name="Phase 2: Resource Verification">
+    <block type="event" id="P2-ANNOUNCE" action="log" desc="Phase 2 announcement">
+      <field name="message">📍 Phase 2: Resource Verification (资源验证)
+├── Step 2.1: 验证技术知识库
+└── Step 2.2: 准备调度参数</field>
+    </block>
+
     <block type="rule" id="P2-R1" level="forbidden" desc="Phase 2 Mandatory Constraints">
       <field name="text">DO NOT read Feature Spec files — Skills will read them when dispatched</field>
       <field name="text">DO NOT read API Contract files — Skills will read them when dispatched</field>
@@ -136,6 +251,7 @@
     </block>
 
     <!-- Step 2.1: Verify Techs Knowledge Base -->
+    <block type="event" id="P2-S1-LOG" action="log" desc="Step 2.1: 验证技术知识库"/>
     <block type="task" id="P2-B1" action="read-file" status="pending"
            desc="Check techs-manifest.json exists">
       <field name="path">${workspace_path}/knowledges/techs/techs-manifest.json</field>
@@ -155,6 +271,7 @@
     </block>
 
     <!-- Step 2.2: Prepare Dispatch Parameters -->
+    <block type="event" id="P2-S2-LOG" action="log" desc="Step 2.2: 准备调度参数"/>
     <block type="event" id="P2-E4" action="log" desc="Build dispatch parameter template">
       <field name="template">build-dispatch-params</field>
       <field name="output" var="dispatch_params"/>
@@ -163,6 +280,14 @@
 
   <!-- ========== Phase 3: Framework Evaluation (HARD STOP) ========== -->
   <sequence name="Phase 3: Framework Evaluation">
+    <block type="event" id="P3-ANNOUNCE" action="log" desc="Phase 3 announcement">
+      <field name="message">📍 Phase 3: Framework Evaluation (框架评估) ⛔ HARD STOP
+├── Step 3.1: 派发Worker执行框架评估
+├── Step 3.2: 等待Worker完成
+├── Step 3.3: 验证输出
+└── Step 3.5: 用户确认 ⛔</field>
+    </block>
+
     <block type="rule" id="P3-R0" level="forbidden" desc="Phase 3 Worker Dispatch Enforcement">
       <field name="text">FORBIDDEN: Do NOT inline-call or directly invoke speccrew-sd-framework-evaluate skill</field>
       <field name="text">FORBIDDEN: Do NOT create scripts or read feature files yourself for framework evaluation</field>
@@ -178,6 +303,7 @@
     </block>
 
     <!-- Step 3.1: Dispatch Worker Agent for Framework Evaluation -->
+    <block type="event" id="P3-S1-LOG" action="log" desc="Step 3.1: 派发Worker执行框架评估"/>
     <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending"
            desc="Dispatch single worker agent for framework evaluation. Use /speccrew-task-worker agent, NOT Skill tool">
       <field name="agent">speccrew-task-worker</field>
@@ -196,12 +322,14 @@
     </block>
 
     <!-- Step 3.2: Wait for Worker Completion -->
+    <block type="event" id="P3-S2-LOG" action="log" desc="Step 3.2: 等待框架评估Worker完成"/>
     <block type="gateway" id="P3-GW1" mode="wait" desc="Wait for framework evaluation worker to complete">
       <field name="wait_for">P3-B1</field>
       <field name="timeout">600</field>
     </block>
 
     <!-- Step 3.3: Validate Worker Output -->
+    <block type="event" id="P3-S3-LOG" action="log" desc="Step 3.3: 验证框架评估输出"/>
     <block type="task" id="P3-B2" action="read-file" status="pending"
            desc="Verify framework-evaluation.md was generated">
       <field name="path">${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md</field>
@@ -222,6 +350,7 @@
     </block>
 
     <!-- Step 3.5: User Confirmation (HARD STOP) -->
+    <block type="event" id="P3-S5-LOG" action="log" desc="Step 3.5: ⛔ 用户确认框架评估结果"/>
     <block type="event" id="P3-E4" action="confirm" desc="Request user confirmation for framework decisions">
       <field name="prompt">🛑 FRAMEWORK EVALUATION — AWAITING CONFIRMATION. Do you approve these framework decisions? (确认/修改/取消)</field>
       <field name="template">framework-evaluation-summary</field>
@@ -247,6 +376,14 @@
 
   <!-- ========== Phase 4: Generate DESIGN-OVERVIEW.md (WORKER-DISPATCH) ========== -->
   <sequence name="Phase 4: Generate DESIGN-OVERVIEW.md (WORKER-DISPATCH)">
+    <block type="event" id="P4-ANNOUNCE" action="log" desc="Phase 4 announcement">
+      <field name="message">📍 Phase 4: Design Overview (设计概览) ⛔ HARD STOP
+├── Step 4.1: 派发Worker生成DESIGN-OVERVIEW.md
+├── Step 4.2: 等待Worker完成
+├── Step 4.3: 验证输出
+└── Step 4.5: 用户确认 ⛔</field>
+    </block>
+
     <block type="rule" id="P4-R0" level="forbidden" desc="Phase 4 Worker Dispatch Enforcement">
       <field name="text">FORBIDDEN: Do NOT inline-generate DESIGN-OVERVIEW.md yourself</field>
       <field name="text">MANDATORY: DESIGN-OVERVIEW.md generation MUST be delegated to worker agent via block P4-B1</field>
@@ -254,6 +391,7 @@
       <field name="text">If worker dispatch fails, ABORT — do NOT fallback to inline generation</field>
     </block>
 
+    <block type="event" id="P4-S1-LOG" action="log" desc="Step 4.1: 派发Worker生成DESIGN-OVERVIEW.md"/>
     <block type="task" id="P4-B1" action="dispatch-to-worker" status="pending"
            desc="Dispatch single worker agent for design overview generation. Use Agent tool, NOT Skill tool.">
       <field name="agent">speccrew-task-worker</field>
@@ -270,11 +408,13 @@
       <field name="note">Worker receives ALL context above and generates DESIGN-OVERVIEW.md. Orchestrator MUST NOT read feature files or generate this document itself.</field>
     </block>
 
+    <block type="event" id="P4-S2-LOG" action="log" desc="Step 4.2: 等待设计概览Worker完成"/>
     <block type="gateway" id="P4-GW1" mode="wait" desc="Wait for design overview worker to complete">
       <field name="wait_for">P4-B1</field>
       <field name="timeout">300</field>
     </block>
 
+    <block type="event" id="P4-S3-LOG" action="log" desc="Step 4.3: 验证DESIGN-OVERVIEW.md输出"/>
     <block type="task" id="P4-B2" action="read-file" status="pending"
            desc="Verify DESIGN-OVERVIEW.md was generated by worker">
       <field name="path">${iterations_dir}/${current_iteration}/03.system-design/DESIGN-OVERVIEW.md</field>
@@ -287,6 +427,7 @@
     </block>
 
     <!-- Phase 4.5: HARD STOP — User must confirm DESIGN-OVERVIEW.md -->
+    <block type="event" id="P4-S5-LOG" action="log" desc="Step 4.5: ⛔ 用户确认DESIGN-OVERVIEW.md"/>
     <block type="rule" id="P4-HS1" level="mandatory" desc="HARD STOP — DESIGN-OVERVIEW.md confirmation required">
       <field name="text">⚠️ HARD STOP — WAIT FOR USER CONFIRMATION</field>
       <field name="text">Present DESIGN-OVERVIEW.md summary to user (feature count, platform count, matrix entries, key sections)</field>
@@ -298,6 +439,15 @@
 
   <!-- ========== Phase 5: Dispatch Per-Platform Skills ========== -->
   <sequence name="Phase 5: Dispatch Per-Platform Skills">
+    <block type="event" id="P5-ANNOUNCE" action="log" desc="Phase 5 announcement">
+      <field name="message">📍 Phase 5: Platform Dispatch (平台调度)
+├── Step 5.1: 确定平台类型
+├── Step 5.2: 初始化调度进度
+├── Step 5.3-5.4: 批量派发Worker (每批次最多6个并行)
+├── Step 5.5: 生成平台INDEX.md (Worker派发)
+└── Step 5.6: 错误处理</field>
+    </block>
+
     <block type="rule" id="P5-R1" level="mandatory" desc="Worker Enforcement Rules">
       <field name="text">This Agent is an orchestrator ONLY — MUST NOT write design documents directly</field>
       <field name="text">When Features ≥ 2 OR Platforms ≥ 2: MUST dispatch speccrew-task-worker agents via Agent tool</field>
@@ -306,18 +456,21 @@
     </block>
 
     <!-- Step 5.1: Determine Platform Types -->
+    <block type="event" id="P5-S1-LOG" action="log" desc="Step 5.1: 确定平台类型映射"/>
     <block type="event" id="P5-E1" action="log" desc="Map platform types to skills">
       <field name="template">platform-skill-mapping</field>
       <field name="output" var="platform_skill_map"/>
     </block>
 
     <!-- Step 5.2: Initialize DISPATCH-PROGRESS.json -->
+    <block type="event" id="P5-S2-LOG" action="log" desc="Step 5.2: 初始化调度进度"/>
     <block type="task" id="P5-B1" action="run-script" status="pending"
            desc="Initialize dispatch progress with task list">
       <field name="command">node ${update_progress_script} init --file ${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json --stage 03_system_design --tasks-file ${iterations_dir}/${current_iteration}/03.system-design/.tasks-temp.json</field>
     </block>
 
     <!-- Step 5.3/5.4: Dispatch Decision -->
+    <block type="event" id="P5-S3-LOG" action="log" desc="Step 5.3: 确定调度模式(单平台直接/多平台Worker派发)"/>
     <block type="gateway" id="P5-G1" mode="exclusive" desc="Determine dispatch mode">
       <branch test="${feature_count} == 1 AND ${platform_count} == 1" name="Single Feature Single Platform">
         <!-- Direct skill invocation allowed -->
@@ -353,6 +506,7 @@
         </block>
 
         <!-- Compute batch plan from dispatch_tasks_matrix -->
+        <block type="event" id="P5-S4-LOG" action="log" desc="Step 5.4: 计算批量调度计划"/>
         <block type="task" id="P5-B4-BATCH" action="compute-batches" status="pending"
                desc="Calculate batch plan from Feature×Platform matrix">
           <field name="items" value="${dispatch_tasks_matrix}"/>
@@ -429,6 +583,7 @@
     <!-- Use when orchestrator needs to batch-update multiple task statuses at once -->
 
     <!-- Phase 5.5: Generate Platform INDEX.md (WORKER-DISPATCH) -->
+    <block type="event" id="P5-S5-LOG" action="log" desc="Step 5.5: 派发Worker生成各平台INDEX.md"/>
     <block type="rule" id="P5-IDX-R1" level="mandatory" desc="INDEX.md Generation via Worker Dispatch">
       <field name="text">
         After ALL Feature×Platform workers complete, dispatch ONE worker per platform to generate INDEX.md.
@@ -460,6 +615,7 @@
     <block type="gateway" id="P5-IDX-GW1" mode="wait" desc="Wait for all INDEX.md workers to complete"/>
 
     <!-- Step 5.5: Read final dispatch progress -->
+    <block type="event" id="P5-S6-LOG" action="log" desc="Step 5.6: 读取最终调度进度并检查错误"/>
     <block type="task" id="P5-B5" action="run-script" status="pending"
            desc="Read final dispatch progress summary">
       <field name="command">node "${update_progress_script}" read --file "${iterations_dir}/${current_iteration}/03.system-design/DISPATCH-PROGRESS.json" --summary</field>
@@ -482,13 +638,22 @@
 
   <!-- ========== Phase 6: Joint Confirmation (HARD STOP) ========== -->
   <sequence name="Phase 6: Joint Confirmation">
+    <block type="event" id="P6-ANNOUNCE" action="log" desc="Phase 6 announcement">
+      <field name="message">📍 Phase 6: Joint Confirmation (联合确认) ⛔ HARD STOP
+├── Step 6.1: 展示设计文档摘要
+├── Step 6.2: 用户确认 ⛔
+└── Step 6.3: 更新检查点</field>
+    </block>
+
     <!-- Step 6.1: Present summary by Feature ID -->
+    <block type="event" id="P6-S1-LOG" action="log" desc="Step 6.1: 展示设计文档摘要"/>
     <block type="event" id="P6-E1" action="log" desc="Display design documents summary by Feature">
       <field name="template">design-documents-summary</field>
       <field name="data" value="${dispatch_progress}"/>
     </block>
 
-    <!-- Step 6.1: User Confirmation (HARD STOP) -->
+    <!-- Step 6.2: User Confirmation (HARD STOP) -->
+    <block type="event" id="P6-S2-LOG" action="log" desc="Step 6.2: ⛔ 用户联合确认"/>
     <block type="event" id="P6-E2" action="confirm" desc="Request joint confirmation">
       <field name="prompt">🛑 JOINT CONFIRMATION — AWAITING USER REVIEW. Please review all design documents. (确认/修改/取消)</field>
     </block>
@@ -506,6 +671,7 @@
     </block>
 
     <!-- Step 6.3: Update Checkpoints on Confirmation -->
+    <block type="event" id="P6-S3-LOG" action="log" desc="Step 6.3: 更新检查点和工作流状态"/>
     <block type="task" id="P6-B1" action="run-script" status="pending"
            desc="Write framework_evaluation checkpoint">
       <field name="command">node ${update_progress_script} write-checkpoint --file ${iterations_dir}/${current_iteration}/03.system-design/.checkpoints.json --stage 03_system_design --checkpoint framework_evaluation --passed true</field>
