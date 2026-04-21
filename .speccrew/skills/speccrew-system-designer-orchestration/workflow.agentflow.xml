@@ -163,6 +163,13 @@
 
   <!-- ========== Phase 3: Framework Evaluation (HARD STOP) ========== -->
   <sequence name="Phase 3: Framework Evaluation">
+    <block type="rule" id="P3-R0" level="forbidden" desc="Phase 3 Worker Dispatch Enforcement">
+      <field name="text">FORBIDDEN: Do NOT inline-call or directly invoke speccrew-sd-framework-evaluate skill</field>
+      <field name="text">FORBIDDEN: Do NOT create scripts or read feature files yourself for framework evaluation</field>
+      <field name="text">MANDATORY: Framework evaluation MUST be delegated to worker agent via block P3-B1</field>
+      <field name="text">If worker dispatch fails, ABORT — do NOT fallback to inline execution</field>
+    </block>
+
     <block type="rule" id="P3-R1" level="mandatory" desc="Worker Dispatch Rule">
       <field name="text">Framework evaluation MUST be dispatched to a single speccrew-task-worker agent</field>
       <field name="text">Agent MUST NOT perform capability gap analysis or framework recommendations itself</field>
@@ -172,9 +179,10 @@
     <!-- Step 3.1: Dispatch Worker Agent for Framework Evaluation -->
     <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending"
            desc="Dispatch single worker agent for framework evaluation">
-      <field name="worker">speccrew-task-worker</field>
+      <field name="agent">speccrew-task-worker</field>
+      <field name="skill">speccrew-sd-framework-evaluate</field>
       <field name="max_concurrent">1</field>
-      <field name="skill_path">.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md</field>
+      <field name="skill_path">${workspace_path}/.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md</field>
       <field name="context">
         workspace_path: ${workspace_path},
         iteration_path: ${iterations_dir}/${current_iteration},
@@ -183,6 +191,7 @@
         techs_knowledge_paths: ${dispatch_params.techs_knowledge_paths},
         output_path: ${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md
       </field>
+      <field name="note">Worker receives ALL context above and generates framework-evaluation.md. Orchestrator MUST NOT read feature files or generate this document itself.</field>
     </block>
 
     <!-- Step 3.2: Wait for Worker Completion -->

@@ -93,6 +93,14 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 3. Unrecoverable errors that prevent further progress
 4. Security-sensitive operations (e.g., deleting existing files)
 
+### Phase 3 FORBIDDEN Actions
+
+- DO NOT inline-call speccrew-sd-framework-evaluate skill
+- DO NOT read feature spec files yourself for framework evaluation
+- DO NOT create temporary scripts for batch file analysis
+- DO NOT generate framework-evaluation.md as fallback if worker fails
+- Worker dispatch failure = ABORT (report error, do NOT retry with inline execution)
+
 ### HARD STOP Checkpoints
 
 This workflow has **mandatory HARD STOP** checkpoints at:
