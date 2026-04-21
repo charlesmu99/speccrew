@@ -426,30 +426,33 @@
     <!-- batch-update is available via: node update-progress.js batch-update --file <progress.json> --tasks-file <tasks.json> -->
     <!-- Use when orchestrator needs to batch-update multiple task statuses at once -->
 
-    <!-- Phase 5.5: Generate Platform INDEX.md (AGENT-OWNED) -->
-    <block type="rule" id="P5-IDX-R1" level="mandatory" desc="INDEX.md Generation - Agent Owned">
+    <!-- Phase 5.5: Generate Platform INDEX.md (WORKER-DISPATCH) -->
+    <block type="rule" id="P5-IDX-R1" level="mandatory" desc="INDEX.md Generation via Worker Dispatch">
       <field name="text">
-        After all workers complete, the orchestrator generates INDEX.md for each platform.
-        Steps per platform:
-        1. Read INDEX-TEMPLATE.md from techs knowledge templates
-        2. Copy template to {output_dir}/{platform_id}/INDEX.md
-        3. Fill sections using search_replace with actual content from:
-           - Tech stack summary from techs knowledge
-           - Module list table from completed design documents
-           - Shared design decisions from architecture knowledge
-        4. Verify all placeholders are replaced
-        FORBIDDEN: Dispatching a worker for INDEX.md generation.
+        After ALL Feature×Platform workers complete, dispatch ONE worker per platform to generate INDEX.md.
+        - Each worker receives index_only=true, skip_index_generation=false
+        - Worker executes ONLY Step 5 of the platform skill
+        - FORBIDDEN: Orchestrator generating INDEX.md directly (must use worker)
       </field>
     </block>
     <block type="loop" id="P5-IDX-L1" over="${platforms}" as="platform">
-      <block type="task" id="P5-IDX-B1" action="write-file" status="pending"
-             desc="Generate INDEX.md for ${platform.id}">
-        <field name="template_source">${techs_knowledge_dir}/${platform.id}/templates/INDEX-TEMPLATE.md</field>
-        <field name="output">${iterations_dir}/${current_iteration}/03.system-design/${platform.id}/INDEX.md</field>
-        <field name="fill_method">search_replace per section</field>
-        <field name="module_list_source">${platform.completed_documents}</field>
+      <block type="task" id="P5-IDX-DISPATCH" action="dispatch-to-worker" status="pending"
+             desc="Dispatch worker to generate INDEX.md for ${platform.id}">
+        <field name="agent">speccrew-task-worker</field>
+        <field name="skill">speccrew-sd-${platform.type}</field>
+        <field name="skill_path">${ide_skills_dir}/speccrew-sd-${platform.type}/SKILL.md</field>
+        <field name="context">
+          index_only: true
+          skip_index_generation: false
+          platform_id: ${platform.id}
+          output_dir: ${iterations_dir}/${current_iteration}/03.system-design/${platform.id}
+          completed_documents: ${platform.completed_documents}
+          techs_knowledge_dir: ${techs_knowledge_dir}
+          workspace_path: ${workspace_path}
+        </field>
       </block>
     </block>
+    <block type="gateway" id="P5-IDX-GW1" mode="wait" desc="Wait for all INDEX.md workers to complete"/>
 
     <!-- Step 5.5: Read final dispatch progress -->
     <block type="task" id="P5-B5" action="run-script" status="pending"
