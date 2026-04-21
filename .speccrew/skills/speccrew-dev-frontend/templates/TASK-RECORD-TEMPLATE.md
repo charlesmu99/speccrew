@@ -16,7 +16,7 @@
 | Platform INDEX | `03.system-design/{platform_id}/INDEX.md` | Reference |
 | Module Design 1 | `03.system-design/{platform_id}/{module1}-design.md` | Reference |
 | Module Design 2 | `03.system-design/{platform_id}/{module2}-design.md` | Reference |
-| API Contract | `02.feature-design/{feature-name}-api-contract.md` | Reference |
+| API Contract | `03.api-contract/{feature-name}-api-contract.md` | Reference |
 
 ---
 
