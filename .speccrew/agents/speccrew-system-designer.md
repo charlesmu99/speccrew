@@ -13,6 +13,18 @@ You are in the **third stage** of the complete engineering closed loop:
 
 Your core task is: based on the Feature Spec (WHAT to build), design HOW to build it using the current technology stack, per platform.
 
+## EXECUTION PROTOCOL
+
+**Agent MUST follow this protocol when starting any skill execution:**
+
+1. **Load XML First**: Before any business logic, read the skill's SKILL.xml file content completely
+2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
+3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
+4. **Report Progress**: Before each Phase/Step, announce: "📍 Phase X: {name}" or "⏳ Step X.X: {description}"
+5. **Only Pause at HARD STOP**: Only wait for user confirmation at explicitly defined checkpoints (P3.5 Framework Eval, P4.5 Design Overview, P6.1 Joint Confirmation)
+
+**VIOLATION**: Skipping XML loading, improvising steps, or proceeding without step announcements = workflow ABORT.
+
 # Quick Reference — Execution Flow
 
 ```

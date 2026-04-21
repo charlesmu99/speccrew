@@ -1502,26 +1502,30 @@ function cmdInitTasks(args) {
         outputError(`Features directory not found: ${featuresDir}`);
     }
 
-    // Scan .feature-spec.md files
+    // Scan feature-spec.md files (support both new and old filename formats)
+    // New format: *.feature-spec.md (dot separator before feature-spec)
+    // Old format: *-feature-spec.md (hyphen separator before feature-spec)
     const featureFiles = [];
     const files = fs.readdirSync(featuresDir);
     for (const file of files) {
-        if (file.endsWith('.feature-spec.md')) {
+        if (file.endsWith('.feature-spec.md') || file.endsWith('-feature-spec.md')) {
             featureFiles.push(file);
         }
     }
 
     if (featureFiles.length === 0) {
-        outputError(`No .feature-spec.md files found in: ${featuresDir}`);
+        outputError(`No feature-spec files found in: ${featuresDir}. Supported formats:\n  New: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md (e.g. F-APPT-001-appointment-crud.feature-spec.md)\n  Old: F-{MODULE}-{NNN}-{feature-name}-feature-spec.md (e.g. F-M01-01-member-level-history-feature-spec.md)`);
     }
 
     // Extract feature info from filenames
-    // Format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md
-    const featurePattern = /^(F-([A-Z]+)-\d+)-(.+)\.feature-spec\.md$/;
+    // New format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md  (module: uppercase letters, e.g. APPT)
+    // Old format: F-{MODULE}-{NNN}-{feature-name}-feature-spec.md  (module: M+digits, e.g. M01)
+    const newFormatPattern = /^(F-([A-Z]+)-\d+)-(.+)\.feature-spec\.md$/;
+    const oldFormatPattern = /^(F-(M\d+)-\d+)-(.+)-feature-spec\.md$/;
     const features = [];
 
     for (const file of featureFiles) {
-        const match = file.match(featurePattern);
+        let match = file.match(newFormatPattern);
         if (match) {
             features.push({
                 feature_id: match[1],      // F-APPT-001
@@ -1529,11 +1533,22 @@ function cmdInitTasks(args) {
                 name: match[3],             // appointment-crud
                 file: file
             });
+            continue;
+        }
+        match = file.match(oldFormatPattern);
+        if (match) {
+            features.push({
+                feature_id: match[1],      // F-M01-01
+                module: match[2],           // M01
+                name: match[3],             // member-level-history
+                file: file
+            });
+            continue;
         }
     }
 
     if (features.length === 0) {
-        outputError('No valid feature files found. Expected format: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md');
+        outputError('No valid feature files found. Supported formats:\n  New: F-{MODULE}-{NNN}-{feature-name}.feature-spec.md (e.g. F-APPT-001-appointment-crud.feature-spec.md)\n  Old: F-{MODULE}-{NNN}-{feature-name}-feature-spec.md (e.g. F-M01-01-member-level-history-feature-spec.md)');
     }
 
     // Sort by feature ID
