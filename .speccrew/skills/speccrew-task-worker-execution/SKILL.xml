@@ -137,17 +137,17 @@
             
       <!-- MANDATORY: Load XML Workflow Definition -->
       <block type="rule" id="R-WORKFLOW-FIRST" level="mandatory" desc="XML workflow is the authoritative execution definition">
-        <field name="text">MANDATORY: workflow.agentflow.xml is the AUTHORITATIVE execution definition. SKILL.md is supplementary context only.</field>
-        <field name="text">Worker MUST read workflow.agentflow.xml BEFORE starting any task execution.</field>
-        <field name="text">Worker MUST execute ONLY the blocks defined in workflow.agentflow.xml, in sequential document order.</field>
+        <field name="text">MANDATORY: SKILL.xml is the AUTHORITATIVE execution definition. SKILL.md is supplementary context only.</field>
+        <field name="text">Worker MUST read SKILL.xml BEFORE starting any task execution.</field>
+        <field name="text">Worker MUST execute ONLY the blocks defined in SKILL.xml, in sequential document order.</field>
         <field name="text">FORBIDDEN: Executing tasks based solely on SKILL.md description without reading the XML workflow.</field>
       </block>
       
       <block type="task" id="T6b" action="read-file" desc="MANDATORY: Read XML workflow definition">
-        <field name="path">${skill_path}/workflow.agentflow.xml</field>
+        <field name="path">${skill_path}/SKILL.xml</field>
         <field name="output" var="skill_workflow_xml"/>
       </block>
-      <block type="event" id="E8b" action="log" desc="Loaded XML workflow">📄 Loaded workflow: ${skill_path}/workflow.agentflow.xml — This is the AUTHORITATIVE execution plan. Execute blocks in document order.</block>
+      <block type="event" id="E8b" action="log" desc="Loaded XML workflow">📄 Loaded workflow: ${skill_path}/SKILL.xml — This is the AUTHORITATIVE execution plan. Execute blocks in document order.</block>
             
       <!-- 加载 AgentFlow 规范 -->
       <block type="task" id="T7" action="read-file" desc="读取 AgentFlow 规范">
