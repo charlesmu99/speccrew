@@ -1,17 +1,16 @@
-# SpecCrew クイックスタートガイド
+﻿# SpecCrew クイックスタートガイド
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 このドキュメントは、SpecCrewのエージェントチームを使用して、標準的なエンジニアリングワークフローに従って要件からデリバリーまでの完全な開発を段階的に完了する方法を素早く理解するのに役立ちます。
@@ -80,22 +79,22 @@ speccrew init --ide qoder
 既存のソースコードがあるプロジェクトの場合、まずナレッジベースを初期化して、エージェントがコードベースを理解できるようにすることを推奨します:
 
 ```
-@speccrew-team-leader テクニカルナレッジベースを初期化
+/speccrew-team-leader テクニカルナレッジベースを初期化
 ```
 
 次に:
 
 ```
-@speccrew-team-leader ビジネスナレッジベースを初期化
+/speccrew-team-leader ビジネスナレッジベースを初期化
 ```
 
 ### ステップ3: 最初のタスクを開始
 
 ```
-@speccrew-product-manager 新しい要件があります:[機能要件を説明]
+/speccrew-product-manager 新しい要件があります:[機能要件を説明]
 ```
 
-> **ヒント**:何をすべきか不明な場合は、直接 `@speccrew-team-leader 開始を支援して` と言ってください — Team Leaderが自動的にプロジェクト状態を検出してガイドします。
+> **ヒント**:何をすべきか不明な場合は、直接 `/speccrew-team-leader 開始を支援して` と言ってください — Team Leaderが自動的にプロジェクト状態を検出してガイドします。
 
 ---
 
@@ -104,20 +103,20 @@ speccrew init --ide qoder
 何をすべきか不明ですか?あなたのシナリオを見つけてください:
 
 - **新しい機能要件がある**
-  → `@speccrew-product-manager 新しい要件があります:[機能要件を説明]`
+  → `/speccrew-product-manager 新しい要件があります:[機能要件を説明]`
 
 - **既存プロジェクトの知識をスキャンしたい**
-  → `@speccrew-team-leader テクニカルナレッジベースを初期化`
-  → 次に:`@speccrew-team-leader ビジネスナレッジベースを初期化`
+  → `/speccrew-team-leader テクニカルナレッジベースを初期化`
+  → 次に:`/speccrew-team-leader ビジネスナレッジベースを初期化`
 
 - **以前の作業を継続したい**
-  → `@speccrew-team-leader 現在の進捗は何ですか?`
+  → `/speccrew-team-leader 現在の進捗は何ですか?`
 
 - **システムの健康状態をチェックしたい**
   → ターミナルで実行:`speccrew doctor`
 
 - **何をすべきか不明**
-  → `@speccrew-team-leader 開始を支援して`
+  → `/speccrew-team-leader 開始を支援して`
   → Team Leaderが自動的にプロジェクト状態を検出してガイドします
 
 ---
@@ -126,14 +125,14 @@ speccrew init --ide qoder
 
 | 役割 | エージェント | 責任 | コマンド例 |
 |------|-------|------|----------|
-| チームリーダー | `@speccrew-team-leader` | プロジェクトナビゲーション、ナレッジベース初期化、状態確認 | "開始を支援して" |
-| プロダクトマネージャー | `@speccrew-product-manager` | 要件分析、PRD生成 | "新しい要件があります:..." |
-| 機能デザイナー | `@speccrew-feature-designer` | 機能分析、仕様設計、API契約 | "イテレーションXの機能設計を開始" |
-| システムデザイナー | `@speccrew-system-designer` | アーキテクチャ設計、プラットフォーム詳細設計 | "イテレーションXのシステム設計を開始" |
-| システム開発者 | `@speccrew-system-developer` | 開発調整、コード生成 | "イテレーションXの開発を開始" |
-| テストマネージャー | `@speccrew-test-manager` | テスト計画、ケース設計、実行 | "イテレーションXのテストを開始" |
+| チームリーダー | `/speccrew-team-leader` | プロジェクトナビゲーション、ナレッジベース初期化、状態確認 | "開始を支援して" |
+| プロダクトマネージャー | `/speccrew-product-manager` | 要件分析、PRD生成 | "新しい要件があります:..." |
+| 機能デザイナー | `/speccrew-feature-designer` | 機能分析、仕様設計、API契約 | "イテレーションXの機能設計を開始" |
+| システムデザイナー | `/speccrew-system-designer` | アーキテクチャ設計、プラットフォーム詳細設計 | "イテレーションXのシステム設計を開始" |
+| システム開発者 | `/speccrew-system-developer` | 開発調整、コード生成 | "イテレーションXの開発を開始" |
+| テストマネージャー | `/speccrew-test-manager` | テスト計画、ケース設計、実行 | "イテレーションXのテストを開始" |
 
-> **ヒント**:すべてのエージェントを覚える必要はありません。`@speccrew-team-leader` と話すだけで、リクエストを適切なエージェントにルーティングします。
+> **ヒント**:すべてのエージェントを覚える必要はありません。`/speccrew-team-leader` と話すだけで、リクエストを適切なエージェントにルーティングします。
 
 ---
 
@@ -174,7 +173,7 @@ flowchart LR
 
 **会話例**:
 ```
-@speccrew-team-leader テクニカルナレッジベースを初期化
+/speccrew-team-leader テクニカルナレッジベースを初期化
 ```
 
 **3段階プロセス**:
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **会話例**:
 ```
-@speccrew-team-leader ビジネスナレッジベースを初期化
+/speccrew-team-leader ビジネスナレッジベースを初期化
 ```
 
 **4段階プロセス**:
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **開始方法**:
 ```
-@speccrew-product-manager 新しい要件があります:[要件を説明]
+/speccrew-product-manager 新しい要件があります:[要件を説明]
 ```
 
 **エージェントワークフロー**:
@@ -249,7 +248,7 @@ iterations/{番号}-{タイプ}-{名前}/01.product-requirement/
 
 **開始方法**:
 ```
-@speccrew-feature-designer 機能設計を開始
+/speccrew-feature-designer 機能設計を開始
 ```
 
 **エージェントワークフロー**:
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **開始方法**:
 ```
-@speccrew-system-designer システム設計を開始
+/speccrew-system-designer システム設計を開始
 ```
 
 **エージェントワークフロー**:
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **開始方法**:
 ```
-@speccrew-system-developer 開発を開始
+/speccrew-system-developer 開発を開始
 ```
 
 **エージェントワークフロー**:
@@ -339,7 +338,7 @@ iterations/{iter}/04.development/
 **開始方法**:
 
 ```
-@speccrew-system-deployer デプロイを開始
+/speccrew-system-deployer デプロイを開始
 ```
 
 **エージェントワークフロー**:
@@ -373,7 +372,7 @@ iterations/{iter}/05.deployment/
 
 **開始方法**:
 ```
-@speccrew-test-manager テストを開始
+/speccrew-test-manager テストを開始
 ```
 
 **3段階テストプロセス**:
@@ -496,7 +495,7 @@ pending → in_progress → completed → confirmed
 Team Leaderエージェントを通じてパイプラインパノラマ状態を表示:
 
 ```
-@speccrew-team-leader 現在のイテレーション進捗を表示
+/speccrew-team-leader 現在のイテレーション進捗を表示
 ```
 
 Team Leaderは進捗ファイルを読み込み、以下のような状態概要を表示:
@@ -599,13 +598,13 @@ npm install -g speccrew@0.5.6
 
 | フェーズ | エージェント | 開始会話 |
 |-------|-------|-------------------|
-| 初期化 | Team Leader | `@speccrew-team-leader テクニカルナレッジベースを初期化` |
-| 要件分析 | Product Manager | `@speccrew-product-manager 新しい要件があります:[説明]` |
-| 機能設計 | Feature Designer | `@speccrew-feature-designer 機能設計を開始` |
-| システム設計 | System Designer | `@speccrew-system-designer システム設計を開始` |
-| 開発 | System Developer | `@speccrew-system-developer 開発を開始` |
-| デプロイ | System Deployer | `@speccrew-system-deployer デプロイを開始` |
-| システムテスト | Test Manager | `@speccrew-test-manager テストを開始` |
+| 初期化 | Team Leader | `/speccrew-team-leader テクニカルナレッジベースを初期化` |
+| 要件分析 | Product Manager | `/speccrew-product-manager 新しい要件があります:[説明]` |
+| 機能設計 | Feature Designer | `/speccrew-feature-designer 機能設計を開始` |
+| システム設計 | System Designer | `/speccrew-system-designer システム設計を開始` |
+| 開発 | System Developer | `/speccrew-system-developer 開発を開始` |
+| デプロイ | System Deployer | `/speccrew-system-deployer デプロイを開始` |
+| システムテスト | Test Manager | `/speccrew-test-manager テストを開始` |
 
 ### チェックポイントチェックリスト
 

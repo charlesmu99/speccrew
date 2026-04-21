@@ -1,17 +1,16 @@
-# Guía de Inicio Rápido de SpecCrew
+﻿# Guía de Inicio Rápido de SpecCrew
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 Este documento le ayuda a comprender rápidamente cómo usar el equipo de Agentes de SpecCrew para completar el desarrollo completo desde los requisitos hasta la entrega siguiendo procesos de ingeniería estándar.
@@ -80,22 +79,22 @@ Después de ejecutar `speccrew init`, siga estos pasos para entrar rápidamente 
 Para proyectos con código fuente existente, se recomienda inicializar primero la base de conocimientos para que los agentes comprendan su base de código:
 
 ```
-@speccrew-team-leader inicializar base de conocimientos técnica
+/speccrew-team-leader inicializar base de conocimientos técnica
 ```
 
 Luego:
 
 ```
-@speccrew-team-leader inicializar base de conocimientos de negocio
+/speccrew-team-leader inicializar base de conocimientos de negocio
 ```
 
 ### Paso 3: Comience Su Primera Tarea
 
 ```
-@speccrew-product-manager Tengo un nuevo requisito: [describa su requisito funcional]
+/speccrew-product-manager Tengo un nuevo requisito: [describa su requisito funcional]
 ```
 
-> **Consejo**: Si no está seguro de qué hacer, simplemente diga `@speccrew-team-leader ayúdame a comenzar` — el Team Leader detectará automáticamente el estado de su proyecto y lo guiará.
+> **Consejo**: Si no está seguro de qué hacer, simplemente diga `/speccrew-team-leader ayúdame a comenzar` — el Team Leader detectará automáticamente el estado de su proyecto y lo guiará.
 
 ---
 
@@ -104,20 +103,20 @@ Luego:
 ¿No está seguro de qué hacer? Encuentre su escenario a continuación:
 
 - **Tengo un nuevo requisito funcional**
-  → `@speccrew-product-manager Tengo un nuevo requisito: [describa su requisito funcional]`
+  → `/speccrew-product-manager Tengo un nuevo requisito: [describa su requisito funcional]`
 
 - **Quiero escanear el conocimiento del proyecto existente**
-  → `@speccrew-team-leader inicializar base de conocimientos técnica`
-  → Luego: `@speccrew-team-leader inicializar base de conocimientos de negocio`
+  → `/speccrew-team-leader inicializar base de conocimientos técnica`
+  → Luego: `/speccrew-team-leader inicializar base de conocimientos de negocio`
 
 - **Quiero continuar el trabajo anterior**
-  → `@speccrew-team-leader ¿cuál es el progreso actual?`
+  → `/speccrew-team-leader ¿cuál es el progreso actual?`
 
 - **Quiero verificar el estado de salud del sistema**
   → Ejecutar en terminal: `speccrew doctor`
 
 - **No estoy seguro de qué hacer**
-  → `@speccrew-team-leader ayúdame a comenzar`
+  → `/speccrew-team-leader ayúdame a comenzar`
   → El Team Leader detectará automáticamente el estado de su proyecto y lo guiará
 
 ---
@@ -126,14 +125,14 @@ Luego:
 
 | Rol | Agente | Responsabilidades | Ejemplo de Comando |
 |------|-------|-----------------|-----------------|
-| Líder de Equipo | `@speccrew-team-leader` | Navegación del proyecto, inicialización de base de conocimientos, verificación de estado | "Ayúdame a comenzar" |
-| Gerente de Producto | `@speccrew-product-manager` | Análisis de requisitos, generación de PRD | "Tengo un nuevo requisito: ..." |
-| Diseñador de Funcionalidades | `@speccrew-feature-designer` | Análisis funcional, diseño de especificaciones, contratos API | "Iniciar diseño de funcionalidades para iteración X" |
-| Diseñador de Sistema | `@speccrew-system-designer` | Diseño de arquitectura, diseño detallado por plataforma | "Iniciar diseño de sistema para iteración X" |
-| Desarrollador de Sistema | `@speccrew-system-developer` | Coordinación de desarrollo, generación de código | "Iniciar desarrollo para iteración X" |
-| Gerente de Pruebas | `@speccrew-test-manager` | Planificación de pruebas, diseño de casos, ejecución | "Iniciar pruebas para iteración X" |
+| Líder de Equipo | `/speccrew-team-leader` | Navegación del proyecto, inicialización de base de conocimientos, verificación de estado | "Ayúdame a comenzar" |
+| Gerente de Producto | `/speccrew-product-manager` | Análisis de requisitos, generación de PRD | "Tengo un nuevo requisito: ..." |
+| Diseñador de Funcionalidades | `/speccrew-feature-designer` | Análisis funcional, diseño de especificaciones, contratos API | "Iniciar diseño de funcionalidades para iteración X" |
+| Diseñador de Sistema | `/speccrew-system-designer` | Diseño de arquitectura, diseño detallado por plataforma | "Iniciar diseño de sistema para iteración X" |
+| Desarrollador de Sistema | `/speccrew-system-developer` | Coordinación de desarrollo, generación de código | "Iniciar desarrollo para iteración X" |
+| Gerente de Pruebas | `/speccrew-test-manager` | Planificación de pruebas, diseño de casos, ejecución | "Iniciar pruebas para iteración X" |
 
-> **Nota**: No necesita recordar todos los agentes. Simplemente hable con `@speccrew-team-leader` y él enrutará su solicitud al agente correcto.
+> **Nota**: No necesita recordar todos los agentes. Simplemente hable con `/speccrew-team-leader` y él enrutará su solicitud al agente correcto.
 
 ---
 
@@ -174,7 +173,7 @@ Antes de comenzar el proceso formal de ingeniería, necesita inicializar la base
 
 **Ejemplo de Conversación**:
 ```
-@speccrew-team-leader inicializar base de conocimientos técnica
+/speccrew-team-leader inicializar base de conocimientos técnica
 ```
 
 **Proceso de Tres Fases**:
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **Ejemplo de Conversación**:
 ```
-@speccrew-team-leader inicializar base de conocimientos de negocio
+/speccrew-team-leader inicializar base de conocimientos de negocio
 ```
 
 **Proceso de Cuatro Fases**:
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **Cómo Iniciar**:
 ```
-@speccrew-product-manager Tengo un nuevo requisito: [describa su requisito]
+/speccrew-product-manager Tengo un nuevo requisito: [describa su requisito]
 ```
 
 **Flujo de Trabajo del Agente**:
@@ -249,7 +248,7 @@ iterations/{número}-{tipo}-{nombre}/01.product-requirement/
 
 **Cómo Iniciar**:
 ```
-@speccrew-feature-designer iniciar diseño de funcionalidades
+/speccrew-feature-designer iniciar diseño de funcionalidades
 ```
 
 **Flujo de Trabajo del Agente**:
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **Cómo Iniciar**:
 ```
-@speccrew-system-designer iniciar diseño del sistema
+/speccrew-system-designer iniciar diseño del sistema
 ```
 
 **Flujo de Trabajo del Agente**:
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **Cómo Iniciar**:
 ```
-@speccrew-system-developer iniciar desarrollo
+/speccrew-system-developer iniciar desarrollo
 ```
 
 **Flujo de Trabajo del Agente**:
@@ -338,7 +337,7 @@ iterations/{iter}/04.development/
 
 **Cómo Iniciar**:
 ```
-@speccrew-system-deployer iniciar despliegue
+/speccrew-system-deployer iniciar despliegue
 ```
 
 **Flujo de Trabajo del Agente**:
@@ -371,7 +370,7 @@ iterations/{iter}/05.deployment/
 
 **Cómo Iniciar**:
 ```
-@speccrew-test-manager iniciar pruebas
+/speccrew-test-manager iniciar pruebas
 ```
 
 **Proceso de Pruebas en Tres Fases**:
@@ -494,7 +493,7 @@ Al reiniciar un Agente para una fase:
 Ver el estado panorámico del pipeline a través del Agente Team Leader:
 
 ```
-@speccrew-team-leader ver progreso actual de la iteración
+/speccrew-team-leader ver progreso actual de la iteración
 ```
 
 El Team Leader leerá los archivos de progreso y mostrará una visión general del estado similar a:
@@ -597,13 +596,13 @@ Se requiere re-inicialización en las siguientes situaciones:
 
 | Fase | Agente | Conversación de Inicio |
 |-------|-------|-------------------|
-| Inicialización | Team Leader | `@speccrew-team-leader inicializar base de conocimientos técnica` |
-| Análisis de Requisitos | Product Manager | `@speccrew-product-manager Tengo un nuevo requisito: [descripción]` |
-| Diseño de Funcionalidades | Feature Designer | `@speccrew-feature-designer iniciar diseño de funcionalidades` |
-| Diseño del Sistema | System Designer | `@speccrew-system-designer iniciar diseño del sistema` |
-| Desarrollo | System Developer | `@speccrew-system-developer iniciar desarrollo` |
-| Despliegue | System Deployer | `@speccrew-system-deployer iniciar despliegue` |
-| Pruebas del Sistema | Test Manager | `@speccrew-test-manager iniciar pruebas` |
+| Inicialización | Team Leader | `/speccrew-team-leader inicializar base de conocimientos técnica` |
+| Análisis de Requisitos | Product Manager | `/speccrew-product-manager Tengo un nuevo requisito: [descripción]` |
+| Diseño de Funcionalidades | Feature Designer | `/speccrew-feature-designer iniciar diseño de funcionalidades` |
+| Diseño del Sistema | System Designer | `/speccrew-system-designer iniciar diseño del sistema` |
+| Desarrollo | System Developer | `/speccrew-system-developer iniciar desarrollo` |
+| Despliegue | System Deployer | `/speccrew-system-deployer iniciar despliegue` |
+| Pruebas del Sistema | Test Manager | `/speccrew-test-manager iniciar pruebas` |
 
 ### Lista de Verificación de Checkpoints
 

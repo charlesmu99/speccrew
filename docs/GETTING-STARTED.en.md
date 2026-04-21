@@ -1,17 +1,16 @@
-# SpecCrew Quick Start Guide
+﻿# SpecCrew Quick Start Guide
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 This document helps you quickly understand how to use SpecCrew's Agent team to complete the full development cycle from requirements to delivery following standard engineering processes.
@@ -80,22 +79,22 @@ After running `speccrew init`, follow these steps to get productive immediately:
 For existing projects, initialize knowledge base first so agents understand your codebase:
 
 ```
-@speccrew-team-leader Initialize technical knowledge base
+/speccrew-team-leader Initialize technical knowledge base
 ```
 
 Then:
 
 ```
-@speccrew-team-leader Initialize business knowledge base
+/speccrew-team-leader Initialize business knowledge base
 ```
 
 ### Step 3: Start Your First Task
 
 ```
-@speccrew-product-manager I have a new requirement: [describe your feature]
+/speccrew-product-manager I have a new requirement: [describe your feature]
 ```
 
-> **Tip**: If unsure what to do, just say `@speccrew-team-leader Help me get started` — the Team Leader will auto-detect your project status and guide you.
+> **Tip**: If unsure what to do, just say `/speccrew-team-leader Help me get started` — the Team Leader will auto-detect your project status and guide you.
 
 ---
 
@@ -104,20 +103,20 @@ Then:
 Not sure what to do? Find your scenario below:
 
 - **I have a new feature requirement**
-  → `@speccrew-product-manager I have a new requirement: [describe your feature]`
+  → `/speccrew-product-manager I have a new requirement: [describe your feature]`
 
 - **I want to scan existing project knowledge**
-  → `@speccrew-team-leader initialize technical knowledge base`
-  → Then: `@speccrew-team-leader initialize business knowledge base`
+  → `/speccrew-team-leader initialize technical knowledge base`
+  → Then: `/speccrew-team-leader initialize business knowledge base`
 
 - **I want to continue previous work**
-  → `@speccrew-team-leader what is the current progress?`
+  → `/speccrew-team-leader what is the current progress?`
 
 - **I want to check system health**
   → Run in terminal: `speccrew doctor`
 
 - **I'm not sure what to do**
-  → `@speccrew-team-leader help me get started`
+  → `/speccrew-team-leader help me get started`
   → Team Leader will auto-detect your project status and guide you
 
 ---
@@ -126,14 +125,14 @@ Not sure what to do? Find your scenario below:
 
 | Role | Agent | Responsibilities | Example Command |
 |------|-------|-----------------|-----------------|
-| Team Leader | `@speccrew-team-leader` | Project navigation, knowledge init, status check | "Help me get started" |
-| Product Manager | `@speccrew-product-manager` | Requirements analysis, PRD generation | "I have a new requirement: ..." |
-| Feature Designer | `@speccrew-feature-designer` | Feature analysis, spec design, API contracts | "Start feature design for iteration X" |
-| System Designer | `@speccrew-system-designer` | Architecture design, platform-specific design | "Start system design for iteration X" |
-| System Developer | `@speccrew-system-developer` | Development coordination, code generation | "Start development for iteration X" |
-| Test Manager | `@speccrew-test-manager` | Test planning, case design, execution | "Start testing for iteration X" |
+| Team Leader | `/speccrew-team-leader` | Project navigation, knowledge init, status check | "Help me get started" |
+| Product Manager | `/speccrew-product-manager` | Requirements analysis, PRD generation | "I have a new requirement: ..." |
+| Feature Designer | `/speccrew-feature-designer` | Feature analysis, spec design, API contracts | "Start feature design for iteration X" |
+| System Designer | `/speccrew-system-designer` | Architecture design, platform-specific design | "Start system design for iteration X" |
+| System Developer | `/speccrew-system-developer` | Development coordination, code generation | "Start development for iteration X" |
+| Test Manager | `/speccrew-test-manager` | Test planning, case design, execution | "Start testing for iteration X" |
 
-> **Note**: You don't need to remember all agents. Just talk to `@speccrew-team-leader` and it will route your request to the right agent.
+> **Note**: You don't need to remember all agents. Just talk to `/speccrew-team-leader` and it will route your request to the right agent.
 
 ---
 
@@ -174,7 +173,7 @@ Before starting the formal engineering process, you need to initialize the proje
 
 **Conversation Example**:
 ```
-@speccrew-team-leader initialize technical knowledge base
+/speccrew-team-leader initialize technical knowledge base
 ```
 
 **Three-Phase Process**:
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **Conversation Example**:
 ```
-@speccrew-team-leader initialize business knowledge base
+/speccrew-team-leader initialize business knowledge base
 ```
 
 **Four-Phase Process**:
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **How to Start**:
 ```
-@speccrew-product-manager I have a new requirement: [describe your requirement]
+/speccrew-product-manager I have a new requirement: [describe your requirement]
 ```
 
 **Agent Workflow**:
@@ -249,7 +248,7 @@ iterations/{number}-{type}-{name}/01.product-requirement/
 
 **How to Start**:
 ```
-@speccrew-feature-designer start feature design
+/speccrew-feature-designer start feature design
 ```
 
 **Agent Workflow**:
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **How to Start**:
 ```
-@speccrew-system-designer start system design
+/speccrew-system-designer start system design
 ```
 
 **Agent Workflow**:
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **How to Start**:
 ```
-@speccrew-system-developer start development
+/speccrew-system-developer start development
 ```
 
 **Agent Workflow**:
@@ -338,7 +337,7 @@ iterations/{iter}/04.development/
 
 **How to Start**:
 ```
-@speccrew-system-deployer start deployment
+/speccrew-system-deployer start deployment
 ```
 
 **Agent Workflow**:
@@ -371,7 +370,7 @@ iterations/{iter}/05.deployment/
 
 **How to Start**:
 ```
-@speccrew-test-manager start testing
+/speccrew-test-manager start testing
 ```
 
 **Three-Phase Testing Process**:
@@ -494,7 +493,7 @@ When restarting an Agent for a phase:
 View the pipeline panorama status through the Team Leader Agent:
 
 ```
-@speccrew-team-leader view current iteration progress
+/speccrew-team-leader view current iteration progress
 ```
 
 The Team Leader will read the progress files and display a status overview similar to:
@@ -597,13 +596,13 @@ Re-initialization is required in the following situations:
 
 | Phase | Agent | Start Conversation |
 |-------|-------|-------------------|
-| Initialization | Team Leader | `@speccrew-team-leader initialize technical knowledge base` |
-| Requirements Analysis | Product Manager | `@speccrew-product-manager I have a new requirement: [description]` |
-| Feature Design | Feature Designer | `@speccrew-feature-designer start feature design` |
-| System Design | System Designer | `@speccrew-system-designer start system design` |
-| Development | System Developer | `@speccrew-system-developer start development` |
-| Deployment | System Deployer | `@speccrew-system-deployer start deployment` |
-| System Testing | Test Manager | `@speccrew-test-manager start testing` |
+| Initialization | Team Leader | `/speccrew-team-leader initialize technical knowledge base` |
+| Requirements Analysis | Product Manager | `/speccrew-product-manager I have a new requirement: [description]` |
+| Feature Design | Feature Designer | `/speccrew-feature-designer start feature design` |
+| System Design | System Designer | `/speccrew-system-designer start system design` |
+| Development | System Developer | `/speccrew-system-developer start development` |
+| Deployment | System Deployer | `/speccrew-system-deployer start deployment` |
+| System Testing | Test Manager | `/speccrew-test-manager start testing` |
 
 ### Checkpoint Checklist
 

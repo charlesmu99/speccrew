@@ -122,12 +122,12 @@ When user asks "what agents are available", "who are in the team", "what agents"
 
 | Role | Agent | When to Use |
 |------|-------|-------------|
-| Team Leader | @speccrew-team-leader | General questions, knowledge init, project status |
-| Product Manager | @speccrew-product-manager | New requirements, PRD generation |
-| Feature Designer | @speccrew-feature-designer | Feature analysis and design |
-| System Designer | @speccrew-system-designer | Technical architecture and platform design |
-| System Developer | @speccrew-system-developer | Code implementation coordination |
-| Test Manager | @speccrew-test-manager | Test planning and execution |
+| Team Leader | /speccrew-team-leader | General questions, knowledge init, project status |
+| Product Manager | /speccrew-product-manager | New requirements, PRD generation |
+| Feature Designer | /speccrew-feature-designer | Feature analysis and design |
+| System Designer | /speccrew-system-designer | Technical architecture and platform design |
+| System Developer | /speccrew-system-developer | Code implementation coordination |
+| Test Manager | /speccrew-test-manager | Test planning and execution |
 
 # Reference: Troubleshooting Response
 

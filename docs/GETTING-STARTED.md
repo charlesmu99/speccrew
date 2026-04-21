@@ -1,17 +1,16 @@
-# SpecCrew 快速开始指南
+﻿# SpecCrew 快速开始指南
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 本文档帮助您快速了解如何使用 SpecCrew 的 Agent 团队，按照标准工程流程逐步完成从需求到交付的完整开发。
@@ -80,22 +79,22 @@ speccrew init --ide qoder
 对于已有源码的项目，建议先初始化知识库，让Agent理解你的代码库：
 
 ```
-@speccrew-team-leader 初始化技术知识库
+/speccrew-team-leader 初始化技术知识库
 ```
 
 然后：
 
 ```
-@speccrew-team-leader 初始化业务知识库
+/speccrew-team-leader 初始化业务知识库
 ```
 
 ### 第3步：开始你的第一个任务
 
 ```
-@speccrew-product-manager 我有一个新需求：[描述你的功能需求]
+/speccrew-product-manager 我有一个新需求：[描述你的功能需求]
 ```
 
-> **提示**：如果不确定该做什么，直接说 `@speccrew-team-leader 帮我开始` — Team Leader 会自动检测项目状态并引导你。
+> **提示**：如果不确定该做什么，直接说 `/speccrew-team-leader 帮我开始` — Team Leader 会自动检测项目状态并引导你。
 
 ---
 
@@ -104,20 +103,20 @@ speccrew init --ide qoder
 不确定该做什么？找到你的场景：
 
 - **我有新的功能需求**
-  → `@speccrew-product-manager 我有一个新需求：[描述你的功能需求]`
+  → `/speccrew-product-manager 我有一个新需求：[描述你的功能需求]`
 
 - **我想扫描现有项目的知识**
-  → `@speccrew-team-leader 初始化技术知识库`
-  → 然后：`@speccrew-team-leader 初始化业务知识库`
+  → `/speccrew-team-leader 初始化技术知识库`
+  → 然后：`/speccrew-team-leader 初始化业务知识库`
 
 - **我想继续之前的工作**
-  → `@speccrew-team-leader 当前进度是什么？`
+  → `/speccrew-team-leader 当前进度是什么？`
 
 - **我想检查系统健康状态**
   → 在终端运行：`speccrew doctor`
 
 - **我不确定该做什么**
-  → `@speccrew-team-leader 帮我开始`
+  → `/speccrew-team-leader 帮我开始`
   → Team Leader 会自动检测项目状态并引导你
 
 ---
@@ -126,14 +125,14 @@ speccrew init --ide qoder
 
 | 角色 | Agent | 职责 | 示例指令 |
 |------|-------|------|----------|
-| 团队负责人 | `@speccrew-team-leader` | 项目导航、知识库初始化、状态查看 | "帮我开始" |
-| 产品经理 | `@speccrew-product-manager` | 需求分析、PRD 生成 | "我有一个新需求：..." |
-| 功能设计师 | `@speccrew-feature-designer` | 功能分析、规格设计、API 契约 | "开始迭代X的功能设计" |
-| 系统设计师 | `@speccrew-system-designer` | 架构设计、平台详细设计 | "开始迭代X的系统设计" |
-| 系统开发者 | `@speccrew-system-developer` | 开发协调、代码生成 | "开始迭代X的开发" |
-| 测试经理 | `@speccrew-test-manager` | 测试规划、用例设计、执行 | "开始迭代X的测试" |
+| 团队负责人 | `/speccrew-team-leader` | 项目导航、知识库初始化、状态查看 | "帮我开始" |
+| 产品经理 | `/speccrew-product-manager` | 需求分析、PRD 生成 | "我有一个新需求：..." |
+| 功能设计师 | `/speccrew-feature-designer` | 功能分析、规格设计、API 契约 | "开始迭代X的功能设计" |
+| 系统设计师 | `/speccrew-system-designer` | 架构设计、平台详细设计 | "开始迭代X的系统设计" |
+| 系统开发者 | `/speccrew-system-developer` | 开发协调、代码生成 | "开始迭代X的开发" |
+| 测试经理 | `/speccrew-test-manager` | 测试规划、用例设计、执行 | "开始迭代X的测试" |
 
-> **提示**：你不需要记住所有 Agent。只需与 `@speccrew-team-leader` 对话，它会将你的请求路由到合适的 Agent。
+> **提示**：你不需要记住所有 Agent。只需与 `/speccrew-team-leader` 对话，它会将你的请求路由到合适的 Agent。
 
 ---
 
@@ -174,7 +173,7 @@ flowchart LR
 
 **对话示例**：
 ```
-@speccrew-team-leader 初始化技术知识库
+/speccrew-team-leader 初始化技术知识库
 ```
 
 **三阶段流程**：
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **对话示例**：
 ```
-@speccrew-team-leader 初始化业务知识库
+/speccrew-team-leader 初始化业务知识库
 ```
 
 **四阶段流程**：
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **如何启动**：
 ```
-@speccrew-product-manager 我有一个新需求：[描述你的需求]
+/speccrew-product-manager 我有一个新需求：[描述你的需求]
 ```
 
 **Agent 工作流程**：
@@ -249,7 +248,7 @@ iterations/{序号}-{类型}-{名称}/01.product-requirement/
 
 **如何启动**：
 ```
-@speccrew-feature-designer 开始功能设计
+/speccrew-feature-designer 开始功能设计
 ```
 
 **Agent 工作流程**：
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **如何启动**：
 ```
-@speccrew-system-designer 开始系统设计
+/speccrew-system-designer 开始系统设计
 ```
 
 **Agent 工作流程**：
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **如何启动**：
 ```
-@speccrew-system-developer 开始开发
+/speccrew-system-developer 开始开发
 ```
 
 **Agent 工作流程**：
@@ -339,7 +338,7 @@ iterations/{iter}/04.development/
 **如何启动**：
 
 ```
-@speccrew-system-deployer 开始部署
+/speccrew-system-deployer 开始部署
 ```
 
 **Agent 工作流程**：
@@ -373,7 +372,7 @@ iterations/{iter}/05.deployment/
 
 **如何启动**：
 ```
-@speccrew-test-manager 开始测试
+/speccrew-test-manager 开始测试
 ```
 
 **三阶段测试流程**：
@@ -496,7 +495,7 @@ pending → in_progress → completed → confirmed
 通过 Team Leader Agent 查看流水线全景状态：
 
 ```
-@speccrew-team-leader 查看当前迭代进度
+/speccrew-team-leader 查看当前迭代进度
 ```
 
 Team Leader 会读取进度文件并展示类似以下的状态概览：
@@ -599,13 +598,13 @@ npm install -g speccrew@0.5.6
 
 | 阶段 | Agent | 启动对话 |
 |------|-------|----------|
-| 初始化 | Team Leader | `@speccrew-team-leader 初始化技术知识库` |
-| 需求分析 | Product Manager | `@speccrew-product-manager 我有一个新需求：[描述]` |
-| 功能设计 | Feature Designer | `@speccrew-feature-designer 开始功能设计` |
-| 系统设计 | System Designer | `@speccrew-system-designer 开始系统设计` |
-| 开发实现 | System Developer | `@speccrew-system-developer 开始开发` |
-| 部署实施 | System Deployer | `@speccrew-system-deployer 开始部署` |
-| 系统测试 | Test Manager | `@speccrew-test-manager 开始测试` |
+| 初始化 | Team Leader | `/speccrew-team-leader 初始化技术知识库` |
+| 需求分析 | Product Manager | `/speccrew-product-manager 我有一个新需求：[描述]` |
+| 功能设计 | Feature Designer | `/speccrew-feature-designer 开始功能设计` |
+| 系统设计 | System Designer | `/speccrew-system-designer 开始系统设计` |
+| 开发实现 | System Developer | `/speccrew-system-developer 开始开发` |
+| 部署实施 | System Deployer | `/speccrew-system-deployer 开始部署` |
+| 系统测试 | Test Manager | `/speccrew-test-manager 开始测试` |
 
 ### Checkpoint 检查清单
 

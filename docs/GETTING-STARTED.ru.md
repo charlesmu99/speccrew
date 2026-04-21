@@ -1,17 +1,16 @@
-# SpecCrew - Руководство по быстрому запуску
+﻿# SpecCrew - Руководство по быстрому запуску
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 Этот документ поможет вам быстро понять, как использовать команду Agent SpecCrew для завершения полной разработки от требований до поставки в соответствии со стандартными инженерными процессами.
@@ -80,22 +79,22 @@ speccrew init --ide qoder
 Для проектов с существующим исходным кодом рекомендуется сначала инициализировать базу знаний, чтобы агенты понимали вашу кодовую базу:
 
 ```
-@speccrew-team-leader инициализировать техническую базу знаний
+/speccrew-team-leader инициализировать техническую базу знаний
 ```
 
 Затем:
 
 ```
-@speccrew-team-leader инициализировать бизнес-базу знаний
+/speccrew-team-leader инициализировать бизнес-базу знаний
 ```
 
 ### Шаг 3: Начните вашу первую задачу
 
 ```
-@speccrew-product-manager У меня новое требование: [опишите ваше функциональное требование]
+/speccrew-product-manager У меня новое требование: [опишите ваше функциональное требование]
 ```
 
-> **Совет**: Если вы не уверены, что делать, просто скажите `@speccrew-team-leader помогите мне начать` — Team Leader автоматически определит статус вашего проекта и направит вас.
+> **Совет**: Если вы не уверены, что делать, просто скажите `/speccrew-team-leader помогите мне начать` — Team Leader автоматически определит статус вашего проекта и направит вас.
 
 ---
 
@@ -104,20 +103,20 @@ speccrew init --ide qoder
 Не уверены, что делать? Найдите ваш сценарий ниже:
 
 - **У меня новое функциональное требование**
-  → `@speccrew-product-manager У меня новое требование: [опишите ваше функциональное требование]`
+  → `/speccrew-product-manager У меня новое требование: [опишите ваше функциональное требование]`
 
 - **Я хочу сканировать знания существующего проекта**
-  → `@speccrew-team-leader инициализировать техническую базу знаний`
-  → Затем: `@speccrew-team-leader инициализировать бизнес-базу знаний`
+  → `/speccrew-team-leader инициализировать техническую базу знаний`
+  → Затем: `/speccrew-team-leader инициализировать бизнес-базу знаний`
 
 - **Я хочу продолжить предыдущую работу**
-  → `@speccrew-team-leader каков текущий прогресс?`
+  → `/speccrew-team-leader каков текущий прогресс?`
 
 - **Я хочу проверить состояние здоровья системы**
   → Выполнить в терминале: `speccrew doctor`
 
 - **Я не уверен, что делать**
-  → `@speccrew-team-leader помогите мне начать`
+  → `/speccrew-team-leader помогите мне начать`
   → Team Leader автоматически определит статус вашего проекта и направит вас
 
 ---
@@ -126,14 +125,14 @@ speccrew init --ide qoder
 
 | Роль | Agent | Обязанности | Пример команды |
 |------|-------|-----------------|-----------------|
-| Лидер команды | `@speccrew-team-leader` | Навигация по проекту, инициализация базы знаний, проверка статуса | "Помогите мне начать" |
-| Менеджер продукта | `@speccrew-product-manager` | Анализ требований, генерация PRD | "У меня новое требование: ..." |
-| Дизайнер функций | `@speccrew-feature-designer` | Анализ функций, проектирование спецификаций, API контракты | "Начать проектирование функций для итерации X" |
-| Системный дизайнер | `@speccrew-system-designer` | Проектирование архитектуры, детальное проектирование платформы | "Начать системное проектирование для итерации X" |
-| Системный разработчик | `@speccrew-system-developer` | Координация разработки, генерация кода | "Начать разработку для итерации X" |
-| Менеджер тестирования | `@speccrew-test-manager` | Планирование тестирования, проектирование случаев, выполнение | "Начать тестирование для итерации X" |
+| Лидер команды | `/speccrew-team-leader` | Навигация по проекту, инициализация базы знаний, проверка статуса | "Помогите мне начать" |
+| Менеджер продукта | `/speccrew-product-manager` | Анализ требований, генерация PRD | "У меня новое требование: ..." |
+| Дизайнер функций | `/speccrew-feature-designer` | Анализ функций, проектирование спецификаций, API контракты | "Начать проектирование функций для итерации X" |
+| Системный дизайнер | `/speccrew-system-designer` | Проектирование архитектуры, детальное проектирование платформы | "Начать системное проектирование для итерации X" |
+| Системный разработчик | `/speccrew-system-developer` | Координация разработки, генерация кода | "Начать разработку для итерации X" |
+| Менеджер тестирования | `/speccrew-test-manager` | Планирование тестирования, проектирование случаев, выполнение | "Начать тестирование для итерации X" |
 
-> **Примечание**: Вам не нужно запоминать всех агентов. Просто поговорите с `@speccrew-team-leader`, и он направит ваш запрос к правильному агенту.
+> **Примечание**: Вам не нужно запоминать всех агентов. Просто поговорите с `/speccrew-team-leader`, и он направит ваш запрос к правильному агенту.
 
 ---
 
@@ -172,7 +171,7 @@ flowchart LR
 
 **Пример разговора**:
 ```
-@speccrew-team-leader инициализировать техническую базу знаний
+/speccrew-team-leader инициализировать техническую базу знаний
 ```
 
 **Трехфазный процесс**:
@@ -194,7 +193,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **Пример разговора**:
 ```
-@speccrew-team-leader инициализировать бизнес-базу знаний
+/speccrew-team-leader инициализировать бизнес-базу знаний
 ```
 
 **Четырехфазный процесс**:
@@ -220,7 +219,7 @@ speccrew-workspace/knowledges/bizs/
 
 **Как начать**:
 ```
-@speccrew-product-manager У меня новое требование: [опишите ваше требование]
+/speccrew-product-manager У меня новое требование: [опишите ваше требование]
 ```
 
 **Рабочий процесс Agent**:
@@ -247,7 +246,7 @@ iterations/{номер}-{тип}-{имя}/01.product-requirement/
 
 **Как начать**:
 ```
-@speccrew-feature-designer начать feature design
+/speccrew-feature-designer начать feature design
 ```
 
 **Рабочий процесс Agent**:
@@ -274,7 +273,7 @@ iterations/{iter}/02.feature-design/
 
 **Как начать**:
 ```
-@speccrew-system-designer начать system design
+/speccrew-system-designer начать system design
 ```
 
 **Рабочий процесс Agent**:
@@ -305,7 +304,7 @@ iterations/{iter}/03.system-design/
 
 **Как начать**:
 ```
-@speccrew-system-developer начать разработку
+/speccrew-system-developer начать разработку
 ```
 
 **Рабочий процесс Agent**:
@@ -336,7 +335,7 @@ iterations/{iter}/04.development/
 
 **Как начать**:
 ```
-@speccrew-test-manager начать тестирование
+/speccrew-test-manager начать тестирование
 ```
 
 **Трехфазный процесс тестирования**:
@@ -458,7 +457,7 @@ pending → in_progress → completed → confirmed
 Просмотр статуса panorama pipeline через Agent Team Leader:
 
 ```
-@speccrew-team-leader просмотреть текущий прогресс итерации
+/speccrew-team-leader просмотреть текущий прогресс итерации
 ```
 
 Team Leader прочитает файлы прогресса и покажет обзор статуса, подобный:
@@ -560,12 +559,12 @@ npm install -g speccrew@0.5.6
 
 | Фаза | Agent | Начальный разговор |
 |-------|-------|-------------------|
-| Инициализация | Team Leader | `@speccrew-team-leader инициализировать техническую базу знаний` |
-| Анализ требований | Product Manager | `@speccrew-product-manager У меня новое требование: [описание]` |
-| Feature Design | Feature Designer | `@speccrew-feature-designer начать feature design` |
-| System Design | System Designer | `@speccrew-system-designer начать system design` |
-| Разработка | System Developer | `@speccrew-system-developer начать разработку` |
-| Системное тестирование | Test Manager | `@speccrew-test-manager начать тестирование` |
+| Инициализация | Team Leader | `/speccrew-team-leader инициализировать техническую базу знаний` |
+| Анализ требований | Product Manager | `/speccrew-product-manager У меня новое требование: [описание]` |
+| Feature Design | Feature Designer | `/speccrew-feature-designer начать feature design` |
+| System Design | System Designer | `/speccrew-system-designer начать system design` |
+| Разработка | System Developer | `/speccrew-system-developer начать разработку` |
+| Системное тестирование | Test Manager | `/speccrew-test-manager начать тестирование` |
 
 ### Контрольный список Checkpoint
 

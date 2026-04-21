@@ -1,17 +1,16 @@
-# دليل البدء السريع لـ SpecCrew
+﻿# دليل البدء السريع لـ SpecCrew
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 تساعدك هذه الوثيقة على الفهم السريع لكيفية استخدام فريق Agent الخاص بـ SpecCrew لإكمال التطوير الكامل من المتطلبات إلى التسليم وفق عمليات الهندسة القياسية.
@@ -80,22 +79,22 @@ speccrew init --ide qoder
 بالنسبة للمشاريع ذات الكود المصدري الموجود، يوصى بتهيئة قاعدة المعرفة أولاً حتى يفهم الوكلاء قاعدة الكود الخاصة بك:
 
 ```
-@speccrew-team-leader تهيئة قاعدة المعرفة التقنية
+/speccrew-team-leader تهيئة قاعدة المعرفة التقنية
 ```
 
 ثم:
 
 ```
-@speccrew-team-leader تهيئة قاعدة معرفة الأعمال
+/speccrew-team-leader تهيئة قاعدة معرفة الأعمال
 ```
 
 ### الخطوة 3: ابدأ مهمتك الأولى
 
 ```
-@speccrew-product-manager لدي متطلب جديد: [صف متطلبك الوظيفي]
+/speccrew-product-manager لدي متطلب جديد: [صف متطلبك الوظيفي]
 ```
 
-> **نصيحة**: إذا لم تكن متأكداً مما يجب فعله، فقط قل `@speccrew-team-leader ساعدني على البدء` — سيكتشف Team Leader حالة مشروعك تلقائياً ويرشدك.
+> **نصيحة**: إذا لم تكن متأكداً مما يجب فعله، فقط قل `/speccrew-team-leader ساعدني على البدء` — سيكتشف Team Leader حالة مشروعك تلقائياً ويرشدك.
 
 ---
 
@@ -104,20 +103,20 @@ speccrew init --ide qoder
 غير متأكد مما يجب فعله؟ ابحث عن السيناريو الخاص بك أدناه:
 
 - **لدي متطلب وظيفي جديد**
-  → `@speccrew-product-manager لدي متطلب جديد: [صف متطلبك الوظيفي]`
+  → `/speccrew-product-manager لدي متطلب جديد: [صف متطلبك الوظيفي]`
 
 - **أريد مسح معرفة المشروع الموجود**
-  → `@speccrew-team-leader تهيئة قاعدة المعرفة التقنية`
-  → ثم: `@speccrew-team-leader تهيئة قاعدة معرفة الأعمال`
+  → `/speccrew-team-leader تهيئة قاعدة المعرفة التقنية`
+  → ثم: `/speccrew-team-leader تهيئة قاعدة معرفة الأعمال`
 
 - **أريد متابعة العمل السابق**
-  → `@speccrew-team-leader ما هو التقدم الحالي؟`
+  → `/speccrew-team-leader ما هو التقدم الحالي؟`
 
 - **أريد التحقق من حالة صحة النظام**
   → تشغيل في الطرفية: `speccrew doctor`
 
 - **لست متأكداً مما يجب فعله**
-  → `@speccrew-team-leader ساعدني على البدء`
+  → `/speccrew-team-leader ساعدني على البدء`
   → سيكتشف Team Leader حالة مشروعك تلقائياً ويرشدك
 
 ---
@@ -126,14 +125,14 @@ speccrew init --ide qoder
 
 | الدور | Agent | المسؤوليات | مثال على الأمر |
 |------|-------|-----------------|-----------------|
-| قائد الفريق | `@speccrew-team-leader` | تنقل المشروع، تهيئة قاعدة المعرفة، التحقق من الحالة | "ساعدني على البدء" |
-| مدير المنتج | `@speccrew-product-manager` | تحليل المتطلبات، إنشاء PRD | "لدي متطلب جديد: ..." |
-| مصمم الوظائف | `@speccrew-feature-designer` | تحليل الوظائف، تصميم المواصفات، عقود API | "ابدأ تصميم الوظائف للتكرار X" |
-| مصمم النظام | `@speccrew-system-designer` | تصميم الهندسة المعمارية، التصميم التفصيلي للمنصة | "ابدأ تصميم النظام للتكرار X" |
-| مطور النظام | `@speccrew-system-developer` | تنسيق التطوير، إنشاء الكود | "ابدأ التطوير للتكرار X" |
-| مدير الاختبار | `@speccrew-test-manager` | تخطيط الاختبار، تصميم الحالات، التنفيذ | "ابدأ الاختبار للتكرار X" |
+| قائد الفريق | `/speccrew-team-leader` | تنقل المشروع، تهيئة قاعدة المعرفة، التحقق من الحالة | "ساعدني على البدء" |
+| مدير المنتج | `/speccrew-product-manager` | تحليل المتطلبات، إنشاء PRD | "لدي متطلب جديد: ..." |
+| مصمم الوظائف | `/speccrew-feature-designer` | تحليل الوظائف، تصميم المواصفات، عقود API | "ابدأ تصميم الوظائف للتكرار X" |
+| مصمم النظام | `/speccrew-system-designer` | تصميم الهندسة المعمارية، التصميم التفصيلي للمنصة | "ابدأ تصميم النظام للتكرار X" |
+| مطور النظام | `/speccrew-system-developer` | تنسيق التطوير، إنشاء الكود | "ابدأ التطوير للتكرار X" |
+| مدير الاختبار | `/speccrew-test-manager` | تخطيط الاختبار، تصميم الحالات، التنفيذ | "ابدأ الاختبار للتكرار X" |
 
-> **ملاحظة**: لا تحتاج إلى تذكر جميع الوكلاء. فقط تحدث مع `@speccrew-team-leader` وسيقوم بتوجيه طلبك إلى الوكيل المناسب.
+> **ملاحظة**: لا تحتاج إلى تذكر جميع الوكلاء. فقط تحدث مع `/speccrew-team-leader` وسيقوم بتوجيه طلبك إلى الوكيل المناسب.
 
 ---
 
@@ -174,7 +173,7 @@ flowchart LR
 
 **مثال على المحادثة**:
 ```
-@speccrew-team-leader تهيئة قاعدة المعرفة التقنية
+/speccrew-team-leader تهيئة قاعدة المعرفة التقنية
 ```
 
 **عملية من ثلاث مراحل**:
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **مثال على المحادثة**:
 ```
-@speccrew-team-leader تهيئة قاعدة معرفة الأعمال
+/speccrew-team-leader تهيئة قاعدة معرفة الأعمال
 ```
 
 **عملية من أربع مراحل**:
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **كيفية البدء**:
 ```
-@speccrew-product-manager لدي متطلب جديد: [صف متطلبك]
+/speccrew-product-manager لدي متطلب جديد: [صف متطلبك]
 ```
 
 **سير عمل Agent**:
@@ -249,7 +248,7 @@ iterations/{رقم}-{نوع}-{اسم}/01.product-requirement/
 
 **كيفية البدء**:
 ```
-@speccrew-feature-designer ابدأ تصميم الوظائف
+/speccrew-feature-designer ابدأ تصميم الوظائف
 ```
 
 **سير عمل Agent**:
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **كيفية البدء**:
 ```
-@speccrew-system-designer ابدأ تصميم النظام
+/speccrew-system-designer ابدأ تصميم النظام
 ```
 
 **سير عمل Agent**:
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **كيفية البدء**:
 ```
-@speccrew-system-developer ابدأ التطوير
+/speccrew-system-developer ابدأ التطوير
 ```
 
 **سير عمل Agent**:
@@ -338,7 +337,7 @@ iterations/{iter}/04.development/
 
 **كيفية البدء**:
 ```
-@speccrew-system-deployer ابدأ النشر
+/speccrew-system-deployer ابدأ النشر
 ```
 
 **سير عمل Agent**:
@@ -371,7 +370,7 @@ iterations/{iter}/05.deployment/
 
 **كيفية البدء**:
 ```
-@speccrew-test-manager ابدأ الاختبار
+/speccrew-test-manager ابدأ الاختبار
 ```
 
 **عملية الاختبار من ثلاث مراحل**:
@@ -494,7 +493,7 @@ pending → in_progress → completed → confirmed
 عرض حالة panorama للـ pipeline عبر Agent Team Leader:
 
 ```
-@speccrew-team-leader عرض تقدم التكرار الحالي
+/speccrew-team-leader عرض تقدم التكرار الحالي
 ```
 
 سيقرأ Team Leader ملفات التقدم ويعرض نظرة عامة على الحالة مشابهة لـ:
@@ -597,13 +596,13 @@ npm install -g speccrew@0.5.6
 
 | المرحلة | Agent | محادثة البدء |
 |-------|-------|-------------------|
-| التهيئة | Team Leader | `@speccrew-team-leader تهيئة قاعدة المعرفة التقنية` |
-| تحليل المتطلبات | Product Manager | `@speccrew-product-manager لدي متطلب جديد: [وصف]` |
-| تصميم الوظائف | Feature Designer | `@speccrew-feature-designer ابدأ تصميم الوظائف` |
-| تصميم النظام | System Designer | `@speccrew-system-designer ابدأ تصميم النظام` |
-| التطوير | System Developer | `@speccrew-system-developer ابدأ التطوير` |
-| النشر | System Deployer | `@speccrew-system-deployer ابدأ النشر` |
-| اختبار النظام | Test Manager | `@speccrew-test-manager ابدأ الاختبار` |
+| التهيئة | Team Leader | `/speccrew-team-leader تهيئة قاعدة المعرفة التقنية` |
+| تحليل المتطلبات | Product Manager | `/speccrew-product-manager لدي متطلب جديد: [وصف]` |
+| تصميم الوظائف | Feature Designer | `/speccrew-feature-designer ابدأ تصميم الوظائف` |
+| تصميم النظام | System Designer | `/speccrew-system-designer ابدأ تصميم النظام` |
+| التطوير | System Developer | `/speccrew-system-developer ابدأ التطوير` |
+| النشر | System Deployer | `/speccrew-system-deployer ابدأ النشر` |
+| اختبار النظام | Test Manager | `/speccrew-test-manager ابدأ الاختبار` |
 
 ### قائمة مراجعة Checkpoint
 

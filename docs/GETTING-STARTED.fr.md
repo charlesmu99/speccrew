@@ -1,17 +1,16 @@
-# Guide de Démarrage Rapide SpecCrew
+﻿# Guide de Démarrage Rapide SpecCrew
 
 <p align="center">
   <a href="./GETTING-STARTED.md">简体中文</a> |
-  <a href="./GETTING-STARTED.zh-TW.md">繁體中文</a> |
   <a href="./GETTING-STARTED.en.md">English</a> |
-  <a href="./GETTING-STARTED.ko.md">한국어</a> |
-  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
-  <a href="./GETTING-STARTED.es.md">Español</a> |
-  <a href="./GETTING-STARTED.fr.md">Français</a> |
-  <a href="./GETTING-STARTED.it.md">Italiano</a> |
-  <a href="./GETTING-STARTED.da.md">Dansk</a> |
   <a href="./GETTING-STARTED.ja.md">日本語</a> |
-  <a href="./GETTING-STARTED.ar.md">العربية</a>
+  <a href="./GETTING-STARTED.ru.md">Русский</a> |
+  <a href="./GETTING-STARTED.es.md">Español</a> |
+  <a href="./GETTING-STARTED.de.md">Deutsch</a> |
+  <a href="./GETTING-STARTED.fr.md">Français</a> |
+  <a href="./GETTING-STARTED.pt-BR.md">Português (Brasil)</a> |
+  <a href="./GETTING-STARTED.ar.md">العربية</a> |
+  <a href="./GETTING-STARTED.hi.md">हिन्दी</a>
 </p>
 
 Ce document vous aide à comprendre rapidement comment utiliser l'équipe Agent de SpecCrew pour compléter le développement complet des exigences à la livraison selon des processus d'ingénierie standard.
@@ -80,22 +79,22 @@ Après avoir exécuté `speccrew init`, suivez ces étapes pour entrer rapidemen
 Pour les projets avec du code source existant, il est recommandé d'initialiser d'abord la base de connaissances pour que les agents comprennent votre base de code :
 
 ```
-@speccrew-team-leader initialiser la base de connaissances techniques
+/speccrew-team-leader initialiser la base de connaissances techniques
 ```
 
 Puis :
 
 ```
-@speccrew-team-leader initialiser la base de connaissances métier
+/speccrew-team-leader initialiser la base de connaissances métier
 ```
 
 ### Étape 3 : Commencez Votre Première Tâche
 
 ```
-@speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence fonctionnelle]
+/speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence fonctionnelle]
 ```
 
-> **Astuce** : Si vous ne savez pas quoi faire, dites simplement `@speccrew-team-leader aidez-moi à démarrer` — le Team Leader détectera automatiquement l'état de votre projet et vous guidera.
+> **Astuce** : Si vous ne savez pas quoi faire, dites simplement `/speccrew-team-leader aidez-moi à démarrer` — le Team Leader détectera automatiquement l'état de votre projet et vous guidera.
 
 ---
 
@@ -104,20 +103,20 @@ Puis :
 Vous ne savez pas quoi faire ? Trouvez votre scénario ci-dessous :
 
 - **J'ai une nouvelle exigence fonctionnelle**
-  → `@speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence fonctionnelle]`
+  → `/speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence fonctionnelle]`
 
 - **Je veux scanner les connaissances du projet existant**
-  → `@speccrew-team-leader initialiser la base de connaissances techniques`
-  → Puis : `@speccrew-team-leader initialiser la base de connaissances métier`
+  → `/speccrew-team-leader initialiser la base de connaissances techniques`
+  → Puis : `/speccrew-team-leader initialiser la base de connaissances métier`
 
 - **Je veux continuer le travail précédent**
-  → `@speccrew-team-leader quelle est la progression actuelle ?`
+  → `/speccrew-team-leader quelle est la progression actuelle ?`
 
 - **Je veux vérifier l'état de santé du système**
   → Exécuter dans le terminal : `speccrew doctor`
 
 - **Je ne sais pas quoi faire**
-  → `@speccrew-team-leader aidez-moi à démarrer`
+  → `/speccrew-team-leader aidez-moi à démarrer`
   → Le Team Leader détectera automatiquement l'état de votre projet et vous guidera
 
 ---
@@ -126,14 +125,14 @@ Vous ne savez pas quoi faire ? Trouvez votre scénario ci-dessous :
 
 | Rôle | Agent | Responsabilités | Exemple de Commande |
 |------|-------|-----------------|-----------------|
-| Chef d'Équipe | `@speccrew-team-leader` | Navigation projet, initialisation base de connaissances, vérification statut | "Aidez-moi à démarrer" |
-| Chef de Produit | `@speccrew-product-manager` | Analyse des exigences, génération PRD | "J'ai une nouvelle exigence : ..." |
-| Concepteur de Fonctionnalités | `@speccrew-feature-designer` | Analyse fonctionnelle, conception de spécifications, contrats API | "Démarrer la conception de fonctionnalités pour l'itération X" |
-| Concepteur Système | `@speccrew-system-designer` | Conception d'architecture, conception détaillée par plateforme | "Démarrer la conception système pour l'itération X" |
-| Développeur Système | `@speccrew-system-developer` | Coordination développement, génération de code | "Démarrer le développement pour l'itération X" |
-| Responsable Test | `@speccrew-test-manager` | Planification test, conception de cas, exécution | "Démarrer les tests pour l'itération X" |
+| Chef d'Équipe | `/speccrew-team-leader` | Navigation projet, initialisation base de connaissances, vérification statut | "Aidez-moi à démarrer" |
+| Chef de Produit | `/speccrew-product-manager` | Analyse des exigences, génération PRD | "J'ai une nouvelle exigence : ..." |
+| Concepteur de Fonctionnalités | `/speccrew-feature-designer` | Analyse fonctionnelle, conception de spécifications, contrats API | "Démarrer la conception de fonctionnalités pour l'itération X" |
+| Concepteur Système | `/speccrew-system-designer` | Conception d'architecture, conception détaillée par plateforme | "Démarrer la conception système pour l'itération X" |
+| Développeur Système | `/speccrew-system-developer` | Coordination développement, génération de code | "Démarrer le développement pour l'itération X" |
+| Responsable Test | `/speccrew-test-manager` | Planification test, conception de cas, exécution | "Démarrer les tests pour l'itération X" |
 
-> **Note** : Vous n'avez pas besoin de mémoriser tous les agents. Parlez simplement à `@speccrew-team-leader` et il routera votre demande vers le bon agent.
+> **Note** : Vous n'avez pas besoin de mémoriser tous les agents. Parlez simplement à `/speccrew-team-leader` et il routera votre demande vers le bon agent.
 
 ---
 
@@ -174,7 +173,7 @@ Avant de commencer le processus d'ingénierie formel, vous devez initialiser la 
 
 **Exemple de Conversation** :
 ```
-@speccrew-team-leader initialiser la base de connaissances techniques
+/speccrew-team-leader initialiser la base de connaissances techniques
 ```
 
 **Processus en Trois Phases** :
@@ -196,7 +195,7 @@ speccrew-workspace/knowledges/techs/{platform-id}/
 
 **Exemple de Conversation** :
 ```
-@speccrew-team-leader initialiser la base de connaissances métier
+/speccrew-team-leader initialiser la base de connaissances métier
 ```
 
 **Processus en Quatre Phases** :
@@ -222,7 +221,7 @@ speccrew-workspace/knowledges/bizs/
 
 **Comment Démarrer** :
 ```
-@speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence]
+/speccrew-product-manager J'ai une nouvelle exigence : [décrivez votre exigence]
 ```
 
 **Flux de Travail de l'Agent** :
@@ -249,7 +248,7 @@ iterations/{numéro}-{type}-{nom}/01.product-requirement/
 
 **Comment Démarrer** :
 ```
-@speccrew-feature-designer démarrer la conception de fonctionnalités
+/speccrew-feature-designer démarrer la conception de fonctionnalités
 ```
 
 **Flux de Travail de l'Agent** :
@@ -276,7 +275,7 @@ iterations/{iter}/02.feature-design/
 
 **Comment Démarrer** :
 ```
-@speccrew-system-designer démarrer la conception système
+/speccrew-system-designer démarrer la conception système
 ```
 
 **Flux de Travail de l'Agent** :
@@ -307,7 +306,7 @@ iterations/{iter}/03.system-design/
 
 **Comment Démarrer** :
 ```
-@speccrew-system-developer démarrer le développement
+/speccrew-system-developer démarrer le développement
 ```
 
 **Flux de Travail de l'Agent** :
@@ -338,7 +337,7 @@ iterations/{iter}/04.development/
 
 **Comment Démarrer** :
 ```
-@speccrew-system-deployer démarrer le déploiement
+/speccrew-system-deployer démarrer le déploiement
 ```
 
 **Flux de Travail de l'Agent** :
@@ -371,7 +370,7 @@ iterations/{iter}/05.deployment/
 
 **Comment Démarrer** :
 ```
-@speccrew-test-manager démarrer les tests
+/speccrew-test-manager démarrer les tests
 ```
 
 **Processus de Test en Trois Phases** :
@@ -494,7 +493,7 @@ Lors du redémarrage d'un Agent pour une phase :
 Voir le statut panoramique du pipeline via l'Agent Team Leader :
 
 ```
-@speccrew-team-leader voir la progression actuelle de l'itération
+/speccrew-team-leader voir la progression actuelle de l'itération
 ```
 
 Le Team Leader lira les fichiers de progression et affichera un aperçu du statut similaire à :
@@ -597,13 +596,13 @@ Une ré-initialisation est requise dans les situations suivantes :
 
 | Phase | Agent | Conversation de Démarrage |
 |-------|-------|-------------------|
-| Initialisation | Team Leader | `@speccrew-team-leader initialiser la base de connaissances techniques` |
-| Analyse des Exigences | Product Manager | `@speccrew-product-manager J'ai une nouvelle exigence : [description]` |
-| Feature Design | Feature Designer | `@speccrew-feature-designer démarrer la conception de fonctionnalités` |
-| Conception Système | System Designer | `@speccrew-system-designer démarrer la conception système` |
-| Développement | System Developer | `@speccrew-system-developer démarrer le développement` |
-| Déploiement | System Deployer | `@speccrew-system-deployer démarrer le déploiement` |
-| Test Système | Test Manager | `@speccrew-test-manager démarrer les tests` |
+| Initialisation | Team Leader | `/speccrew-team-leader initialiser la base de connaissances techniques` |
+| Analyse des Exigences | Product Manager | `/speccrew-product-manager J'ai une nouvelle exigence : [description]` |
+| Feature Design | Feature Designer | `/speccrew-feature-designer démarrer la conception de fonctionnalités` |
+| Conception Système | System Designer | `/speccrew-system-designer démarrer la conception système` |
+| Développement | System Developer | `/speccrew-system-developer démarrer le développement` |
+| Déploiement | System Deployer | `/speccrew-system-deployer démarrer le déploiement` |
+| Test Système | Test Manager | `/speccrew-test-manager démarrer les tests` |
 
 ### Liste de Vérification des Checkpoints
 
