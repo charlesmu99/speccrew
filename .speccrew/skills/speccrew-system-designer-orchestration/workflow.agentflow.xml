@@ -178,7 +178,7 @@
 
     <!-- Step 3.1: Dispatch Worker Agent for Framework Evaluation -->
     <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending"
-           desc="Dispatch single worker agent for framework evaluation">
+           desc="Dispatch single worker agent for framework evaluation. Use /speccrew-task-worker agent, NOT Skill tool">
       <field name="agent">speccrew-task-worker</field>
       <field name="skill">speccrew-sd-framework-evaluate</field>
       <field name="max_concurrent">1</field>

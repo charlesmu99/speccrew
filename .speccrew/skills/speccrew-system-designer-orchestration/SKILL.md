@@ -93,13 +93,23 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 3. Unrecoverable errors that prevent further progress
 4. Security-sensitive operations (e.g., deleting existing files)
 
-### Phase 3 FORBIDDEN Actions
+### Phase 3 Execution Method — Worker Agent Dispatch
 
-- DO NOT inline-call speccrew-sd-framework-evaluate skill
-- DO NOT read feature spec files yourself for framework evaluation
-- DO NOT create temporary scripts for batch file analysis
-- DO NOT generate framework-evaluation.md as fallback if worker fails
-- Worker dispatch failure = ABORT (report error, do NOT retry with inline execution)
+**HOW TO DISPATCH**: When executing Phase 3 (Framework Evaluation), you MUST:
+1. Start a NEW agent session by invoking `/speccrew-task-worker`
+2. Pass the following context to the worker:
+   - skill_path: ${workspace_path}/.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md
+   - workspace_path, iteration_path, feature_spec_paths, api_contract_paths, techs_knowledge_paths, output_path
+3. Wait for the worker agent to complete
+4. Verify that framework-evaluation.md has been generated at the output path
+5. Then proceed to Phase 3 HARD STOP for user confirmation
+
+**FORBIDDEN**:
+- DO NOT use the `Skill` tool to invoke speccrew-sd-framework-evaluate yourself
+- DO NOT read feature spec files or tech knowledge files yourself for framework evaluation
+- DO NOT create any scripts for batch file analysis
+- DO NOT generate framework-evaluation.md yourself under any circumstances
+- If worker agent fails, ABORT — do NOT fallback to inline execution
 
 ### HARD STOP Checkpoints
 
