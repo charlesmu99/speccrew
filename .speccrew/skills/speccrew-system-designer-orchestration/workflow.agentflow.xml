@@ -168,6 +168,7 @@
       <field name="text">FORBIDDEN: Do NOT create scripts or read feature files yourself for framework evaluation</field>
       <field name="text">MANDATORY: Framework evaluation MUST be delegated to worker agent via block P3-B1</field>
       <field name="text">If worker dispatch fails, ABORT — do NOT fallback to inline execution</field>
+      <field name="text">TOOL MAPPING: action="dispatch-to-worker" → Use Agent tool (NOT Skill tool) to create speccrew-task-worker agent</field>
     </block>
 
     <block type="rule" id="P3-R1" level="mandatory" desc="Worker Dispatch Rule">

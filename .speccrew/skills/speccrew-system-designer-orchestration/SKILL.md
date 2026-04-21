@@ -20,7 +20,7 @@ tools: Read, Write, Glob, Grep, Bash, Agent
 > Action-to-tool mapping:
 > - `action="run-skill"` → Invoke via **Skill tool** (pass the `<field name="skill">` value EXACTLY)
 > - `action="run-script"` → Execute via **Terminal tool** (pass the `<field name="command">` value EXACTLY)
-> - `action="dispatch-to-worker"` → Create **Task** via **Task tool** for `speccrew-task-worker`
+> - `action="dispatch-to-worker"` → Use **Agent tool** to create a new `speccrew-task-worker` agent, passing skill_path and context
 > - `action="read-file"` → Read via **Read tool**
 > - `action="log"` → Output message directly
 > - `action="confirm"` → Present to user and wait for response
@@ -95,21 +95,15 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 
 ### Phase 3 Execution Method — Worker Agent Dispatch
 
-**HOW TO DISPATCH**: When executing Phase 3 (Framework Evaluation), you MUST:
-1. Start a NEW agent session by invoking `/speccrew-task-worker`
-2. Pass the following context to the worker:
-   - skill_path: ${workspace_path}/.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md
-   - workspace_path, iteration_path, feature_spec_paths, api_contract_paths, techs_knowledge_paths, output_path
-3. Wait for the worker agent to complete
-4. Verify that framework-evaluation.md has been generated at the output path
-5. Then proceed to Phase 3 HARD STOP for user confirmation
+**HOW TO DISPATCH**: When executing Phase 3 block P3-B1 (action="dispatch-to-worker"):
+1. Use the **Agent tool** to create a new `speccrew-task-worker` agent
+2. Pass `skill_path` to the worker: `${workspace_path}/.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md`
+3. Pass context parameters: workspace_path, iteration_path, feature_spec_paths, api_contract_paths, techs_knowledge_paths, output_path
+4. **Wait** for the worker agent to complete and return results
+5. After worker completes, verify framework-evaluation.md exists at output_path
+6. Then proceed to Phase 3.5 HARD STOP for user confirmation
 
-**FORBIDDEN**:
-- DO NOT use the `Skill` tool to invoke speccrew-sd-framework-evaluate yourself
-- DO NOT read feature spec files or tech knowledge files yourself for framework evaluation
-- DO NOT create any scripts for batch file analysis
-- DO NOT generate framework-evaluation.md yourself under any circumstances
-- If worker agent fails, ABORT — do NOT fallback to inline execution
+**CRITICAL**: The `Agent tool` creates a NEW agent session — this is completely different from the `Skill tool` which executes inline.
 
 ### HARD STOP Checkpoints
 
@@ -118,3 +112,21 @@ This workflow has **mandatory HARD STOP** checkpoints at:
 - **Phase 6.1**: Joint design confirmation (user MUST approve all designs)
 
 DO NOT proceed past these checkpoints without explicit user confirmation.
+
+## Must Do
+
+- **READ workflow.agentflow.xml FIRST** — Execute blocks in document order
+- **Use Agent tool for dispatch-to-worker blocks** — Agent tool creates a new speccrew-task-worker agent session
+- **Pass skill_path explicitly to worker** — Worker cannot find skills via glob on first run
+- **Wait for worker completion before verifying output** — Do not proceed until worker returns
+- **Update progress via update-progress.js script** — Use run-script commands exactly as defined in XML
+
+## Must Not Do
+
+- **DO NOT use Skill tool for Phase 3 framework evaluation** — Skill tool executes inline, Agent tool creates a worker
+- **DO NOT read feature spec files yourself** — Workers read them
+- **DO NOT read tech knowledge files yourself** — Workers read them
+- **DO NOT generate framework-evaluation.md yourself** — Only workers generate it
+- **DO NOT create scripts for batch analysis** — Workers handle this via their own skill
+- **DO NOT fallback to inline execution if worker fails** — ABORT instead
+- **DO NOT skip reading workflow.agentflow.xml** — XML is the execution authority
