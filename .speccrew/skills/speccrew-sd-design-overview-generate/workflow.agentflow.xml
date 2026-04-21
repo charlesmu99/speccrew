@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="sd-design-overview-generate-main" status="pending" version="1.0.0" desc="Design Overview Generation workflow">
+
+  <!-- ============================================================
+       Input Parameters Definition
+       ============================================================ -->
+  <block type="input" id="I1" desc="Workflow input parameters">
+    <field name="workspace_path" required="true" type="string" desc="speccrew-workspace root directory path"/>
+    <field name="iteration_path" required="true" type="string" desc="Current iteration directory path"/>
+    <field name="feature_registry_path" required="true" type="string" desc="Path to .prd-feature-list.json"/>
+    <field name="techs_manifest_path" required="true" type="string" desc="Path to techs-manifest.json"/>
+    <field name="framework_evaluation_path" required="true" type="string" desc="Path to framework-evaluation.md"/>
+    <field name="output_path" required="false" type="string" desc="Output file path (default: iteration_path/03.system-design/DESIGN-OVERVIEW.md)"/>
+  </block>
+
+  <!-- ============================================================
+       Global Rules
+       ============================================================ -->
+  <block type="rule" id="R1" level="forbidden" desc="Input File Protection">
+    <field name="text">DO NOT modify any input files (feature specs, API contracts, techs-manifest.json, framework-evaluation.md)</field>
+  </block>
+
+  <block type="rule" id="R2" level="forbidden" desc="Single Output Only">
+    <field name="text">DO NOT create any files other than DESIGN-OVERVIEW.md at the specified output_path</field>
+  </block>
+
+  <block type="rule" id="R3" level="mandatory" desc="Direct-to-File Output">
+    <field name="text">Write all design content directly to DESIGN-OVERVIEW.md. DO NOT display document content in conversation.</field>
+  </block>
+
+  <block type="rule" id="R4" level="mandatory" desc="Complete Matrix Coverage">
+    <field name="text">Platform Design Index MUST cover ALL Feature × Platform combinations. No feature or platform may be omitted.</field>
+  </block>
+
+  <!-- ============================================================
+       Main Processing Sequence
+       ============================================================ -->
+  <sequence id="S1" name="Design Overview Generation" status="pending" desc="Generate DESIGN-OVERVIEW.md with Feature×Platform matrix">
+
+    <!-- Step 1: Read Feature Registry -->
+    <block type="task" id="B1" action="read-file" status="pending" desc="Read Feature Registry (.prd-feature-list.json)">
+      <field name="path" value="${feature_registry_path}"/>
+      <field name="output" var="feature_registry"/>
+    </block>
+
+    <!-- Step 2: Read Techs Manifest -->
+    <block type="task" id="B2" action="read-file" status="pending" desc="Read Techs Manifest (techs-manifest.json)">
+      <field name="path" value="${techs_manifest_path}"/>
+      <field name="output" var="techs_manifest"/>
+    </block>
+
+    <!-- Step 3: Read Framework Evaluation -->
+    <block type="task" id="B3" action="read-file" status="pending" desc="Read Framework Evaluation Report">
+      <field name="path" value="${framework_evaluation_path}"/>
+      <field name="output" var="framework_evaluation"/>
+    </block>
+
+    <!-- Step 4: Determine Feature Format -->
+    <block type="gateway" id="G1" mode="exclusive" desc="Check Feature ID format">
+      <branch test="${feature_registry.features[0].feature_id} exists and starts with 'F-'" name="New Format">
+        <block type="event" id="E1" action="log" level="info" desc="New format detected">
+          <field name="message">Feature registry uses new format with F- prefixed Feature IDs</field>
+        </block>
+        <field name="format" var="feature_format" value="new"/>
+      </branch>
+      <branch default="true" name="Legacy Format">
+        <block type="event" id="E2" action="log" level="info" desc="Legacy format detected">
+          <field name="message">Feature registry uses legacy format (no Feature IDs)</field>
+        </block>
+        <field name="format" var="feature_format" value="legacy"/>
+      </branch>
+    </block>
+
+    <!-- Step 5: Build Feature × Platform Matrix -->
+    <block type="task" id="B4" action="compute" status="pending" desc="Build Feature×Platform matrix index">
+      <field name="input" value="${feature_registry.features}">${techs_manifest.platforms}</field>
+      <field name="logic">
+        For each feature in feature_registry.features:
+          For each platform in techs_manifest.platforms:
+            - feature_id: feature.feature_id (or "-" for legacy)
+            - feature_name: feature.feature_name (or feature.module_name for legacy)
+            - platform: platform.friendly_name
+            - platform_id: platform.platform_id
+            - skill: map platform_id prefix → speccrew-sd-{type}
+              (web-* → frontend, backend-* → backend, mobile-* → mobile, desktop-* → desktop)
+            - design_directory: {platform_id}/{feature_id}-{feature_name}-design.md (new)
+              or {platform_id}/{module_name}-design.md (legacy)
+            - status: "pending"
+      </field>
+      <field name="output" var="platform_design_index"/>
+    </block>
+
+    <!-- Step 6: Check if Feature Summary needed -->
+    <block type="gateway" id="G2" mode="exclusive" desc="Feature count check for optional summary">
+      <branch test="${feature_registry.features.length} > 5" name="Large Feature Set">
+        <block type="event" id="E3" action="log" level="info" desc="Large feature set">
+          <field name="message">Feature count > 5, including Feature Summary section</field>
+        </block>
+        <field name="include_summary" var="include_feature_summary" value="true"/>
+      </branch>
+      <branch default="true" name="Small Feature Set">
+        <block type="event" id="E4" action="log" level="info" desc="Small feature set">
+          <field name="message">Feature count <= 5, skipping Feature Summary section</field>
+        </block>
+        <field name="include_summary" var="include_feature_summary" value="false"/>
+      </branch>
+    </block>
+
+    <!-- Step 7: Generate DESIGN-OVERVIEW.md -->
+    <block type="task" id="B5" action="write-file" status="pending" desc="Generate DESIGN-OVERVIEW.md with all sections">
+      <field name="path">${output_path}</field>
+      <field name="encoding">utf8</field>
+      <field name="content">
+        Section 1: Design Scope (iteration, platforms, features count, Feature List table)
+        Section 2: Technology Decisions (from framework_evaluation)
+        Section 3: Platform Design Index (from platform_design_index matrix)
+        Section 4: Feature Summary (ONLY if include_feature_summary == true)
+          - 4.1 Feature by Module
+          - 4.2 Feature Type Distribution
+        Section 5: Cross-Platform Concerns
+        Section 6: Design Constraints
+      </field>
+    </block>
+
+    <!-- Step 8: Validate Output -->
+    <block type="checkpoint" id="CP1" name="design_overview_validation" desc="Validate DESIGN-OVERVIEW.md completeness">
+      <field name="conditions">
+        file_exists: ${output_path} exists,
+        has_design_scope: contains "## 1. Design Scope",
+        has_tech_decisions: contains "## 2. Technology Decisions",
+        has_platform_index: contains "## 3. Platform Design Index",
+        matrix_complete: index row count == feature_count × platform_count,
+        all_pending: all status entries are "pending"
+      </field>
+    </block>
+
+    <!-- Step 9: Output Task Completion Report -->
+    <block type="event" id="E5" action="log" level="info" desc="Output completion report">
+      <field name="message">--- TASK COMPLETION REPORT ---
+Task: Design Overview Generation
+Status: SUCCESS
+Output: ${output_path}
+Features: ${feature_registry.features.length}
+Platforms: ${techs_manifest.platforms.length}
+Matrix Entries: ${feature_registry.features.length * techs_manifest.platforms.length}
+--- END REPORT ---</field>
+    </block>
+
+  </sequence>
+
+  <!-- ============================================================
+       Output Results
+       ============================================================ -->
+  <block type="output" id="O1" desc="Workflow output results">
+    <field name="design_overview_path" value="${output_path}" type="string" desc="Path to generated DESIGN-OVERVIEW.md"/>
+    <field name="feature_count" from="${feature_registry.features.length}" type="number" desc="Number of features in the matrix"/>
+    <field name="platform_count" from="${techs_manifest.platforms.length}" type="number" desc="Number of platforms in the matrix"/>
+    <field name="matrix_entries" from="${feature_registry.features.length * techs_manifest.platforms.length}" type="number" desc="Total Feature×Platform combinations"/>
+  </block>
+
+</workflow>
