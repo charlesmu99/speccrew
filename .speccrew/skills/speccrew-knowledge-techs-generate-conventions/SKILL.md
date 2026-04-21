@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-techs-generate-conventions
 description: Generate technology convention documents (INDEX, tech-stack, architecture, conventions-*) for a specific platform using XML Block workflow. Extracts tech stack, architecture, and development conventions from configuration files and source code. Split from techs-generate for parallel execution with ui-style worker.
 tools: Read, Write, Glob, Grep
@@ -72,7 +72,7 @@ ${output_path}/
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

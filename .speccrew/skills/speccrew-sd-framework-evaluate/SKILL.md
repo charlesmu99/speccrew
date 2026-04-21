@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-sd-framework-evaluate
 description: Framework Evaluation Skill for System Designer. Analyzes Feature Spec requirements against current technology stack capabilities, identifies capability gaps, evaluates potential open-source frameworks/libraries, and generates a framework-evaluation.md report. Invoked by System Designer Agent during Phase 3.
 tools: Read, Write, Glob, Grep
@@ -12,7 +12,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

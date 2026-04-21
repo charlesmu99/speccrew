@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-fd-feature-design
 description: Unified Feature Analysis & Design SOP. Performs complete feature analysis (read PRD, load system knowledge, function breakdown with [NEW]/[MODIFIED]/[EXISTING] markers) followed by detailed design (frontend/backend/data) and generates complete Feature Spec document using template-first workflow. Combines analysis and design in a single unified workflow without producing intermediate analysis artifacts. Use when Feature Designer needs to analyze PRD requirements and produce Feature Spec in one pass.
 tools: Read, Write, Glob, Grep, search_replace
@@ -27,7 +27,7 @@ This skill applies ISA-95 Stages 1-6 as an internal thinking framework:
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

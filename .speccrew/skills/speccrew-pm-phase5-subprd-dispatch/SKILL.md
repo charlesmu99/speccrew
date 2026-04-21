@@ -1,11 +1,11 @@
-# speccrew-pm-phase5-subprd-dispatch
+﻿# speccrew-pm-phase5-subprd-dispatch
 
 ## Description
 
 PM Phase 5 Sub-PRD Batch Dispatch Skill. **Orchestration-layer skill** executed directly by PM Agent (NOT dispatched to Worker).
 
 This is an **orchestration skill** that PM Agent must execute directly:
-- PM Agent reads `workflow.agentflow.xml` and executes each block step-by-step
+- PM Agent reads `SKILL.xml` and executes each block step-by-step
 - PM Agent uses Agent tool to dispatch Workers for Sub-PRD generation
 - Workers generate Sub-PRD files; PM Agent only coordinates
 
@@ -15,12 +15,12 @@ This is an **orchestration skill** that PM Agent must execute directly:
 - Therefore, this skill MUST be executed by PM Agent directly
 - PM Agent MUST NOT dispatch this skill to a Worker
 
-**Execution Method**: PM Agent reads `workflow.agentflow.xml` and follows the workflow steps.
+**Execution Method**: PM Agent reads `SKILL.xml` and follows the workflow steps.
 
-## MANDATORY: PM Must Read workflow.agentflow.xml
+## MANDATORY: PM Must Read SKILL.xml
 
 > 🛑 **BEFORE executing this skill, PM Agent MUST:**
-> 1. Read the `workflow.agentflow.xml` file in this skill directory
+> 1. Read the `SKILL.xml` file in this skill directory
 > 2. Parse each block and execute in order
 > 3. Follow the exact workflow steps defined in the XML
 >
@@ -51,7 +51,7 @@ This is an **orchestration skill** that PM Agent must execute directly:
 | `sub_prd_files` | array | List of generated Sub-PRD file paths |
 | `feature_list_path` | string | Feature List file path |
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ## Checklist
 
@@ -88,7 +88,7 @@ This is an **orchestration skill** that PM Agent must execute directly:
 
 ## Must Do
 
-- **READ workflow.agentflow.xml FIRST** — PM Agent must parse the XML workflow before any execution
+- **READ SKILL.xml FIRST** — PM Agent must parse the XML workflow before any execution
 - **Initialize DISPATCH-PROGRESS.json BEFORE any Worker dispatch** — Use update-progress.js init command
 - **Dispatch one Worker per module** — Use Agent tool to create speccrew-task-worker with speccrew-pm-sub-prd-generate skill
 - **Update progress after each Worker completes** — Use update-progress.js update-task command
@@ -98,7 +98,7 @@ This is an **orchestration skill** that PM Agent must execute directly:
 ## Must Not Do
 
 - **DO NOT dispatch this skill to a Worker** — Phase 5 is PM direct execution
-- **DO NOT skip reading workflow.agentflow.xml** — XML workflow is the execution guide
+- **DO NOT skip reading SKILL.xml** — XML workflow is the execution guide
 - **DO NOT dispatch Workers before DISPATCH-PROGRESS.json is initialized** — Progress tracking is mandatory
 - **DO NOT create DISPATCH-PROGRESS.json manually** — Must use update-progress.js script
 - **DO NOT generate Sub-PRD content directly** — Only Workers generate Sub-PRDs

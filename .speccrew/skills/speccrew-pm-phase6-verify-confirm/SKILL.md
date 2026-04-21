@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-phase6-verify-confirm
 description: SpecCrew PM Phase 6 Verification & Confirmation Skill. Performs file integrity validation, feature list completeness check, user review gate, and finalization. Mandatory user confirmation required before status updates.
 tools: Read, Write, Glob, Grep
@@ -48,7 +48,7 @@ Applies three-stage gated verification:
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

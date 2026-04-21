@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-sd-desktop
 description: Desktop System Design SOP. Guide System Designer Agent to generate platform-specific desktop detailed design documents by filling technology implementation details into the Feature Spec skeleton. Reads techs knowledge to determine actual framework syntax (Electron/Tauri/Qt) and conventions.
 tools: Read, Write, Glob, Grep
@@ -12,7 +12,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

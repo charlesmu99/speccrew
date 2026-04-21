@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-fd-feature-analyze
 description: Feature Analysis SOP. Reads PRD documents and system knowledge to produce function decomposition with system relationship markers. Outputs .feature-analysis.md as interface contract for downstream design skills. Use when Feature Designer needs to analyze and decompose PRD requirements before design phase.
 tools: Read, Write, Glob, Grep
@@ -24,7 +24,7 @@ This skill applies ISA-95 Stages 1-3 as an internal thinking framework for analy
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

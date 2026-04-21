@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-test-reporter
 description: "SpecCrew Test Reporter. Generates comprehensive test reports and individual bug reports from test execution results. Performs root cause analysis and severity classification."
 tools: Read, Write, Glob, Grep
@@ -27,7 +27,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

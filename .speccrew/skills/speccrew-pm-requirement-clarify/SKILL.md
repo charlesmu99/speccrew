@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-requirement-clarify
 description: SpecCrew PM Requirement Clarification Skill. Dual-mode support (simple/complex). Produces .clarification-summary.md as interface contract for downstream PRD generation. First step in PRD workflow.
 tools: Read, Write, Glob, Grep
@@ -71,7 +71,7 @@ Step 6: Guard Gateway G3 (sufficiency_checks_passed == true required)
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

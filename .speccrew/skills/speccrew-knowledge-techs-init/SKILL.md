@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-techs-init
 description: Stage 1 of technology knowledge initialization - Scan source code to detect technology platforms and generate techs-manifest.json using XML workflow blocks. Identifies web, mobile, backend, and desktop platforms by analyzing configuration files and project structure. Used by Worker Agent to kick off the techs pipeline.
 tools: Read, Write, Glob, Grep, SearchCodebase, Skill
@@ -41,7 +41,7 @@ Worker Agent (speccrew-task-worker)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

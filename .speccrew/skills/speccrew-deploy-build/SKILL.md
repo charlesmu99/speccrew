@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-deploy-build
 description: Executes application build commands based on techs knowledge conventions. Runs the build, verifies success, and reports build artifacts.
 tools: Read, Bash, Glob
@@ -21,7 +21,7 @@ tools: Read, Bash, Glob
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

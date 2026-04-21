@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-ui-graph
 description: Constructs knowledge graph data (nodes, edges, relationships) from UI analysis results using XML workflow blocks. Generates graph JSON files and completion markers for the bizs knowledge pipeline.
 tools: Read, Write, Glob, Grep, Bash
@@ -44,7 +44,7 @@ This skill automatically adapts to the user's input language. All documentation 
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

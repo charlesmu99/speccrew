@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-techs-generate
 description: Stage 2 of technology knowledge initialization - Generate technology documentation for a specific platform using XML workflow blocks. Extracts tech stack, architecture, and conventions from configuration files and source code. Creates INDEX.md, tech-stack.md, architecture.md, and conventions-*.md files. Used by Worker Agent in parallel for each detected platform.
 tools: Read, Write, Glob, Grep, Skill
@@ -38,7 +38,7 @@ Generate comprehensive technology documentation for a specific platform by analy
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

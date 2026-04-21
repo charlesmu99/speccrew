@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-requirement-model
 description: SpecCrew PM Requirement Modeling Skill. Applies ISA-95 Stages 1-3 for business domain analysis, WBS decomposition, and module ordering. Produces .module-design.md as interface contract for downstream PRD generation. Second step in PRD workflow.
 tools: Read, Write, Glob, Grep
@@ -39,7 +39,7 @@ Applies ISA-95 Stages 1-3 as structured analysis framework:
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

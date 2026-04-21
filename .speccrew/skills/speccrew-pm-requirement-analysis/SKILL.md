@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-requirement-analysis
 description: SpecCrew PM PRD Generation Skill. Generates PRD documents from clarified requirements and module design. Produces Master PRD and Sub-PRD Dispatch Plan for downstream Feature Design. Third step in PRD workflow.
 tools: Read, Write, Glob, Grep
@@ -38,7 +38,7 @@ Applies ISA-95 Stages 2-3 outputs for PRD generation:
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

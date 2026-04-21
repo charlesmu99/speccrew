@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-dev-review-mobile
 description: SpecCrew Mobile Code Review Skill. Reviews mobile app implementation code against system design documents, API contracts, and platform-specific standards. Generates structured review reports with PASS/PARTIAL/FAIL verdict.
 tools: Read, Glob, Grep
@@ -25,7 +25,7 @@ tools: Read, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

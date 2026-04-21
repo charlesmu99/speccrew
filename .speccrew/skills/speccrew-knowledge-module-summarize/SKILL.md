@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-module-summarize
 description: Summarize a module's features to complete MODULE-OVERVIEW.md using XML workflow blocks. Reads all FEATURE-DETAIL.md files of a module and generates the complete module overview with entities, dependencies, and business rules.
 tools: Read, Write, Glob
@@ -55,7 +55,7 @@ flowchart TD
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ## Constraints
 

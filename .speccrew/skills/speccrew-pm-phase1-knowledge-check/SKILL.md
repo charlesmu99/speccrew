@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-phase1-knowledge-check
 description: SpecCrew PM Phase 1 Knowledge Base Availability Check Skill. Detects knowledge base status and initializes business knowledge as needed. Supports three-path routing (Full/Lite/None) with Path B deep initialization sequence.
 tools: Read, Write, Glob, Grep, Bash
@@ -48,7 +48,7 @@ Applies knowledge detection and initialization flow:
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-system-deployer-orchestration
 version: 1.0.0
 description: System Deployer 的编排调度技能，负责执行部署工作流：阶段门禁验证、IDE目录检测、准备阶段、技能调度（构建→迁移→启动→冒烟测试）、部署总结确认。
@@ -68,7 +68,7 @@ System Deployer 的核心编排技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

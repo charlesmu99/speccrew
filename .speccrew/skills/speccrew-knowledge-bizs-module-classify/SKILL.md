@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-module-classify
 description: Classify features into business modules by analyzing source code structure. Overrides directory-based module assignments from init-features with semantically meaningful business module groupings.
 tools: None
@@ -49,7 +49,7 @@ Worker MUST return a JSON result containing the module mapping (NOT modify the f
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

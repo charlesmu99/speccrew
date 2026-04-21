@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-team-leader-routing
 version: 1.0.0
 description: Team Leader 的意图识别与路由调度技能，负责识别用户意图并路由到对应 Skill/Agent。处理项目初始化、知识库同步、工作流诊断等基础设施请求。
@@ -66,7 +66,7 @@ Team Leader 的核心路由调度技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

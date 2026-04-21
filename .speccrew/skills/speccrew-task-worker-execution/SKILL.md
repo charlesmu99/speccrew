@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-task-worker-execution
 version: 1.0.0
 description: Task Worker 的通用任务执行技能，负责接收任务参数、加载 Skill 定义、读取 AgentFlow 规范、逐 Block 执行工作流并输出结构化完成报告。
@@ -68,7 +68,7 @@ tools: Read, Grep, Glob, Write, Bash, Edit, WebFetch, WebSearch
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

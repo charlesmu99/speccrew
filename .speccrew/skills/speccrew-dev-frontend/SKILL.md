@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-dev-frontend
 description: Frontend Development SOP. Guide System Developer Agent to implement frontend code according to system design documents. Reads design blueprints, extracts task checklist, and executes implementation task by task with local quality checks.
 tools: Bash, Edit, Write, Glob, Grep, Read
@@ -12,7 +12,7 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

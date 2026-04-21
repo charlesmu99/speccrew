@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-test-code-gen
 description: Generates executable test code from confirmed test case documents. Reads test case matrix, platform technical conventions, and system design to produce well-structured test files with full traceability to test case IDs.
 tools: Read, Write, Glob, Grep
@@ -12,7 +12,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

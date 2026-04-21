@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-sd-backend
 description: Backend System Design SOP. Guide System Designer Agent to generate platform-specific backend detailed design documents by filling technology implementation details into the Feature Spec skeleton. Reads techs knowledge to determine actual framework syntax, ORM patterns, and conventions.
 tools: Read, Write, Glob, Grep
@@ -12,6 +12,6 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Read and execute the XML workflow above. The XML contains the complete workflow definition including all steps, rules, conditions, and checklist.

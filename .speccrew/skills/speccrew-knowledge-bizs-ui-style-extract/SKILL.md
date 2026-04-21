@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-ui-style-extract
 description: Extract and aggregate UI design patterns (page types, components, layouts) from analyzed bizs feature documents using XML workflow blocks, outputting to techs ui-style-patterns directory.
 tools: Read, Write
@@ -68,7 +68,7 @@ Extract and aggregate **UI design patterns** from bizs pipeline analyzed feature
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

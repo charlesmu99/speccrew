@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-module-initializer
 description: Generate analyze task plan for a single business module. Reads features-*.json, filters matched module's pending features, and outputs a task plan JSON (list of features to analyze with analyzer parameters). Used by Worker Agent, invoked by PM Agent for on-demand module task planning.
 tools: Read, Write, Skill, Bash
@@ -99,7 +99,7 @@ Example: `"ki-web-vue-system-index"`
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

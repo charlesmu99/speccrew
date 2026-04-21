@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-requirement-simple
 description: SpecCrew PM Simple Requirement Skill. Handles lightweight requirements (field additions, minor feature changes, single-module enhancements) with a streamlined PRD generation process. Produces a single concise PRD document without Master-Sub structure or worker dispatch.
 tools: Read, Write, Glob, Grep, Terminal
@@ -54,7 +54,7 @@ This skill applies ISA-95 Stages 1-3 in lightweight mode:
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

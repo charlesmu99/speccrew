@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-sub-prd-generate
 description: Generate a single Sub-PRD document for one module. Used by PM Agent's worker dispatch to parallelize Sub-PRD generation across multiple modules. Each worker invocation generates one complete Sub-PRD file based on the PRD template.
 tools: Read, Write, Glob, Grep
@@ -53,7 +53,7 @@ tools: Read, Write, Glob, Grep
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

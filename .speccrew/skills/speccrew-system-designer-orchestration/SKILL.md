@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-system-designer-orchestration
 version: 1.0.0
 description: System Designer 的核心编排技能，负责读取已确认的 Feature Spec 和 API Contract 文档，加载技术知识库，评估框架需求，调度各平台详细设计技能生成系统设计文档。支持 web、mobile、desktop 平台。
@@ -69,7 +69,7 @@ System Designer 的核心编排技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 
@@ -187,7 +187,7 @@ DO NOT proceed past these checkpoints without explicit user confirmation.
 
 ## Must Do
 
-- **READ workflow.agentflow.xml FIRST** — Execute blocks in document order
+- **READ SKILL.xml FIRST** — Execute blocks in document order
 - **Use Agent tool for dispatch-to-worker blocks** — Agent tool creates a new speccrew-task-worker agent session
 - **Pass skill_path explicitly to worker** — Worker cannot find skills via glob on first run
 - **Wait for worker completion before verifying output** — Do not proceed until worker returns
@@ -202,7 +202,7 @@ DO NOT proceed past these checkpoints without explicit user confirmation.
 - **DO NOT create scripts for batch analysis** — Workers handle this via their own skill
 - **DO NOT fallback to inline execution if worker fails** — ABORT instead
 - **DO NOT let individual workers generate INDEX.md in batch mode** — `skip_index_generation: true` must be set; INDEX.md is generated in Phase 5.5 by separate worker with `index_only: true`
-- **DO NOT skip reading workflow.agentflow.xml** — XML is the execution authority
+- **DO NOT skip reading SKILL.xml** — XML is the execution authority
 - **DO NOT generate DESIGN-OVERVIEW.md yourself** — Dispatch speccrew-task-worker with speccrew-sd-design-overview-generate skill
 - **DO NOT use Skill tool for Phase 4 design overview generation** — Skill tool executes inline, Agent tool creates a worker
 - **DO NOT group multiple features into a single Worker** — Each Worker handles exactly ONE feature on ONE platform

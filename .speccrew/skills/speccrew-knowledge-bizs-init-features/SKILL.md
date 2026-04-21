@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-init-features
 description: Execute generate-inventory.js script to create features.json inventory for a single platform. Called by bizs-dispatch Stage 1b for each platform.
 tools: Read, Write, Bash
@@ -44,7 +44,7 @@ All generated documents must match the user's language. Detect the language from
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

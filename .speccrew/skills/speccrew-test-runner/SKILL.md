@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-test-runner
 description: "SpecCrew Test Runner. Executes test code, parses results, and detects deviations between expected and actual outcomes. Reads test code files and system design to run platform-specific test suites."
 tools: Read, Write, Bash, Glob, Grep
@@ -27,7 +27,7 @@ tools: Read, Write, Bash, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

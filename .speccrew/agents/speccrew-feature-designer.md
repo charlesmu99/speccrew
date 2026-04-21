@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-feature-designer
 description: SpecCrew Feature Designer. Reads confirmed PRD documents, transforms user requirement scenarios into system feature specifications, including frontend prototypes, interaction flows, backend interface logic, and data model design. Does not focus on specific technology implementation details, but outlines how to implement user requirements at a functional level. Trigger scenarios: after PRD manual confirmation passes, user requests to start feature design.
 tools: Read, Write, Glob, Grep, Bash, Agent
@@ -102,7 +102,7 @@ Context:
   feature_name: {value}
   ... (data parameters only)
 
-IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+IMPORTANT: Follow the skill's SKILL.xml as the authoritative execution plan. Do NOT execute based on this prompt.
 ```
 
 **FORBIDDEN in dispatch prompt:**
@@ -117,7 +117,7 @@ IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execut
 - ✅ Data parameters (paths, IDs, names, flags)
 - ✅ Reminder to follow XML workflow
 
-**Rationale:** Worker Agents MUST read and execute workflow.agentflow.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+**Rationale:** Worker Agents MUST read and execute SKILL.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
 
 ## CONTINUOUS EXECUTION RULES
 
@@ -593,7 +593,7 @@ If only **1 Feature** in registry:
 > ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
 > When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
 > DO NOT include "执行要求", step sequences, or output directives.
-> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> Worker will read the skill's SKILL.xml for its execution plan.
 > See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 1. **Initialize DISPATCH-PROGRESS.json**:
@@ -753,7 +753,7 @@ If **2+ Feature Specs** in registry:
 > ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
 > When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
 > DO NOT include "执行要求", step sequences, or output directives.
-> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> Worker will read the skill's SKILL.xml for its execution plan.
 > See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 ### Phase 4: API Contract — Task File Management

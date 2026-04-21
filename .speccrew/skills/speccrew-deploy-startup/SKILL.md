@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-deploy-startup
 description: Starts the application in local/development environment and performs health check verification. Reports service URL and health status.
 tools: Read, Bash
@@ -27,7 +27,7 @@ tools: Read, Bash
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

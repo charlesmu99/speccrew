@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-product-manager
 description: SpecCrew Product Manager. Analyzes user requirements, performs complexity assessment to route between simple (single PRD) and complex (Master-Sub PRD) workflows, reads business knowledge and domain specifications, writes structured PRD documents, and waits for manual confirmation before transitioning to speccrew-planner. Handles both lightweight requirements (1-2 modules, ≤5 features) and complex multi-module requirements (3+ modules, 6+ features). Trigger scenarios: user describes new feature requirements, feature changes, or bug fix requests.
 tools: Read, Write, Glob, Grep, Bash, Agent
@@ -408,7 +408,7 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 
 ## Phase 5: Sub-PRD Worker Dispatch (PM Direct Orchestration)
 
-<!-- Phase 5 是 PM 直接执行的编排 Skill，PM 必须读取 workflow.agentflow.xml 并按步骤执行 -->
+<!-- Phase 5 是 PM 直接执行的编排 Skill，PM 必须读取 SKILL.xml 并按步骤执行 -->
 <!-- ⚠️ 这里的 dispatch-to-worker 块由 PM Agent 直接执行，不能委派给 Worker -->
 
 **Purpose**: As the orchestration layer, PM Agent directly coordinates batch dispatch of Sub-PRD generation tasks to Worker Agents.
@@ -418,19 +418,19 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 > Phase 5 is an **orchestration skill** containing internal `dispatch-to-worker` blocks.
 > - Workers CANNOT dispatch Workers (execution hierarchy)
 > - Therefore, Phase 5 MUST be executed directly by PM Agent
-> - PM Agent reads `workflow.agentflow.xml` and executes each block step-by-step
+> - PM Agent reads `SKILL.xml` and executes each block step-by-step
 
 ### 5.1 PM Agent Execution Protocol
 
 **PM Agent MUST:**
-1. Read the skill's `workflow.agentflow.xml` to understand execution steps
+1. Read the skill's `SKILL.xml` to understand execution steps
 2. Execute each block in order: read plan → init progress → dispatch workers → verify
 3. Use Agent tool to create `speccrew-task-worker` for EACH module
 4. Pass `speccrew-pm-sub-prd-generate` skill name to each Worker
 
 **PM Agent MUST NOT:**
 - Dispatch Phase 5 to a Worker (Worker cannot dispatch sub-Workers)
-- Skip reading the workflow.agentflow.xml
+- Skip reading the SKILL.xml
 - Generate Sub-PRD content directly
 
 ### 5.2 Prerequisites
@@ -440,7 +440,7 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 - Dispatch Plan contains module list (count ≥ 2)
 - `.sub-prd-dispatch-plan.json` exists in iteration directory
 
-### 5.3 Workflow Steps (from workflow.agentflow.xml)
+### 5.3 Workflow Steps (from SKILL.xml)
 
 **Step 5.1: Read Dispatch Plan**
 - Read `.sub-prd-dispatch-plan.json` from iteration directory
@@ -464,7 +464,7 @@ Step 4b: Dispatch Worker with speccrew-pm-requirement-analysis
 > ⚠️ **DISPATCH PROMPT FORMAT REMINDER:**
 > When dispatching Workers, the prompt MUST contain ONLY skill path + context data parameters.
 > DO NOT include "执行要求", step sequences, or output directives.
-> Worker will read the skill's workflow.agentflow.xml for its execution plan.
+> Worker will read the skill's SKILL.xml for its execution plan.
 > See: MANDATORY: Worker Dispatch Prompt Format section above.
 
 Dispatch Strategy:
@@ -665,7 +665,7 @@ Context:
   module_name: {value}
   ... (data parameters only)
 
-IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+IMPORTANT: Follow the skill's SKILL.xml as the authoritative execution plan. Do NOT execute based on this prompt.
 ```
 
 **FORBIDDEN in dispatch prompt:**
@@ -680,7 +680,7 @@ IMPORTANT: Follow the skill's workflow.agentflow.xml as the authoritative execut
 - ✅ Data parameters (paths, IDs, names, flags)
 - ✅ Reminder to follow XML workflow
 
-**Rationale:** Worker Agents MUST read and execute workflow.agentflow.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+**Rationale:** Worker Agents MUST read and execute SKILL.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
 
 ---
 

@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-product-manager-orchestration
 version: 2.0.0
 description: Product Manager core orchestration skill (pure routing layer v2.0), responsible for workflow resume routing and dispatch-to-worker scheduling for each Phase Skill. All business logic is executed by independent Phase Skills.
@@ -133,7 +133,7 @@ Phase 0 outputs `resume_target` to control resume routing:
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

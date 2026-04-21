@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-module-matcher
 description: Match user requirement text against business knowledge base features to identify related modules. Reads features-*.json and performs semantic matching.
 tools: Read
@@ -67,7 +67,7 @@ Match user requirement text against business knowledge base features to identify
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

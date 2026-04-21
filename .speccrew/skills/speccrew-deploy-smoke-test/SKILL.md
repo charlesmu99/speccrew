@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-deploy-smoke-test
 description: Performs lightweight smoke testing against running application. Verifies core API endpoint reachability based on API Contract documents. Does NOT test business logic — only HTTP status code verification.
 tools: Read, Bash, Glob
@@ -26,7 +26,7 @@ tools: Read, Bash, Glob
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-api-analyze
 description: Analyze a single API controller from source code to extract business features and generate API documentation using XML Block workflow. Used by Worker Agent in parallel execution during knowledge base initialization Stage 2. Each worker analyzes one API controller file.
 tools: Read, Write, Edit, Glob, Grep, Bash
@@ -105,7 +105,7 @@ Before executing the workflow, verify the following inputs:
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ## Reference Guides
 

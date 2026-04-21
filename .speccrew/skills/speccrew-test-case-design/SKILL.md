@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-test-case-design
 description: Designs structured test cases from Feature Spec and API Contract documents. Focuses on comprehensive test scenario analysis, test case matrix generation, and coverage traceability without involving any code implementation.
 tools: Read, Write, Glob, Grep
@@ -12,7 +12,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

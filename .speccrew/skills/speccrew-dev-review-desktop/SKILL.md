@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-dev-review-desktop
 description: SpecCrew Desktop Code Review Skill. Reviews desktop app implementation code (Electron/Tauri) against system design documents and security standards. Generates structured review reports with PASS/PARTIAL/FAIL verdict.
 tools: Read, Glob, Grep
@@ -25,7 +25,7 @@ tools: Read, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

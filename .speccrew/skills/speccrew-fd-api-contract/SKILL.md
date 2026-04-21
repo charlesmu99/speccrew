@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-fd-api-contract
 description: API Contract Generation SOP. Based on feature spec document, outputs structured frontend-backend API contract document. Once confirmed, the contract cannot be modified in downstream stages.
 tools: Read, Write, Glob, Grep
@@ -11,7 +11,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

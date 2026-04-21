@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-system-developer-orchestration
 version: 1.0.0
 description: System Developer 的核心编排技能，负责读取系统设计蓝图、协调跨平台开发任务分发、加载技术知识、验证环境就绪、分发各平台开发技能、执行集成检查、交付开发完成报告。支持 web、mobile、desktop 和 backend 平台。
@@ -69,7 +69,7 @@ System Developer 的核心编排技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

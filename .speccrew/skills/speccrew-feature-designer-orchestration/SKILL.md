@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-feature-designer-orchestration
 version: 1.0.0
 description: Feature Designer 的核心编排技能，负责加载功能清单、协调功能分析、功能规格设计与 API 契约生成。处理单个功能（直接调用）和多个功能（Worker 分发）两种工作流路径。
@@ -69,7 +69,7 @@ Feature Designer 的核心编排技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

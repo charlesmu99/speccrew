@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-agentflow-manager
 version: 1.0.0
 description: AgentFlow definition management - create, validate, and refine AgentFlow XML files
@@ -74,7 +74,7 @@ Manage AgentFlow XML workflow definitions with three operation modes: **create**
 
 ## Output
 
-- **create mode**: Generated `workflow.agentflow.xml` and `SKILL.md` skeleton
+- **create mode**: Generated `SKILL.xml` and `SKILL.md` skeleton
 - **validate mode**: Validation report with errors and warnings
 - **refine mode**: Fixed file path and fix summary
 
@@ -82,7 +82,7 @@ Manage AgentFlow XML workflow definitions with three operation modes: **create**
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 
@@ -120,7 +120,7 @@ Manage AgentFlow XML workflow definitions with three operation modes: **create**
 
 ```xml
 <!-- Simple variable -->
-<field name="path" value="${skill_dir}/workflow.agentflow.xml"/>
+<field name="path" value="${skill_dir}/SKILL.xml"/>
 
 <!-- Object property -->
 <field name="count" value="${validation_result.errors.length}"/>
@@ -136,8 +136,8 @@ Manage AgentFlow XML workflow definitions with three operation modes: **create**
 
 ```xml
 <block type="checkpoint" id="CP1" name="workflow_created" desc="Verify file was created">
-  <field name="file" value="${skill_dir}/workflow.agentflow.xml"/>
-  <field name="verify" value="file_exists(${skill_dir}/workflow.agentflow.xml)"/>
+  <field name="file" value="${skill_dir}/SKILL.xml"/>
+  <field name="verify" value="file_exists(${skill_dir}/SKILL.xml)"/>
 </block>
 ```
 
@@ -158,4 +158,4 @@ Manage AgentFlow XML workflow definitions with three operation modes: **create**
 
 > **MANDATORY**: All generated AgentFlow XML must strictly comply with the specification in `${workspace_path}/docs/rules/agentflow-spec.md`.
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->

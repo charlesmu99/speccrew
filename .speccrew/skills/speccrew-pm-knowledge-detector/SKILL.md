@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-knowledge-detector
 description: Detect business knowledge base availability and completeness status. Scans sync-state directory to determine if full knowledge (system-overview.md), lite knowledge (features-*.json), or no knowledge is available.
 tools: Read, Glob
@@ -60,7 +60,7 @@ Detect business knowledge base availability and completeness status. Scans the s
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

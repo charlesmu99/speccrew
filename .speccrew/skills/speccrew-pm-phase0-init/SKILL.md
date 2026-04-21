@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-phase0-init
 description: SpecCrew PM Phase 0 Initialization Skill. Handles iteration directory creation, WORKFLOW-PROGRESS.json management, checkpoint recovery, IDE detection, and path initialization. First step before any PM workflow execution.
 tools: Read, Write, Glob, Grep
@@ -49,7 +49,7 @@ Applies workspace initialization principles:
 
 # AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

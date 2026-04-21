@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-sd-design-overview-generate
 version: 1.0.0
 description: Design Overview Generation Skill for System Designer. Reads Feature Registry, techs-manifest platforms, and framework evaluation results to generate a comprehensive DESIGN-OVERVIEW.md with Feature×Platform matrix index. Invoked by System Designer Agent during Phase 4 via worker dispatch.
@@ -13,7 +13,7 @@ tools: Read, Write, Glob, Grep
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

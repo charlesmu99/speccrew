@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-bizs-dispatch
 description: Dispatch bizs knowledge base generation tasks with 5-stage pipeline (XML Block version). Handles feature inventory, feature analysis with skill routing, graph data writing, module summarization, UI style pattern extraction, and system summary.
 tools: Read, Write, Task, Bash
@@ -112,7 +112,7 @@ Stage 4: System Summary
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 >

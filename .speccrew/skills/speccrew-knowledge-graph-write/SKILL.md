@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-graph-write
 description: Write, update, and initialize knowledge graph data (nodes, edges, index, metadata). Used by Dispatch Agent after receiving graphData from analysis skills. Handles batch writes, deduplication, index updates, and module initialization.
 tools: Bash
@@ -57,7 +57,7 @@ Dispatch Agent (speccrew-knowledge-dispatch)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

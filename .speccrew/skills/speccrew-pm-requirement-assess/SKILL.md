@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-requirement-assess
 description: Quick impact assessment for new requirements. Analyzes affected modules, change type, risk level, and cross-module dependencies using system documentation and knowledge graph. Use when PM Agent needs a lightweight evaluation before deciding whether to run full requirement-analysis workflow.
 tools: Read, Glob, Grep
@@ -38,7 +38,7 @@ PM Agent (speccrew-product-manager)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

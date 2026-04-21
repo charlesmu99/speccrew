@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-test-manager-orchestration
 version: 1.0.0
 description: Test Manager 的编排调度技能，负责执行三阶段测试工作流：测试用例设计 → 测试代码生成 → 测试执行与报告。支持单平台直接调用和多平台 Worker 并行调度。
@@ -74,7 +74,7 @@ Test Manager 的核心编排技能，负责：
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ---
 

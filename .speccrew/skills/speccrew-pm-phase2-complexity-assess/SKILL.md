@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-pm-phase2-complexity-assess
 description: Complexity assessment and skill routing for PM Phase 2. Validates knowledge initialization completeness, evaluates requirement complexity across 5 dimensions, and routes to appropriate PRD workflow (simple vs full pipeline). Use after Phase 1 knowledge detection completes.
 tools: Read, Grep
@@ -40,7 +40,7 @@ PM Agent (speccrew-product-manager)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

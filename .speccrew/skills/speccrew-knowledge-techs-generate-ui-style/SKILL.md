@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-techs-generate-ui-style
 description: Generate UI style analysis documents for a specific frontend platform using XML workflow blocks. Analyzes page types, components, layouts, and styling conventions from source code. Only applicable to frontend platforms (web, mobile, desktop).
 tools: Read, Write, Glob, Grep, Skill
@@ -40,7 +40,7 @@ Worker Agent (speccrew-task-worker)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-system-summarize
 description: Generate complete system-overview.md by reading all {{module_name}}-overview.md files using XML workflow blocks. Aggregates module information, builds dependency graph, and creates system-level documentation.
 tools: Read, Write, Glob, Skill
@@ -44,7 +44,7 @@ Worker Agent (speccrew-task-worker)
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 ## Constraints
 

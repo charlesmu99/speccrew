@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-deploy-migrate
 description: Executes database migration scripts using the project's migration tool. Validates migration results and reports affected tables.
 tools: Read, Bash, Glob
@@ -23,7 +23,7 @@ tools: Read, Bash, Glob
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 

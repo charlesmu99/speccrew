@@ -1,4 +1,4 @@
----
+﻿---
 name: speccrew-knowledge-techs-dispatch
 description: Dispatch techs knowledge base generation tasks with 3-stage pipeline (XML Block version). Handles platform detection, tech document generation, and root index creation.
 tools: Read, Write, Task, Bash
@@ -131,7 +131,7 @@ Read `speccrew-workspace/docs/configs/platform-mapping.json` for standardized pl
 
 ## AgentFlow Definition
 
-<!-- @agentflow: workflow.agentflow.xml -->
+<!-- @agentflow: SKILL.xml -->
 
 > **REQUIRED**: Before executing this workflow, read the XML workflow specification: `speccrew-workspace/docs/rules/agentflow-spec.md`
 >
