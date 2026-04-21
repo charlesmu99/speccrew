@@ -36,6 +36,19 @@
     <field name="text">Only recommend frameworks with documented capabilities</field>
   </block>
 
+  <block type="rule" id="R5" level="mandatory" desc="Direct-to-File Output">
+    <field name="text">All design content MUST be written directly to the output file</field>
+  </block>
+
+  <block type="rule" id="R6" level="mandatory" desc="Minimal Conversation Output">
+    <field name="text">Only output block execution announcements, error messages, and Task Completion Report</field>
+  </block>
+
+  <block type="rule" id="R7" level="forbidden" desc="No conversation document output">
+    <field name="text">NEVER display full document sections, Mermaid diagrams, API endpoint listings, data model tables in conversation</field>
+    <field name="text">NEVER display architecture descriptions longer than 2 lines in conversation</field>
+  </block>
+
   <!-- ============================================================
        Main Processing Sequence
        ============================================================ -->
@@ -219,7 +232,33 @@ Frameworks Recommended: ${recommendations.length}
       </branch>
     </block>
 
+    <block type="checkpoint" id="CP2" name="final_checklist" desc="Framework Evaluation Final Checklist">
+      <field name="conditions">
+        feature_specs_read: all Feature Spec documents read and requirements extracted,
+        api_contracts_read: all API Contract documents read and protocols identified,
+        techs_knowledge_loaded: techs knowledge loaded for all platforms,
+        capability_matrix_built: capability matrix built with all requirements mapped,
+        gaps_categorized: gaps categorized by severity (Critical/Enhancement/Optional),
+        framework_candidates_evaluated: framework candidates evaluated against criteria,
+        primary_recommendations_made: primary recommendations made for each gap,
+        report_generated: report generated with correct structure,
+        task_completion_report_output: task completion report output
+      </field>
+    </block>
+
   </sequence>
+
+  <!-- ============================================================
+       Failure Report Format
+       ============================================================ -->
+  <block type="event" id="E4" action="log" level="error" desc="Task failure report">
+    <field name="message">--- TASK COMPLETION REPORT ---
+Task: Framework Evaluation
+Status: FAILED
+Error: {specific error description}
+Failed At: Step {N}
+--- END REPORT ---</field>
+  </block>
 
   <!-- ============================================================
        Output Results

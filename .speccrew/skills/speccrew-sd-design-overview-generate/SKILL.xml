@@ -32,6 +32,19 @@
     <field name="text">Platform Design Index MUST cover ALL Feature × Platform combinations. No feature or platform may be omitted.</field>
   </block>
 
+  <block type="rule" id="R5" level="mandatory" desc="Direct-to-File Output">
+    <field name="text">All design overview content MUST be written directly to DESIGN-OVERVIEW.md</field>
+  </block>
+
+  <block type="rule" id="R6" level="mandatory" desc="Minimal Conversation Output">
+    <field name="text">Only output block execution announcements, error messages, and Task Completion Report</field>
+  </block>
+
+  <block type="rule" id="R7" level="forbidden" desc="No conversation document output">
+    <field name="text">NEVER display DESIGN-OVERVIEW content, Feature × Platform matrix tables, or Feature list tables in conversation</field>
+    <field name="text">NEVER display technology decision excerpts longer than 2 lines in conversation</field>
+  </block>
+
   <!-- ============================================================
        Main Processing Sequence
        ============================================================ -->
@@ -146,7 +159,34 @@ Matrix Entries: ${feature_registry.features.length * techs_manifest.platforms.le
 --- END REPORT ---</field>
     </block>
 
+    <block type="checkpoint" id="CP2" name="final_checklist" desc="Design Overview Generation Final Checklist">
+      <field name="conditions">
+        feature_registry_read: .prd-feature-list.json read and features array extracted,
+        techs_manifest_read: techs-manifest.json read and platforms array extracted,
+        framework_evaluation_read: framework-evaluation.md read and technology decisions extracted,
+        feature_format_detected: feature format detected (new or legacy),
+        matrix_complete: Feature × Platform matrix built with all combinations,
+        platform_prefix_mapped: platform ID prefix correctly mapped to target skills,
+        design_overview_generated: DESIGN-OVERVIEW.md generated with all required sections,
+        feature_summary_included: feature summary section included only when feature count > 5,
+        output_validated: output validated against checklist,
+        task_completion_report_output: task completion report output
+      </field>
+    </block>
+
   </sequence>
+
+  <!-- ============================================================
+       Failure Report Format
+       ============================================================ -->
+  <block type="event" id="E6" action="log" level="error" desc="Task failure report">
+    <field name="message">--- TASK COMPLETION REPORT ---
+Task: Design Overview Generation
+Status: FAILED
+Error: {specific error description}
+Failed At: Step {N}
+--- END REPORT ---</field>
+  </block>
 
   <!-- ============================================================
        Output Results
