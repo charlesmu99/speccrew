@@ -35,7 +35,7 @@ System Designer 的核心编排技能，负责：
 2. **Preparation** - 加载 Feature Registry，验证文件存在性
 3. **Resource Verification** - 验证技术知识库可用性
 4. **Framework Evaluation** - 派发单个 worker agent 执行框架评估技能，等待 worker 完成并验证 framework-evaluation.md 生成后进入下一阶段（HARD STOP 等待用户确认）
-5. **Design Overview** - 生成 DESIGN-OVERVIEW.md
+5. **Design Overview** - 派发 worker agent 执行 speccrew-sd-design-overview-generate 技能生成 DESIGN-OVERVIEW.md，等待 worker 完成并验证输出
 6. **Platform Dispatch** - 分发各平台设计任务给 Worker
 7. **Joint Confirmation** - 联合确认所有设计文档
 
@@ -105,6 +105,18 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 
 **CRITICAL**: The `Agent tool` creates a NEW agent session — this is completely different from the `Skill tool` which executes inline.
 
+### Phase 4 Execution Method — Worker Agent Dispatch
+
+**HOW TO DISPATCH**: When executing Phase 4 block P4-B1 (action="dispatch-to-worker"):
+1. Use the **Agent tool** to create a new `speccrew-task-worker` agent
+2. Pass `skill_path` to the worker: `${workspace_path}/.speccrew/skills/speccrew-sd-design-overview-generate/SKILL.md`
+3. Pass context parameters: workspace_path, iteration_path, feature_registry_path (.prd-feature-list.json path), techs_manifest_path (techs-manifest.json path), framework_evaluation_path (framework-evaluation.md path), output_path
+4. **Wait** for the worker agent to complete and return results
+5. After worker completes, verify DESIGN-OVERVIEW.md exists at output_path
+6. Then proceed to Phase 4 checkpoint validation (P4-CP1)
+
+**CRITICAL**: The `Agent tool` creates a NEW agent session — this is completely different from the `Skill tool` which executes inline.
+
 ### HARD STOP Checkpoints
 
 This workflow has **mandatory HARD STOP** checkpoints at:
@@ -130,3 +142,5 @@ DO NOT proceed past these checkpoints without explicit user confirmation.
 - **DO NOT create scripts for batch analysis** — Workers handle this via their own skill
 - **DO NOT fallback to inline execution if worker fails** — ABORT instead
 - **DO NOT skip reading workflow.agentflow.xml** — XML is the execution authority
+- **DO NOT generate DESIGN-OVERVIEW.md yourself** — Dispatch speccrew-task-worker with speccrew-sd-design-overview-generate skill
+- **DO NOT use Skill tool for Phase 4 design overview generation** — Skill tool executes inline, Agent tool creates a worker

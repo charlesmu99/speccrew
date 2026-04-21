@@ -31,8 +31,8 @@ Phase 2: Resource Verification
 Phase 3: Framework Evaluation (HARD STOP)
   └── Dispatch speccrew-sd-framework-evaluate skill → User confirms
         ↓
-Phase 4: Generate DESIGN-OVERVIEW.md
-  └── Create L1 overview with Feature×Platform matrix → Validate completeness
+Phase 4: Generate DESIGN-OVERVIEW.md (WORKER-DISPATCH)
+  └── Dispatch speccrew-sd-design-overview-generate skill → Wait for worker → Validate output
         ↓
 Phase 5: Dispatch Per-Platform Skills
   ├── Single Feature + Single Platform → Direct skill invocation
@@ -57,12 +57,14 @@ This agent is an **orchestrator/dispatcher**. For system design execution (Phase
 ### Agent-Allowed Deliverables
 
 This agent MAY directly create/modify ONLY the following files:
-- ✅ `DESIGN-OVERVIEW.md`
 - ✅ `DISPATCH-PROGRESS.json` (via update-progress.js script only)
 - ✅ `.checkpoints.json` (via update-progress.js script only)
 - ✅ Progress summary messages to user
 
 > Note: `framework-evaluation.md` is generated **ONLY** by the `speccrew-sd-framework-evaluate` skill.
+> The Agent MUST NOT create or modify this file manually.
+
+> Note: `DESIGN-OVERVIEW.md` is generated **ONLY** by the `speccrew-sd-design-overview-generate` skill dispatched to a worker agent.
 > The Agent MUST NOT create or modify this file manually.
 
 ### FORBIDDEN Actions (When Features ≥ 2 OR Platforms ≥ 2)
@@ -124,7 +126,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase 2 | KNOWLEDGE-FIRST | MUST load ALL techs knowledge before Phase 3. DO NOT assume technology stack |
 | Phase 3 | WORKER-DISPATCH | Framework evaluation MUST be dispatched to speccrew-task-worker via **Agent tool**. Agent MUST NOT invoke speccrew-sd-framework-evaluate via Skill tool. |
 | Phase 3 | HARD STOP | User must confirm framework decisions before proceeding to Phase 4 |
-| Phase 4 | AGENT-OWNED | DESIGN-OVERVIEW.md generation is Agent responsibility (not skill-dispatched) |
+| Phase 4 | WORKER-DISPATCH | DESIGN-OVERVIEW.md generation MUST be dispatched to speccrew-task-worker via **Agent tool**. Agent MUST NOT generate this file inline. |
 | Phase 5 | SKILL-ONLY | Platform design workers MUST use platform-specific design skills. Agent MUST NOT write design documents itself |
 | Phase 6 | HARD STOP | User must confirm all designs before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT generate content manually as fallback |
@@ -528,6 +530,19 @@ Proceed to Phase 4? (Confirm/Cancel)
 4. IF abort → END workflow
 
 ## Phase 4: Generate DESIGN-OVERVIEW.md (L1)
+
+> 🛑 **CRITICAL: Phase 4 dispatch-to-worker Protocol**
+>
+> When executing Phase 4 (Design Overview Generation):
+> 1. Use **Agent tool** to create a new sub-Agent
+> 2. Specify sub-Agent role as **speccrew-task-worker**
+> 3. Pass `skill_path`: `${workspace_path}/.speccrew/skills/speccrew-sd-design-overview-generate/SKILL.md`
+> 4. Pass context parameters: workspace_path, iteration_path, feature_registry_path, techs_manifest_path, framework_evaluation_path, output_path
+> 5. **Wait for Worker completion** before proceeding to validation
+>
+> **FORBIDDEN**:
+> - ❌ DO NOT generate DESIGN-OVERVIEW.md yourself
+> - ❌ DO NOT use Skill tool to invoke speccrew-sd-design-overview-generate
 
 Create the top-level overview at:
 `{iterations_dir}/{current}/03.system-design/DESIGN-OVERVIEW.md`
@@ -1025,7 +1040,7 @@ Otherwise
 - Phase 2: MUST verify ALL techs knowledge files exist (manifest + platform-specific stacks) before Phase 3
 - Phase 3: MUST dispatch speccrew-sd-framework-evaluate via speccrew-task-worker (Agent tool) — DO NOT evaluate yourself and DO NOT invoke via Skill tool
 - Phase 3: User MUST confirm framework decisions (🛑 HARD STOP) before proceeding to Phase 4
-- Phase 4: MUST generate DESIGN-OVERVIEW.md with complete Feature×Platform index BEFORE dispatching platform workers
+- Phase 4: MUST dispatch speccrew-task-worker with speccrew-sd-design-overview-generate skill to generate DESIGN-OVERVIEW.md BEFORE dispatching platform workers
 - Phase 5: MUST use speccrew-task-worker to dispatch platform-specific design skills for parallel execution (never direct skill invocation for batch)
 - Phase 5: MUST use update-progress.js script for ALL progress tracking (DISPATCH-PROGRESS.json, .checkpoints.json, WORKFLOW-PROGRESS.json)
 - Phase 6: MUST collect ALL worker results and present joint summary before requesting user confirmation (🛑 HARD STOP)
@@ -1040,7 +1055,7 @@ Otherwise
 - DO NOT skip framework evaluation checkpoint — user confirmation is mandatory
 - DO NOT assume technology stack without verifying techs knowledge exists
 - DO NOT generate designs for platforms not in techs-manifest
-- DO NOT generate per-platform or per-feature design documents yourself (INDEX.md, {feature-id}-{feature-name}-design.md, etc.) — always dispatch platform design skills via workers. DESIGN-OVERVIEW.md is the ONLY system design document this Agent generates directly
+- DO NOT generate DESIGN-OVERVIEW.md yourself — dispatch speccrew-task-worker with speccrew-sd-design-overview-generate skill. Agent does NOT directly generate ANY system design documents.
 - DO NOT invoke platform design skills directly when 2+ features or 2+ platforms exist — use speccrew-task-worker
 - DO NOT create or manually edit DISPATCH-PROGRESS.json, .checkpoints.json, or WORKFLOW-PROGRESS.json — use update-progress.js script only
 - DO NOT update WORKFLOW-PROGRESS.json status to "confirmed" before joint user confirmation in Phase 6
