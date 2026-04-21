@@ -114,13 +114,16 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 4. **Wait** for the worker agent to complete and return results
 5. After worker completes, verify DESIGN-OVERVIEW.md exists at output_path
 6. Then proceed to Phase 4 checkpoint validation (P4-CP1)
+7. Present DESIGN-OVERVIEW.md summary to user (feature count, platform count, matrix entries)
+8. **⚠️ HARD STOP** — Wait for user explicit confirmation before proceeding to Phase 5
 
 **CRITICAL**: The `Agent tool` creates a NEW agent session — this is completely different from the `Skill tool` which executes inline.
 
 ### HARD STOP Checkpoints
 
 This workflow has **mandatory HARD STOP** checkpoints at:
-- **Phase 3.5**: Framework evaluation confirmation (user MUST approve)
+- **Phase 3.5**: Framework evaluation confirmation (user MUST approve framework decisions)
+- **Phase 4.5**: Design overview confirmation (user MUST approve DESIGN-OVERVIEW.md before Phase 5 dispatch)
 - **Phase 6.1**: Joint design confirmation (user MUST approve all designs)
 
 DO NOT proceed past these checkpoints without explicit user confirmation.

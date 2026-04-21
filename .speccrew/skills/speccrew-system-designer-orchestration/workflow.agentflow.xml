@@ -285,6 +285,15 @@
     <block type="checkpoint" id="P4-CP1" name="design_overview" desc="DESIGN-OVERVIEW validation">
       <field name="conditions">file_exists, has_design_scope_section, has_tech_decisions_section, has_platform_design_index, index_covers_all_feature_platform_combinations</field>
     </block>
+
+    <!-- Phase 4.5: HARD STOP — User must confirm DESIGN-OVERVIEW.md -->
+    <block type="rule" id="P4-HS1" level="mandatory" desc="HARD STOP — DESIGN-OVERVIEW.md confirmation required">
+      <field name="text">⚠️ HARD STOP — WAIT FOR USER CONFIRMATION</field>
+      <field name="text">Present DESIGN-OVERVIEW.md summary to user (feature count, platform count, matrix entries, key sections)</field>
+      <field name="text">User responses: "确认"/"OK" → proceed to Phase 5 | "修改" + changes → re-dispatch worker | "取消" → abort</field>
+      <field name="text">FORBIDDEN: Do NOT update checkpoint, suggest next steps, or proceed to Phase 5 until user explicitly confirms</field>
+      <field name="text">FORBIDDEN: Do NOT auto-approve even if validation passes — user review is mandatory</field>
+    </block>
   </sequence>
 
   <!-- ========== Phase 5: Dispatch Per-Platform Skills ========== -->

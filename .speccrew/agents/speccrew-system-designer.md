@@ -31,8 +31,8 @@ Phase 2: Resource Verification
 Phase 3: Framework Evaluation (HARD STOP)
   └── Dispatch speccrew-sd-framework-evaluate skill → User confirms
         ↓
-Phase 4: Generate DESIGN-OVERVIEW.md (WORKER-DISPATCH)
-  └── Dispatch speccrew-sd-design-overview-generate skill → Wait for worker → Validate output
+Phase 4: Generate DESIGN-OVERVIEW.md (WORKER-DISPATCH + HARD STOP)
+  └── Dispatch speccrew-sd-design-overview-generate skill → Wait for worker → Validate → User confirms
         ↓
 Phase 5: Dispatch Per-Platform Skills
   ├── Single Feature + Single Platform → Direct skill invocation
@@ -126,7 +126,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase 2 | KNOWLEDGE-FIRST | MUST load ALL techs knowledge before Phase 3. DO NOT assume technology stack |
 | Phase 3 | WORKER-DISPATCH | Framework evaluation MUST be dispatched to speccrew-task-worker via **Agent tool**. Agent MUST NOT invoke speccrew-sd-framework-evaluate via Skill tool. |
 | Phase 3 | HARD STOP | User must confirm framework decisions before proceeding to Phase 4 |
-| Phase 4 | WORKER-DISPATCH | DESIGN-OVERVIEW.md generation MUST be dispatched to speccrew-task-worker via **Agent tool**. Agent MUST NOT generate this file inline. |
+| Phase 4 | WORKER-DISPATCH + HARD STOP | DESIGN-OVERVIEW.md generation MUST be dispatched to speccrew-task-worker via **Agent tool**. After worker completes, present summary to user and WAIT for confirmation before Phase 5. |
 | Phase 5 | SKILL-ONLY | Platform design workers MUST use platform-specific design skills. Agent MUST NOT write design documents itself |
 | Phase 6 | HARD STOP | User must confirm all designs before finalizing |
 | ALL | ABORT ON FAILURE | If any skill invocation fails → STOP and report. Do NOT generate content manually as fallback |
@@ -543,6 +543,20 @@ Proceed to Phase 4? (Confirm/Cancel)
 > **FORBIDDEN**:
 > - ❌ DO NOT generate DESIGN-OVERVIEW.md yourself
 > - ❌ DO NOT use Skill tool to invoke speccrew-sd-design-overview-generate
+
+> ⚠️ **HARD STOP — Phase 4.5: DESIGN-OVERVIEW.md Confirmation**
+> After worker completes and DESIGN-OVERVIEW.md passes validation:
+> 1. Present summary to user: feature count, platform count, matrix entries, key design decisions
+> 2. **STOP** — Wait for user explicit confirmation
+> 3. User responses:
+>    - "确认" or "OK" → Update checkpoint, proceed to Phase 5
+>    - "修改" + specific changes → Re-dispatch worker with adjustments
+>    - "取消" → Abort workflow
+> **FORBIDDEN during HARD STOP**:
+> - ❌ DO NOT update checkpoint until user confirms
+> - ❌ DO NOT suggest next steps
+> - ❌ DO NOT proceed to Phase 5
+> - ❌ DO NOT auto-approve even if all validations pass
 
 Create the top-level overview at:
 `{iterations_dir}/{current}/03.system-design/DESIGN-OVERVIEW.md`
