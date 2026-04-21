@@ -34,7 +34,7 @@ System Designer 的核心编排技能，负责：
 1. **Stage Gate** - 验证 Feature Design 阶段已确认
 2. **Preparation** - 加载 Feature Registry，验证文件存在性
 3. **Resource Verification** - 验证技术知识库可用性
-4. **Framework Evaluation** - 调用框架评估技能（HARD STOP 等待用户确认）
+4. **Framework Evaluation** - 派发单个 worker agent 执行框架评估技能，等待 worker 完成并验证 framework-evaluation.md 生成后进入下一阶段（HARD STOP 等待用户确认）
 5. **Design Overview** - 生成 DESIGN-OVERVIEW.md
 6. **Platform Dispatch** - 分发各平台设计任务给 Worker
 7. **Joint Confirmation** - 联合确认所有设计文档
@@ -96,7 +96,7 @@ This skill MUST execute tasks continuously without unnecessary interruptions.
 ### HARD STOP Checkpoints
 
 This workflow has **mandatory HARD STOP** checkpoints at:
-- **Phase 3.3**: Framework evaluation confirmation (user MUST approve)
+- **Phase 3.5**: Framework evaluation confirmation (user MUST approve)
 - **Phase 6.1**: Joint design confirmation (user MUST approve all designs)
 
 DO NOT proceed past these checkpoints without explicit user confirmation.

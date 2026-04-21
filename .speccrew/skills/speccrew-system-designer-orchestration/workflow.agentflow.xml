@@ -163,39 +163,55 @@
 
   <!-- ========== Phase 3: Framework Evaluation (HARD STOP) ========== -->
   <sequence name="Phase 3: Framework Evaluation">
-    <block type="rule" id="P3-R1" level="mandatory" desc="Skill-Only Rule">
-      <field name="text">Framework evaluation MUST use speccrew-sd-framework-evaluate skill</field>
+    <block type="rule" id="P3-R1" level="mandatory" desc="Worker Dispatch Rule">
+      <field name="text">Framework evaluation MUST be dispatched to a single speccrew-task-worker agent</field>
       <field name="text">Agent MUST NOT perform capability gap analysis or framework recommendations itself</field>
+      <field name="text">skill_path MUST be explicitly passed to worker — worker relies on glob search will fail on first run</field>
     </block>
 
-    <!-- Step 3.1: Invoke Framework Evaluation Skill -->
-    <block type="task" id="P3-B1" action="run-skill" status="pending"
-           desc="Invoke framework evaluation skill">
-      <field name="skill">speccrew-sd-framework-evaluate</field>
-      <field name="params">
+    <!-- Step 3.1: Dispatch Worker Agent for Framework Evaluation -->
+    <block type="task" id="P3-B1" action="dispatch-to-worker" status="pending"
+           desc="Dispatch single worker agent for framework evaluation">
+      <field name="worker">speccrew-task-worker</field>
+      <field name="max_concurrent">1</field>
+      <field name="skill_path">.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md</field>
+      <field name="context">
+        workspace_path: ${workspace_path},
+        iteration_path: ${iterations_dir}/${current_iteration},
         feature_spec_paths: ${feature_registry.feature_spec_paths},
         api_contract_paths: ${feature_registry.api_contract_paths},
         techs_knowledge_paths: ${dispatch_params.techs_knowledge_paths},
-        iteration_path: ${iterations_dir}/${current_iteration},
         output_path: ${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md
       </field>
+    </block>
+
+    <!-- Step 3.2: Wait for Worker Completion -->
+    <block type="gateway" id="P3-GW1" mode="wait" desc="Wait for framework evaluation worker to complete">
+      <field name="wait_for">P3-B1</field>
+      <field name="timeout">600</field>
+    </block>
+
+    <!-- Step 3.3: Validate Worker Output -->
+    <block type="task" id="P3-B2" action="read-file" status="pending"
+           desc="Verify framework-evaluation.md was generated">
+      <field name="path">${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md</field>
       <field name="output" var="framework_result"/>
     </block>
 
-    <!-- Step 3.2: Validate Skill Output -->
+    <!-- Step 3.4: Validate Worker Result -->
     <block type="gateway" id="P3-G1" mode="exclusive" desc="Check framework evaluation result">
-      <branch test="${framework_result.status} == 'SUCCESS'" name="Framework Evaluation Success">
-        <block type="event" id="P3-E1" action="log" desc="Framework evaluation completed"/>
+      <branch test="${framework_result} exists" name="Framework Evaluation Success">
+        <block type="event" id="P3-E1" action="log" desc="Framework evaluation completed by worker"/>
       </branch>
       <branch default="true" name="Framework Evaluation Failed">
         <block type="event" id="P3-E2" action="log" desc="Report framework evaluation failure">
-          <field name="message">Framework evaluation skill failed: ${framework_result.error}</field>
+          <field name="message">Framework evaluation worker failed: framework-evaluation.md was not generated at ${iterations_dir}/${current_iteration}/03.system-design/framework-evaluation.md</field>
         </block>
         <block type="event" id="P3-E3" action="abort" desc="Stop workflow"/>
       </branch>
     </block>
 
-    <!-- Step 3.3: User Confirmation (HARD STOP) -->
+    <!-- Step 3.5: User Confirmation (HARD STOP) -->
     <block type="event" id="P3-E4" action="confirm" desc="Request user confirmation for framework decisions">
       <field name="prompt">🛑 FRAMEWORK EVALUATION — AWAITING CONFIRMATION. Do you approve these framework decisions? (确认/修改/取消)</field>
       <field name="template">framework-evaluation-summary</field>
