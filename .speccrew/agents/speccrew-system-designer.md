@@ -122,7 +122,7 @@ This agent MUST execute tasks continuously without unnecessary interruptions.
 | Phase 1 | REGISTRY ONLY | Agent reads .prd-feature-list.json + WORKFLOW-PROGRESS.json only. DO NOT use Glob to discover files |
 | Phase 2 | VERIFY ONLY | Agent verifies file existence only. DO NOT read Feature Spec, API Contract, or techs knowledge content |
 | Phase 2 | KNOWLEDGE-FIRST | MUST load ALL techs knowledge before Phase 3. DO NOT assume technology stack |
-| Phase 3 | SKILL-ONLY | Framework evaluation MUST use speccrew-sd-framework-evaluate skill. Agent MUST NOT evaluate frameworks itself |
+| Phase 3 | WORKER-DISPATCH | Framework evaluation MUST be dispatched to speccrew-task-worker via **Agent tool**. Agent MUST NOT invoke speccrew-sd-framework-evaluate via Skill tool. |
 | Phase 3 | HARD STOP | User must confirm framework decisions before proceeding to Phase 4 |
 | Phase 4 | AGENT-OWNED | DESIGN-OVERVIEW.md generation is Agent responsibility (not skill-dispatched) |
 | Phase 5 | SKILL-ONLY | Platform design workers MUST use platform-specific design skills. Agent MUST NOT write design documents itself |
@@ -429,7 +429,20 @@ Build the parameter template for Phase 3 and Phase 5 Skills:
 
 ## Phase 3: Framework Evaluation (🛑 HARD STOP — User Confirmation Required)
 
-> ⚠️ **SKILL-ONLY RULE**: Framework evaluation MUST be performed by `speccrew-sd-framework-evaluate` skill. Agent MUST NOT perform capability gap analysis or framework recommendations itself.
+> 🛑 **WORKER-DISPATCH RULE**: Framework evaluation MUST be dispatched to `speccrew-task-worker` via **Agent tool**. Agent MUST NOT perform capability gap analysis or framework recommendations itself, and MUST NOT invoke `speccrew-sd-framework-evaluate` via Skill tool.
+
+> 🛑 **CRITICAL: Phase 3 dispatch-to-worker Protocol**
+>
+> When executing Phase 3 (Framework Evaluation):
+> 1. Use **Agent tool** to create a new sub-Agent
+> 2. Specify sub-Agent role as **speccrew-task-worker**
+> 3. Pass skill_path and all context parameters in Task description
+> 4. **Wait for Worker completion** before proceeding
+>
+> **FORBIDDEN**:
+> - ❌ DO NOT use Skill tool to invoke speccrew-sd-framework-evaluate
+> - ❌ DO NOT read feature spec files yourself for framework evaluation
+> - ❌ DO NOT generate framework-evaluation.md yourself
 
 ### 3.1 Invoke Framework Evaluation Skill
 
@@ -444,7 +457,7 @@ Build the parameter template for Phase 3 and Phase 5 Skills:
 | `iteration_path` | `{iterations_dir}/{current}` | Current iteration directory |
 | `output_path` | `{iterations_dir}/{current}/03.system-design/framework-evaluation.md` | Output report path |
 
-**Invocation**: Call the skill directly (not via speccrew-task-worker — framework evaluation is a single coordinated task, not per-Feature).
+**Invocation**: Use **Agent tool** to dispatch `speccrew-task-worker` agent. Pass `skill_path: ${workspace_path}/.speccrew/skills/speccrew-sd-framework-evaluate/SKILL.md` and all context parameters. Even though framework evaluation is a single coordinated task (not per-Feature), it MUST be delegated to a Worker Agent — NOT invoked inline via Skill tool. See workflow.agentflow.xml block P3-B1 for dispatch parameters.
 
 ### 3.2 Validate Skill Output
 
@@ -464,7 +477,7 @@ After skill completes, validate the output:
    - Read error details from Task Completion Report
    - **DO NOT attempt to perform framework evaluation yourself**
    - Report error to user and ask: "Retry?" or "Abort?"
-   - If retry → Re-invoke skill with same or adjusted parameters
+   - If retry → Re-dispatch speccrew-task-worker with same or adjusted parameters
    - If abort → END workflow
 
 ### 3.3 User Confirmation (🛑 HARD STOP)
@@ -509,9 +522,9 @@ Proceed to Phase 4? (Confirm/Cancel)
 - DO NOT proceed to Phase 4 without valid evaluation output
 
 **Recovery Actions**:
-1. Report error to user: "Framework evaluation skill failed: {specific reason}"
+1. Report error to user: "Framework evaluation worker failed: {specific reason}"
 2. Ask user: "Retry with additional context?" or "Abort workflow?"
-3. IF retry → Re-invoke speccrew-sd-framework-evaluate with adjusted parameters
+3. IF retry → Re-dispatch speccrew-task-worker with adjusted parameters
 4. IF abort → END workflow
 
 ## Phase 4: Generate DESIGN-OVERVIEW.md (L1)
@@ -1010,7 +1023,7 @@ Otherwise
 - Phase 0.1: ALWAYS verify Feature Design stage is confirmed before proceeding
 - Phase 0.5: ALWAYS detect IDE directory and verify skills exist before dispatching
 - Phase 2: MUST verify ALL techs knowledge files exist (manifest + platform-specific stacks) before Phase 3
-- Phase 3: MUST use speccrew-sd-framework-evaluate skill for framework evaluation — DO NOT evaluate yourself
+- Phase 3: MUST dispatch speccrew-sd-framework-evaluate via speccrew-task-worker (Agent tool) — DO NOT evaluate yourself and DO NOT invoke via Skill tool
 - Phase 3: User MUST confirm framework decisions (🛑 HARD STOP) before proceeding to Phase 4
 - Phase 4: MUST generate DESIGN-OVERVIEW.md with complete Feature×Platform index BEFORE dispatching platform workers
 - Phase 5: MUST use speccrew-task-worker to dispatch platform-specific design skills for parallel execution (never direct skill invocation for batch)
