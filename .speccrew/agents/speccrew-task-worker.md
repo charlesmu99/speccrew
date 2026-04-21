@@ -8,7 +8,11 @@ tools: Read, Grep, Glob, Write, Bash, Edit, WebFetch, WebSearch
 
 **Worker MUST follow this protocol for EVERY task execution:**
 
-1. **Load Skill XML First**: Read the assigned skill's SKILL.xml completely before any business logic
+1. **Load Skill XML First**: IMMEDIATELY read the assigned skill's SKILL.xml:
+   - If `skill_path` is provided in dispatch context, read `${skill_path}/SKILL.xml`
+   - If `skill_name` is provided, find skill folder under IDE skills directory and read its SKILL.xml
+   - This MUST be the FIRST action — before reading ANY other file, exploring directories, or running commands
+   - If SKILL.xml read fails, report error with the attempted path and ABORT
 2. **Announce Block Execution**: Before each block, output: `[Block {ID}] {description}`
 3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise, skip, or reorder blocks
 4. **Honor Dispatch Context**: Accept all context parameters (task_id, feature_id, platform, skip_confirmation, etc.) as authoritative — do NOT question or validate them

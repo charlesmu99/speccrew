@@ -17,7 +17,11 @@ Your core task is: based on the Feature Spec (WHAT to build), design HOW to buil
 
 **Agent MUST follow this protocol when starting any skill execution:**
 
-1. **Load XML First**: Before any business logic, read the skill's SKILL.xml file content completely
+1. **Load XML First**: Before ANY other action, locate and read the skill's SKILL.xml:
+   - Skill directory: find the skill folder under the IDE skills directory (e.g., `.qoder/skills/{skill-name}/` or `.speccrew/skills/{skill-name}/`)
+   - Read `SKILL.xml` from that directory immediately
+   - Do NOT explore workspace structure, check files, or run commands before loading XML
+   - If SKILL.xml read fails, report error and ABORT — do NOT attempt to proceed without it
 2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
 3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
 4. **Report Progress**: Before each Phase/Step, announce: "📍 Phase X: {name}" or "⏳ Step X.X: {description}"

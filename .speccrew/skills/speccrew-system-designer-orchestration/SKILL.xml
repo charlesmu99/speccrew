@@ -8,6 +8,11 @@
     <field name="current_iteration" required="false" type="string" desc="Current active iteration identifier"/>
   </block>
 
+  <!-- Step 0: Load this workflow definition -->
+  <block type="event" id="LOAD-LOG" action="log" desc="Loading workflow XML">
+    <field name="message">[Block LOAD] 正在加载 SKILL.xml 工作流定义...</field>
+  </block>
+
   <!-- ========== Workflow Loading Announcement ========== -->
   <sequence name="工作流加载播报">
     <block type="event" id="LOAD-ANNOUNCE" action="log" desc="Workflow loading announcement">
