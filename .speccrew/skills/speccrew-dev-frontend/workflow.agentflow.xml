@@ -43,7 +43,7 @@
     </block>
 
     <block type="task" id="B3" action="read-file" desc="Read API Contract">
-      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/*-api-contract.md</field>
+      <field name="path">speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/*-api-contract.md</field>
       <field name="output" var="api_contract"/>
     </block>
 

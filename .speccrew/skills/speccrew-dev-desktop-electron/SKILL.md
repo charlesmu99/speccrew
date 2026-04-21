@@ -39,7 +39,7 @@ tools: Read, Write, Glob, Grep, Bash
 Read in order:
 
 1. **Module design document**: `design_doc_path` (single module design document)
-2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/[feature-name]-api-contract.md`
 3. **Techs Knowledge** (paths from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`

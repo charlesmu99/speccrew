@@ -47,7 +47,7 @@
     </block>
 
     <block type="task" id="B2" action="read-file" desc="Read API Contract">
-      <field name="path">${iteration_path}/02.feature-design/${feature_name}-api-contract.md</field>
+      <field name="path">${iteration_path}/03.api-contract/${feature_name}-api-contract.md</field>
       <field name="output" var="api_contract"/>
     </block>
 

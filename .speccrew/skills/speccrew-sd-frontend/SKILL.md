@@ -38,7 +38,7 @@ tools: Read, Write, Glob, Grep
 Read in order:
 
 1. **Feature Spec document(s)**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-feature-spec.md`
-2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/{feature-id}-{feature-name}-api-contract.md`
+2. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/{feature-id}-{feature-name}-api-contract.md`
 3. **Frontend techs knowledge** (paths from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`

@@ -39,7 +39,7 @@ tools: Bash, Edit, Write, Glob, Grep, Read
 Read in order:
 
 1. **Module design document**: `design_doc_path` (single module design document)
-2. **API Contract**: `speccrew-workspace/iterations/{iteration}/02.feature-design/{feature-name}-api-contract.md`
+2. **API Contract**: `speccrew-workspace/iterations/{iteration}/03.api-contract/{feature-name}-api-contract.md`
 3. **Task record template**: `speccrew-dev-mobile/templates/TASK-RECORD-TEMPLATE.md`
 
 ## Step 2: Read Techs Knowledge

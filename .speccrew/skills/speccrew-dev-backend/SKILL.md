@@ -50,7 +50,7 @@ Read in order:
 
 1. **Module Design Document**: The `design_doc_path` provided (single module's design)
 2. **Platform INDEX**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
-3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/[feature-name]-api-contract.md`
+3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/[feature-name]-api-contract.md`
 4. **Techs Knowledge** (from agent context):
    - `speccrew-workspace/knowledges/techs/{platform_id}/tech-stack.md`
    - `speccrew-workspace/knowledges/techs/{platform_id}/architecture.md`

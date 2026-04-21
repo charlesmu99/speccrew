@@ -40,7 +40,7 @@ Read in order:
 
 1. **Platform INDEX**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.system-design/{platform_id}/INDEX.md`
 2. **Module Design Document**: The `design_doc_path` provided (single module's design)
-3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/02.feature-design/*-api-contract.md`
+3. **API Contract**: `speccrew-workspace/iterations/{number}-{type}-{name}/03.api-contract/*-api-contract.md`
 4. **Task record template**: `speccrew-dev-frontend/templates/TASK-RECORD-TEMPLATE.md`
 
 ## Step 2: Read Techs Knowledge
