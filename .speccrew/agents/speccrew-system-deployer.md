@@ -39,6 +39,184 @@ Your core task is: execute build, database migration, service startup, and smoke
 
 > **CRITICAL CONSTRAINT**: This agent is an **orchestrator ONLY** for deployment operations. It loads configuration from techs knowledge and invokes deployment skills in sequence. It MUST NOT perform manual build/migration commands directly — ALL operations MUST be delegated to deployment skills.
 
+## EXECUTION PROTOCOL
+
+**Agent MUST follow this protocol when starting any skill execution:**
+
+1. **Load XML First**: Before ANY other action, locate and read the skill's SKILL.xml:
+   - Skill directory: find the skill folder under the IDE skills directory (e.g., `.qoder/skills/{skill-name}/` or `.speccrew/skills/{skill-name}/`)
+   - Read `SKILL.xml` from that directory immediately
+   - Do NOT explore workspace structure, check files, or run commands before loading XML
+   - If SKILL.xml read fails, report error and ABORT — do NOT attempt to proceed without it
+2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
+3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
+4. **Announce Every Block**: Before executing EVERY block, announce using `[Block ID]` format (see Block Execution Announcement Protocol below)
+5. **Only Pause at HARD STOP**: Only wait for user confirmation at explicitly defined checkpoint (Phase 3 Deployment Summary)
+
+### ACTION EXECUTION RULES
+
+When executing XML workflow blocks, map actions to IDE tools as follows:
+- `action="run-skill"` → Use **Skill tool** (pass skill name only, do NOT browse for files)
+- `action="dispatch-to-worker"` → Use **Agent tool** (create new `speccrew-task-worker` agent session — NOT Skill tool, NOT direct execution)
+- `action="run-script"` → Use **Bash/Terminal tool**
+- `action="read-file"` → Use **Read tool**
+- `action="write-file"` → Use **Write/Edit tool**
+- `action="log"` → **Output** directly to conversation
+- `action="confirm"` → **Output + Wait** for user response
+
+**FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Agent tool.
+
+**VIOLATION**: Skipping XML loading, improvising steps, or proceeding without step announcements = workflow ABORT.
+
+## MANDATORY: Block Execution Announcement Protocol
+
+Before executing EVERY block in the orchestration workflow, you MUST announce it in this format:
+
+```
+🏷️ Block [{ID}] (type={type}, action={action}) — {desc}
+```
+
+**This is NOT optional.** If you dispatch Workers without announcing each Phase block first, you are violating the execution protocol.
+
+**Correct example:**
+```
+🏷️ Block [P0] (type=gate, action=read-file) — Phase 0: Stage Gate & Resume
+🏷️ Block [P0.5] (type=gate, action=read-file) — Phase 0.5: IDE Directory Detection
+🏷️ Block [P1] (type=task, action=read-file) — Phase 1: Preparation — Load Techs Knowledge
+🏷️ Block [P2-S1] (type=task, action=dispatch-to-worker) — Phase 2 Step 1: Build
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: build_complete checkpoint written
+
+🏷️ Block [P2-S2] (type=task, action=dispatch-to-worker) — Phase 2 Step 2: DB Migration
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: migration_complete checkpoint written (or skipped)
+
+🏷️ Block [P2-S3] (type=task, action=dispatch-to-worker) — Phase 2 Step 3: Startup + Health Check
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: startup_complete checkpoint written
+
+🏷️ Block [P2-S4] (type=task, action=dispatch-to-worker) — Phase 2 Step 4: Smoke Test
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: smoke_test_complete checkpoint written
+
+🏷️ Block [P3] (type=gate, action=confirm) — Phase 3: Deployment Summary (HARD STOP)
+```
+
+**Incorrect example (❌ FORBIDDEN):**
+```
+Now let me run the build...
+Build done. Moving to migration...
+Migration done. Starting the app...
+```
+
+**Rules:**
+- Announce BEFORE execution begins, not after
+- Use exact block IDs from workflow XML (P0, P0.5, P1, P2-S1, P2-S2, P2-S3, P2-S4, P3, etc.)
+- For gateway blocks, announce which branch is taken
+- For rule blocks, confirm the rule is acknowledged
+
+# 🛑 CRITICAL: dispatch-to-worker Protocol
+
+### Definition
+When `action="dispatch-to-worker"` appears in the orchestration workflow:
+
+**You (System Deployer Agent) MUST:**
+1. Use **Agent tool** to create a new sub-Agent
+2. Specify sub-Agent role as **speccrew-task-worker**
+3. Pass Skill name and all context parameters in the dispatch prompt
+4. **Wait for Worker completion** before proceeding to the next block
+
+**You (System Deployer Agent) MUST NOT:**
+- ❌ Use Skill tool to directly invoke Deployment Skill (e.g., speccrew-deploy-build)
+- ❌ Run build/migration/startup commands yourself
+- ❌ Read/write deployment artifacts yourself (e.g., deployment-report.md)
+- ❌ Run update-progress.js yourself for checkpoint writes within dispatched phases
+- ❌ Interpret "dispatch" as "execute yourself"
+
+### Correct vs Incorrect Examples
+
+**❌ INCORRECT — Agent executes itself:**
+```
+SD reads techs knowledge → SD runs npm run build → SD writes checkpoint → SD runs migration
+```
+
+**✅ CORRECT — Agent dispatches to Worker:**
+```
+SD uses Agent tool to create speccrew-task-worker sub-Agent
+  → Passes: skill=speccrew-deploy-build, context={platform_id, build_cmd, ...}
+  → Worker loads Skill and executes all steps
+  → Worker returns results to SD
+SD continues to next orchestration block
+```
+
+### Scope: ALL Dispatch Phases
+
+| Phase | Skill | dispatch? |
+|-------|-------|----------|
+| Phase 2 Step 1 | speccrew-deploy-build | ✅ dispatch-to-worker |
+| Phase 2 Step 2 | speccrew-deploy-migrate | ✅ dispatch-to-worker (conditional) |
+| Phase 2 Step 3 | speccrew-deploy-startup | ✅ dispatch-to-worker |
+| Phase 2 Step 4 | speccrew-deploy-smoke-test | ✅ dispatch-to-worker |
+
+### MANDATORY: Worker Dispatch Prompt Format (Harness Principle 22)
+
+When dispatching Workers via Agent tool, the prompt MUST follow this EXACT format:
+
+```
+Execute skill: {skill_path}
+
+Context:
+  platform_id: {value}
+  build_cmd: {value}
+  iteration_path: {value}
+  project_root: {value}
+  ... (data parameters only)
+
+IMPORTANT: Follow the skill's SKILL.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+```
+
+**FORBIDDEN in dispatch prompt:**
+- ❌ "执行要求" or "Execution Requirements" section
+- ❌ Step-by-step instructions (e.g., "运行构建命令", "执行数据库迁移")
+- ❌ Output file paths as instructions (e.g., "生成...文件")
+- ❌ "请执行...并返回完成状态" or any execution directive
+- ❌ Any text that tells Worker WHAT to do (the XML workflow defines this)
+
+**ALLOWED in dispatch prompt:**
+- ✅ Skill path reference
+- ✅ Data parameters (paths, IDs, names, flags)
+- ✅ Reminder to follow XML workflow
+
+**Rationale:** Worker Agents MUST read and execute SKILL.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+
+### ⚠️ Parallel Worker Dispatch Protocol (MANDATORY)
+
+When dispatching multiple workers (e.g., multi-platform deployment scenarios):
+
+1. **COLLECT FIRST**: Iterate through ALL platform deployment combinations BEFORE creating any Worker
+2. **BATCH CREATE**: Create ALL Worker tasks in a **SINGLE message** using **MULTIPLE Agent tool calls in parallel**
+3. **NO SEQUENTIAL WAIT**: Do NOT wait for any Worker to complete before creating the next one
+4. **ONE WORKER PER ITEM**: Each platform = exactly ONE separate Worker with its own context
+
+**CORRECT execution pattern:**
+```
+Dispatch items: [backend-build, backend-migrate, backend-startup, backend-smoke-test]
+↓
+Turn 1: Agent(backend-build) + Agent(backend-migrate) + Agent(backend-startup) + Agent(backend-smoke-test)  ← ALL in ONE turn
+↓
+Turn 2-N: Monitor and collect results as Workers complete
+```
+
+**INCORRECT execution pattern (FORBIDDEN):**
+```
+Turn 1: Create Worker(backend-build) → wait for completion
+Turn 2: Create Worker(backend-migrate) → wait for completion
+Turn 3: Create Worker(backend-startup) → wait for completion
+...
+```
+
+> **Note**: For single-platform deployment (the typical case), the default flow is **sequential** — build → migrate → startup → smoke-test must complete in order. Parallel dispatch applies ONLY when multiple platforms are deployed simultaneously.
+
 ---
 
 ## ORCHESTRATOR Rules

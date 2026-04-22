@@ -58,6 +58,8 @@ Executes an action. The primary execution block.
 | `generate` | Generate content | Output path |
 | `read-file` | Read file content | `<field name="path">` |
 | `write-file` | Write file content | `<field name="path">`, content |
+| `edit-file` | Edit existing file sections | `<field name="path">`, `<field name="section">` |
+| `verify` | Verify output completeness | `<field name="verification_rules">` |
 
 **Examples:**
 
@@ -349,19 +351,19 @@ Use `${variable_name}` syntax throughout block attributes and content.
 </block>
 ```
 
-## Dispatch Skill Execution Model
+## XML Workflow Execution Model
 
-Dispatch skills (naming pattern: `*-dispatch-xml`) are **orchestration playbooks** loaded directly by Team Leader via the Skill tool. They contain the complete multi-stage workflow definition.
+XML workflows are executed by **any agent** that loads and processes AgentFlow XML — including orchestrating agents (Team Leader, Product Manager, Feature Designer, System Designer) and worker agents (speccrew-task-worker). The execution protocol applies universally.
 
 ### Execution Protocol
 
-When Team Leader loads a dispatch skill via `action="run-skill"`:
+When an agent loads a workflow skill (via Skill tool or by reading SKILL.xml directly):
 
-1. **Load**: Team Leader invokes the Skill tool with the dispatch skill name (e.g., `speccrew-knowledge-bizs-dispatch-xml`)
+1. **Load**: The executing agent invokes the Skill tool with the dispatch skill name (e.g., `speccrew-knowledge-bizs-dispatch-xml`)
 2. **Parse**: Read and understand the complete AgentFlow XML workflow in the loaded SKILL.md
 3. **Execute block-by-block**: Walk through each Stage's blocks in document order, mapping each `action` attribute to the correct IDE tool:
 
-| Block Action | What Team Leader MUST Do |
+| Block Action | What The Executing Agent MUST Do |
 |---|---|
 | `action="run-script"` | Execute the command via **Terminal tool** (PowerShell/Bash) |
 | `action="run-skill"` | Invoke the skill via **Skill tool** — do NOT manually read SKILL.md files |
@@ -388,19 +390,33 @@ When executing `<block type="task">` blocks, the `action` attribute determines w
 | Action | IDE Tool to Use | How to Invoke |
 |--------|----------------|---------------|
 | `run-skill` | **Skill tool** | Call the IDE Skill tool with the skill name from `<field name="skill">`. Do NOT manually browse directories or read SKILL.md files — the Skill tool resolves paths automatically. |
-| `dispatch-to-worker` | **Task tool** | Create a new Task via the IDE Task tool, assigning it to the worker agent specified in `<field name="agent">`. Pass all context fields as task parameters. For `<loop parallel="true">`, create ALL tasks in a single batch. |
+| `dispatch-to-worker` | **Agent/Task tool** | Create a new worker agent session via the IDE's agent/task creation tool (e.g., Agent tool in Qoder, Task tool in other IDEs). Pass all context fields as worker parameters. For `<loop parallel="true">`, create ALL worker sessions in a single batch. |
 | `run-script` | **Bash / Terminal tool** | Execute the command from `<field name="command">` using the terminal tool. Use PowerShell syntax on Windows, Bash on Unix. |
 | `read-file` | **Read tool** | Read the file at the path specified in `<field name="path">`. |
 | `write-file` | **Write / Edit tool** | Write content to the file at `<field name="path">`. For new files use create_file; for modifications use search_replace. |
 | `analyze` | **Direct execution** | Perform the analysis described in the block's `desc` attribute. Read relevant source files, extract information, and store results in the specified output variables. |
-| `generate` | **Direct execution** | Generate the content described in the block. Use templates when specified, write output to the target path. |
+| `generate` | **Copy template + search_replace** | **Copy** the template file specified in `<field name="template">` to the output path, then **fill** placeholder sections using the IDE search_replace tool. Do NOT use create_file to write entire document content — large files will be truncated. Do NOT create helper scripts for template filling. |
+| `edit-file` | **search_replace tool** | Use the IDE's search_replace tool to perform targeted section replacement on the file at `<field name="path">`. Find the section header specified in `<field name="section">` and replace its placeholder content. Do NOT use terminal commands (node -e, sed) or create helper scripts — use ONLY the IDE search_replace tool. |
+| `verify` | **Read tool** | Read the output file and verify against `<field name="verification_rules">`. Check all sections are filled, no placeholders remain, and content meets quality criteria. |
 
 ### Critical Rules
 
 1. **`run-skill` MUST use the Skill tool** — NEVER manually search for or read SKILL.md files. The IDE Skill tool handles path resolution across different IDE directories (.qoder/, .cursor/, .claude/).
-2. **`dispatch-to-worker` MUST use the Task tool** — NEVER execute worker tasks yourself. Create a Task and let the worker agent handle it.
+2. **`dispatch-to-worker` MUST use the IDE's agent/task creation tool** — NEVER execute worker tasks yourself. Create a worker agent session (e.g., Agent tool in Qoder, Task tool in other IDEs) and let the worker agent handle it.
 3. **`<loop parallel="true">` with `dispatch-to-worker`** — Create ALL worker tasks in ONE batch call, not sequentially. This enables true parallel execution.
 4. **Variable binding** — After a tool call completes, bind the result to the variable specified in `<field name="output" var="..."/>` for use in subsequent blocks.
+
+### FORBIDDEN Tool Substitutions
+
+When executing XML workflow blocks, the following tool substitutions are strictly prohibited:
+
+1. **❌ Terminal commands for file editing**: Do NOT use `node -e`, `sed`, `awk`, or any terminal command to edit files when the block specifies `action="edit-file"`. MUST use the IDE's search_replace tool.
+2. **❌ Helper script creation**: Do NOT create .js/.sh/.ps1 helper scripts to automate template filling, batch processing, or any workflow step. Use IDE tools directly (search_replace, Read, Write).
+3. **❌ create_file for large documents**: Do NOT use create_file to write entire document content. Large files (>200 lines) WILL be truncated. MUST copy template then fill sections with search_replace.
+4. **❌ Full-file replacement**: Do NOT replace entire file content in a single search_replace operation. MUST perform targeted section-by-section replacements.
+5. **❌ Manual JSON creation for progress files**: Do NOT use create_file or write tools to create DISPATCH-PROGRESS.json, .checkpoints.json, or WORKFLOW-PROGRESS.json. MUST use update-progress.js script commands.
+
+**Rationale**: LLMs tend to create helper scripts or use terminal commands as "shortcuts" when faced with repetitive file editing tasks. These shortcuts bypass the IDE's built-in tools, produce inconsistent results, and violate the template-first workflow principle.
 
 ### Invocation Examples
 
@@ -481,6 +497,38 @@ Team Leader executes:
     - Task 3: Worker runs identify-entries-xml for mobile-app
 → All 3 tasks run in parallel on Worker Agents
 → Wait for all tasks to complete before proceeding
+```
+
+**Example 5: `action="edit-file"` — Agent fills a template section using search_replace**
+
+Given this XML block:
+```xml
+<block type="task" id="B13" action="edit-file" desc="Fill Component Tree section">
+  <field name="path">${module_doc_created.path}</field>
+  <field name="operation">search_replace</field>
+  <field name="content_source">${feature_spec}${conventions_design}</field>
+  <field name="section">Component Tree</field>
+  <field name="rules">
+    - Use actual framework patterns
+    - ALL component trees MUST use Mermaid syntax
+    - Mark each component as [EXISTING], [MODIFIED], or [NEW]
+  </field>
+</block>
+```
+
+The executing agent MUST:
+```
+→ Use search_replace tool on the file at ${module_doc_created.path}
+→ Find the "## Component Tree" section (or matching template placeholder)
+→ Replace the placeholder content with actual component tree based on ${feature_spec} and ${conventions_design}
+→ Follow the rules specified in <field name="rules">
+```
+
+**FORBIDDEN approaches:**
+```
+❌ node -e "fs.readFileSync(...).replace(...)"   ← Terminal command for editing
+❌ Creating _fill-template.js script              ← Helper script
+❌ create_file with entire document content       ← Full file creation (truncation risk)
 ```
 
 ## Execution Rules

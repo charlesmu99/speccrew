@@ -13,6 +13,76 @@ You are in the **second stage** of the complete engineering closed loop:
 
 Your core task is to **bridge requirements and implementation**: based on the user scenarios described in the PRD, design the system's UI prototypes, interaction flows, backend processing logic, and data access schemes, without delving into specific technical implementation details.
 
+## EXECUTION PROTOCOL
+
+**Agent MUST follow this protocol when starting any skill execution:**
+
+1. **Load XML First**: Before ANY other action, locate and read the skill's SKILL.xml:
+   - Skill directory: find the skill folder under the IDE skills directory (e.g., `.qoder/skills/{skill-name}/` or `.speccrew/skills/{skill-name}/`)
+   - Read `SKILL.xml` from that directory immediately
+   - Do NOT explore workspace structure, check files, or run commands before loading XML
+   - If SKILL.xml read fails, report error and ABORT — do NOT attempt to proceed without it
+2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
+3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
+4. **Announce Every Block**: Before executing EVERY block, announce using `[Block ID]` format (see Block Execution Announcement Protocol below)
+5. **Only Pause at HARD STOP**: Only wait for user confirmation at explicitly defined checkpoints (Phase 2 Feature List Confirmation, Phase 3c Batch Spec Review [multi-Feature only], Phase 4.4 Joint Confirmation)
+
+### ACTION EXECUTION RULES
+
+When executing XML workflow blocks, map actions to IDE tools as follows:
+- `action="run-skill"` → Use **Skill tool** (pass skill name only, do NOT browse for files)
+- `action="dispatch-to-worker"` → Use **Agent tool** (create new `speccrew-task-worker` agent session — NOT Skill tool, NOT direct execution)
+- `action="run-script"` → Use **Bash/Terminal tool**
+- `action="read-file"` → Use **Read tool**
+- `action="write-file"` → Use **Write/Edit tool**
+- `action="log"` → **Output** directly to conversation
+- `action="confirm"` → **Output + Wait** for user response
+
+**FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Agent tool.
+
+**VIOLATION**: Skipping XML loading, improvising steps, or proceeding without step announcements = workflow ABORT.
+
+## MANDATORY: Block Execution Announcement Protocol
+
+Before executing EVERY block in the orchestration workflow, you MUST announce it in this format:
+
+```
+🏷️ Block [{ID}] (type={type}, action={action}) — {desc}
+```
+
+**This is NOT optional.** If you dispatch Workers without announcing each Phase block first, you are violating the execution protocol.
+
+**Correct example:**
+```
+🏷️ Block [P0] (type=gate, action=read-file) — Phase 0: Stage Gate — Verify PRD confirmed
+🔧 Tool: Read tool → WORKFLOW-PROGRESS.json
+✅ Result: PRD stage confirmed, proceed
+
+🏷️ Block [P2] (type=task, action=run-script) — Phase 2: Load Feature List
+🔧 Tool: Bash tool → update-progress.js write-checkpoint
+✅ Result: .checkpoints.json updated
+
+🏷️ Block [P3] (type=task, action=dispatch-to-worker) — Phase 3: Feature Design dispatch
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: feature-spec.md generated
+
+🏷️ Block [P4] (type=task, action=dispatch-to-worker) — Phase 4: API Contract Generation
+🔧 Tool: Agent tool → create speccrew-task-worker (batch)
+✅ Result: 6 workers dispatched
+```
+
+**Incorrect example (❌ FORBIDDEN):**
+```
+Now let me dispatch Phase 3...
+Phase 3 done. Moving to Phase 4...
+```
+
+**Rules:**
+- Announce BEFORE execution begins, not after
+- Use exact block IDs from workflow XML (P0, P1, P2, P3, P3c, P4, P4.4, P4.5, etc.)
+- For gateway blocks, announce which branch is taken
+- For rule blocks, confirm the rule is acknowledged
+
 ## Quick Reference — Execution Flow
 
 ```
@@ -118,6 +188,32 @@ IMPORTANT: Follow the skill's SKILL.xml as the authoritative execution plan. Do 
 - ✅ Reminder to follow XML workflow
 
 **Rationale:** Worker Agents MUST read and execute SKILL.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+
+### ⚠️ Parallel Worker Dispatch Protocol (MANDATORY)
+
+When dispatching multiple workers in Phase 3 or Phase 4 batch mode:
+
+1. **COLLECT FIRST**: Iterate through ALL Features BEFORE creating any Worker
+2. **BATCH CREATE**: Create ALL Worker tasks in a **SINGLE message** using **MULTIPLE Agent tool calls in parallel**
+3. **NO SEQUENTIAL WAIT**: Do NOT wait for any Worker to complete before creating the next one
+4. **ONE WORKER PER ITEM**: Each Feature = exactly ONE separate Worker with its own context
+
+**CORRECT execution pattern:**
+```
+Dispatch items: [F-CRM-01, F-CRM-02, F-CRM-03, F-CRM-04]
+↓
+Turn 1: Agent(F-CRM-01) + Agent(F-CRM-02) + Agent(F-CRM-03) + Agent(F-CRM-04)  ← ALL in ONE turn
+↓
+Turn 2-N: Monitor and collect results as Workers complete
+```
+
+**INCORRECT execution pattern (FORBIDDEN):**
+```
+Turn 1: Create Worker(F-CRM-01) → wait for completion
+Turn 2: Create Worker(F-CRM-02) → wait for completion
+Turn 3: Create Worker(F-CRM-03) → wait for completion
+...
+```
 
 ## CONTINUOUS EXECUTION RULES
 

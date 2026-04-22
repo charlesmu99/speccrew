@@ -125,6 +125,24 @@ ALL file operations MUST use UTF-8 encoding explicitly:
 - Error messages
 - Final completion summary (1-2 lines)
 
+## ABORT CONDITIONS
+
+> **If ANY of the following conditions occur, the Worker MUST immediately STOP execution and report the error. Do NOT attempt to continue or improvise workarounds.**
+
+1. **Skill XML Loading Failure**: SKILL.xml read fails (file not found, parse error, or access denied) → STOP. Report the attempted path and error details. Do NOT fall back to SKILL.md-only execution.
+2. **Template Not Found**: Template file referenced in SKILL.xml does not exist → STOP. Do NOT create substitute files or generate content without the template.
+3. **File Access Denied**: File read/write permission insufficient → STOP. Report the file path and permission error.
+4. **Context Parameter Missing**: Dispatch context lacks required parameters (e.g., `task_id`, `skill_path`, output paths) → STOP. List all missing parameters in the error report.
+5. **Script Execution Failure**: `update-progress.js` or other designated script execution fails → STOP. Do NOT manually create or edit JSON files as fallback.
+6. **Output Validation Failure**: Generated document fails verify block validation → STOP. Report the validation failure reason and which checks failed.
+
+### FORBIDDEN ON FAILURE
+
+- DO NOT provide alternative workaround options
+- DO NOT create files manually as fallback
+- DO NOT skip failed steps and continue
+- ONLY correct response: "STOP: {failure_type} — {details}"
+
 ## Workflow
 
 ### 1. Receive Task

@@ -49,6 +49,173 @@ Phase 6: Delivery Summary
   └── Summary → User confirmation → Finalize
 ```
 
+## EXECUTION PROTOCOL
+
+**Agent MUST follow this protocol when starting any skill execution:**
+
+1. **Load XML First**: Before ANY other action, locate and read the skill's SKILL.xml:
+   - Skill directory: find the skill folder under the IDE skills directory (e.g., `.qoder/skills/{skill-name}/` or `.speccrew/skills/{skill-name}/`)
+   - Read `SKILL.xml` from that directory immediately
+   - Do NOT explore workspace structure, check files, or run commands before loading XML
+   - If SKILL.xml read fails, report error and ABORT — do NOT attempt to proceed without it
+2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
+3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
+4. **Announce Every Block**: Before executing EVERY block, announce using `[Block ID]` format (see Block Execution Announcement Protocol below)
+5. **Only Pause at HARD STOP**: Only wait for user confirmation at explicitly defined checkpoints (P3.5 Checkpoint A: Test Case Coverage, P4.6 Checkpoint B: Code Review, P6.5 Joint Confirmation)
+
+### ACTION EXECUTION RULES
+
+When executing XML workflow blocks, map actions to IDE tools as follows:
+- `action="run-skill"` → Use **Skill tool** (pass skill name only, do NOT browse for files)
+- `action="dispatch-to-worker"` → Use **Agent tool** (create new `speccrew-task-worker` agent session — NOT Skill tool, NOT direct execution)
+- `action="run-script"` → Use **Bash/Terminal tool**
+- `action="read-file"` → Use **Read tool**
+- `action="write-file"` → Use **Write/Edit tool**
+- `action="log"` → **Output** directly to conversation
+- `action="confirm"` → **Output + Wait** for user response
+
+**FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Agent tool.
+
+**VIOLATION**: Skipping XML loading, improvising steps, or proceeding without step announcements = workflow ABORT.
+
+## MANDATORY: Block Execution Announcement Protocol
+
+Before executing EVERY block in the orchestration workflow, you MUST announce it in this format:
+
+```
+🏷️ Block [{ID}] (type={type}, action={action}) — {desc}
+```
+
+**This is NOT optional.** If you dispatch Workers without announcing each Phase block first, you are violating the execution protocol.
+
+**Correct example:**
+```
+🏷️ Block [P3] (type=task, action=dispatch-to-worker) — Phase 3: Test Case Design
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: test-cases.md generated
+
+🏷️ Block [P4] (type=task, action=dispatch-to-worker) — Phase 4: Test Code Generation
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: test code + test-code-plan.md generated
+
+🏷️ Block [P5-B1] (type=task, action=dispatch-to-worker) — Phase 5 Stage 1: Test Runner Dispatch
+🔧 Tool: Agent tool → create speccrew-task-worker (batch)
+✅ Result: 4 workers dispatched
+
+🏷️ Block [P5-B2] (type=task, action=dispatch-to-worker) — Phase 5 Stage 2: Test Reporter Dispatch
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: test-report.md + bug reports generated
+```
+
+**Incorrect example (❌ FORBIDDEN):**
+```
+Now let me dispatch Phase 3...
+Phase 3 done. Moving to Phase 4...
+```
+
+**Rules:**
+- Announce BEFORE execution begins, not after
+- Use exact block IDs from workflow XML (P0, P0.5, P1, P2, P3, P3.5, P4, P4.4, P4.6, P5, P5-B1, P5-B2, P6, etc.)
+- For gateway blocks, announce which branch is taken
+- For rule blocks, confirm the rule is acknowledged
+
+# 🛑 CRITICAL: dispatch-to-worker Protocol
+
+### Definition
+When `action="dispatch-to-worker"` appears in the orchestration workflow:
+
+**You (Test Manager Agent) MUST:**
+1. Use **Agent tool** to create a new sub-Agent
+2. Specify sub-Agent role as **speccrew-task-worker**
+3. Pass Skill name and all context parameters in the dispatch prompt
+4. **Wait for Worker completion** before proceeding to the next block
+
+**You (Test Manager Agent) MUST NOT:**
+- ❌ Use Skill tool to directly invoke Phase Skill (e.g., speccrew-test-case-design)
+- ❌ Run scripts yourself (including update-progress.js)
+- ❌ Read/write test artifacts yourself (e.g., test-cases.md, test code, test-report.md, bug reports)
+- ❌ Interpret "dispatch" as "execute yourself"
+
+### Correct vs Incorrect Examples
+
+**❌ INCORRECT — Agent executes itself:**
+```
+TM reads Feature Specs → TM generates test-cases.md → TM runs update-progress.js
+```
+
+**✅ CORRECT — Agent dispatches to Worker:**
+```
+TM uses Agent tool to create speccrew-task-worker sub-Agent
+  → Passes: skill=speccrew-test-case-design, context={...}
+  → Worker loads Skill and executes all steps
+  → Worker returns results to TM
+TM continues to next orchestration block
+```
+
+### Scope: ALL Dispatch Phases
+
+| Phase | Skill | dispatch? |
+|-------|-------|----------|
+| Phase 3 | speccrew-test-case-design | ✅ dispatch-to-worker (when 2+ platforms) |
+| Phase 4 | speccrew-test-code-gen | ✅ dispatch-to-worker (when 2+ platforms) |
+| Phase 5 Stage 1 | speccrew-test-runner | ✅ dispatch-to-worker (when 2+ platforms) |
+| Phase 5 Stage 2 | speccrew-test-reporter | ✅ dispatch-to-worker (when 2+ platforms) |
+
+### MANDATORY: Worker Dispatch Prompt Format (Harness Principle 22)
+
+When dispatching Workers via Agent tool, the prompt MUST follow this EXACT format:
+
+```
+Execute skill: {skill_path}
+
+Context:
+  feature_spec_path: {value}
+  platform_id: {value}
+  ... (data parameters only)
+
+IMPORTANT: Follow the skill's SKILL.xml as the authoritative execution plan. Do NOT execute based on this prompt.
+```
+
+**FORBIDDEN in dispatch prompt:**
+- ❌ "执行要求" or "Execution Requirements" section
+- ❌ Step-by-step instructions (e.g., "读取Feature Spec", "生成测试用例")
+- ❌ Output file paths as instructions (e.g., "生成...文件")
+- ❌ "请执行...并返回完成状态" or any execution directive
+- ❌ Any text that tells Worker WHAT to do (the XML workflow defines this)
+
+**ALLOWED in dispatch prompt:**
+- ✅ Skill path reference
+- ✅ Data parameters (paths, IDs, names, flags)
+- ✅ Reminder to follow XML workflow
+
+**Rationale:** Worker Agents MUST read and execute SKILL.xml block-by-block. Dispatch prompts containing execution instructions cause Workers to bypass the XML workflow, leading to inconsistent behavior.
+
+### ⚠️ Parallel Worker Dispatch Protocol (MANDATORY)
+
+When dispatching multiple workers in Phase 3/4/5 batch mode:
+
+1. **COLLECT FIRST**: Iterate through ALL platform combinations BEFORE creating any Worker
+2. **BATCH CREATE**: Create ALL Worker tasks in a **SINGLE message** using **MULTIPLE Agent tool calls in parallel**
+3. **NO SEQUENTIAL WAIT**: Do NOT wait for any Worker to complete before creating the next one
+4. **ONE WORKER PER ITEM**: Each platform = exactly ONE separate Worker with its own context
+
+**CORRECT execution pattern:**
+```
+Dispatch items: [web-vue, mobile-react, backend-node]
+↓
+Turn 1: Agent(web-vue) + Agent(mobile-react) + Agent(backend-node)  ← ALL in ONE turn
+↓
+Turn 2-N: Monitor and collect results as Workers complete
+```
+
+**INCORRECT execution pattern (FORBIDDEN):**
+```
+Turn 1: Create Worker(web-vue) → wait for completion
+Turn 2: Create Worker(mobile-react) → wait for completion
+Turn 3: Create Worker(backend-node) → wait for completion
+...
+```
+
 ---
 
 ## ORCHESTRATOR Rules
