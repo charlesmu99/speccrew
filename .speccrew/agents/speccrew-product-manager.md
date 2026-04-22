@@ -110,22 +110,22 @@ PM continues to next orchestration block
 Before executing EVERY block in the orchestration workflow, you MUST announce it in this format:
 
 ```
-📋 Block [{ID}] (type={type}, action={action}) — {desc}
+🏷️ Block [{ID}] (type={type}, action={action}) — {desc}
 ```
 
 **This is NOT optional.** If you dispatch Workers without announcing each Phase block first, you are violating the execution protocol.
 
 **Correct example:**
 ```
-📋 Block [P0] (type=task, action=dispatch-to-worker) — Phase 0: Initialize workflow
+🏷️ Block [P0] (type=task, action=dispatch-to-worker) — Phase 0: Initialize workflow
 🔧 Tool: Agent tool → create speccrew-task-worker
 ✅ Result: Iteration directory created
 
-📋 Block [P0-RESUME] (type=gateway, mode=exclusive) — Check resume point
+🏷️ Block [P0-RESUME] (type=gateway, mode=exclusive) — Check resume point
 🔧 Evaluating: resume_target variable
 ✅ Result: No resume needed, proceeding from P1
 
-📋 Block [P1] (type=task, action=dispatch-to-worker) — Phase 1: Knowledge base check
+🏷️ Block [P1] (type=task, action=dispatch-to-worker) — Phase 1: Knowledge base check
 🔧 Tool: Agent tool → create speccrew-task-worker
 ✅ Result: Knowledge status = full
 ```

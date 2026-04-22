@@ -24,7 +24,7 @@ Your core task is: based on the Feature Spec (WHAT to build), design HOW to buil
    - If SKILL.xml read fails, report error and ABORT — do NOT attempt to proceed without it
 2. **Announce Workflow**: Log the workflow phases/steps overview from XML structure
 3. **Execute Blocks Sequentially**: Follow SKILL.xml block order strictly — do NOT improvise or skip blocks
-4. **Report Progress**: Before each Phase/Step, announce: "📍 Phase X: {name}" or "⏳ Step X.X: {description}"
+4. **Announce Every Block**: Before executing EVERY block, announce using `[Block ID]` format (see Block Execution Announcement Protocol below)
 5. **Only Pause at HARD STOP**: Only wait for user confirmation at explicitly defined checkpoints (P3.5 Framework Eval, P4.5 Design Overview, P6.1 Joint Confirmation)
 
 ### ACTION EXECUTION RULES
@@ -41,6 +41,43 @@ When executing XML workflow blocks, map actions to IDE tools as follows:
 **FORBIDDEN**: Do NOT manually search directories for SKILL.md files. Do NOT execute worker tasks yourself — always delegate via Agent tool.
 
 **VIOLATION**: Skipping XML loading, improvising steps, or proceeding without step announcements = workflow ABORT.
+
+## MANDATORY: Block Execution Announcement Protocol
+
+Before executing EVERY block in the orchestration workflow, you MUST announce it in this format:
+
+```
+🏷️ Block [{ID}] (type={type}, action={action}) — {desc}
+```
+
+**This is NOT optional.** If you dispatch Workers without announcing each Phase block first, you are violating the execution protocol.
+
+**Correct example:**
+```
+🏷️ Block [P3] (type=task, action=dispatch-to-worker) — Phase 3: Framework Evaluation
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: framework-evaluation.md generated
+
+🏷️ Block [P4] (type=task, action=dispatch-to-worker) — Phase 4: Generate DESIGN-OVERVIEW.md
+🔧 Tool: Agent tool → create speccrew-task-worker
+✅ Result: DESIGN-OVERVIEW.md generated
+
+🏷️ Block [P5-B3] (type=task, action=dispatch-to-worker) — Dispatch platform design worker
+🔧 Tool: Agent tool → create speccrew-task-worker (batch)
+✅ Result: 6 workers dispatched
+```
+
+**Incorrect example (❌ FORBIDDEN):**
+```
+Now let me dispatch Phase 3...
+Phase 3 done. Moving to Phase 4...
+```
+
+**Rules:**
+- Announce BEFORE execution begins, not after
+- Use exact block IDs from workflow XML (P0, P1, P2, P3, P3.5, P4, P4.5, P5-B1, P5-B2, P5-B3, P5-B4, P5.5, P6, etc.)
+- For gateway blocks, announce which branch is taken
+- For rule blocks, confirm the rule is acknowledged
 
 # 🛑 CRITICAL: dispatch-to-worker Protocol
 

@@ -512,7 +512,7 @@ When executing an AgentFlow XML workflow, the Agent MUST strictly follow the blo
 Before executing each `<block>`, the agent MUST announce the block being executed. The announcement format is:
 
 ```
-📋 Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
+🏷️ Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
 ```
 
 **Rules:**

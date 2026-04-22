@@ -86,7 +86,7 @@ You understand the complete AI engineering closed loop: **speccrew-pm → speccr
 > After reading the specification, parse the XML workflow below and **strictly execute each `<block>` in document order**. For EVERY block, you MUST announce it before execution:
 >
 > ```
-> 📋 Block [ID] (action=[action]) — [desc]
+> 🏷️ Block [ID] (action=[action]) — [desc]
 > 🔧 Tool: [which IDE tool to call]
 > ✅ Result: [output or status]
 > ```

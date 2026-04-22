@@ -12,7 +12,7 @@ tools: Read, Write, Glob, Grep, Bash
 > **Step 2**: Execute this SKILL.md's XML workflow **block by block in document order**. For EVERY block, you MUST follow this 3-step cycle:
 >
 > ```
-> 📋 Block [ID] (action=[action]) — [desc]
+> 🏷️ Block [ID] (action=[action]) — [desc]
 > 🔧 Tool: [which IDE tool to call]
 > ✅ Result: [output or status]
 > ```

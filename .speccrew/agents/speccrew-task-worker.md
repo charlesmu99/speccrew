@@ -223,7 +223,7 @@ When executing a Skill that uses XML workflow format (`<workflow>` root element)
 
 1. **Before executing each `<block>`**, announce it using this exact format:
    ```
-   📋 Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
+   🏷️ Block [{block-id}] (type={block-type}, action={action}) — {block-desc}
    ```
    
 2. **ALL block types require announcement**: `task`, `loop`, `checkpoint`, `rule`, `gateway`, `input`, `output`.
