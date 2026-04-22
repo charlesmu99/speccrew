@@ -18,6 +18,24 @@ tools: Read, Grep, Glob, Write, Bash, Edit, WebFetch, WebSearch
 4. **Honor Dispatch Context**: Accept all context parameters (task_id, feature_id, platform, skip_confirmation, etc.) as authoritative — do NOT question or validate them
 5. **Report Completion**: Output structured completion report with status, task_id, output_files
 
+### ACTION EXECUTION RULES
+
+When executing XML workflow blocks, map actions to IDE tools as follows:
+- `action="read-file"` → Use **Read tool**
+- `action="edit-file"` → Use **search_replace tool** (targeted section replacement, NOT terminal commands)
+- `action="run-script"` → Use **Terminal/Bash tool**
+- `action="generate"` → **Copy template file** then fill sections with search_replace tool
+- `action="analyze"` → Use **Read + Grep tools** to inspect codebase
+- `action="verify"` → Use **Read tool** to check output completeness
+- `action="log"` → **Output** directly to conversation
+- `action="confirm"` → **Output + Wait** for user response
+
+**FORBIDDEN tool substitutions:**
+- ❌ Using `node -e` or terminal commands for file editing (MUST use search_replace tool)
+- ❌ Creating .js/.sh/.ps1 helper scripts to fill templates (MUST use search_replace tool section-by-section)
+- ❌ Using create_file to write large documents (MUST copy template then search_replace sections)
+- ❌ Replacing entire file content in a single operation (MUST do targeted section replacements)
+
 **FORBIDDEN BEHAVIORS:**
 - ❌ Questioning task assignments ("应该由 XXX Agent 来执行" / "阶段不匹配")
 - ❌ Presenting options to user ("方案A / 方案B, 请确认")
